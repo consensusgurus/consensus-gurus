@@ -5586,3 +5586,92 @@ rollout passed while three games were throwing a temporal-dead-zone error, becau
 after hydration and the server markup looks perfect. Load `/quiz/<id>?loft=1`, then check: the cap
 band lines up with the board, the footer is re-inked on navy, the finish flips, the console is
 clean, and the SAME quiz without the flag is unchanged.
+
+---
+
+## Palette: MIDNIGHT (shipped 2026-08-21)
+
+Same blue, much darker ground. `lib/theme.js` and the `:root` block in `app/globals.css` are the
+palette; `scripts/check-theme.mjs` asserts the two agree. The whole diff from the previous navy:
+
+```
+ground  #14264f -> #0b0f1a      accent / blueDark  #1e3a8a -> #233a63
+blue/cta #2563eb -> #2f6fe4     blueDeep/ctaHover  #1d4ed8 -> #2563eb
+ink     #0b0c0e -> #0b0d12
+```
+
+**Sixteen of the twenty-seven tokens did not move.** Every light neutral, the pale blue ramp,
+success, successDeep, danger, gold, silver and bronze are byte-identical to before. That is the
+point of the direction rather than an accident of it.
+
+### Why this one, after two failed attempts at something warmer
+
+Two warm palettes were built and pulled the same day. The failure is worth keeping because it is
+a rule, not a mishap: **a brand colour may not sit in a hue band that already carries game state.**
+Measured off the live code, the occupied bands are
+
+| Hue | Meaning |
+|---|---|
+| 0-30° | wrong / failed |
+| 30-60° | partial / near-miss / unfinished / medals |
+| 135-165° | correct / solved |
+| 330-360° | streak |
+
+Coral sits at hue 9°, inside the busiest of them, so a primary button and a wrong answer were the
+same colour separated only by how dark they were. Moving `danger` out to `#8f1d24` was tried first
+and did not help, because the problem is the CATEGORY, not the distance. The only hue regions
+genuinely free of state meaning are 240-300° (indigo / violet / plum) and, weakly, 180-210°.
+Midnight sidesteps the question entirely by adding no hue at all.
+
+### Two things a future palette change must know
+
+**1. A token swap is NOT a recolour, and `PENDING = []` does not mean what it says.**
+`check-theme.mjs` declares every tree under `app/` converted and guarded, and it has been FAILING
+the whole time with ~300 raw brand hexes it inherited. Run it and read the number before planning
+anything: a green guard means the change is two files, a red one means a codemod. This change was
+52 files on top of the tokens.
+
+**2. There is a second hiding place the guard cannot see at all.** The header, console bands,
+category strip and rails are painted with hand-picked navies that were never tokens: `#2c4fa8`,
+`#2c437c`, `#16307a`, `#12276b`, `#1c46a8` and about twenty more, 56 occurrences. `check-theme`
+builds its `HEXES` set from the token table, so **anything not in that table is invisible to every
+check in the repo**. During the coral attempt these were what kept the header navy after the tokens
+had already changed, and they needed a whole second pass. `midnight.mjs` handles them with a
+darkening transform over an explicit file list.
+
+### The traps in the codemod itself, all of which fired
+
+- **The map is a CHAIN.** `#2563eb -> #2f6fe4` and `#1d4ed8 -> #2563eb`. Applied as sequential
+  replaces, `#1d4ed8` lands on `#2f6fe4` via two hops. One regex pass with a lookup is what makes
+  it safe; do not "simplify" that.
+- **Part 2 must not re-darken part 1's output.** The first run printed `#233a63 -> #142239`: the
+  brand-new accent, darkened a second time into a colour nobody approved. `darken()` now refuses
+  any value in the token table.
+- **The darkening gate needs a LIGHTNESS CEILING, not just hue and saturation.** `#dbe6ff` and
+  `#bfd0ee` are text and accents sitting ON the dark chrome; pulling them down destroys their
+  contrast against it. Only `L <= 0.50` moves. The hue floor is 210 rather than 205, which spares
+  `#2f6f9f`, the school/sports DEPARTMENT colour.
+- **The CTA is constrained by the ink it is paired with, not by taste.** `T.cta` sits beside
+  `T.white` at roughly 80 call sites and beside `T.ctaInk` at 22. `#3b82f6` is 3.68:1 against white
+  and would fail all 80; `#2f6fe4` is 4.65:1. Check that pairing ratio BEFORE choosing a value.
+- **Verify by proof, not by reading the diff.** The gate here: strip every hex and rgb triplet from
+  before and after and assert the residue is byte-identical per file; assert the state colours and
+  light neutrals are unchanged COUNT FOR COUNT; assert the old values are gone and the chained ones
+  are conserved; re-parse every changed `.js`/`.jsx` with acorn + acorn-jsx (both already in
+  `node_modules`; there is no esbuild binary in the sandbox).
+- **Two of the first verifier's own checks were wrong**, which is its own lesson. "No old value
+  survives" is undecidable for a chained map, since `#2563eb` is both an old key and a new value;
+  and "nothing `darken()` would touch remains" is impossible, because darkening is not idempotent
+  and its own output is still a dark navy. Both were replaced with conservation counts and an
+  explicit before-set.
+
+### Outstanding
+
+1. **`check-theme.mjs` is still red** (299 raw hexes). This change neither worsened nor paid down
+   that debt. Paying it down means converting those literals to `T.*` / `var(--*)`.
+2. **Its token regex misses `blue400` and `blue200`** (`([a-zA-Z]+):` does not match a digit), so
+   those two are unverified by parity on both sides. Consistent, so no false failure, but not
+   covered.
+3. **The blue game-tile art still matches**, since the hue did not change. Any future hue change
+   needs ~65 PNGs under `/games/blue/` redrawn, and `tileFallback` silently swaps a missing file
+   for the full-colour original, so a half-done redraw shows as one garish tile and no error.

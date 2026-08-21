@@ -95,13 +95,13 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-h1{font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.08;margin:4px 0 0;}
         .clp-sub{font-size:14px;font-weight:600;color:#c3d5f5;margin-top:8px;line-height:1.5;max-width:60ch;}
         .clp-acts{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap;}
-        .clp-go{display:inline-flex;align-items:center;gap:8px;background:var(--cta,#2563eb);color:#fff;
+        .clp-go{display:inline-flex;align-items:center;gap:8px;background:var(--cta,#2f6fe4);color:#fff;
                 border:none;border-radius:10px;padding:13px 19px;font-size:13px;font-weight:800;
                 letter-spacing:.03em;text-decoration:none;cursor:pointer;}
         .clp-sh{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;
-                border:1.5px solid #3f5896;border-radius:10px;padding:13px 17px;font-size:13px;
+                border:1.5px solid #253357;border-radius:10px;padding:13px 17px;font-size:13px;
                 font-weight:800;letter-spacing:.03em;cursor:pointer;font-family:inherit;}
-        .clp-sh:hover{background:#1c3163;}
+        .clp-sh:hover{background:#101c39;}
         .clp-meta{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap;}
         .clp-meta div b{display:block;font-size:21px;font-weight:800;letter-spacing:-.5px;
                         font-variant-numeric:tabular-nums;line-height:1;}
@@ -153,7 +153,7 @@ export default function CircuitLanding({ circuit, games }) {
         .clp-tier.bronze{background:#f7ece2;color:#8a5a30;}
 
         .clp-all{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
-                 background:var(--white);color:var(--accent,#1e3a8a);border:1.5px solid #2c437c;
+                 background:var(--white);color:var(--accent,#233a63);border:1.5px solid #1a2748;
                  border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                  letter-spacing:.03em;text-decoration:none;}
         .clp-all:hover{background:#eef3ff;}

@@ -311,7 +311,7 @@ function QuizCelebration({ kind, onDone }) {
     window.addEventListener('resize', size);
     const big = kind === 'big';
     const GOLD = ['#fbb615', '#ffe24d', '#f59008', '#ffcb45'];
-    const MIX = [T.accent, '#1d4ed8', T.success, '#fbb615', T.white, '#ef476f'];
+    const MIX = [T.accent, '#2563eb', T.success, '#fbb615', T.white, '#ef476f'];
     const pal = big ? GOLD : MIX;
     const rnd = (a, b) => a + Math.random() * (b - a);
     let parts = [];

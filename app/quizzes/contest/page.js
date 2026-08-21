@@ -60,7 +60,7 @@ export default function ContestPage() {
           &larr; Back to all games
         </Link>
 
-        <div style={{ background: '#1e3a8a', color: '#fff', borderRadius: 14, padding: '26px 26px 22px', margin: '16px 0 22px' }}>
+        <div style={{ background: '#233a63', color: '#fff', borderRadius: 14, padding: '26px 26px 22px', margin: '16px 0 22px' }}>
           <div style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#bfdbfe', marginBottom: 8 }}>
             Limited time · {CONTEST.days} days
           </div>
@@ -74,13 +74,13 @@ export default function ContestPage() {
 
         <ContestBoard />
 
-        <h2 style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em', margin: '28px 0 4px', color: '#0b0c0e' }}>
+        <h2 style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.01em', margin: '28px 0 4px', color: '#0b0d12' }}>
           Rules
         </h2>
         <dl style={{ margin: 0 }}>
           {rules.map(([term, body]) => (
             <div key={term} style={{ borderTop: '1px solid #e5e7eb', padding: '14px 0' }}>
-              <dt style={{ fontSize: 13.5, fontWeight: 800, color: '#0b0c0e', marginBottom: 4 }}>{term}</dt>
+              <dt style={{ fontSize: 13.5, fontWeight: 800, color: '#0b0d12', marginBottom: 4 }}>{term}</dt>
               <dd style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: '#3f4757' }}>{body}</dd>
             </div>
           ))}

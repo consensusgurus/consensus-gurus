@@ -4,26 +4,26 @@
    places or the check fails. Values here are the CURRENT palette, unchanged;
    the Mind Loft flip swaps them here and in lib/theme.js together. */
 :root {
-  --ink: #0b0c0e;
+  --ink: #0b0d12;
   --muted: #3f4757;
   --slate: #646c7a;
-  --accent: #1e3a8a;
+  --accent: #233a63;
   --white: #ffffff;
   --paper: #f4f6f9;
   --surface: #f7f8fa;
   --surface-alt: #eef2f7;
   --border: #e5e7eb;
-  --ground: #14264f;
-  --blue: #2563eb;
-  --blue-deep: #1d4ed8;
-  --blue-dark: #1e3a8a;
+  --ground: #0b0f1a;
+  --blue: #2f6fe4;
+  --blue-deep: #2563eb;
+  --blue-dark: #233a63;
   --blue-400: #60a5fa;
   --blue-200: #bfdbfe;
   --accent-soft: #eef3ff;
   --accent-border: #cddffb;
-  --cta: #2563eb;
+  --cta: #2f6fe4;
   --cta-ink: #ffffff;
-  --cta-hover: #1d4ed8;
+  --cta-hover: #2563eb;
   --success: #10b981;
   --success-deep: #15803d;
   --danger: #c0392b;

@@ -854,7 +854,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
 
           {playing && hintOk && !g.hintUsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(30,58,138,0.45)', color: '#1b3268' }}>
+              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(35,58,99,0.45)', color: '#1b3268' }}>
                 <Lightbulb size={14} /> Hint
               </button>
             </div>

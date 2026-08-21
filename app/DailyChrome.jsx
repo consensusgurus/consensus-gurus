@@ -7,8 +7,8 @@
 // It replaces DailyTopNav (the quiet "Puzzles & Quizzes / Top 10 Lists" line)
 // with the SAME header the home page carries:
 //
-//   1. #1e3a8a masthead  ─┐ both from QuizCommandHeader variant="inner", via
-//   2. #16307a stat bar  ─┘ QuizNavHeader, already in normal flow
+//   1. #233a63 masthead  ─┐ both from QuizCommandHeader variant="inner", via
+//   2. #101d44 stat bar  ─┘ QuizNavHeader, already in normal flow
 //   3. #eef3ff slate rail  — DailySlateRail
 //
 // NOTHING IS PINNED (owner rule, 2026-08-04). No position:fixed, no sticky:

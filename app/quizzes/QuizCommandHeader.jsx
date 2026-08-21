@@ -246,10 +246,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
           .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
           .qchm-wm em{font-style:normal;color:var(--blue-400);}
-          .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #33509b;padding-left:13px;font-weight:800;white-space:nowrap;}
+          .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #1e2e5a;padding-left:13px;font-weight:800;white-space:nowrap;}
           .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
-          .qchm-nav a,.qchm-nav button{color:var(--white);background:#2c4fa8;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
-          .qchm-nav a:hover,.qchm-nav button:hover{background:#3a60c4;border-color:#7a99e0;}
+          .qchm-nav a,.qchm-nav button{color:var(--white);background:#1a2e61;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
+          .qchm-nav a:hover,.qchm-nav button:hover{background:#223872;border-color:#7a99e0;}
           .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
           /* THE NAME, AND ONLY THE NAME (owner). A loft page hides the stat row
@@ -263,8 +263,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .dch-loft .qchm-nav{order:4;margin-left:12px;}
           .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
           .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
-          .qchm-r2{background:#16307a;color:var(--white);border-bottom:3px solid var(--blue);}
-          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #2b4a99;white-space:nowrap;}
+          .qchm-r2{background:#101d44;color:var(--white);border-bottom:3px solid var(--blue);}
+          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #192b59;white-space:nowrap;}
           .qchm-cell:first-child{padding-left:0;}
           .qchm-cell:last-of-type{border-right:none;}
           .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9fb8ee;font-weight:800;}
@@ -274,8 +274,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
           .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
-          .qchm-bt{border:1px solid #5b7fd4;background:#264aa0;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
-          .qchm-bt:hover{background:#3a60c4;border-color:#8aa8e8;color:var(--white);}
+          .qchm-bt{border:1px solid #5b7fd4;background:#162b5d;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
+          .qchm-bt:hover{background:#223872;border-color:#8aa8e8;color:var(--white);}
           /* The share CTA is the one button in this row that is asking for
              something, so it leaves the blue set and takes the contest's gold
              (owner, 2026-08-08). Dark ink, because gold cannot carry white. */

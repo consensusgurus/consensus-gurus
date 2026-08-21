@@ -31,7 +31,7 @@
 // Palette: sits directly on the page ground (#f7f8fa). White tiles, navy
 // (#ffffff) as a material for the hero + expand panel, gold (#e8b43a) reserved
 // for daily identity, green for a finished game. Matches the live QuizHomeClient
-// tokens (bg #f7f8fa / surface #fff / accent #1e3a8a / cta #2563eb).
+// tokens (bg #f7f8fa / surface #fff / accent #233a63 / cta #2f6fe4).
 //
 // Data wiring is unchanged from the strip: completion follows the signed-in
 // player across devices via /api/quiz/daily-status (with the same-device
@@ -3046,7 +3046,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              whose own border is the colour of its fill and so reaches the
              console edge. Both bands now start on the same pixel. */
           .dhome.slate .dh-sbar{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;padding:0;gap:0;background:transparent;border:none;}
-          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#2c4fa8;color:var(--white);min-width:0;}
+          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#1a2e61;color:var(--white);min-width:0;}
           /* Cards are addressed by CLASS now: the adjacent-sibling rule
              used to mean "the Easiest half", and with paused cards in the same
              bar it would mean every card but the first. */
@@ -3089,7 +3089,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              the same row need a divider where the first two tones, far enough
              apart to divide themselves, do not. */
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
-          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.fresh{background:#0f1d3e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           /* The incomplete card carries the Incomplete today band's red, so the
              cap and the group below it read as the same thing said twice. */
@@ -3100,7 +3100,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
           .dhome.slate .dh-cell.crowd.capw{grid-column:1/-1;}
           .dhome.slate .dh-cell.fav:hover{background:#4a7ce0;}
-          .dhome.slate .dh-cell.fresh:hover{background:#1d3d85;}
+          .dhome.slate .dh-cell.fresh:hover{background:#12244c;}
           .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
           /* Open: a scroller that borrows Ready to play's space instead of
              pushing the console past the fold. The ceiling is --cap-pmax,
@@ -3195,7 +3195,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           /* The other two cap cards, stacked with the rest. Same two tones the
              desktop cap uses, so the ramp reads the same at both widths. */
           .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;}
-          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;}
+          .dhome.slate .dh-cell.fresh{background:#0f1d3e;text-decoration:none;}
           .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;}
           .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;}
           .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
@@ -3230,7 +3230,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            above 900px, so up here a bare dot would mean nothing. Below 900px the
            bands are on screen, so the word comes off and the dot reads against
            them. Dot colours are the bands' hues lifted for the navy ground:
-           #2c4fa8 and #16a34a are legible on white and invisible on this bar. */
+           #1a2e61 and #16a34a are legible on white and invisible on this bar. */
         /* Typography sits on the PIP, not on .sl-count, since the ready pip
            lives outside that group and has to look identical to the ones in it. */
         .sl-pip{display:inline-flex;align-items:center;gap:5px;font-style:normal;padding:2px 8px 2px 6px;border-radius:999px;background:rgba(255,255,255,0.11);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
@@ -3260,10 +3260,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            The fade is a pseudo-element on the WRAPPER rather than a border on
            the strip, so it sits above the tabs and below the chip and no tab
            appears to run under the chevron. Its colour has to be quoted per
-           breakpoint because the strip is --accent on a desktop and #2c4fa8 on
+           breakpoint because the strip is --accent on a desktop and #1a2e61 on
            a phone. */
         .sl-filtw{position:relative;flex:none;}
-        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
+        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #0f1d3e;border-bottom:2px solid #0f1d3e;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
         .sl-filt::-webkit-scrollbar{display:none;}
         /* Room for the last tab to clear the chip once it is scrolled to. */
         .sl-filtw.mr .sl-filt{padding-right:26px;}
@@ -3274,8 +3274,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            strip read "SU" with a button sitting on it, which looks broken
            rather than scrollable. Solid to just past the chip, then out. */
         .sl-filtw.ml::before,.sl-filtw.mr::after{content:'';position:absolute;top:0;bottom:2px;width:60px;pointer-events:none;z-index:1;}
-        .sl-filtw.ml::before{left:0;background:linear-gradient(to right,var(--accent) 0,var(--accent) 30px,rgba(30,58,138,0) 100%);}
-        .sl-filtw.mr::after{right:0;background:linear-gradient(to left,var(--accent) 0,var(--accent) 30px,rgba(30,58,138,0) 100%);}
+        .sl-filtw.ml::before{left:0;background:linear-gradient(to right,var(--accent) 0,var(--accent) 30px,rgba(35,58,99,0) 100%);}
+        .sl-filtw.mr::after{right:0;background:linear-gradient(to left,var(--accent) 0,var(--accent) 30px,rgba(35,58,99,0) 100%);}
         .sl-fnav{position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;border:0;padding:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.18);color:var(--white);cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent;}
         .sl-fnav:hover{background:rgba(255,255,255,0.34);}
         .sl-fnav:focus{outline:none;}
@@ -3464,7 +3464,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              rendered) come from renderSlate, so the offsets shrink to fit the
              day. --bh is the band's own height; keep the two in step if the
              padding or type size here changes. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;order:4;
+          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#1a2e61;grid-column:1/-1;order:4;
             --bh:30px;position:sticky;top:calc(var(--bi,0) * var(--bh));bottom:calc((var(--bn,1) - 1 - var(--bi,0)) * var(--bh));z-index:3;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
@@ -3626,7 +3626,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              today is 8 (band) and 9 (rows), shut from its own band. A drawer
              shares its row's value, and equal-order items keep source order, so
              a drawer stays under its own row. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
+          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#1a2e61;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
           /* In progress: the gold the slate has always used for a game you have
@@ -3778,12 +3778,12 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-bar.four{gap:6px;}
           .sl-bar.four .sl-count{gap:5px;}
           .sl-bar.four .sl-pip{font-size:9px;gap:3px;letter-spacing:0;}
-          .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
+          .sl-filt{background:#1a2e61;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           /* Same fade, the phone strip's own ground. The bottom is flush here
              because this strip carries no 2px bottom rule to sit above. */
           .sl-filtw.ml::before,.sl-filtw.mr::after{bottom:0;}
-          .sl-filtw.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-          .sl-filtw.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+          .sl-filtw.ml::before{background:linear-gradient(to right,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
+          .sl-filtw.mr::after{background:linear-gradient(to left,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
           .sl-filtw.mr .sl-filt{padding-right:30px;}
           .sl-filtw.ml .sl-filt{padding-left:30px;}
           .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
@@ -4137,11 +4137,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the whole point, and its own bottom rule so the pair reads as a unit
            rather than as one strip that happens to have wrapped. */
         .dhome.cats .sl-filtw2{position:relative;flex:none;}
-        .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
+        .dhome.cats .sl-filt2{background:#1a2e61;border-top:1px solid #0f1d3e;}
         .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{content:'';position:absolute;top:0;bottom:0;width:60px;pointer-events:none;z-index:1;}
         .dhome.cats .sl-filtw2:not(.ml)::before,.dhome.cats .sl-filtw2:not(.mr)::after{display:none;}
-        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
         .dhome.cats .sl-filt2 button{color:#c6d6f4;}
         .dhome.cats .sl-filt2 button:hover{color:var(--white);}
         .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}

@@ -59,7 +59,7 @@ const COLORS = {
 // The number palette. Eight steps that stay legible on white at 13px, and
 // deliberately NOT a rainbow: the low numbers you read constantly are cool and
 // quiet, the high ones you meet rarely are hot, so a 6 catches the eye.
-const NUM_COLOR = ['', '#2563eb', '#15803d', '#c0392b', '#1e3a8a', '#a16207', '#0e7490', '#0b0c0e', '#6b7280'];
+const NUM_COLOR = ['', '#2f6fe4', '#15803d', '#c0392b', '#233a63', '#a16207', '#0e7490', '#0b0d12', '#6b7280'];
 const HELP_KEY = 'sot_sweep_help_seen';
 const STATS_KEY = 'sot_sweep_stats';
 const VIEW_ROWS = 15;          // rows of field on screen at once

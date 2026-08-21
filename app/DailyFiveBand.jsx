@@ -370,17 +370,17 @@ export default function DailyFiveBand() {
           the rule is cheaper to follow than to rediscover. */}
       <style dangerouslySetInnerHTML={{ __html: `
         /* THE EDGE IS LOAD-BEARING, not decoration. The band's ground
-           (--ground #14264f) is DARKER than the page behind the console
-           (--accent #1e3a8a), and every other part of the console is defined by
+           (--ground #0b0f1a) is DARKER than the page behind the console
+           (--accent #233a63), and every other part of the console is defined by
            contrast rather than by a border: the title band is the page colour,
            the cap cards are blue, the board is white. So the band's right edge
            met the page navy with nothing between them and the section read as a
            hole in the card rather than as part of it. The 1.5px rule is the same
-           #2c437c the band already draws its own game cards in, which is lighter
+           #1a2748 the band already draws its own game cards in, which is lighter
            than BOTH the band and the page, so it reads against either. Left is
            covered by the 4px gold rule, so only the right needs one. */
         .d5{position:relative;background:var(--ground);color:#fff;padding:12px 16px 13px;
-            border-right:1.5px solid #2c437c;
+            border-right:1.5px solid #1a2748;
             font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         /* Full-bleed on a phone (the console loses its own side edges there), so
            a right rule would be a stray line down the screen. */
@@ -453,7 +453,7 @@ export default function DailyFiveBand() {
                text-transform:uppercase;text-decoration:none;white-space:nowrap;}
         .d5-go:hover{background:#f0c65c;}
         .d5-go.done{background:var(--success);color:#04301f;}
-        .d5-bd{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;color:#dbe6ff;
+        .d5-bd{flex:none;background:rgba(255,255,255,.12);border:1px solid #1a2748;color:#dbe6ff;
                border-radius:8px;padding:10px 13px;font-size:10.5px;font-weight:800;letter-spacing:.07em;
                text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .d5-bd:hover{background:rgba(255,255,255,.2);}
@@ -467,9 +467,9 @@ export default function DailyFiveBand() {
            phone rule below, which collapses the track to one column, and the
            five cards would come back side by side at 390px. */
         .d5-track{display:grid;grid-template-columns:repeat(var(--d5-cols,5),minmax(0,1fr));gap:7px;}
-        .d5-g{position:relative;display:block;background:rgba(255,255,255,.07);border:1px solid #2c437c;
+        .d5-g{position:relative;display:block;background:rgba(255,255,255,.07);border:1px solid #1a2748;
               border-radius:9px;padding:8px 10px;min-width:0;text-decoration:none;color:inherit;}
-        .d5-g:hover{background:rgba(255,255,255,.14);border-color:#4a6ab5;}
+        .d5-g:hover{background:rgba(255,255,255,.14);border-color:#2b3d69;}
         .d5-gi{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
         .d5-num{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.16);
                 color:#c7d7fb;font-size:9.5px;font-weight:800;display:flex;align-items:center;
@@ -509,11 +509,11 @@ export default function DailyFiveBand() {
         .d5-g.now .d5-num{background:#fff;color:var(--blue-deep);}
 
         /* the board, revealed under the track */
-        .d5-lb{margin-top:11px;border-top:1px solid #2c437c;padding-top:10px;}
+        .d5-lb{margin-top:11px;border-top:1px solid #1a2748;padding-top:10px;}
         .d5-lbh{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
                 margin-bottom:7px;}
         .d5-lbr{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);}
-        .d5-lbr.me{background:rgba(37,99,235,.28);margin:0 -8px;padding:5px 8px;border-radius:6px;border-bottom:none;}
+        .d5-lbr.me{background:rgba(47,111,228,.28);margin:0 -8px;padding:5px 8px;border-radius:6px;border-bottom:none;}
         .d5-rk{flex:none;width:20px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#8fa9de;text-align:right;}
         .d5-rk.g1{color:var(--gold);}.d5-rk.g2{color:var(--silver);}.d5-rk.g3{color:var(--bronze);}
         .d5-who{flex:1;min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -578,7 +578,7 @@ export default function DailyFiveBand() {
                      -webkit-tap-highlight-color:transparent;}
           /* Sized as a real tap target, not a text link: it is one of only two
              controls on the phone band. */
-          .d5-pipbd{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;
+          .d5-pipbd{flex:none;background:rgba(255,255,255,.12);border:1px solid #1a2748;
                     border-radius:7px;padding:7px 11px;font-size:9.5px;font-weight:800;
                     letter-spacing:.11em;text-transform:uppercase;color:#dbe6ff;
                     text-decoration:none;-webkit-tap-highlight-color:transparent;}
@@ -700,11 +700,11 @@ export default function DailyFiveBand() {
            .d5-pcyc in the max-width:900 block below. */
         .d5-pcyc{display:none;}
         .d5-cyc{flex:none;width:21px;height:21px;border-radius:5px;background:rgba(255,255,255,.12);
-                border:1px solid #2c437c;color:#dbe6ff;display:inline-flex;align-items:center;
+                border:1px solid #1a2748;color:#dbe6ff;display:inline-flex;align-items:center;
                 justify-content:center;cursor:pointer;font-family:inherit;padding:0;}
         .d5-cyc:hover{background:rgba(255,255,255,.24);}
         .d5-all{flex:none;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);
-                border:1px solid #2c437c;color:#dbe6ff;border-radius:5px;height:21px;padding:0 9px;
+                border:1px solid #1a2748;color:#dbe6ff;border-radius:5px;height:21px;padding:0 9px;
                 font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
                 cursor:pointer;font-family:inherit;white-space:nowrap;}
         .d5-all:hover{background:rgba(255,255,255,.24);}
@@ -721,7 +721,7 @@ export default function DailyFiveBand() {
            and the board does not overflow anyway — --dh-fit is MEASURED from
            this band's height, and the fit effect already re-runs when it opens, so
            the board simply resizes to what is left. */
-        .d5-pick{margin-top:10px;background:#0f2350;border:1px solid #3a5a9e;
+        .d5-pick{margin-top:10px;background:#0a152d;border:1px solid #22345c;
                  border-radius:11px;padding:9px;}
         .d5-pkh{display:flex;align-items:center;gap:10px;padding:0 3px 8px;}
         .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fa9de;}
@@ -733,20 +733,20 @@ export default function DailyFiveBand() {
            lands the close at y=799, inside the viewport by 45px and off the
            bottom of anything shorter. A control at the top of the thing you
            want to shut does not depend on how tall it is. */
-        .d5-pkx{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;color:#dbe6ff;
+        .d5-pkx{flex:none;background:rgba(255,255,255,.12);border:1px solid #1a2748;color:#dbe6ff;
                 border-radius:5px;height:20px;padding:0 9px;font-size:8.5px;font-weight:800;
                 letter-spacing:.11em;text-transform:uppercase;cursor:pointer;font-family:inherit;}
         .d5-pkx:hover{background:rgba(255,255,255,.24);}
         .d5-pkg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
-        .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #2c437c;
+        .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #1a2748;
                 border-radius:8px;padding:7px 9px 8px;cursor:pointer;overflow:hidden;text-align:left;
                 font-family:inherit;color:inherit;}
         .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#5b8cf0;}
-        .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#3d5794;}
+        .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#233256;}
         .d5-pkc.on::before{background:var(--blue);}
         .d5-pkc.fin::before{background:var(--success);}
         .d5-pkc.mq::before{background:var(--gold);}
-        .d5-pkc.on{background:rgba(37,99,235,.28);border-color:#5b8cf0;}
+        .d5-pkc.on{background:rgba(47,111,228,.28);border-color:#5b8cf0;}
         /* The marquee takes a double-width cell in the lead position, so the
            grid says which one it is with no caption at all. */
         .d5-pkc.mq{grid-column:span 2;background:rgba(232,180,58,.14);border-color:#7a6021;}

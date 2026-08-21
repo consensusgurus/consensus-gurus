@@ -229,8 +229,8 @@ export default function LoftCap({
   align-items:center;justify-content:center;cursor:pointer;
   border:0;padding:0;font-family:inherit;font-size:21px;font-weight:800;line-height:1;
   color:var(--white)}
-.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
-.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--blue) 45%,rgba(37,99,235,0) 100%)}
+.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--blue) 45%,rgba(47,111,228,0) 100%)}
+.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--blue) 45%,rgba(47,111,228,0) 100%)}
 .lcap-azwrap.at-start .lcap-azbtn.prev,.lcap-azwrap.at-end .lcap-azbtn.next{display:none}
 .lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
   background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
@@ -840,7 +840,7 @@ export default function LoftCap({
    identical outlined boxes. Each takes a tint and a coloured left rule: blue
    for another round of THIS game, green for a different game, slate for the
    unscored replay, ember for the archive. */
-.loft-opt.t-another{background:var(--accent-soft);border-color:rgba(37,99,235,0.28);
+.loft-opt.t-another{background:var(--accent-soft);border-color:rgba(47,111,228,0.28);
   border-left:5px solid var(--blue)}
 .loft-opt.t-similar{background:rgba(21,128,61,0.08);border-color:rgba(21,128,61,0.26);
   border-left:5px solid var(--success-deep)}

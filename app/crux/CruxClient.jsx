@@ -1097,7 +1097,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         ...base,
         background: isCursor ? '#dce9ff' : '#edf3ff',
         color: COLORS.ember,
-        border: `2px solid ${isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)'}`,
+        border: `2px solid ${isCursor ? COLORS.ember : 'rgba(47,111,228,0.5)'}`,
       };
     }
     return { ...base, background: TILE, color: COLORS.ink, border: `1.5px solid ${TILE_BORDER}`, boxShadow: 'inset 0 1px 2px rgba(28,30,36,0.07)' };
@@ -1148,7 +1148,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   return (
     <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
       <Grain />
-      {/* Shared daily chrome: home's #1e3a8a masthead + #16307a stat bar +
+      {/* Shared daily chrome: home's #233a63 masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
           (owner mockup, 2026-08-04). Outside cx-wrap so the bands run full
           bleed; nothing here is pinned. */}
@@ -1207,7 +1207,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           @media(max-width:520px){.cx-htp-f{display:none;}.cx-htp-s{display:inline;}}
           @media(max-width:560px){.cx-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cx-ttl h1{font-size:21px;letter-spacing:0.02em;}.cx-ttl .cx-ttl-dt{font-size:15px;}.cx-ttl-dot{display:none;}}
           .cx-pip{position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:3px;border:1px solid rgba(0,0,0,0.4);box-shadow:0 1px 0 rgba(255,255,255,0.35);}
-          .cx-armed{box-shadow:inset 0 0 0 2px #dce9ff, 0 0 0 3px rgba(37,99,235,0.6) !important;z-index:2;}
+          .cx-armed{box-shadow:inset 0 0 0 2px #dce9ff, 0 0 0 3px rgba(47,111,228,0.6) !important;z-index:2;}
           .cx-unfiled::after{content:'';position:absolute;left:20%;right:20%;bottom:5px;height:2px;border-radius:2px;background:rgba(150,185,255,0.9);}
           .cl-key{border:none;font-family:${SANS};font-weight:800;cursor:pointer;border-radius:6px;padding:0;touch-action:manipulation;}
           .cl-grid > div{touch-action:manipulation;}
@@ -1223,8 +1223,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           @keyframes cxstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes cxflipA{from{transform:rotateX(90deg);background:var(--white);color:transparent;}}
           @keyframes cxflipB{from{transform:rotateX(90deg);background:var(--white);color:transparent;}}
-          @keyframes cxpulseA{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
-          @keyframes cxpulseB{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
+          @keyframes cxpulseA{0%{box-shadow:0 0 0 0 rgba(47,111,228,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(47,111,228,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(47,111,228,0);}}
+          @keyframes cxpulseB{0%{box-shadow:0 0 0 0 rgba(47,111,228,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(47,111,228,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(47,111,228,0);}}
           @keyframes cxcat{from{background:var(--white);color:transparent;transform:scale(.82);}}
         `}</style>
 

@@ -105,34 +105,34 @@ export default function WelcomeOverlay() {
           display:flex;align-items:center;justify-content:center;padding:18px;}
         .mlw-card{background:#fff;border-radius:16px;max-width:440px;width:100%;
           padding:26px 24px 22px;box-shadow:0 24px 70px rgba(8,15,35,.45);
-          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#0b0c0e);
+          font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#0b0d12);
           animation:mlwIn .28s ease-out;}
         @keyframes mlwIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
         .mlw-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
         .mlw-brand b{font-weight:800;font-size:15px;letter-spacing:-.01em;}
         .mlw-eye{font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
           color:#a98a2e;margin-bottom:6px;}
-        .mlw-eye.circ{color:#2563eb;}
+        .mlw-eye.circ{color:#2f6fe4;}
         .mlw-hd{font-weight:800;font-size:23px;line-height:1.15;letter-spacing:-.022em;margin:0 0 8px;}
         .mlw-sub{font-weight:600;font-size:13.5px;line-height:1.5;color:var(--muted,#3f4757);margin:0 0 12px;}
         .mlw-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
         .mlw-pills span{background:var(--surface-alt,#eef2f7);border:1.5px solid var(--border,#e5e7eb);
           border-radius:999px;padding:5px 10px;font-weight:800;font-size:11.5px;color:var(--muted,#3f4757);}
         .mlw-cta{display:block;width:100%;box-sizing:border-box;text-align:center;text-decoration:none;
-          background:var(--cta,#2563eb);color:#fff;border:0;border-radius:11px;padding:14px;
+          background:var(--cta,#2f6fe4);color:#fff;border:0;border-radius:11px;padding:14px;
           font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;}
-        .mlw-cta:hover{background:var(--cta-hover,#1d4ed8);}
+        .mlw-cta:hover{background:var(--cta-hover,#2563eb);}
         .mlw-alt{display:block;width:100%;margin-top:9px;background:transparent;border:0;
           font-family:inherit;font-weight:800;font-size:12.5px;color:var(--slate,#646c7a);
           cursor:pointer;padding:9px;}
-        .mlw-alt:hover{color:var(--ink,#0b0c0e);}
+        .mlw-alt:hover{color:var(--ink,#0b0d12);}
         .mlw-note{margin-top:10px;text-align:center;font-weight:700;font-size:11px;
           color:var(--slate,#646c7a);}
         @media(max-width:480px){.mlw-card{padding:22px 18px 18px;}.mlw-hd{font-size:20px;}}
       `}</style>
       <div className="mlw-card" onClick={(e) => e.stopPropagation()}>
         <div className="mlw-brand">
-          <MindLoftMark size={26} ink="#0b0c0e" accent="#2563eb" />
+          <MindLoftMark size={26} ink="#0b0d12" accent="#2f6fe4" />
           <b>Mind Loft</b>
         </div>
         <div className={run.marquee ? 'mlw-eye' : 'mlw-eye circ'}>

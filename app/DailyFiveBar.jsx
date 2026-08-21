@@ -98,7 +98,7 @@ export default function DailyFiveBar({ slug }) {
   return (
     <div className={marq ? 'd5b' : 'd5b circ'}>
       <style dangerouslySetInnerHTML={{ __html: `
-        .d5b{background:#0d1e56;border-bottom:1px solid #091640;position:relative;z-index:2;
+        .d5b{background:#0b132f;border-bottom:1px solid #080e22;position:relative;z-index:2;
              font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         .d5b-in{max-width:1560px;margin:0 auto;padding:7px clamp(12px,2.5vw,34px);
                 display:flex;align-items:center;gap:11px;}
@@ -109,12 +109,12 @@ export default function DailyFiveBar({ slug }) {
         .d5b-rail{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;}
         .d5b-rail::-webkit-scrollbar{display:none;}
         .d5b-row{display:flex;gap:6px;width:max-content;padding:1px 0;}
-        .d5b-g{background:rgba(255,255,255,.10);border:1px solid #35529e;border-radius:999px;
+        .d5b-g{background:rgba(255,255,255,.10);border:1px solid #1f305c;border-radius:999px;
                padding:5px 12px;font-size:11.5px;font-weight:700;color:#dbe6ff;white-space:nowrap;
                text-decoration:none;flex:none;}
         .d5b-g:hover{background:rgba(255,255,255,.22);border-color:#5f80cf;}
         .d5b-g.is-done{background:rgba(52,211,153,.15);border-color:#2f7d5e;color:#8ff0c4;}
-        .d5b-g.is-now{background:var(--blue,#2563eb);border-color:#6d9bff;color:#fff;
+        .d5b-g.is-now{background:var(--blue,#2f6fe4);border-color:#6d9bff;color:#fff;
                       box-shadow:0 1px 3px rgba(0,0,0,.35);}
         .d5b-n{font-size:11px;font-weight:800;color:#f0cd7a;white-space:nowrap;flex:none;
                font-variant-numeric:tabular-nums;}
@@ -139,7 +139,7 @@ export default function DailyFiveBar({ slug }) {
         .d5b.circ .d5b-k::before{background:var(--blue-400,#60a5fa);}
         .d5b.circ .d5b-n{color:#bcd2ff;}
         .d5b.circ .d5b-n.done{color:#8ff0c4;}
-        .d5b.circ .d5b-next{background:var(--blue,#2563eb);color:#fff;}
+        .d5b.circ .d5b-next{background:var(--blue,#2f6fe4);color:#fff;}
         .d5b.circ .d5b-next:hover{background:#3b7bf5;}
         @media(max-width:860px){.d5b-in{gap:9px;}}
         @media(max-width:560px){.d5b-x,.d5b-k{display:none;}}

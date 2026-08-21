@@ -814,7 +814,7 @@ export default function HomeRails({
          would be a third ask in one column. Tapping it fires the global
          share-credit pop-up, the same one every Share button on the site opens,
          which is where the contest terms are stated. */
-      /* GOLD, not --cta. --cta is #2563eb, the same family as the navy panel
+      /* GOLD, not --cta. --cta is #2f6fe4, the same family as the navy panel
          headers this bar is sandwiched between, and a blue bar between two blue
          bands is precisely the "not obvious enough" problem it exists to fix
          (compared side by side on the live page before choosing). Gold is
@@ -942,7 +942,7 @@ export default function HomeRails({
              arrives with rounded corners unless it says otherwise, which is
              what it looked like and what the owner objected to. */
           .hr-board{display:flex;flex-direction:column;min-height:0;}
-          .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
+          .hrb-tabs{display:flex;flex:none;background:#0c1a35;}
           .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
           .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
           /* ALL FIVE ON ONE LINE. They used to wrap 3 and 2, and the owner read

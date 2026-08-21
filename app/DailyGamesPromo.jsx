@@ -13,7 +13,7 @@ import { isRetiredDaily } from '@/lib/daily-games';
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 
 export const DAILY_GAMES = [
-  { key: 'crux', href: '/crux', name: 'Crux', tag: 'a clueless crossword', store: 'sot_crux_day', accent: T.blue, bg: '#eef4ff', border: 'rgba(37,99,235,0.35)' },
+  { key: 'crux', href: '/crux', name: 'Crux', tag: 'a clueless crossword', store: 'sot_crux_day', accent: T.blue, bg: '#eef4ff', border: 'rgba(47,111,228,0.35)' },
   { key: 'emcee', href: '/emcee', name: 'Emcee', tag: 'the daily mini crossword', store: 'sot_emcee_day', accent: '#c026d3', bg: '#fbeefc', border: 'rgba(192,38,211,0.4)' },
   { key: 'shards', href: '/shards', name: 'Shards', tag: 'reassemble the shattered crossword', store: 'sot_shards_day', accent: '#0d9488', bg: '#d9f0ee', border: 'rgba(13,148,136,0.4)' },
   { key: 'garble', href: '/garble', name: 'Garble', tag: 'five garbled words, one clued finale', store: 'sot_garble_day', accent: '#8a6d1a', bg: '#fdf6e3', border: 'rgba(230,185,63,0.6)' },
@@ -40,7 +40,7 @@ export const DAILY_GAMES = [
   { key: 'axiom', href: '/axiom', name: 'Axiom', tag: 'find the hidden rule', store: 'sot_axiom_day', accent: '#0f766e', bg: '#d9f0ee', border: 'rgba(15,118,110,0.35)' },
   { key: 'hearsay', href: '/hearsay', name: 'Hearsay', tag: "deduce what they don't know", store: 'sot_hearsay_day', accent: '#7c2d92', bg: '#f5e8fa', border: 'rgba(124,45,146,0.35)' },
   { key: 'venn', href: '/venn', name: 'Venn', tag: 'sort the overlaps', store: 'sot_venn_day', accent: '#b45309', bg: '#fdf0e3', border: 'rgba(180,83,9,0.35)' },
-  { key: 'stands', href: '/stands', name: 'Stands', tag: 'rebuild the results', store: 'sot_stands_day', accent: T.blueDeep, bg: '#e8effd', border: 'rgba(29,78,216,0.35)' },
+  { key: 'stands', href: '/stands', name: 'Stands', tag: 'rebuild the results', store: 'sot_stands_day', accent: T.blueDeep, bg: '#e8effd', border: 'rgba(37,99,235,0.35)' },
   { key: 'bracket', href: '/bracket', name: 'Bracket', tag: 'name every winner', store: 'sot_bracket_day', accent: '#c2410c', bg: '#fdece3', border: 'rgba(196,65,12,0.35)' },
   // PRICER PULLED 2026-08-09 (see CLAUDE.md). Restore: grep -rn 'PRICER PULLED' promo tile
   // { key: 'pricer', href: '/pricer', name: 'Pricer', tag: 'some days more, some days less', store: 'sot_pricer_day', accent: '#15803d', bg: '#dcfce7', border: 'rgba(21,128,61,0.35)' },
@@ -50,7 +50,7 @@ export const DAILY_GAMES = [
   { key: 'hedge', href: '/hedge', name: 'Hedge', tag: 'draw one closed loop', store: 'sot_hedge_day', accent: '#0891b2', bg: '#e6f6fa', border: 'rgba(8,145,178,0.35)' },
   { key: 'listed', href: '/listed', name: 'Listed', tag: 'rank the list, top to bottom', store: 'sot_listed_day', accent: '#86198f', bg: '#fdf2fe', border: 'rgba(134,25,143,0.35)' },
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'white to play and mate', store: 'sot_mate_day', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)' },
-  { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(30,58,138,0.35)' },
+  { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(35,58,99,0.35)' },
   { key: 'park', href: '/parker', name: 'Parker', tag: 'get the red one out', store: 'sot_park_day', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)' },
   { key: 'check', href: '/check', name: 'Check', tag: 'red to play and sweep', store: 'sot_check_day', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)' },
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'one letter at a time', store: 'sot_rung_day', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)' },
@@ -67,7 +67,7 @@ export const DAILY_GAMES = [
   { key: 'strata', href: '/strata', name: 'Strata', tag: 'dig the words out', store: 'sot_strata_day', accent: '#9a3412', bg: '#fdf0e7', border: 'rgba(154,52,18,0.4)' },
   { key: 'chomp', href: '/chomp', name: 'Chomp', tag: 'eat them in order', store: 'sot_chomp_day', accent: '#a8430f', bg: '#fbeadf', border: 'rgba(168,67,15,0.4)' },
   { key: 'sweep', href: '/sweep', name: 'Sweep', tag: 'no bottom edge', store: 'sot_sweep_day', accent: '#0f766e', bg: '#e2f2f0', border: 'rgba(15,118,110,0.4)' },
-  { key: 'blocks', href: '/blocks', name: 'Blocks', tag: 'same shapes, same order', store: 'sot_blocks_day', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)' },
+  { key: 'blocks', href: '/blocks', name: 'Blocks', tag: 'same shapes, same order', store: 'sot_blocks_day', accent: '#2563eb', bg: '#e8edfa', border: 'rgba(37,99,235,0.4)' },
   { key: 'docket', href: '/docket', name: 'Docket', tag: 'one setup, five deductions', store: 'sot_docket_day', accent: '#5b2333', bg: '#f7e8ec', border: 'rgba(91,35,51,0.4)' },
   { key: 'defend', href: '/defend', name: 'Defend', tag: 'black to play and survive', store: 'sot_defend_day', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)' },
   { key: 'blitz', href: '/blitz', name: 'Blitz', tag: 'twenty problems, one life', store: 'sot_blitz_day', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)' },
@@ -78,7 +78,7 @@ export const DAILY_GAMES = [
   { key: 'plot', href: '/plot', name: 'Plot', tag: 'divide the whole board', store: 'sot_plot_day', accent: '#78350f', bg: '#fbf1e5', border: 'rgba(120,53,15,0.4)' },
   { key: 'shoe', href: '/shoe', name: 'Shoe', tag: 'the daily blackjack shoe', store: 'sot_shoe_day', accent: '#0c4a6e', bg: '#e8f3fa', border: 'rgba(12,74,110,0.4)' },
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'one answer, two categories', store: 'sot_niche_day', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)' },
-  { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'the daily mini sudoku', store: 'sot_sixes_day', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)' },
+  { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'the daily mini sudoku', store: 'sot_sixes_day', accent: '#2563eb', bg: '#eef3ff', border: 'rgba(37,99,235,0.4)' },
   { key: 'barter', href: '/barter', name: 'Barter', tag: 'trade the letters home', store: 'sot_barter_day', accent: '#be123c', bg: '#fdeef2', border: 'rgba(190,18,60,0.4)' },
 // Retired games (RETIRED_DAILY in lib/daily-games) are never promoted: their
 // bank has no next drop to sell.

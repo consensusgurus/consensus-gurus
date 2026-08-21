@@ -190,7 +190,7 @@ export default function DailyFiveSummary() {
            The run's other exits all lead deeper into a game; this is the only
            one that leaves. */
         .d5s-home{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
-                  background:var(--white);color:var(--accent);border:1.5px solid #2c437c;
+                  background:var(--white);color:var(--accent);border:1.5px solid #1a2748;
                   border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                   letter-spacing:.03em;text-decoration:none;}
         .d5s-home:hover{background:#eef3ff;}
@@ -239,10 +239,10 @@ export default function DailyFiveSummary() {
                 border-radius:8px;padding:9px 13px;font-size:11px;font-weight:800;letter-spacing:.06em;
                 text-transform:uppercase;text-decoration:none;}
         .d5s-share{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:transparent;
-                   color:#fff;border:1.5px solid #3f5896;border-radius:10px;padding:11px 16px;
+                   color:#fff;border:1.5px solid #253357;border-radius:10px;padding:11px 16px;
                    font-size:12.5px;font-weight:800;letter-spacing:.03em;cursor:pointer;
                    font-family:inherit;}
-        .d5s-share:hover{background:#1c3163;}
+        .d5s-share:hover{background:#101c39;}
         .d5s-empty{padding:22px;text-align:center;font-size:13px;font-weight:600;color:var(--slate);
                    background:var(--surface);border:1.5px solid var(--border);border-radius:13px;}
         @media(max-width:620px){

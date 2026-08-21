@@ -194,7 +194,7 @@ function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
     ctx.stroke();
   } else {
     // a slit pupil, because a round one reads as a frog
-    ctx.fillStyle = '#0b0c0e';
+    ctx.fillStyle = '#0b0d12';
     ctx.beginPath();
     ctx.ellipse(ex, ey, Math.max(0.7, c * 0.022), c * 0.062, 0, 0, 7);
     ctx.fill();
