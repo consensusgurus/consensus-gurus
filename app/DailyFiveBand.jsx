@@ -376,11 +376,11 @@ export default function DailyFiveBand() {
            the cap cards are blue, the board is white. So the band's right edge
            met the page navy with nothing between them and the section read as a
            hole in the card rather than as part of it. The 1.5px rule is the same
-           #2c437c the band already draws its own game cards in, which is lighter
+           #494f5f the band already draws its own game cards in, which is lighter
            than BOTH the band and the page, so it reads against either. Left is
            covered by the 4px gold rule, so only the right needs one. */
         .d5{position:relative;background:var(--ground);color:#fff;padding:12px 16px 13px;
-            border-right:1.5px solid #2c437c;
+            border-right:1.5px solid #494f5f;
             font-family:'Manrope',system-ui,-apple-system,sans-serif;}
         /* Full-bleed on a phone (the console loses its own side edges there), so
            a right rule would be a stray line down the screen. */
@@ -414,14 +414,14 @@ export default function DailyFiveBand() {
         .d5-e{font-size:9px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);}
         .d5.is-done .d5-e{color:#7ff0c0;}
         .d5-n{font-size:20px;font-weight:800;letter-spacing:-.35px;line-height:1.15;}
-        .d5-s{font-size:11.5px;font-weight:600;color:#9fb6e8;margin-top:2px;
+        .d5-s{font-size:11.5px;font-weight:600;color:#bac0cd;margin-top:2px;
               white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         /* min-width, because the digits change on every rotation and a box that
            resizes moves the title block beside it. Wide enough for the longest
            thing it says, "of 75 pts · #12". */
         .d5-sc{margin-left:auto;flex:none;text-align:right;line-height:1.1;min-width:96px;}
         .d5-sc b{display:block;font-size:22px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
-        .d5-sc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#9fb6e8;}
+        .d5-sc i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#bac0cd;}
         /* THE BUTTON IS A FIXED BOX, NOT A BOX WITH A FLOOR (owner report,
            2026-08-21: the phone band still jittered on every rotation).
 
@@ -453,7 +453,7 @@ export default function DailyFiveBand() {
                text-transform:uppercase;text-decoration:none;white-space:nowrap;}
         .d5-go:hover{background:#f0c65c;}
         .d5-go.done{background:var(--success);color:#04301f;}
-        .d5-bd{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;color:#dbe6ff;
+        .d5-bd{flex:none;background:rgba(255,255,255,.12);border:1px solid #494f5f;color:#e9ebf1;
                border-radius:8px;padding:10px 13px;font-size:10.5px;font-weight:800;letter-spacing:.07em;
                text-transform:uppercase;cursor:pointer;font-family:inherit;white-space:nowrap;}
         .d5-bd:hover{background:rgba(255,255,255,.2);}
@@ -467,14 +467,14 @@ export default function DailyFiveBand() {
            phone rule below, which collapses the track to one column, and the
            five cards would come back side by side at 390px. */
         .d5-track{display:grid;grid-template-columns:repeat(var(--d5-cols,5),minmax(0,1fr));gap:7px;}
-        .d5-g{position:relative;display:block;background:rgba(255,255,255,.07);border:1px solid #2c437c;
+        .d5-g{position:relative;display:block;background:rgba(255,255,255,.07);border:1px solid #494f5f;
               border-radius:9px;padding:8px 10px;min-width:0;text-decoration:none;color:inherit;}
-        .d5-g:hover{background:rgba(255,255,255,.14);border-color:#4a6ab5;}
+        .d5-g:hover{background:rgba(255,255,255,.14);border-color:#717a8e;}
         .d5-gi{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
         .d5-num{flex:none;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.16);
-                color:#c7d7fb;font-size:9.5px;font-weight:800;display:flex;align-items:center;
+                color:#dadee8;font-size:9.5px;font-weight:800;display:flex;align-items:center;
                 justify-content:center;font-variant-numeric:tabular-nums;}
-        .d5-cat{font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#8fa9de;
+        .d5-cat{font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#acb3c1;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         /* THESE ARE SPANS AND THEY MUST BE TOLD TO BE BLOCKS. A span is inline
            by default, so without this the name and the tagline render on one
@@ -494,27 +494,27 @@ export default function DailyFiveBand() {
         .d5-gn{display:block;font-size:14.5px;font-weight:800;letter-spacing:-.2px;line-height:1.2;
                padding-bottom:3px;margin-bottom:-3px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .d5-gt{display:block;font-size:10.5px;font-weight:600;color:#93aae2;margin-top:1px;
+        .d5-gt{display:block;font-size:10.5px;font-weight:600;color:#b0b6c5;margin-top:1px;
                padding-bottom:3px;margin-bottom:-3px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-st{margin-top:6px;display:flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
-               letter-spacing:.04em;color:#8fa9de;}
+               letter-spacing:.04em;color:#acb3c1;}
         .d5-pts{margin-left:auto;font-variant-numeric:tabular-nums;font-size:11.5px;font-weight:800;}
         .d5-g.done{background:rgba(16,185,129,.14);border-color:#2f7d5e;}
         .d5-g.done .d5-st{color:#7ff0c0;}
         .d5-g.done .d5-num{background:var(--success);color:#04301f;}
-        .d5-g.now{background:var(--blue);border-color:#7ba4ff;}
-        .d5-g.now .d5-cat,.d5-g.now .d5-gt{color:#cfe0ff;}
+        .d5-g.now{background:var(--blue);border-color:#adb7cd;}
+        .d5-g.now .d5-cat,.d5-g.now .d5-gt{color:#e1e5ed;}
         .d5-g.now .d5-st{color:#fff;}
         .d5-g.now .d5-num{background:#fff;color:var(--blue-deep);}
 
         /* the board, revealed under the track */
-        .d5-lb{margin-top:11px;border-top:1px solid #2c437c;padding-top:10px;}
+        .d5-lb{margin-top:11px;border-top:1px solid #494f5f;padding-top:10px;}
         .d5-lbh{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
                 margin-bottom:7px;}
         .d5-lbr{display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.07);}
         .d5-lbr.me{background:rgba(192,74,52,.28);margin:0 -8px;padding:5px 8px;border-radius:6px;border-bottom:none;}
-        .d5-rk{flex:none;width:20px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#8fa9de;text-align:right;}
+        .d5-rk{flex:none;width:20px;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:#acb3c1;text-align:right;}
         .d5-rk.g1{color:var(--gold);}.d5-rk.g2{color:var(--silver);}.d5-rk.g3{color:var(--bronze);}
         .d5-who{flex:1;min-width:0;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-pips{flex:none;display:flex;gap:3px;}
@@ -522,8 +522,8 @@ export default function DailyFiveBand() {
         .d5-pip.on{background:var(--blue-400);}
         .d5-pip.top{background:var(--gold);}
         .d5-tot{flex:none;width:56px;text-align:right;font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;}
-        .d5-tot i{font-style:normal;font-size:9px;font-weight:700;color:#8fa9de;margin-left:3px;}
-        .d5-note{margin-top:8px;font-size:10.5px;font-weight:600;color:#8fa9de;}
+        .d5-tot i{font-style:normal;font-size:9px;font-weight:700;color:#acb3c1;margin-left:3px;}
+        .d5-note{margin-top:8px;font-size:10.5px;font-weight:600;color:#acb3c1;}
 
         /* ── phone (the console is one column at 900) ──
            Five cards side by side is unreadable at 390px, so the track becomes a
@@ -578,9 +578,9 @@ export default function DailyFiveBand() {
                      -webkit-tap-highlight-color:transparent;}
           /* Sized as a real tap target, not a text link: it is one of only two
              controls on the phone band. */
-          .d5-pipbd{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;
+          .d5-pipbd{flex:none;background:rgba(255,255,255,.12);border:1px solid #494f5f;
                     border-radius:7px;padding:7px 11px;font-size:9.5px;font-weight:800;
-                    letter-spacing:.11em;text-transform:uppercase;color:#dbe6ff;
+                    letter-spacing:.11em;text-transform:uppercase;color:#e9ebf1;
                     text-decoration:none;-webkit-tap-highlight-color:transparent;}
           .d5-pipbd:active{background:rgba(255,255,255,.22);}
           /* Once the MARQUEE run is complete the header's primary control IS
@@ -601,7 +601,7 @@ export default function DailyFiveBand() {
           .d5-pips5 span.done{background:var(--success);}
           .d5-pips5 span.now{background:var(--blue-400);}
           .d5-pipl{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.1em;
-                   text-transform:uppercase;color:#9fb6e8;}
+                   text-transform:uppercase;color:#bac0cd;}
           .d5-g{display:flex;align-items:center;gap:9px;padding:8px 10px;}
           .d5-gi{margin-bottom:0;flex:none;}
           .d5-gcat{display:none;}
@@ -626,12 +626,12 @@ export default function DailyFiveBand() {
            takes blue, and complete is green for both. */
         .d5.is-circ::before{background:var(--blue);}
         .d5.is-circ.is-done::before{background:var(--success);}
-        .d5.is-circ .d5-e{color:#8ab4ff;}
+        .d5.is-circ .d5-e{color:#b6c1d3;}
         .d5.is-circ.is-done .d5-e{color:#7ff0c0;}
         .d5.is-circ .d5-go{background:var(--blue);color:#fff;}
-        .d5.is-circ .d5-go:hover{background:#4f86f7;}
+        .d5.is-circ .d5-go:hover{background:#8d9bb9;}
         .d5.is-circ .d5-go.done{background:var(--success);color:#04301f;}
-        .d5.is-circ .d5-lbh{color:#8ab4ff;}
+        .d5.is-circ .d5-lbh{color:#b6c1d3;}
         /* The marquee badge sits where the eyebrow text already sat, so it
            costs no line. Same gold as the rule, which is what ties the two
            together with no caption. */
@@ -700,11 +700,11 @@ export default function DailyFiveBand() {
            .d5-pcyc in the max-width:900 block below. */
         .d5-pcyc{display:none;}
         .d5-cyc{flex:none;width:21px;height:21px;border-radius:5px;background:rgba(255,255,255,.12);
-                border:1px solid #2c437c;color:#dbe6ff;display:inline-flex;align-items:center;
+                border:1px solid #494f5f;color:#e9ebf1;display:inline-flex;align-items:center;
                 justify-content:center;cursor:pointer;font-family:inherit;padding:0;}
         .d5-cyc:hover{background:rgba(255,255,255,.24);}
         .d5-all{flex:none;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);
-                border:1px solid #2c437c;color:#dbe6ff;border-radius:5px;height:21px;padding:0 9px;
+                border:1px solid #494f5f;color:#e9ebf1;border-radius:5px;height:21px;padding:0 9px;
                 font-size:8.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
                 cursor:pointer;font-family:inherit;white-space:nowrap;}
         .d5-all:hover{background:rgba(255,255,255,.24);}
@@ -721,32 +721,32 @@ export default function DailyFiveBand() {
            and the board does not overflow anyway — --dh-fit is MEASURED from
            this band's height, and the fit effect already re-runs when it opens, so
            the board simply resizes to what is left. */
-        .d5-pick{margin-top:10px;background:#0f2350;border:1px solid #3a5a9e;
+        .d5-pick{margin-top:10px;background:#272c38;border:1px solid #5e677a;
                  border-radius:11px;padding:9px;}
         .d5-pkh{display:flex;align-items:center;gap:10px;padding:0 3px 8px;}
-        .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8fa9de;}
+        .d5-pkh b{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#acb3c1;}
         .d5-pkh i{margin-left:auto;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.1em;
-                  text-transform:uppercase;color:#8fa9de;}
+                  text-transform:uppercase;color:#acb3c1;}
         /* THE PANEL CLOSES FROM ITS OWN HEADER, not only from the control that
            opened it. In the flow the panel is 549px tall on a phone, and the
            button that opened it is in the pip bar UNDERNEATH: at 390x844 that
            lands the close at y=799, inside the viewport by 45px and off the
            bottom of anything shorter. A control at the top of the thing you
            want to shut does not depend on how tall it is. */
-        .d5-pkx{flex:none;background:rgba(255,255,255,.12);border:1px solid #2c437c;color:#dbe6ff;
+        .d5-pkx{flex:none;background:rgba(255,255,255,.12);border:1px solid #494f5f;color:#e9ebf1;
                 border-radius:5px;height:20px;padding:0 9px;font-size:8.5px;font-weight:800;
                 letter-spacing:.11em;text-transform:uppercase;cursor:pointer;font-family:inherit;}
         .d5-pkx:hover{background:rgba(255,255,255,.24);}
         .d5-pkg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
-        .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #2c437c;
+        .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #494f5f;
                 border-radius:8px;padding:7px 9px 8px;cursor:pointer;overflow:hidden;text-align:left;
                 font-family:inherit;color:inherit;}
-        .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#5b8cf0;}
-        .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#3d5794;}
+        .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#919fba;}
+        .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#5d6474;}
         .d5-pkc.on::before{background:var(--blue);}
         .d5-pkc.fin::before{background:var(--success);}
         .d5-pkc.mq::before{background:var(--gold);}
-        .d5-pkc.on{background:rgba(192,74,52,.28);border-color:#5b8cf0;}
+        .d5-pkc.on{background:rgba(192,74,52,.28);border-color:#919fba;}
         /* The marquee takes a double-width cell in the lead position, so the
            grid says which one it is with no caption at all. */
         .d5-pkc.mq{grid-column:span 2;background:rgba(224,174,74,.14);border-color:#7a6021;}
@@ -754,7 +754,7 @@ export default function DailyFiveBand() {
         .d5-pkn{display:block;font-size:12px;font-weight:800;letter-spacing:-.15px;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-pkc.mq .d5-pkn{font-size:14px;}
-        .d5-pks{display:block;font-size:9px;font-weight:700;color:#8fa9de;margin-top:1px;
+        .d5-pks{display:block;font-size:9px;font-weight:700;color:#acb3c1;margin-top:1px;
                 letter-spacing:.04em;text-transform:uppercase;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .d5-pkc.mq .d5-pks{color:#d9b969;}

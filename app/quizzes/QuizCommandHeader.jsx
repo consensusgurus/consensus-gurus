@@ -41,8 +41,8 @@ const TICO = {
   play: <svg width="10" height="10" viewBox="0 0 24 24" fill="#5ad48f" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>,
   lead: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={T.gold} strokeWidth="2.4" aria-hidden="true"><path d="M3 17h18M4 17 3 7l5 4 4-7 4 7 5-4-1 10" /></svg>,
   duel: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#f08a8a" strokeWidth="2.2" aria-hidden="true"><path d="m4 4 16 16M20 4 4 20" /></svg>,
-  new: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>,
-  stat: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#9dbcf7" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>,
+  new: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bec6d6" strokeWidth="2.4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>,
+  stat: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bec6d6" strokeWidth="2.4" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-7" /></svg>,
   // Community leader (crown), category champion (trophy), achievement (star), streak (flame).
   top: <svg width="11" height="11" viewBox="0 0 24 24" fill={T.gold} aria-hidden="true"><path d="M3 7l3.8 3.4L12 3l5.2 7.4L21 7l-1.7 12H4.7z" /></svg>,
   champ: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={T.gold} strokeWidth="2.1" aria-hidden="true"><path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" /></svg>,
@@ -246,10 +246,10 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-brand{display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;}
           .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
           .qchm-wm em{font-style:normal;color:var(--blue-400);}
-          .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #33509b;padding-left:13px;font-weight:800;white-space:nowrap;}
+          .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #596175;padding-left:13px;font-weight:800;white-space:nowrap;}
           .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
-          .qchm-nav a,.qchm-nav button{color:var(--white);background:#2c4fa8;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
-          .qchm-nav a:hover,.qchm-nav button:hover{background:#3a60c4;border-color:#7a99e0;}
+          .qchm-nav a,.qchm-nav button{color:var(--white);background:#59637b;border:1px solid #7d879e;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
+          .qchm-nav a:hover,.qchm-nav button:hover{background:#6c7792;border-color:#9fa8bb;}
           .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
           /* THE NAME, AND ONLY THE NAME (owner). A loft page hides the stat row
@@ -263,26 +263,26 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .dch-loft .qchm-nav{order:4;margin-left:12px;}
           .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
           .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
-          .qchm-r2{background:#16307a;color:var(--white);border-bottom:3px solid var(--blue);}
-          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #2b4a99;white-space:nowrap;}
+          .qchm-r2{background:#3b4256;color:var(--white);border-bottom:3px solid var(--blue);}
+          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #535c71;white-space:nowrap;}
           .qchm-cell:first-child{padding-left:0;}
           .qchm-cell:last-of-type{border-right:none;}
-          .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9fb8ee;font-weight:800;}
+          .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#bcc3d1;font-weight:800;}
           .qchm-v{font-size:18px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
-          .qchm-v i{font-style:normal;font-size:11.5px;font-weight:600;color:#9fb8ee;}
-          .qchm-ch{display:none;font-size:10px;font-weight:700;color:#9fb8ee;margin-top:1px;}
+          .qchm-v i{font-style:normal;font-size:11.5px;font-weight:600;color:#bcc3d1;}
+          .qchm-ch{display:none;font-size:10px;font-weight:700;color:#bcc3d1;margin-top:1px;}
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
           .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
-          .qchm-bt{border:1px solid #5b7fd4;background:#264aa0;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
-          .qchm-bt:hover{background:#3a60c4;border-color:#8aa8e8;color:var(--white);}
+          .qchm-bt{border:1px solid #8791a8;background:#535c73;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
+          .qchm-bt:hover{background:#6c7792;border-color:#acb4c6;color:var(--white);}
           /* The share CTA is the one button in this row that is asking for
              something, so it leaves the blue set and takes the contest's gold
              (owner, 2026-08-08). Dark ink, because gold cannot carry white. */
           .qchm-bt.qchm-gold{background:var(--gold);border-color:#f0c860;color:#2a1f04;}
           .qchm-bt.qchm-gold:hover{background:#f2c451;border-color:var(--white);color:#2a1f04;}
-          .qchm-signup{background:var(--blue);border-color:#7ea6ff;}
-          .qchm-signup:hover{background:#3b7bf5;}
+          .qchm-signup{background:var(--blue);border-color:#afb9ce;}
+          .qchm-signup:hover{background:#7f90b1;}
           @media(max-width:1100px){.qchm-tag{display:none;}}
           @media(max-width:860px){
             .qchm-in{padding:11px 14px;gap:10px;}
@@ -478,7 +478,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
         .qch-chk{display:inline-flex;width:13px;height:13px;border-radius:50%;background:var(--surface-alt);color:var(--accent);font-size:8.5px;font-weight:800;align-items:center;justify-content:center;flex:none;}
         .qch-signup{display:inline-flex;align-items:center;gap:6px;background:var(--cta);border:1px solid var(--cta);border-radius:9px;color:var(--cta-ink);font-family:inherit;font-size:12.5px;font-weight:800;padding:8px 13px;cursor:pointer;white-space:nowrap;flex:none;}
         .qch-signup:hover{background:var(--cta-hover);border-color:var(--cta-hover);color:var(--cta-ink);}
-        .qch-seg{display:flex;gap:2px;background:var(--surface-alt);border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:var(--surface-alt);border:1.5px solid var(--border);cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#eef2fb;color:var(--accent);}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
+        .qch-seg{display:flex;gap:2px;background:var(--surface-alt);border-radius:999px;padding:3px;flex:none;}.qch-burger{display:none;position:relative;flex:none;}.qch-burger>summary{list-style:none;display:flex;align-items:center;justify-content:center;width:38px;height:34px;border-radius:9px;background:var(--surface-alt);border:1.5px solid var(--border);cursor:pointer;}.qch-burger>summary::-webkit-details-marker{display:none;}.qch-bmenu{position:absolute;top:calc(100% + 8px);right:0;z-index:70;min-width:200px;background:var(--white);border:1px solid rgba(20,22,28,0.12);border-radius:11px;box-shadow:0 12px 30px rgba(10,16,32,0.28);padding:4px;}.qch-bmenu a{display:block;padding:11px 13px;border-radius:8px;font-size:14px;font-weight:700;color:var(--ink);text-decoration:none;white-space:nowrap;}.qch-bmenu a.on,.qch-bmenu a:hover{background:#f3f4f6;color:var(--accent);}@media(max-width:600px){.qch-seg{display:none;}.qch-burger{display:block;}}
         .qch-seg a{font-size:12px;font-weight:700;color:var(--ink);text-decoration:none;padding:6px 12px;border-radius:999px;white-space:nowrap;}
         .qch-seg a.on{background:var(--accent);color:var(--white);}
         .qch-hub{display:inline-flex;align-items:center;gap:6px;background:var(--cta);color:var(--cta-ink);font-size:12.5px;font-weight:800;border-radius:10px;padding:8px 13px;text-decoration:none;white-space:nowrap;flex:none;}

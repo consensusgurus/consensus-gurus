@@ -237,7 +237,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         @media(min-width:768px){.dgg{grid-template-columns:repeat(3,minmax(0,1fr));}}
         @media(max-width:359px){.dgg{grid-template-columns:1fr;}}
         .dgg-t{position:relative;display:flex;flex-direction:row;align-items:center;gap:10px;min-height:58px;border:1px solid rgba(28,30,36,0.14);border-radius:14px;background:var(--white);padding:10px 13px;text-decoration:none;overflow:hidden;box-sizing:border-box;}
-        .dgg-t:hover{border-color:#5b8bff;}
+        .dgg-t:hover{border-color:#99a5c1;}
         .dgg-txt{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto;}
         .dgg-art{flex:0 0 auto;height:42px;width:auto;}
         .dgg-nm{font-size:15px;font-weight:800;letter-spacing:-.3px;color:var(--ink);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -289,7 +289,7 @@ export default function DailyGamesGrid({ self, maxWidth = 640, challengeHref = n
         /* Light theme (owner, 2026-07-23): drop the navy fill so the daily-game
            bottom section matches the end-of-game card. Game icons are kept. */
         .dgg-light .dgg-t{background:var(--white);border-color:rgba(20,22,28,0.12);}
-        .dgg-light .dgg-t:hover{border-color:#5b8bff;}
+        .dgg-light .dgg-t:hover{border-color:#99a5c1;}
         .dgg-light .dgg-nm{color:var(--ink);}
         .dgg-light .dgg-p{color:var(--muted);}
         /* The letter-tile game icons are drawn for a dark ground and wash out on

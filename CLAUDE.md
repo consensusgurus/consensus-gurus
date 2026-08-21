@@ -5546,6 +5546,28 @@ Rules learned, for the next palette change:
   list but WERE recoloured here, since a literal swap is exactly what a route that cannot resolve
   CSS custom properties needs.
 
+**Pass 2, the SHARED CHROME blues (same day).** After the token swap and the literal sweep
+the header, the console bands, the category strip and the rails STILL rendered navy, because they
+are painted with hand-picked blues that were never tokens: `#2c4fa8`, `#16307a`, `#0e2a63`,
+`#4d84f3`, `#2c437c` and about eighty more. `check-theme.mjs` cannot see these either, since its
+`HEXES` set is built from the token table, so nothing has ever flagged them. `chrome-pass.mjs`
+fixed 190 occurrences across 13 shared-chrome files. Three things about it worth keeping:
+
+- **The transform is a DESATURATION, not a hue rotation,** and that falls out of the palette
+  rather than being a choice: the new accent `#3a4152` is hue 220 at 17% saturation and the old
+  `#1e3a8a` is hue 224 at 64%. Warm slate IS navy with the saturation removed. Each blue keeps
+  its hue and its LIGHTNESS, so the layering (band darker than card darker than page) is
+  untouched and nothing restacks.
+- **The gate has to be tight at BOTH ends, and a preview run is what proves it.** The first
+  attempt used hue 190-275 and saturation >= 0.15 and duly re-desaturated the brand-new accent
+  itself (`#3a4152` -> `#434549`), the neutral greys `#94a3b8` / `#64748b` / `#c2ccdc`, and the
+  per-game violets `#7c3aed` / `#4338ca` / `#6d28d9` into mud. Hue 205-240 and saturation >= 0.40
+  is the shipped gate: anything at or below the accent's own saturation is by definition not the
+  problem. ALWAYS run the preview and read the mapping table before applying.
+- **Scope is an EXPLICIT FILE LIST, never a directory sweep,** for the reason recorded above:
+  per-game palettes, `CAT_META` and `DEPT_COLOR` encode identity and meaning rather than brand,
+  and they sit in the same hue band as the chrome.
+
 **OUTSTANDING after this change:**
 
 1. **The blue game-tile art is still blue.** `blueTile()` in `app/DailyStrip.jsx` rewrites

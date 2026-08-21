@@ -639,9 +639,9 @@ export default function HomeRails({
          rather than a "go play this". */
       .hr-hero{display:flex;position:relative;align-items:center;gap:12px;padding:14px 14px 14px 22px;background:var(--blue);color:var(--white);}
       .hr-hero::before{content:'';position:absolute;left:10px;top:13px;bottom:13px;width:4px;border-radius:2px;background:var(--gold);}
-      .hr-hero.lite{background:#4d84f3;}
+      .hr-hero.lite{background:#8a98b6;}
       .hr-htxt{min-width:0;}
-      .hr-heye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+      .hr-heye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#e9ecf1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       /* line-height 1.3 plus a pixel of pad, not 1.1: these lines are
          overflow:hidden for the ellipsis, so a tight box clips a descender. */
       .hr-hnm{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.3;padding-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -679,7 +679,7 @@ export default function HomeRails({
       .hr-lslab.lite{background:var(--blue);}
       .hr-lslab.lite::before{background:var(--blue-200);}
       .hr-lstxt{min-width:0;flex:1;}
-      .hr-lseye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
+      .hr-lseye{font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#e9ecf1;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       /* An explicit 26px line plus a pixel of pad, not a tight multiple: these
          lines are overflow:hidden for the ellipsis, so a tight box clips a
@@ -784,10 +784,10 @@ export default function HomeRails({
       .hr-fcard.t0{background:var(--accent);}
       .hr-fcard.t0::before{background:var(--gold);}
       .hr-fcard.t1{background:var(--blue);}
-      .hr-fcard.t2{background:#4d84f3;}
+      .hr-fcard.t2{background:#8a98b6;}
       .hr-fcard:hover .hr-fcgo{background:var(--blue-200);}
       .hr-fctxt{flex:1;min-width:0;}
-      .hr-fceye{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#dbe8ff;
+      .hr-fceye{display:block;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#e9ecf1;
                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
       .hr-fcnm{display:block;font-size:16px;font-weight:800;letter-spacing:-.2px;line-height:1.3;padding-bottom:1px;
                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -942,15 +942,15 @@ export default function HomeRails({
              arrives with rounded corners unless it says otherwise, which is
              what it looked like and what the owner objected to. */
           .hr-board{display:flex;flex-direction:column;min-height:0;}
-          .hrb-tabs{display:flex;flex:none;background:#0e2a63;}
-          .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#a3bce8;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
+          .hrb-tabs{display:flex;flex:none;background:#2d3544;}
+          .hrb-tabs button{flex:1;border:none;border-radius:0;background:transparent;color:#bcc3cf;font:inherit;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:11px 4px;cursor:pointer;border-bottom:3px solid transparent;}
           .hrb-tabs button.on{color:var(--white);border-bottom-color:var(--white);background:var(--accent);}
           /* ALL FIVE ON ONE LINE. They used to wrap 3 and 2, and the owner read
              the strip as three sub-sorts and asked where All time had gone: a
              wrapped second row does not look like more of the same control, it
              looks like a different one. Tightened until five fit (9px, .03em,
              2px side padding), which they do inside 340px with room over. */
-          .hrb-subs{display:flex;flex-wrap:nowrap;flex:none;background:#eef2f8;border-bottom:1px solid var(--border);}
+          .hrb-subs{display:flex;flex-wrap:nowrap;flex:none;background:#f2f3f4;border-bottom:1px solid var(--border);}
           .hrb-subs button{flex:1 1 auto;min-width:0;border:none;border-radius:0;background:transparent;color:#5b6478;font:inherit;font-size:9px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:9px 2px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .hrb-subs button:hover{color:var(--ink);}
           .hrb-subs button.on{color:var(--blue-dark);border-bottom-color:var(--blue);background:var(--white);}
@@ -964,7 +964,7 @@ export default function HomeRails({
           /* The scrim, not a filter on the image: the photo keeps its colour
              and only the bottom third darkens, which is where the type sits. */
           .hrb-qotd::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(10,20,45,.88),rgba(10,20,45,.35) 55%,rgba(10,20,45,.12));}
-          .hrb-qe{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#bcd3ff;}
+          .hrb-qe{font-size:8.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#d5dbe6;}
           .hrb-qt{font-size:19px;font-weight:800;line-height:1.2;letter-spacing:-.01em;color:var(--white);}
           .hrb-duel{display:flex;flex-direction:column;align-items:stretch;gap:9px;padding:12px 13px;text-decoration:none;background:var(--accent-soft);border-top:1px solid var(--border);}
           .hrb-duel:hover{background:var(--white);}
@@ -997,7 +997,7 @@ export default function HomeRails({
             border-bottom:1px solid var(--border);text-decoration:none;overflow:hidden;}
           .hrb-mrow:last-child{border-bottom:none;}
           .hrb-mrow:hover{background:var(--surface);}
-          .hrb-mfill{position:absolute;left:0;top:0;bottom:0;background:#e3ecfc;pointer-events:none;}
+          .hrb-mfill{position:absolute;left:0;top:0;bottom:0;background:#eceff3;pointer-events:none;}
           .hrb-mdot{position:relative;width:7px;height:7px;border-radius:2px;flex:none;}
           .hrb-mnm{position:relative;flex:1;min-width:0;font-size:12.5px;font-weight:700;color:var(--ink);
             white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

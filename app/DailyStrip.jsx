@@ -140,7 +140,7 @@ const HEAD_GAP = 8;
 // drops and the window keeps showing thirty tiles, just in more rows.
 const BOARD_WINDOW = 30;
 // Navy-legible per-game accents for the mini-board titles (match DailyCombinedLeaderboard).
-const ACCENTS = { plot: '#e0a86a', sando: '#5ec8d0', cages: '#cba6f7', quilt: '#eda5e6', crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#6aa3ff', bracket: '#f0894c', pricer: '#4ade80', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8', mate: '#d9b38c', four: '#9db8ff', park: '#f0cf9a', check: '#5fd6b8', rung: '#7fd4e8', crunch: '#f0c07a', fib: '#c4b5fd', streak: '#fb7185', deep: '#7dd3fc', anon: '#e8969f', feud: '#fda4af', babel: '#6ee7b7', glyph: '#94a3b8', chain: '#f0abfc', turn: '#8cda81' };
+const ACCENTS = { plot: '#e0a86a', sando: '#5ec8d0', cages: '#cba6f7', quilt: '#eda5e6', crux: '#99a9c1', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8', outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c', jester: '#7c3aed', outrank: '#8b8af5', sworn: '#f472b6', shards: '#2dd4bf', hearsay: '#c4b5fd', venn: '#e0a568', stands: '#a3b0c6', bracket: '#f0894c', pricer: '#4ade80', lode: '#e0b34c', etch: '#8fbf5a', hedge: '#4cc0d4', listed: '#e07ad0', axiom: '#3fc9b8', mate: '#d9b38c', four: '#c2c9da', park: '#f0cf9a', check: '#5fd6b8', rung: '#7fd4e8', crunch: '#f0c07a', fib: '#c4b5fd', streak: '#fb7185', deep: '#7dd3fc', anon: '#e8969f', feud: '#fda4af', babel: '#6ee7b7', glyph: '#94a3b8', chain: '#f0abfc', turn: '#8cda81' };
 // Saturated one-color-per-game identity for the tile accent + expand panel
 // (the "one saturated color per game" system used on the live game pages).
 const TCOL = { plot: '#78350f', sando: '#15616b', cages: '#6b21a8', quilt: '#a21caf', crux: T.blue, emcee: '#c026d3', shards: '#0d9488', garble: '#8a6d1a', links: '#166534', span: '#9d174d', dating: '#6d28d9', tally: T.successDeep, suds: '#ea580c', carve: '#7c3aed', extra: '#b91c1c', stet: '#0369a1', outwit: '#1f2937', outrank: '#4338ca', tuck: '#92400e', alibi: '#8b1e2d', cipher: '#0f766e', ping: '#0284c7', warmer: '#dc2626', jester: '#7c3aed', sworn: '#be185d', axiom: '#0f766e', hearsay: '#5b21b6', venn: '#b45309', stands: T.blueDeep, bracket: '#c2410c', pricer: '#15803d', lode: T.goldInk, etch: '#4d7c0f', hedge: '#0891b2', listed: '#86198f', mate: '#6b4423', four: T.blueDark, park: '#7c5c2e', check: '#166e5a', rung: '#155e75', crunch: '#b45309', fib: '#4c1d95', streak: '#e11d48', deep: '#0c4a6e', anon: '#8c2f39', feud: '#9f1239', babel: '#14532d', glyph: '#334155', chain: '#4a044e', turn: '#226218' };
@@ -2825,7 +2825,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
        white tile with no plate. warmer, carve and suds resisted the recolour, so
        those three PNGs carry a baked navy plate instead (owner 2026-07-29). */
         .dh-tile{container-type:inline-size;position:relative;overflow:hidden;background:var(--white);border:1.5px solid var(--border);border-radius:11px;padding:10px 8px 9px;text-align:center;cursor:pointer;text-decoration:none;color:var(--ink);transition:transform .12s,filter .12s,box-shadow .12s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:0;font-family:inherit;min-height:118px;}
-        .dh-tile:hover{transform:translateY(-2px);background:#f7f9fc;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
+        .dh-tile:hover{transform:translateY(-2px);background:#f9f9fa;box-shadow:0 5px 14px rgba(20,22,28,0.12);}
         .dh-tile.sel{border-color:var(--gold-ink);box-shadow:0 0 0 2px var(--gold);}
         .dh-tile.inprog{background:#fffaeb;}
         /* A finished tile reads green (owner, 2026-07-31): the completed games
@@ -2952,7 +2952,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .dsd-yest{display:flex;align-items:center;gap:7px;margin-top:6px;padding:7px 11px;border-radius:10px;background:var(--surface);border:1px solid #eef0f4;}
         .dsd-yest.top{padding:9px 11px;background:var(--surface);border-color:var(--muted);}
         .dsd-yest .yl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800;flex:none;min-width:56px;}
-        .dsd-yest b{min-width:0;font-size:12px;color:#c9d6ee;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .dsd-yest b{min-width:0;font-size:12px;color:#d7dae0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dsd-yest.top b{font-size:13px;color:var(--ink);font-weight:700;}
         .dsd-yest .yt{margin-left:auto;flex:none;font-size:11.5px;font-weight:700;color:#d8c489;font-variant-numeric:tabular-nums;}
         .dsd-yest.top .yt{font-size:12.5px;font-weight:800;color:#8a5300;}
@@ -3045,7 +3045,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              whose own border is the colour of its fill and so reaches the
              console edge. Both bands now start on the same pixel. */
           .dhome.slate .dh-sbar{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;padding:0;gap:0;background:transparent;border:none;}
-          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#2c4fa8;color:var(--white);min-width:0;}
+          .dhome.slate .dh-cell{position:relative;padding:14px 16px 14px 26px;background:#59637b;color:var(--white);min-width:0;}
           /* Cards are addressed by CLASS now: the adjacent-sibling rule
              used to mean "the Easiest half", and with paused cards in the same
              bar it would mean every card but the first. */
@@ -3087,19 +3087,19 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              the gold cards carry them, since two blues of one family sitting in
              the same row need a divider where the first two tones, far enough
              apart to divide themselves, do not. */
-          .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
-          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
-          .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.fav{background:#73819c;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.fresh{background:#363d4e;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
+          .dhome.slate .dh-cell.crowd{background:#68789b;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           /* The incomplete card carries the Incomplete today band's red, so the
              cap and the group below it read as the same thing said twice. */
           .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;border-top:1px solid rgba(255,255,255,.18);}
           .dhome.slate .dh-cell.failc:hover{background:#e33f3f;}
           .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
           .dhome.slate .dh-cell.failc.capw{grid-column:1/-1;}
-          .dhome.slate .dh-cell.crowd:hover{background:#3170ec;}
+          .dhome.slate .dh-cell.crowd:hover{background:#7586a8;}
           .dhome.slate .dh-cell.crowd.capw{grid-column:1/-1;}
-          .dhome.slate .dh-cell.fav:hover{background:#4a7ce0;}
-          .dhome.slate .dh-cell.fresh:hover{background:#1d3d85;}
+          .dhome.slate .dh-cell.fav:hover{background:#818ea9;}
+          .dhome.slate .dh-cell.fresh:hover{background:#434c5f;}
           .dhome.slate .dh-cell.fav.capw,.dhome.slate .dh-cell.fresh.capw{grid-column:1/-1;}
           /* Open: a scroller that borrows Ready to play's space instead of
              pushing the console past the fold. The ceiling is --cap-pmax,
@@ -3176,13 +3176,13 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .dhome.slate .dh-cell > img{display:none !important;}
           .dhome.slate .dh-cell{position:relative;flex:none;width:100%;padding:13px 14px 13px 22px;border:none;border-radius:0;background:var(--blue);color:var(--white);}
           .dhome.slate .dh-cell + .dh-cell{padding-left:22px;border-left:none;}
-          .dhome.slate .dh-cell.easy{background:#4d84f3;}
+          .dhome.slate .dh-cell.easy{background:#8a98b6;}
           /* a white rule replaces the game icon, which is unreadable at this
              size on a saturated ground */
           .dhome.slate .dh-cell::before{content:'';position:absolute;left:10px;top:12px;bottom:12px;width:4px;border-radius:2px;background:rgba(255,255,255,.9);}
-          .dhome.slate .dh-bue{color:#dbe8ff;font-size:9.5px;letter-spacing:.11em;}
+          .dhome.slate .dh-bue{color:#e9ecf1;font-size:9.5px;letter-spacing:.11em;}
           .dhome.slate .dh-bun{color:var(--white);font-size:19px;line-height:1.3;padding-bottom:1px;}
-          .dhome.slate .dh-busub{display:block;color:#dbe8ff;font-weight:600;line-height:1.35;padding-bottom:1px;}
+          .dhome.slate .dh-busub{display:block;color:#e9ecf1;font-weight:600;line-height:1.35;padding-bottom:1px;}
           .dhome.slate .dh-cell .dh-play{margin-left:auto;background:var(--white);color:var(--blue-deep);width:98px;min-width:0;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:10px 0;border-radius:8px;flex:0 0 98px;box-sizing:border-box;}
           /* Paused cards, stacked with the other two and inked gold. */
           .dhome.slate .dh-cell.prog{background:var(--gold);color:#2a1f04;text-decoration:none;border-bottom:1px solid rgba(20,22,28,.12);}
@@ -3193,9 +3193,9 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .dhome.slate .dh-cell.prog .dh-play{background:var(--white);color:#8a5306;}
           /* The other two cap cards, stacked with the rest. Same two tones the
              desktop cap uses, so the ramp reads the same at both widths. */
-          .dhome.slate .dh-cell.fav{background:#3b6fd4;text-decoration:none;}
-          .dhome.slate .dh-cell.fresh{background:#16306e;text-decoration:none;}
-          .dhome.slate .dh-cell.crowd{background:#245edf;text-decoration:none;}
+          .dhome.slate .dh-cell.fav{background:#73819c;text-decoration:none;}
+          .dhome.slate .dh-cell.fresh{background:#363d4e;text-decoration:none;}
+          .dhome.slate .dh-cell.crowd{background:#68789b;text-decoration:none;}
           .dhome.slate .dh-cell.failc{background:#dc2626;text-decoration:none;}
           .dhome.slate .dh-cell.failc .dh-play{color:#b91c1c;}
           /* The phone cut. */
@@ -3229,7 +3229,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            above 900px, so up here a bare dot would mean nothing. Below 900px the
            bands are on screen, so the word comes off and the dot reads against
            them. Dot colours are the bands' hues lifted for the navy ground:
-           #2c4fa8 and #16a34a are legible on white and invisible on this bar. */
+           #59637b and #16a34a are legible on white and invisible on this bar. */
         /* Typography sits on the PIP, not on .sl-count, since the ready pip
            lives outside that group and has to look identical to the ones in it. */
         .sl-pip{display:inline-flex;align-items:center;gap:5px;font-style:normal;padding:2px 8px 2px 6px;border-radius:999px;background:rgba(255,255,255,0.11);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-200);white-space:nowrap;}
@@ -3237,7 +3237,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-pw,.sl-ps{font-style:normal;font-weight:700;letter-spacing:.07em;color:var(--blue-200);}
         .sl-ps{display:none;}
         .sl-pd{width:7px;height:7px;border-radius:50%;flex:none;background:currentColor;}
-        .sl-pip.todo{color:#8fb4ff;}
+        .sl-pip.todo{color:#bac2d4;}
         .sl-pip.prog{color:var(--gold);}
         .sl-pip.fail{color:#f87171;}
         .sl-pip.dn{color:#4ade80;}
@@ -3259,10 +3259,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            The fade is a pseudo-element on the WRAPPER rather than a border on
            the strip, so it sits above the tabs and below the chip and no tab
            appears to run under the chevron. Its colour has to be quoted per
-           breakpoint because the strip is --accent on a desktop and #2c4fa8 on
+           breakpoint because the strip is --accent on a desktop and #59637b on
            a phone. */
         .sl-filtw{position:relative;flex:none;}
-        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #16306e;border-bottom:2px solid #16306e;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
+        .sl-filt{flex:none;display:flex;background:var(--accent);border-top:1.5px solid #363d4e;border-bottom:2px solid #363d4e;overflow-x:auto;scrollbar-width:none;scroll-behavior:smooth;}
         .sl-filt::-webkit-scrollbar{display:none;}
         /* Room for the last tab to clear the chip once it is scrolled to. */
         .sl-filtw.mr .sl-filt{padding-right:26px;}
@@ -3281,7 +3281,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-fnav:focus-visible{outline:2px solid var(--white);outline-offset:1px;}
         .sl-fnav.l{left:4px;}
         .sl-fnav.r{right:4px;}
-        .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#b9cbec;padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+        .sl-filt button{border:0;border-radius:0;background:transparent;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#ccd0d9;padding:9px 13px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;}
         .sl-filt button:hover{color:var(--white);}
         /* Still an UNDERLINE, not a pill: navy simply changed what colour the
            tab and its rule have to be. -2px above pulls the rule down onto the
@@ -3424,7 +3424,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-ring{width:19px;height:19px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;}
         .sl-ring i{width:13px;height:13px;border-radius:50%;background:var(--white);display:block;}
         .sl-ab.on .sl-ring i{background:var(--blue);}
-        .sl-drawer{border-bottom:1px solid var(--border);background:#fbfcfe;}
+        .sl-drawer{border-bottom:1px solid var(--border);background:#fcfcfd;}
         /* ── desktop slate: the phone's grouping and its three-track row, in
            TWO columns (owner, 2026-08-08) ─────────────────────────────────
            The console keeps the height cap and the inner scroller it already
@@ -3463,7 +3463,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              rendered) come from renderSlate, so the offsets shrink to fit the
              day. --bh is the band's own height; keep the two in step if the
              padding or type size here changes. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#2c4fa8;grid-column:1/-1;order:4;
+          .sl-band{display:flex;align-items:center;gap:9px;padding:8px 14px;background:#59637b;grid-column:1/-1;order:4;
             --bh:30px;position:sticky;top:calc(var(--bi,0) * var(--bh));bottom:calc((var(--bn,1) - 1 - var(--bi,0)) * var(--bh));z-index:3;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
@@ -3625,7 +3625,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              today is 8 (band) and 9 (rows), shut from its own band. A drawer
              shares its row's value, and equal-order items keep source order, so
              a drawer stays under its own row. */
-          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#2c4fa8;order:4;}
+          .sl-band{display:flex;align-items:center;gap:9px;padding:9px 13px;background:#59637b;order:4;}
           .sl-band .sl-bt{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--white);}
           .sl-band .sl-bc{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--blue-200);font-variant-numeric:tabular-nums;}
           /* In progress: the gold the slate has always used for a game you have
@@ -3777,15 +3777,15 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-bar.four{gap:6px;}
           .sl-bar.four .sl-count{gap:5px;}
           .sl-bar.four .sl-pip{font-size:9px;gap:3px;letter-spacing:0;}
-          .sl-filt{background:#2c4fa8;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
+          .sl-filt{background:#59637b;border-top:none;border-bottom:none;gap:6px;padding:7px 8px;}
           /* Same fade, the phone strip's own ground. The bottom is flush here
              because this strip carries no 2px bottom rule to sit above. */
           .sl-filtw.ml::before,.sl-filtw.mr::after{bottom:0;}
-          .sl-filtw.ml::before{background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-          .sl-filtw.mr::after{background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
+          .sl-filtw.ml::before{background:linear-gradient(to right,#59637b 0,#59637b 30px,rgba(44,79,168,0) 100%);}
+          .sl-filtw.mr::after{background:linear-gradient(to left,#59637b 0,#59637b 30px,rgba(44,79,168,0) 100%);}
           .sl-filtw.mr .sl-filt{padding-right:30px;}
           .sl-filtw.ml .sl-filt{padding-left:30px;}
-          .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#c3d5f4;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
+          .sl-filt button{flex:none;background:rgba(255,255,255,.12);color:#d5dae2;border-radius:999px;padding:6px 12px;font-size:10.5px;letter-spacing:.09em;border-bottom:0;margin-bottom:0;}
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
@@ -4128,7 +4128,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         /* The same four colours the header pills use, so the strip and the
            header say the same thing the same way. */
         .sl-sdot{width:6px;height:6px;border-radius:50%;flex:none;display:block;}
-        .sl-sdot.rdy{background:#9dbcf7;}
+        .sl-sdot.rdy{background:#bec6d6;}
         .sl-sdot.prg{background:var(--gold);}
         .sl-sdot.fal{background:#f08a8a;}
         .sl-sdot.dne{background:#5ad48f;}
@@ -4136,12 +4136,12 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            the whole point, and its own bottom rule so the pair reads as a unit
            rather than as one strip that happens to have wrapped. */
         .dhome.cats .sl-filtw2{position:relative;flex:none;}
-        .dhome.cats .sl-filt2{background:#2c4fa8;border-top:1px solid #16306e;}
+        .dhome.cats .sl-filt2{background:#59637b;border-top:1px solid #363d4e;}
         .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{content:'';position:absolute;top:0;bottom:0;width:60px;pointer-events:none;z-index:1;}
         .dhome.cats .sl-filtw2:not(.ml)::before,.dhome.cats .sl-filtw2:not(.mr)::after{display:none;}
-        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#2c4fa8 0,#2c4fa8 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filt2 button{color:#c6d6f4;}
+        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#59637b 0,#59637b 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#59637b 0,#59637b 30px,rgba(44,79,168,0) 100%);}
+        .dhome.cats .sl-filt2 button{color:#d7dbe3;}
         .dhome.cats .sl-filt2 button:hover{color:var(--white);}
         .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}
         /* ALL MEANS ALL (owner, 2026-08-15), and it is the default. The slate

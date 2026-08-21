@@ -8,7 +8,7 @@
 // with the SAME header the home page carries:
 //
 //   1. #3a4152 masthead  ─┐ both from QuizCommandHeader variant="inner", via
-//   2. #16307a stat bar  ─┘ QuizNavHeader, already in normal flow
+//   2. #3b4256 stat bar  ─┘ QuizNavHeader, already in normal flow
 //   3. #fdf2ef slate rail  — DailySlateRail
 //
 // NOTHING IS PINNED (owner rule, 2026-08-04). No position:fixed, no sticky:

@@ -397,22 +397,22 @@ export default function LoftCap({
    original 0 was avoiding. The bottom padding is unchanged. */
 .loft-page section{padding-top:30px!important;padding-bottom:20px!important}
 .loft-page footer{margin-top:0!important;padding-top:18px!important}
-.loft-page .loft-stage ~ p{color:#bfd0ee!important}
+.loft-page .loft-stage ~ p{color:#d0d5dd!important}
 .loft-page .loft-stage ~ p a{color:#ffd45e!important}
 .loft-page .loft-stage ~ p b{color:var(--white)!important}
 .loft-page section h2{color:var(--white)!important}
-.loft-page section p{color:#bfd0ee!important}
+.loft-page section p{color:#d0d5dd!important}
 .loft-page section a{color:#ffd45e!important}
-.loft-page section em,.loft-page section i{color:#93a9d6!important}
-.loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#bfd0ee!important}
+.loft-page section em,.loft-page section i{color:#abb1be!important}
+.loft-page .loft-stage ~ div:not([style*="fixed"]) > p{color:#d0d5dd!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)),
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) *:not([style*="background"]):not([style*="background"] *){
-  color:#bfd0ee!important}
+  color:#d0d5dd!important}
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) b:not([style*="background"] b),
 .loft-page .loft-stage ~ div:not([style*="fixed"]):not(:has(.loft-report)):not(:has(.loft-showchrome)) strong{
   color:var(--white)!important}
-.loft-page > [class$="-wrap"] > div > p{color:#bfd0ee!important}
-.loft-page .loft-tailnote{color:#bfd0ee!important}
+.loft-page > [class$="-wrap"] > div > p{color:#d0d5dd!important}
+.loft-page .loft-tailnote{color:#d0d5dd!important}
 .loft-page .loft-tailnote b{color:var(--white)!important}
 .loft-page .loft-tailnote a{color:var(--gold)!important}
 /* THE POST-GAME PANEL SITS UNDER THE BOARD, never under the finish card
@@ -443,9 +443,9 @@ export default function LoftCap({
    board. */
 .loft-sol{margin-top:14px}
 .loft-sol:empty{display:none;margin-top:0}
-.loft-page .loft-sol{color:#bfd0ee}
+.loft-page .loft-sol{color:#d0d5dd}
 .loft-page .loft-sol p,
-.loft-page .loft-sol div:not([style*="background"]):not(.loft-sol [style*="background"] div){color:#bfd0ee!important}
+.loft-page .loft-sol div:not([style*="background"]):not(.loft-sol [style*="background"] div){color:#d0d5dd!important}
 .loft-page .loft-sol p b,.loft-page .loft-sol p strong{color:var(--white)!important}
 .loft-page .loft-sol p a{color:#ffd45e!important}
 /* The "Show overview and more" control was styled for a light page: deep blue
@@ -477,11 +477,11 @@ export default function LoftCap({
    The white INPUT FIELDS are deliberately absent: they carry their own ground
    and keep their dark ink. The values are the tail's existing palette, so the
    form reads as the same object as the copy above it. */
-.loft-page{--join-head:var(--white);--join-body:#bfd0ee;--join-soft:#9dc0f5;
+.loft-page{--join-head:var(--white);--join-body:#d0d5dd;--join-soft:#bdc7d5;
   --join-loud:#ffd45e;--join-ok:#6ee7b7;--join-err:#ffb4a8}
-.loft-page footer{color:#bfd0ee!important;border-top-color:rgba(255,255,255,0.18)!important}
+.loft-page footer{color:#d0d5dd!important;border-top-color:rgba(255,255,255,0.18)!important}
 .loft-page footer b,.loft-page footer strong,.loft-page footer h3,.loft-page footer h4{color:var(--white)!important}
-.loft-page footer a{color:#dbe9ff!important}
+.loft-page footer a{color:#e9ecf1!important}
 .loft-page footer div,.loft-page footer p,.loft-page footer span,.loft-page footer li{color:inherit!important}
 /* UNUSED as of 2026-08-14, kept for a game that wants a figure on the navy
    under its board. Crux was the only caller and its IQ figure moved ONTO the
@@ -492,7 +492,7 @@ export default function LoftCap({
 .loft-iq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
   text-transform:uppercase;color:#ffd45e;margin-bottom:7px}
 .loft-iq .v{font-weight:800;font-size:24px;line-height:1}
-.loft-iq .v small{font-weight:700;font-size:12px;color:#9dc0f5;margin-left:8px;letter-spacing:0}
+.loft-iq .v small{font-weight:700;font-size:12px;color:#bdc7d5;margin-left:8px;letter-spacing:0}
 .loft-acts{display:flex;gap:8px;margin-top:10px}
 .loft-acts button{flex:1;border-radius:10px;padding:13px 8px;text-align:center;font-weight:800;
   font-size:13.5px;font-family:inherit;cursor:pointer;border:1px solid rgba(255,255,255,0.22);
@@ -654,13 +654,13 @@ export default function LoftCap({
 .loft-fiq .t{min-width:0}
 .loft-fiq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
   text-transform:uppercase;color:var(--white);margin-bottom:5px}
-.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:#cfe0ff}
+.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:#e1e5ed}
 .loft-fiq .today,.loft-fiq .today *{color:var(--white)}
-.loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:#cfe0ff}
+.loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:#e1e5ed}
 .loft-fiq .today{flex:none;margin-left:auto;padding-left:12px;text-align:right}
 .loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--white)}
 .loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
-  letter-spacing:.09em;text-transform:uppercase;color:#cfe0ff;margin-top:4px}
+  letter-spacing:.09em;text-transform:uppercase;color:#e1e5ed;margin-top:4px}
 /* The day's IQ RANK, second of the two right-hand figures. .today carries
    margin-left:auto to push itself to the right edge; a SECOND auto margin would
    split the free space between the two and park them apart, so this one takes a
