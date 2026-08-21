@@ -1779,7 +1779,11 @@ export default function QuizClient({ quizId }) {
                 this is the only frozen element; the list/board scrolls under. */}
             <div ref={scoreRef} id="quiz-board" style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}>
             <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center', gap: 8, margin: '4px 0 8px', ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>
-              {(() => {
+              {/* The cap carries the score and the clock on a loft page, so
+                  printing them here as well says it twice. Only the CHIPS are
+                  gated: the answer input and the Play button share this row and
+                  stay at both widths. */}
+              {!LOFT && (() => {
                 const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 50, padding: '0 12px', border: `1px solid ${COLORS.line}`, borderRadius: 9, background: T.white, fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
                 const live = started && !ended;
                 return (<>
