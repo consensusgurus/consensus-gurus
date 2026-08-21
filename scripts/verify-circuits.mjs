@@ -58,6 +58,11 @@ const MED = {
   // shape (five click-through blackjack hands, between Taire and Hands).
   // Replace with the measured median at the next snapshot re-measure.
   shoe: 100,
+  // Queen and Race launched 2026-08-21 with no live clock data yet: estimated
+  // from their shapes (Queen walks a 5-12 move line with replies between, so
+  // past Mate; Race is a 3-5 move sprint, so past Four). Replace with measured
+  // medians at the next snapshot re-measure.
+  queen: 75, race: 45,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.

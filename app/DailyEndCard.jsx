@@ -86,7 +86,7 @@ import {
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
-  ArrowLeftRight,
+  ArrowLeftRight, Gem,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -107,13 +107,13 @@ const AMBER = '#b45309';
 // Hands is scored against par and Babel against its solver benchmark, so falling
 // short there is "Not perfect." like any other target game, and both are
 // deliberately NOT in this set.
-const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn', 'defend']);
+const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn', 'defend', 'queen', 'race']);
 
 // LAUNCH WINDOW (owner ruling 2026-07-18): brand-new daily puzzles lead the
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['queen', 'race', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -187,6 +187,8 @@ export const GAME_META = {
   sixes:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid2x2 },
   niche:  { accent: '#115e59', badgeBg: '#115e59', badgeInk: T.white, Fin: LayoutGrid },
   shoe:  { accent: '#0c4a6e', badgeBg: '#0c4a6e', badgeInk: T.white, Fin: Layers },
+  queen: { accent: '#a16207', badgeBg: '#a16207', badgeInk: T.white, Fin: Gem },
+  race:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: FlagTriangleRight },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
@@ -287,6 +289,8 @@ const ALL_DAILY_GAMES = [
   { key: 'babel',  cat: 'word',      name: 'Babel',  tag: 'The bag is empty',           blurb: 'A word tile game picked up at the very end. Their rack is knowable, so race them out or block the lane they need.', href: '/babel' },
   { key: 'hands',  cat: 'cards',     name: 'Hands',  tag: 'The daily poker solitaire', blurb: 'Cards come one at a time into a grid where every row and column scores as a poker hand. Same deal for everybody, so it is decisions and not luck.', href: '/hands' },
   { key: 'shoe',  cat: 'cards',     name: 'Shoe',  tag: 'The daily blackjack shoe', blurb: 'Five hands of blackjack off one fixed shoe, the same cards for everybody. Par is the book line, and the count is how you beat it.', href: '/shoe' },
+  { key: 'queen', cat: 'endgame',   name: 'Queen', tag: 'White to play and promote',   blurb: 'King and pawn against king, with a proven win. Walk the pawn to the eighth rank against a perfect defence, with every move exact.', href: '/queen' },
+  { key: 'race',  cat: 'endgame',   name: 'Race',  tag: 'First pawn through wins',     blurb: 'A pawn race with no draws. One square at a time, captures on the diagonal, and exactly one first move keeps you in front.', href: '/race' },
   { key: 'axiom',  cat: 'logic',     name: 'Axiom',  tag: 'Find the hidden rule',       blurb: 'Test examples against a secret rule and name the rule before your guesses run out.', href: '/axiom' },
   { key: 'hearsay', cat: 'logic',    name: 'Hearsay', tag: "Deduce what they don't know", blurb: 'Work out the answer purely from what each player admits they cannot yet tell.', href: '/hearsay' },
   { key: 'venn',   cat: 'logic',     name: 'Venn',   tag: 'Sort the overlaps',          blurb: 'Drop every item into the right slice of the overlapping circles, overlaps included.', href: '/venn' },

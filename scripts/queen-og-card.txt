@@ -1,0 +1,141 @@
+// ---------------------------------------------------------------------------
+// Queen share card — snapshot of the game. The demo position (a king escorting
+// its pawn with the enemy king in front) is NOT in the bank, so it never
+// spoils today. It reuses MATE_PIECE_PATH above: same board, and the chess
+// dailies should read as siblings. Evergreen.
+function queenBoardDataURI() {
+  const CELL = 47, PAD = 4, BOARD = CELL * 8, BOX = BOARD + PAD * 2;
+  const rows = '8/5k2/8/3K4/4P3/8/8/8'.split('/');
+  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${BOX}" height="${BOX}" viewBox="0 0 ${BOX} ${BOX}">`];
+  parts.push(`<rect x="0" y="0" width="${BOX}" height="${BOX}" rx="8" fill="#14141a"/>`);
+  for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+    parts.push(`<rect x="${PAD + c * CELL}" y="${PAD + r * CELL}" width="${CELL}" height="${CELL}" fill="${(r + c) % 2 ? '#b58863' : '#efd9b5'}"/>`);
+  }
+  // the promotion square, flagged: the whole game is the walk to it
+  parts.push(`<rect x="${PAD + 4 * CELL}" y="${PAD}" width="${CELL}" height="${CELL}" fill="#e0ae4a" opacity="0.55"/>`);
+  for (let r = 0; r < 8; r++) {
+    let f = 0;
+    for (const ch of rows[r]) {
+      if (ch >= '1' && ch <= '9') { f += Number(ch); continue; }
+      const white = ch === ch.toUpperCase();
+      const s = (CELL * 0.92) / 45;
+      const off = (CELL - 45 * s) / 2;
+      parts.push(
+        `<g transform="translate(${PAD + f * CELL + off},${PAD + r * CELL + off}) scale(${s})">` +
+        `<path d="${MATE_PIECE_PATH[ch.toUpperCase()]}" fill="${white ? '#ffffff' : '#14141a'}" ` +
+        `stroke="${white ? '#14141a' : '#ffffff'}" stroke-width="${white ? 2 : 1.1}" stroke-linejoin="round"/></g>`
+      );
+      f++;
+    }
+  }
+  parts.push('</svg>');
+  return 'data:image/svg+xml;base64,' + Buffer.from(parts.join('')).toString('base64');
+}
+function queenBoardEl() {
+  const BOX = 47 * 8 + 8;
+  return h('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', background: '#fff', border: '2px solid #14141a', borderRadius: 14, padding: '20px 20px 18px' } }, [
+    h('div', { key: 'hd', style: { display: 'flex', fontSize: 15, fontWeight: 800, letterSpacing: '2px', color: '#716d79', marginBottom: 12 } }, 'WHITE TO PLAY AND PROMOTE'),
+    h('img', { key: 'bd', src: queenBoardDataURI(), width: BOX, height: BOX, style: { display: 'flex' } }),
+  ]);
+}
+function buildQueenCard() {
+  const T = (txt, style) => h('div', { style: { display: 'flex', ...style } }, txt);
+  return h('div', { style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', background: '#fbfaf9', fontFamily: 'Manrope', padding: '54px 60px', position: 'relative' } }, [
+    h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#14141a,#3a4152 55%,#a16207)' } }),
+    h('div', { key: 'left', style: { display: 'flex', flexDirection: 'column', width: '560px' } }, [
+      h('div', { key: 'brand', style: { display: 'flex', alignItems: 'center', marginBottom: 22 } }, [
+        h('img', { key: 'i', src: iconRingsDataURI(), width: 72, height: 72, style: { marginLeft: '-10px', marginRight: '2px' } }),
+        T('Mind Loft', { fontSize: 28, fontWeight: 800, letterSpacing: '-1px', color: '#14141a' }),
+      ]),
+      h('div', { key: 'ttl', style: { display: 'flex', alignItems: 'center' } }, [
+        T('Queen', { fontSize: 96, fontWeight: 800, letterSpacing: '-3px', color: '#14141a', lineHeight: 1 }),
+        T('DAILY', { fontSize: 20, fontWeight: 800, letterSpacing: '2px', color: '#fff', background: '#a16207', borderRadius: 8, padding: '6px 12px', marginLeft: 20 }),
+      ]),
+      h('div', { key: 'div', style: { display: 'flex', width: '210px', height: '4px', background: '#a16207', margin: '16px 0 18px' } }),
+      T('Walk the pawn in. Every move exact.', { fontSize: 30, fontWeight: 800, color: '#a16207', letterSpacing: '-0.5px' }),
+      T('The daily king-and-pawn endgame. A proven promotion in a fixed number of moves, exactly one first move that keeps it, and a perfect defence checking your technique. Opposition, tempi, the square of the pawn.', { fontSize: 24, fontWeight: 600, color: '#716d79', lineHeight: 1.34, marginTop: 15, maxWidth: 545 }),
+      T('PLAY FREE · MINDLOFTDAILY.COM/QUEEN', { fontSize: 20, fontWeight: 800, letterSpacing: '1.5px', color: '#14141a', marginTop: 30 }),
+    ]),
+    h('div', { key: 'right', style: { display: 'flex' } }, queenBoardEl()),
+  ]);
+}
+export async function renderQueenCard() {
+  const [w8, w7, w6] = await Promise.all([woff(800), woff(700), woff(600)]);
+  const any = w8 || w7 || w6;
+  const loaded = { 800: w8, 700: w7, 600: w6 };
+  const fonts = any ? [800, 700, 600].map((wt) => ({ name: 'Manrope', data: loaded[wt] || any, weight: wt, style: 'normal' })) : [];
+  return new ImageResponse(buildQueenCard(), { ...size, fonts });
+}
+
+// ---------------------------------------------------------------------------
+// Race share card — snapshot of the game. The demo board (a 7x7 with two loose
+// races on) is NOT in the bank, so it never spoils today. Evergreen.
+const RACE_DEMO = [
+  '.......',
+  '..b....',
+  '.w...b.',
+  '...b.w.',
+  'w......',
+  '....w.b',
+  '.......',
+];
+function raceBoardDataURI() {
+  const CELL = 54, PAD = 4, BOX = CELL * 7 + PAD * 2;
+  const parts = [`<svg xmlns="http://www.w3.org/2000/svg" width="${BOX}" height="${BOX}" viewBox="0 0 ${BOX} ${BOX}">`];
+  parts.push(`<rect x="0" y="0" width="${BOX}" height="${BOX}" rx="8" fill="#14141a"/>`);
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) {
+    parts.push(`<rect x="${PAD + c * CELL}" y="${PAD + r * CELL}" width="${CELL}" height="${CELL}" fill="${(r + c) % 2 ? '#9fb2d4' : '#dde5f2'}"/>`);
+  }
+  // the finish line, flagged along the top rank
+  parts.push(`<rect x="${PAD}" y="${PAD}" width="${CELL * 7}" height="6" fill="#1d4ed8" opacity="0.75"/>`);
+  const P = MATE_PIECE_PATH.P;
+  for (let r = 0; r < 7; r++) for (let c = 0; c < 7; c++) {
+    const ch = RACE_DEMO[r][c];
+    if (ch === '.') continue;
+    const white = ch === 'w';
+    const s = (CELL * 0.9) / 45;
+    const off = (CELL - 45 * s) / 2;
+    parts.push(
+      `<g transform="translate(${PAD + c * CELL + off},${PAD + r * CELL + off}) scale(${s})">` +
+      `<path d="${P}" fill="${white ? '#ffffff' : '#14141a'}" ` +
+      `stroke="${white ? '#14141a' : '#ffffff'}" stroke-width="${white ? 2 : 1.1}" stroke-linejoin="round"/></g>`
+    );
+  }
+  parts.push('</svg>');
+  return 'data:image/svg+xml;base64,' + Buffer.from(parts.join('')).toString('base64');
+}
+function raceBoardEl() {
+  const BOX = 54 * 7 + 8;
+  return h('div', { style: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', background: '#fff', border: '2px solid #14141a', borderRadius: 14, padding: '20px 20px 18px' } }, [
+    h('div', { key: 'hd', style: { display: 'flex', fontSize: 15, fontWeight: 800, letterSpacing: '2px', color: '#716d79', marginBottom: 12 } }, 'FIRST PAWN THROUGH WINS'),
+    h('img', { key: 'bd', src: raceBoardDataURI(), width: BOX, height: BOX, style: { display: 'flex' } }),
+  ]);
+}
+function buildRaceCard() {
+  const T = (txt, style) => h('div', { style: { display: 'flex', ...style } }, txt);
+  return h('div', { style: { width: '100%', height: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', background: '#fbfaf9', fontFamily: 'Manrope', padding: '54px 60px', position: 'relative' } }, [
+    h('div', { key: 'bar', style: { position: 'absolute', top: 0, left: 0, width: '1200px', height: '9px', display: 'flex', background: 'linear-gradient(90deg,#14141a,#3a4152 55%,#1d4ed8)' } }),
+    h('div', { key: 'left', style: { display: 'flex', flexDirection: 'column', width: '545px' } }, [
+      h('div', { key: 'brand', style: { display: 'flex', alignItems: 'center', marginBottom: 22 } }, [
+        h('img', { key: 'i', src: iconRingsDataURI(), width: 72, height: 72, style: { marginLeft: '-10px', marginRight: '2px' } }),
+        T('Mind Loft', { fontSize: 28, fontWeight: 800, letterSpacing: '-1px', color: '#14141a' }),
+      ]),
+      h('div', { key: 'ttl', style: { display: 'flex', alignItems: 'center' } }, [
+        T('Race', { fontSize: 100, fontWeight: 800, letterSpacing: '-3px', color: '#14141a', lineHeight: 1 }),
+        T('DAILY', { fontSize: 20, fontWeight: 800, letterSpacing: '2px', color: '#fff', background: '#1d4ed8', borderRadius: 8, padding: '6px 12px', marginLeft: 20 }),
+      ]),
+      h('div', { key: 'div', style: { display: 'flex', width: '210px', height: '4px', background: '#1d4ed8', margin: '16px 0 18px' } }),
+      T('One move keeps the race.', { fontSize: 33, fontWeight: 800, color: '#1d4ed8', letterSpacing: '-0.5px' }),
+      T('The daily pawn race. Pawns run one square at a time, capture on the diagonal, and the first one to the far rank ends it. You are winning, exactly one move keeps it, and there are no draws.', { fontSize: 24, fontWeight: 600, color: '#716d79', lineHeight: 1.34, marginTop: 15, maxWidth: 530 }),
+      T('PLAY FREE · MINDLOFTDAILY.COM/RACE', { fontSize: 20, fontWeight: 800, letterSpacing: '1.5px', color: '#14141a', marginTop: 30 }),
+    ]),
+    h('div', { key: 'right', style: { display: 'flex' } }, raceBoardEl()),
+  ]);
+}
+export async function renderRaceCard() {
+  const [w8, w7, w6] = await Promise.all([woff(800), woff(700), woff(600)]);
+  const any = w8 || w7 || w6;
+  const loaded = { 800: w8, 700: w7, 600: w6 };
+  const fonts = any ? [800, 700, 600].map((wt) => ({ name: 'Manrope', data: loaded[wt] || any, weight: wt, style: 'normal' })) : [];
+  return new ImageResponse(buildRaceCard(), { ...size, fonts });
+}

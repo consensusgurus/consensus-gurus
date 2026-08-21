@@ -3719,6 +3719,8 @@ archive and hub chips use the short form `Sun`.
 | Chomp | the full cast of eleven mascots and 0-2 spare squares (and from 2026-08-22 every Chomp board carries 5-7 bolted-down bleacher walls; see app/chomp/puzzles.js) |
 | Niche | a 4x4 grid instead of the weekday 3x3, sixteen cells and twenty guesses, always on Countries, the deepest universe (from launch, 2026-08-23) |
 | Shoe | seven hands of blackjack instead of five, dealt off the entire 52-card deck instead of a 36-card cut, so a perfect counter knows exactly what is left (from launch, 2026-08-23) |
+| Queen | a win in twelve, the longest walk against the weekday five to nine (from launch, 2026-08-21) |
+| Race | a win in five, the longest race against the weekday three and four (from launch, 2026-08-21) |
 
 **Every daily on the roster runs a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).
