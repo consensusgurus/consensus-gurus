@@ -5,16 +5,18 @@
 //   - EXACTLY ONE solution by exhaustive backtracking, matching the stored one
 //   - the no-guessing bar: a human-move propagation solver (no trial-and-error)
 //     must solve every board
-//   - DIFFICULTY RAMP: unplayed boards are graded by which deduction tiers they
-//     demand, and the weekday means must climb Mon -> Sat. Grid size is NOT a
-//     difficulty signal and is deliberately not checked against the weekday.
-//   - every unplayed Sunday is a two-jester board
+//   - DIFFICULTY RAMPS: unplayed boards are graded by which deduction tiers
+//     they demand. From 2026-08-21 the week is Mon-Wed one-jester (means must
+//     climb Mon -> Wed) and Thu-Sun two-jester (means must climb Thu -> Sun,
+//     on the two-jester tier score). Grid size is NOT a difficulty signal.
+//   - every unplayed Thursday-through-Sunday is a two-jester board
 // Run: node scripts/verify-jester.mjs
 import { PUZZLES } from '../app/jesters/puzzles.js';
 import { humanSolve2 } from './jester2-human.mjs';
 import { gradeBoard } from './grade-jester.mjs';
 
 const CUTOVER = '2026-08-03';        // boards on or before this are played and frozen
+const TWO_FROM = '2026-08-21';       // from this date Thu-Sun seat two jesters, Mon-Wed one
 let fails = 0;
 const fail = (msg) => { console.error('FAIL:', msg); fails++; };
 
@@ -181,7 +183,8 @@ function contiguous(n, regions, id) {
 // ---------- per-board checks ----------
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const seenLayouts = new Set(), seenDates = new Set();
-const grades = [];
+const grades = [];   // one-jester (Mon-Wed from TWO_FROM)
+const grades2 = [];  // two-jester (Thu-Sun from TWO_FROM)
 let prevDate = null;
 
 PUZZLES.forEach((p, i) => {
@@ -202,7 +205,13 @@ PUZZLES.forEach((p, i) => {
   const n = p.size;
   if (stars === 2 && n !== 10) fail(`${tag}: two-jester boards are 10x10, got ${n}`);
   if (stars === 1 && n !== 8 && n !== 9) fail(`${tag}: unexpected size ${n}`);
-  if (stars === 2 && !p.sunday) fail(`${tag}: two-jester board is not on a Sunday`);
+  const dow = dt.getUTCDay();
+  if (p.live < TWO_FROM) {
+    if (stars === 2 && !p.sunday) fail(`${tag}: two-jester board is not on a Sunday (pre-rollout era)`);
+  } else {
+    const wantStars = (dow === 0 || dow >= 4) ? 2 : 1;
+    if (stars !== wantStars) fail(`${tag}: a ${DOW[dow]} from ${TWO_FROM} should seat ${wantStars} jester(s) per unit, got ${stars}`);
+  }
   if (p.regions.length !== n || p.regions.some((row) => row.length !== n)) fail(`${tag}: regions not ${n}x${n}`);
   const sizes = Array(n).fill(0);
   let idsOK = true;
@@ -226,7 +235,7 @@ PUZZLES.forEach((p, i) => {
     const hs = humanSolve(n, p.regions);
     if (!hs.solved) fail(`${tag}: NOT human-solvable without guessing`);
     else if (hs.cols.some((c, r) => c !== sol[r])) fail(`${tag}: human solution differs from stored`);
-    if (p.live > CUTOVER) grades.push({ dow: dt.getUTCDay(), score: gradeBoard(n, p.regions).score, tag });
+    if (p.live >= TWO_FROM) grades.push({ dow, score: gradeBoard(n, p.regions).score, tag });
   } else {
     const sol = p.solution;
     if (sol.length !== n || sol.some((pair) => !Array.isArray(pair) || pair.length !== 2)) fail(`${tag}: solution is not ${n} column pairs`);
@@ -246,30 +255,41 @@ PUZZLES.forEach((p, i) => {
     const hs = humanSolve2(n, p.regions);
     if (!hs.solved) fail(`${tag}: NOT human-solvable without guessing`);
     else {
+      if (p.live >= TWO_FROM) grades2.push({ dow, score: hs.tier[2] * 1 + hs.tier[3] * 4 + hs.tier[4] * 6 + hs.rounds * 0.25, tag });
       const human = Array.from({ length: n }, (_, r) => { const cs = []; for (let c = 0; c < n; c++) if (hs.star[r][c]) cs.push(c); return cs; });
       if (JSON.stringify(human) !== JSON.stringify(sol)) fail(`${tag}: deduction lands somewhere else`);
     }
   }
 });
 
-// ---------- difficulty ramp across the unplayed week ----------
-const meanBy = {};
-for (const g of grades) (meanBy[g.dow] ||= []).push(g.score);
-const means = {};
-for (const w of [1, 2, 3, 4, 5, 6]) {
-  const a = meanBy[w] || [];
-  if (!a.length) { fail(`no unplayed boards on ${DOW[w]}`); continue; }
-  means[w] = a.reduce((x, y) => x + y, 0) / a.length;
-}
-for (const w of [2, 3, 4, 5, 6]) {
-  if (means[w] !== undefined && means[w - 1] !== undefined && means[w] <= means[w - 1]) {
-    fail(`difficulty ramp breaks: ${DOW[w]} (${means[w].toFixed(1)}) is not harder than ${DOW[w - 1]} (${means[w - 1].toFixed(1)})`);
+// ---------- difficulty ramps across the restructured week ----------
+// From TWO_FROM the week is Mon-Wed one-jester and Thu-Sun two-jester. The two
+// families are graded on their own scales, so each ramp is checked apart:
+// one-jester means climb Mon -> Wed, two-jester means climb Thu -> Sun.
+const rampOf = (rows, order, label) => {
+  const by = {};
+  for (const g of rows) (by[g.dow] ||= []).push(g.score);
+  const means = {};
+  for (const w of order) {
+    const a = by[w] || [];
+    if (!a.length) { fail(`no unplayed ${label} boards on ${DOW[w]}`); continue; }
+    means[w] = a.reduce((x, y) => x + y, 0) / a.length;
   }
-}
+  for (let i = 1; i < order.length; i++) {
+    const w = order[i], v = order[i - 1];
+    if (means[w] !== undefined && means[v] !== undefined && means[w] <= means[v]) {
+      fail(`${label} ramp breaks: ${DOW[w]} (${means[w].toFixed(1)}) is not harder than ${DOW[v]} (${means[v].toFixed(1)})`);
+    }
+  }
+  return means;
+};
+const means1 = rampOf(grades, [1, 2, 3], 'one-jester');
+const means2 = rampOf(grades2, [4, 5, 6, 0], 'two-jester');
 const futureSundays = PUZZLES.filter((p) => p.live > CUTOVER && p.sunday);
 for (const p of futureSundays) if ((p.stars || 1) !== 2) fail(`#${p.num} (${p.quizId}): unplayed Sunday is not a two-jester board`);
 
 if (fails) { console.error(`\nverify-jester: ${fails} FAILURE(S)`); process.exit(1); }
 console.log(`verify-jester: all ${PUZZLES.length} boards pass (unique + pure-deduction, structure OK)`);
-console.log('  weekday difficulty ramp: ' + [1,2,3,4,5,6].map((w) => `${DOW[w]} ${means[w].toFixed(1)}`).join('  ->  '));
-console.log(`  two-jester Sundays: ${PUZZLES.filter((p) => (p.stars || 1) === 2).length}`);
+console.log('  one-jester ramp (Mon-Wed): ' + [1, 2, 3].map((w) => `${DOW[w]} ${means1[w] === undefined ? '?' : means1[w].toFixed(1)}`).join('  ->  '));
+console.log('  two-jester ramp (Thu-Sun): ' + [4, 5, 6, 0].map((w) => `${DOW[w]} ${means2[w] === undefined ? '?' : means2[w].toFixed(1)}`).join('  ->  '));
+console.log(`  two-jester boards: ${PUZZLES.filter((p) => (p.stars || 1) === 2).length}`);

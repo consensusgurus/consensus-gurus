@@ -768,7 +768,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         <>The board completes itself the moment the last jester is seated legally.</>,
       ]}
       knack="Every board has exactly one legal seating, reachable by pure deduction, so never guess. A court penned into a single row already owes that row its seat."
-      footer="Ties break on fewest placements, then fastest time. Courts get harder as the week goes on, and Sunday seats two jesters per row, column and court on a bigger board, where a second in a row is correct and only a third quarrels."
+      footer="Ties break on fewest placements, then fastest time. Monday through Wednesday seat one jester apiece and climb in difficulty; Thursday through Sunday seat two per row, column and court on a bigger board, where a second in a row is correct and only a third quarrels. Sunday is the hardest court of the week."
     />
   );
 
@@ -864,7 +864,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Seat {STARS === 2 ? 'two jesters' : 'one jester'} in every row, column and colored court, with none touching. The board stays covered until you begin.</p>
                 {STARS === 2 && (
-                  <p style={{ margin: '0 0 6px' }}>Sunday takes <b>two</b>, so a second jester in a row is correct here and only a third is a quarrel. The numbers around the edge count the seats each row and column still owes.</p>
+                  <p style={{ margin: '0 0 6px' }}>This court takes <b>two</b> per row, column and court, so a second jester in a row is correct here and only a third is a quarrel. The numbers around the edge count the seats each row and column still owes.</p>
                 )}
               </div>
             )}
@@ -1165,13 +1165,13 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Jesters is a free daily logic puzzle from Mind Loft &mdash; a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Saturday, two apiece on the bigger Sunday board. No two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Mind Loft &mdash; a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Wednesday, two apiece on the bigger boards from Thursday through Sunday. No two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new court convenes every day at midnight Eastern, each one graded so the week climbs from a gentle Monday to a hard Saturday, and Sunday seats two jesters per row, column and court. Play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
+          A new court convenes every day at midnight Eastern, each one graded so the week climbs from a gentle Monday, with two jesters per row, column and court from Thursday on and the hardest court of all on Sunday. Play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 

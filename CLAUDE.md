@@ -3664,7 +3664,7 @@ archive and hub chips use the short form `Sun`.
 | Carve | 7×7 board in nine blocks |
 | Stet | seven sentences, up to two errors each |
 | Ping | a trickier, more out-of-the-way city |
-| Jester | 9×9 Jubilee board instead of 8×8 |
+| Jester | the hardest two-jester 10×10 board of the week (from 2026-08-21 Thu–Sat are two-jester 10×10 as well, ramping into Sunday; Mon–Wed stay one-jester) |
 | Sworn | six suspects sworn instead of five |
 | Garble | every answer is six letters instead of five (from 2026-07-26) |
 | Dating | six events to order instead of five (from 2026-07-26) |
