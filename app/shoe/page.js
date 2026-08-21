@@ -4,7 +4,7 @@ import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
-// Shoe launched 2026-08-22 as the daily blackjack shoe: five hands of
+// Shoe launched 2026-08-21 as the daily blackjack shoe: five hands of
 // blackjack off ONE fixed 36-card shoe, the same cards in the same order for
 // every player, which turns blackjack from a gamble into a decision game a
 // leaderboard can rank. Par is what basic strategy banks on the day's shoe

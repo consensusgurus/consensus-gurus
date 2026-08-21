@@ -11,8 +11,9 @@
 // nothing the browser loads, because the ace line is an excellent round on a
 // live shoe and shipping it would hand today's players a solution.
 export const PROOFS = {
-  'shoe-8-22-26': { par: ["S","S","","H","H"], ace: ["S","D","","D","HS"] },
-  'shoe-8-23-26': { par: ["H","S","HS","HH","S","S","HS"], ace: ["H","D","S","HH","S","S","D"] },
+  'shoe-8-21-26': { par: ["S","S","","H","H"], ace: ["S","D","","D","HS"] },
+  'shoe-8-22-26': { par: ["H","S","HS","HH","S"], ace: ["H","S","S","D","S"] },
+  'shoe-8-23-26': { par: ["S","HHS","HS","HS","D","HH","S"], ace: ["S","D","D","S","HHHS","D","S"] },
   'shoe-8-24-26': { par: ["S","HS","HS","S","S"], ace: ["S","HS","HS","S","D"] },
   'shoe-8-25-26': { par: ["HHS","S","S","S","S"], ace: ["HHS","S","D","D","D"] },
   'shoe-8-26-26': { par: ["S","HHS","HH","H","HH"], ace: ["S","HHH","D","S","D"] },
