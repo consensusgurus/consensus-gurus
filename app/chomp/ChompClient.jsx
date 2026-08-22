@@ -35,6 +35,15 @@
 // result is leaderboard eligible, so a retry costs nothing and cannot buy a
 // better place. Give up is two-tap armed and has no keyboard shortcut, because
 // a control that costs you the day should not be one stray keypress away.
+//
+// RESTART SITS BESIDE IT (owner, 2026-08-22). Give up followed by Try again was
+// the only way back to a fresh board, which is two presses and a card in between
+// for the thing a boxed-in player wants most. Restart is those two presses in
+// one: it books the run exactly as Give up does and re-deals on the spot, with
+// no end card. It RECORDS, and that is the point rather than an oversight -- a
+// restart that recorded nothing would let a player re-deal until the board went
+// their way and post only that, which is precisely what the first-attempt rule
+// exists to stop. Two-tap armed like Give up, and each disarms the other.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -274,6 +283,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const [stats, setStats] = useState(null);
   const [blocked, setBlocked] = useState(null);
   const [armGive, setArmGive] = useState(false);
+  const [armRestart, setArmRestart] = useState(false);
   const [nowTick, setNowTick] = useState(0);
   const [sprites, setSprites] = useState({});
   const cvsRef = useRef(null);
@@ -643,6 +653,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     return () => clearTimeout(t);
   }, [armGive]);
   useEffect(() => {
+    if (!armRestart) return undefined;
+    const t = setTimeout(() => setArmRestart(false), 3500);
+    return () => clearTimeout(t);
+  }, [armRestart]);
+  useEffect(() => {
     if (!blocked) return;
     const t = setTimeout(() => setBlocked(null), BLOCK_MS);
     return () => clearTimeout(t);
@@ -699,6 +714,22 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     setEndClosed(false);
   }, [releaseEnd, PUZZLE, commit]);
 
+  // RESTART = the give-up booking plus the re-deal, in one press. It posts the
+  // run exactly as giveUp does (same clock arithmetic, same postResult, so
+  // markFlushed suppresses any later abandon row and write-once recordStat keeps
+  // the first result) and then hands straight to tryAgain, which releases the
+  // end hold and deals the board again. It deliberately does NOT commit the
+  // ended state first: tryAgain's own commit lands a tick later and would only
+  // overwrite it, and nothing renders in between.
+  const restartRun = useCallback(() => {
+    const cur = gRef.current;
+    if (cur.status !== 'playing' || !cur.t0) return;
+    const now = Date.now();
+    const ended = { ...cur, ms: cur.ms + Math.min(120000, now - (cur.tMark || now)) };
+    postResult({ ...ended, status: 'over' });
+    tryAgain();
+  }, [postResult, tryAgain]);
+
   useEffect(() => {
     const onKey = (e) => {
       if (showHelp) { if (e.key === 'Escape') setShowHelp(false); return; }
@@ -748,10 +779,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the tiger to reach the gamecock.</>,
         <>The dark <b>bleachers</b> are bolted down and you can never enter them. Going around one is forced, and which side you pick decides what you wall off.</>,
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
-        <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. Only your first result counts on the leaderboard.</>,
+        <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. <b>Restart</b> does both in one press. Only your first result counts on the leaderboard, so a second run costs nothing.</>,
       ]}
       knack="The mascots sit close together, and that is the trap: the direct line to the next one is very often the line that walls off the one after it. When the way forward looks obvious, check what it costs you two mascots later."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field the whole cast on the same small board, so almost every square is wall by the time the last one is in reach.`}
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up or restarting records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field the whole cast on the same small board, so almost every square is wall by the time the last one is in reach.`}
     />
   );
 
@@ -890,15 +921,29 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                   <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
                     {playing ? 'Where you have been is a wall. There is no take-back.' : 'Your result is recorded. Play it again as often as you like.'}
                   </span>
-                  <span style={{ marginLeft: 'auto' }}>
+                  <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14 }}>
                     {playing ? (
+                      <>
+                      {/* Both controls reserve a fixed width and each disarms
+                          the other, so the row cannot reflow under a thumb
+                          mid-confirm and two things can never be armed at once.
+                          The icons tell the two 'Press again' states apart, and
+                          the consequence line below names whichever is armed. */}
                       <button
-                        onClick={() => { if (armGive) { setArmGive(false); giveUp(); } else setArmGive(true); }}
+                        onClick={() => { if (armRestart) { setArmRestart(false); restartRun(); } else { setArmGive(false); setArmRestart(true); } }}
+                        title={armRestart ? 'Records this run as it stands, then deals the board again' : 'Record this run as it stands and start the board over'}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.accent : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                      >
+                        <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
+                      </button>
+                      <button
+                        onClick={() => { if (armGive) { setArmGive(false); giveUp(); } else { setArmRestart(false); setArmGive(true); } }}
                         title={armGive ? 'Ends the run and records it as it stands' : 'End the run now and record it as it stands'}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armGive ? COLORS.block : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <Flag size={13} style={{ flexShrink: 0 }} /> {armGive ? 'Press again' : 'Give up'}
                       </button>
+                      </>
                     ) : (
                       <button
                         onClick={tryAgain}
@@ -910,9 +955,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                     )}
                   </span>
                 </div>
-                {armGive && (
-                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.block, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
-                    Ends the run and records it as it stands.
+                {(armGive || armRestart) && (
+                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: armGive ? COLORS.block : COLORS.accent, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                    {armGive
+                      ? 'Ends the run and records it as it stands.'
+                      : 'Records this run as it stands, then deals the board again.'}
                   </div>
                 )}
               </div>
