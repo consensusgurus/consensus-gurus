@@ -59,6 +59,7 @@ import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
 import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
+import useEndHold, { HOLD_SHORT, HOLD_LONG } from '../useEndHold';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
@@ -289,6 +290,18 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   }, [STORE_KEY]);
 
   const playing = g.status === 'playing';
+  // THE FINISHED BOARD HOLDS BEFORE THE CARD (2026-08-22). Chomp had no hold at
+  // all, so the stage flipped in the same tick the run ended and the walled-in
+  // gator, which IS the explanation of the loss, was covered before it was read.
+  // Longer on a loss than a win, per useEndHold: a clear is a move you played on
+  // purpose, a wall-in is one you did not see coming.
+  //
+  // holdEnd / releaseEnd are pulled off as their own consts because they are the
+  // stable callbacks; `endHold` itself is a fresh literal every render and must
+  // never be a dependency.
+  const endHold = useEndHold();
+  const holdEnd = endHold.hold;
+  const releaseEnd = endHold.release;
   const LOFT = isLoft('chomp');  const iq = useIqStanding({ game: 'chomp', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'chomp', active: LOFT && !playing });
@@ -394,6 +407,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const postResult = useCallback((g2) => {
     abandon.markFlushed();
     const done = g2.pi >= NPEL;
+    // Every LIVE ending funnels through here and a hydrated finished run never
+    // does, so returning to an old board still shows the card straight away.
+    holdEnd(done ? HOLD_SHORT : HOLD_LONG);
     const sc = scoreOf(g2.pi, NPEL);
     const el = Math.max(1, Math.round(g2.ms / 1000));
     try { setStats(recordStat(PUZZLE.num, { s: sc, t: 10, g: g2.moves, won: done })); } catch (e) {}
@@ -408,7 +424,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         }),
       }).then((r) => r.json()).then((d) => { if (d && !d.error) setBoard({ ...EMPTY_BOARD, ...d }); }).catch(() => {});
     } catch (e) {}
-  }, [abandon, PUZZLE.quizId, PUZZLE.num, NPEL, identity]);
+  }, [holdEnd, abandon, PUZZLE.quizId, PUZZLE.num, NPEL, identity]);
 
   const finish = useCallback((st) => {
     commit({ ...st, status: 'over', tEnd: Date.now() });
@@ -666,6 +682,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   }, [commit, postResult]);
 
   const tryAgain = useCallback(() => {
+    releaseEnd();
     const now = Date.now();
     // t0 is set straight away rather than dropping back to the start tile: that
     // tile exists to keep the FIRST attempt's clock honest, and this is not one.
@@ -680,7 +697,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     // pattern (Four, Paths and Tuck all do it in resetGame). The card is hidden
     // while a run is live by the !playing gate, never by this flag.
     setEndClosed(false);
-  }, [PUZZLE, commit]);
+  }, [releaseEnd, PUZZLE, commit]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -792,9 +809,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
         <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
         {preStart && (
@@ -908,11 +925,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             every board; Turn and Paths gate it on !identity and so does this. */}
 
           </div>
-          {LOFT && !playing && revealed && (
+          {LOFT && !playing && !endHold.held && revealed && (
             <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
-          {LOFT && !playing && (
+          {LOFT && !playing && !endHold.held && (
             <LoftFinish
               name="Chomp"
               catRank={catRank}

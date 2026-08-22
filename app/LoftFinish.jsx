@@ -65,7 +65,7 @@ import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
-import { DAILY_GAMES, DAILY_GAME_MAP, isEndGame, isArcade, dailyAttemptRule } from '@/lib/daily-games';
+import { DAILY_GAMES, DAILY_GAME_MAP, isEndGame, isArcade, wantsFastRetry, dailyAttemptRule } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -474,10 +474,14 @@ export default function LoftFinish({
   // An Arcade run can never be failed, so its 'part' verdict reaches this too,
   // which is right: runs there are unlimited and another one can only help.
   //
-  // The category test is the registry's own, never a hardcoded list of eight,
-  // and it needs a real replay handler: a client that passes no replay option
-  // has nothing to gate.
-  const fastRetry = !!replayOpt && !runSolved && (isEndGame(selfKey) || isArcade(selfKey));
+  // The test is the registry's own, never a hardcoded list: the two categories
+  // qualify by default and any other game opts in with `fastRetry: true` on its
+  // row (see wantsFastRetry in lib/daily-games, and Chomp, which keeps only its
+  // first attempt but whose free re-deal is the whole design). It also needs a
+  // real replay handler: a client that passes no replay option has nothing to
+  // gate. The panel's own copy comes from dailyAttemptRule either way, so an
+  // opted-in game states what its replay is worth and cannot oversell it.
+  const fastRetry = !!replayOpt && !runSolved && wantsFastRetry(selfKey);
   // A run whose LAST game is an unsolved End Game does not auto-advance to the
   // summary: bouncing the player off the board six seconds after telling them
   // to play it again is the card arguing with itself. The summary control is
