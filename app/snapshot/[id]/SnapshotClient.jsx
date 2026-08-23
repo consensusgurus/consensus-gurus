@@ -513,7 +513,7 @@ function PosterLedger({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '48px 64px 22px', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontFamily: 'DM Mono, monospace', fontSize: 13, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.faded, marginBottom: 18 }}>
-          <span style={{ color: pal.accent, fontWeight: 600 }}>Source of Truths</span>
+          <span style={{ color: pal.accent, fontWeight: 600 }}>Mind Loft</span>
           <span>{list.category} &middot; Top {Math.min(items.length, 10)}</span>
         </div>
         <h1 style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 64), lineHeight: 0.95, letterSpacing: '-0.03em', margin: 0, color: pal.text, fontVariationSettings: '"SOFT" 100, "WONK" 1', maxWidth: '94%' }}>
@@ -547,7 +547,7 @@ function PosterStack({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '48px 56px 22px', flexShrink: 0 }}>
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 14 }}>
-          Source of Truths &middot; {list.category} &middot; {modeLabel}
+          Mind Loft &middot; {list.category} &middot; {modeLabel}
         </div>
         <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, textTransform: 'uppercase', fontSize: fitTitle(list.title, 74), lineHeight: 0.86, letterSpacing: '-0.04em', margin: 0, color: pal.text, maxWidth: '96%' }}>
           {list.title}
@@ -579,7 +579,7 @@ function PosterChart({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '46px 60px 20px', flexShrink: 0 }}>
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.3em', textTransform: 'uppercase', color: pal.accent, fontWeight: 700, marginBottom: 14 }}>
-          Source of Truths &middot; {list.category}
+          Mind Loft &middot; {list.category}
         </div>
         <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 62), lineHeight: 0.9, letterSpacing: '-0.04em', margin: '0 0 8px', color: pal.text, maxWidth: '94%' }}>
           {list.title}
@@ -618,7 +618,7 @@ function PosterSpotlight({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '42px 56px 18px', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.faded }}>
-          <span style={{ color: pal.accent, fontWeight: 700 }}>Source of Truths</span>
+          <span style={{ color: pal.accent, fontWeight: 700 }}>Mind Loft</span>
           <span>{list.category} &middot; {modeLabel}</span>
         </div>
         <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 58), lineHeight: 0.9, letterSpacing: '-0.03em', margin: '16px 0 0', color: pal.text, maxWidth: '96%' }}>
@@ -671,7 +671,7 @@ function PosterShowcase({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, sans-serif', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '40px 56px 16px', flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'DM Mono, monospace', fontSize: 12, letterSpacing: '0.28em', textTransform: 'uppercase', color: pal.faded }}>
-          <span style={{ color: pal.accent, fontWeight: 700 }}>Source of Truths</span>
+          <span style={{ color: pal.accent, fontWeight: 700 }}>Mind Loft</span>
           <span>{list.category} &middot; Top {Math.min(items.length, 10)}</span>
         </div>
         <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 52), lineHeight: 0.9, letterSpacing: '-0.03em', margin: '14px 0 0', color: pal.text, maxWidth: '96%' }}>
@@ -708,7 +708,7 @@ function PosterScorecard({ list, items, modeLabel, sourceNames, pal }) {
     <div style={{ width: POSTER_W, height: POSTER_H, background: pal.bg, color: pal.text, boxSizing: 'border-box', fontFamily: 'Manrope, sans-serif', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
       <div style={{ background: pal.accent, padding: '36px 56px 28px', flexShrink: 0 }}>
         <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, letterSpacing: '0.36em', textTransform: 'uppercase', color: pal.bg, opacity: 0.7, marginBottom: 10 }}>
-          Source of Truths &nbsp;/&nbsp; {list.category}
+          Mind Loft &nbsp;/&nbsp; {list.category}
         </div>
         <h1 style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 900, fontSize: fitTitle(list.title, 64), lineHeight: 0.92, letterSpacing: '-0.03em', margin: '0 0 12px', color: pal.bg, maxWidth: 880 }}>
           {list.title}

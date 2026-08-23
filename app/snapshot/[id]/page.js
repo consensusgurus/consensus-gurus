@@ -6,12 +6,12 @@ export async function generateMetadata({ params }) {
   const list = LISTS.find((l) => l.id === id);
   if (list) {
     return {
-      title: `${list.title} — Snapshot | Source of Truths`,
+      title: `${list.title} — Snapshot | Mind Loft`,
       description: list.blurb,
       robots: { index: false, follow: false },
     };
   }
-  return { title: 'Snapshot | Source of Truths', robots: { index: false, follow: false } };
+  return { title: 'Snapshot | Mind Loft', robots: { index: false, follow: false } };
 }
 
 // On-demand ISR (Vercel support, 2026-06-11): snapshot pages (~1.24MB each) are
