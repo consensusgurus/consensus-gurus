@@ -93,6 +93,12 @@ export default function Footer() {
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
             Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.
           </div>
+          {/* The crawl path to /about. It sits under the brand blurb rather than in
+              the Legal column because it is not a legal page: it is the page that
+              tells a reader, and a search engine, what Mind Loft is. */}
+          <Link href="/about" style={{ display: 'inline-block', marginTop: 8, fontSize: 12.5, fontWeight: 700, color: NEUTRAL.ink, textDecoration: 'none' }}>
+            About Mind Loft
+          </Link>
           {vis != null && (<div style={{ fontSize: 11.5, color: NEUTRAL.soft, marginTop: 10 }}>{vis.toLocaleString()} visitors</div>)}
         </div>
         {COLS.map((col) => (

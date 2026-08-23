@@ -411,7 +411,7 @@ const Board = forwardRef(function Board({ tiles, format, title, voteData, extras
             color: T.slate,
           }}
         >
-          <span style={{ textAlign: 'left' }}>Source of Truths</span>
+          <span style={{ textAlign: 'left' }}>Mind Loft</span>
           <span
             style={{
               textAlign: 'center',

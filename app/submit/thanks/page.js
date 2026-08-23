@@ -4,7 +4,8 @@ import Footer from '@/app/Footer';
 import { T } from '@/lib/theme';
 
 export const metadata = {
-  title: 'Thanks for submitting | Source of Truths',
+  title: 'Thanks for submitting | Mind Loft',
+  robots: { index: false, follow: true },
 };
 
 export default function ThanksPage() {

@@ -8,7 +8,7 @@ export async function generateMetadata({ params }) {
 
   if (!list) {
     return {
-      title: 'List Not Found | Source of Truths',
+      title: 'List Not Found | Mind Loft',
       description: 'This list could not be found.',
     };
   }
@@ -18,17 +18,17 @@ export async function generateMetadata({ params }) {
   const previewItems = consensusItems.slice(5, 10).join(', ');
 
   return {
-    title: `${list.title} | Source of Truths`,
+    title: `${list.title} | Mind Loft`,
     description: `${list.blurb} Ranked by expert consensus.`,
     openGraph: {
-      title: `${list.title} | Source of Truths`,
+      title: `${list.title} | Mind Loft`,
       description: `6-10 of Consensus: ${previewItems}`,
       url: `${SITE_URL}/list/${list.id}`,
       type: 'website',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${list.title} | Source of Truths`,
+      title: `${list.title} | Mind Loft`,
       description: `6-10 of Consensus: ${previewItems}`,
     },
   };

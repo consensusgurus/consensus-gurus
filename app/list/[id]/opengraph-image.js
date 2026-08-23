@@ -2,7 +2,7 @@ import { renderListCard } from '@/lib/og-brand-card'
 import { LISTS } from '@/lib/data'
 
 export const runtime = 'nodejs';
-export const alt = 'Source of Truths list preview'
+export const alt = 'Mind Loft list preview'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -141,7 +141,7 @@ function computeConsensus(list) {
 export default async function Image({ params }) {
   const list = LISTS.find(l => l.id === params.id)
   if (!list) {
-    return renderListCard({ title: 'Source of Truths', category: 'Source of Truths', previewItems: [], startPosition: 10, isUnranked: false })
+    return renderListCard({ title: 'Mind Loft', category: 'Mind Loft', previewItems: [], startPosition: 10, isUnranked: false })
   }
   const isUnranked = (list.mode || 'both') === 'unranked'
   const consensusItems = computeConsensus(list)

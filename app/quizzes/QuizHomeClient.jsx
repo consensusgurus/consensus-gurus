@@ -454,7 +454,7 @@ function FeedbackModal({ mode, onClose }) {
 }
 
 // ─── main ───────────────────────────────────────────────────────────────────
-export default function QuizHomeClient({ variant = 'current' }) {
+export default function QuizHomeClient({ variant = 'current', sourceCount = 0 }) {
   // HOME v3, served at /home-preview only. Everything it changes is gated on
   // this one flag, so / renders byte-identically to before.
   const v3 = variant === 'v3';
@@ -2970,6 +2970,25 @@ export default function QuizHomeClient({ variant = 'current' }) {
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check className="donemark" size={14} strokeWidth={2.75} style={{ color: C.live }} /> Played</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star className="donemark" size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> Completed (100%)</span>
       </div>
+
+      {/* About Mind Loft. Crawlable prose, server-rendered into the initial HTML.
+          Before this existed the homepage carried the brand name only in chrome
+          (logo, footer heading, copyright, Amazon Associates line) and nowhere in
+          a sentence, so for the query "mind loft" Google picked /terms as the page
+          this site is ABOUT and never showed the homepage at all. Keep real
+          sentences here, and keep the brand name in them. */}
+      <section style={{ maxWidth: 940, margin: '10px auto 0', padding: '0 4px', fontFamily: FONT }}>
+        <h2 style={{ margin: '0 0 10px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: '#e8eefc' }}>About Mind Loft</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: '#9fb4d8', fontWeight: 500 }}>
+          Mind Loft is a free daily brain games site. Every day at midnight Eastern, Mind Loft publishes a fresh slate of more than sixty puzzles across word, number, logic, trivia, geography and card categories, from a clueless crossword to a killer sudoku to a chess endgame, with a bigger Sunday Edition each week. There is no app to install and no signup required to play.
+        </p>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: '#9fb4d8', fontWeight: 500 }}>
+          Alongside the daily games, Mind Loft holds a library of {QUIZ_COUNT.toLocaleString()} timed quizzes covering films, music, sports, geography, business and brands, in formats running from name-them-all and matching to map-clicking and timed multiple choice. Every finished game posts to a daily leaderboard and earns IQ Points toward a running rank.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: '#9fb4d8', fontWeight: 500 }}>
+          Mind Loft also publishes consensus <Link href="/lists" style={{ color: '#cddffb', fontWeight: 700 }}>Top 10 Lists</Link>, rankings of the best restaurants, hotels, films, books and products scored from {sourceCount} expert publications and rating platforms rather than from one editor's opinion. <Link href="/about" style={{ color: '#cddffb', fontWeight: 700 }}>Read more about how Mind Loft works</Link>, or browse the <Link href="/quizzes/all" style={{ color: '#cddffb', fontWeight: 700 }}>full quiz index</Link>.
+        </p>
+      </section>
 
       <Footer />
     </div>

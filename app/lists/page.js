@@ -17,7 +17,7 @@ export function generateMetadata() {
       description,
       url: '/lists',
       type: 'website',
-      siteName: 'Source of Truths',
+      siteName: 'Mind Loft',
     },
     twitter: {
       card: 'summary_large_image',
@@ -30,13 +30,13 @@ export function generateMetadata() {
 const collectionJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'CollectionPage',
-  name: 'Source of Truths — Top 10 Lists',
+  name: 'Mind Loft Top 10 Lists',
   url: `${SITE_URL}/lists`,
   description:
     'Curated ranked lists built from expert sources and reader consensus. Browse the best in dining, travel, entertainment, and products across categories including restaurants, bars, hotels, books, films, and curated products.',
   publisher: {
     '@type': 'Organization',
-    name: 'Source of Truths',
+    name: 'Mind Loft',
     url: `${SITE_URL}`,
     description:
       'Ranked lists determined by expert consensus and reader votes using Borda scoring methodology.',

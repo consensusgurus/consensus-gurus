@@ -91,11 +91,11 @@ function generateSeoDescription(list, consensusItems) {
 
   if (list.mode === 'facts' || list.mode === 'scores' || list.mode === 'unranked') {
     const sourceLabel = list.sources?.ai?.label || 'authoritative rankings';
-    return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Source of Truths.`;
+    return `${list.title}, ranked by ${sourceLabel}. Includes ${top3Str}. See the full ranking at Mind Loft.`;
   }
 
   if (list.mode === 'votes') {
-    return `${list.title}, ranked by readers. Vote on the picks including ${top3Str}. Cast your vote at Source of Truths.`;
+    return `${list.title}, ranked by readers. Vote on the picks including ${top3Str}. Cast your vote at Mind Loft.`;
   }
 
   if (sourceCount >= 2) {
@@ -169,15 +169,15 @@ export async function generateMetadata({ params }) {
     description,
     alternates: { canonical: url },
     openGraph: {
-      title: `${seoTitle} | Source of Truths`,
+      title: `${seoTitle} | Mind Loft`,
       description,
       url,
       type: 'article',
-      siteName: 'Source of Truths',
+      siteName: 'Mind Loft',
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${seoTitle} | Source of Truths`,
+      title: `${seoTitle} | Mind Loft`,
       description,
     },
   };

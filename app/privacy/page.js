@@ -3,6 +3,19 @@ import LegalLayout, { H2 } from '@/app/LegalLayout';
 export const metadata = {
   title: 'Privacy Policy | Mind Loft',
   description: 'How Mind Loft collects and uses information.',
+  alternates: { canonical: '/privacy' },
+  openGraph: {
+    title: 'Privacy Policy | Mind Loft',
+    description: 'How Mind Loft collects and uses information.',
+    url: '/privacy',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy | Mind Loft',
+    description: 'How Mind Loft collects and uses information.',
+  },
 };
 
 export default function PrivacyPage() {

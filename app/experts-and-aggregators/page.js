@@ -5,9 +5,21 @@ import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
 
 export const metadata = {
-  title: 'Experts and Aggregators | Source of Truths',
-  description:
-    'Every publication behind the Source of Truths consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
+  title: 'Experts and Aggregators | Mind Loft',
+  description: 'Every publication behind the Mind Loft consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
+  alternates: { canonical: '/experts-and-aggregators' },
+  openGraph: {
+    title: 'Experts and Aggregators | Mind Loft',
+    description: 'Every publication behind the Mind Loft consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
+    url: '/experts-and-aggregators',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Experts and Aggregators | Mind Loft',
+    description: 'Every publication behind the Mind Loft consensus, from Michelin and Condé Nast Traveler to Wirecutter, Goodreads, and Yelp, with how many lists each one shapes.',
+  },
 };
 
 const C = {
@@ -64,7 +76,7 @@ export default function SourcesPage() {
               color: C.muted,
             }}
           >
-            Every ranking on Source of Truths is a consensus of expert critics and everyday users.
+            Every ranking on Mind Loft is a consensus of expert critics and everyday users.
             These are the {sources.length} publications and platforms whose rankings feed that
             consensus, from Michelin, Condé Nast Traveler, and The Infatuation to Wirecutter,
             Goodreads, and Yelp. The number beside each shows how many lists it currently shapes.

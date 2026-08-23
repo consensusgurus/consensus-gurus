@@ -816,7 +816,7 @@ export function ListOverviewPoster({ list, voteData, extras, variant }) {
     <div style={{ width: 1080, background: T.surface, color: T.ink, boxSizing: 'border-box', padding: compact ? '38px 48px 28px' : '52px 60px 40px', position: 'relative' }}>
       {/* Masthead */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${T.ink}`, paddingBottom: 14, marginBottom: compact ? 20 : 28, fontFamily: 'DM Mono, monospace', fontSize: 14, letterSpacing: '0.3em', textTransform: 'uppercase', color: T.ink }}>
-        <span style={{ fontWeight: 600 }}>Source of Truths</span>
+        <span style={{ fontWeight: 600 }}>Mind Loft</span>
         <span style={{ color: T.slate, fontSize: 11 }}>{SITE_HOST}</span>
       </div>
 

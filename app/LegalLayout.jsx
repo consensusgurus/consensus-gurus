@@ -43,7 +43,7 @@ export default function LegalLayout({ kicker, title, italic, children, updated }
           }}
         >
           <ArrowLeft size={14} strokeWidth={2.5} />
-          Back to all lists
+          Back to Mind Loft
         </Link>
 
         <div style={{ borderBottom: `2px solid ${T.ink}`, paddingBottom: 20, marginTop: 16, marginBottom: 32 }}>

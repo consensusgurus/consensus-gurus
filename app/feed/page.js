@@ -11,8 +11,21 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata = {
-  title: 'Activity Log | Source of Truths',
-  description: 'Live activity across every Source of Truths list: new lists, reader requests, votes, comments, and ranking changes.',
+  title: 'Activity Log | Mind Loft',
+  description: 'Live activity across every Mind Loft list: new lists, reader requests, votes, comments, and ranking changes.',
+  alternates: { canonical: '/feed' },
+  openGraph: {
+    title: 'Activity Log | Mind Loft',
+    description: 'Live activity across every Mind Loft list: new lists, reader requests, votes, comments, and ranking changes.',
+    url: '/feed',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Activity Log | Mind Loft',
+    description: 'Live activity across every Mind Loft list: new lists, reader requests, votes, comments, and ranking changes.',
+  },
 };
 
 export default async function FeedPage() {
@@ -279,7 +292,7 @@ export default async function FeedPage() {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: T.accent, marginBottom: 12 }}>Live</div>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 46px)', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.04, margin: 0 }}>Activity log</h1>
           <p style={{ fontSize: 15, lineHeight: 1.5, margin: '12px 0 0', color: T.muted, maxWidth: 720 }}>
-            Everything happening across Source of Truths: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
+            Everything happening across Mind Loft: new lists, reader requests, votes, comments, review requests, and ranking changes. Names and emails are never shown.
           </p>
         </div>
         <FeedClient events={top} />

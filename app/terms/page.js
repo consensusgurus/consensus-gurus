@@ -3,6 +3,19 @@ import LegalLayout, { H2 } from '@/app/LegalLayout';
 export const metadata = {
   title: 'Terms of Service | Mind Loft',
   description: 'The rules of the road for using Mind Loft.',
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    title: 'Terms of Service | Mind Loft',
+    description: 'The rules of the road for using Mind Loft.',
+    url: '/terms',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms of Service | Mind Loft',
+    description: 'The rules of the road for using Mind Loft.',
+  },
 };
 
 export default function TermsPage() {

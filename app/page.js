@@ -58,7 +58,7 @@ export default function HomePage() {
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
-      <QuizHomeClient variant="v3" />
+      <QuizHomeClient variant="v3" sourceCount={SOURCE_COUNT} />
       {/* First-visit funnel + site install prompt. Both render null on the
           server and decide everything in effects; audiences are disjoint
           (no footprint vs engaged), so they can never stack. */}

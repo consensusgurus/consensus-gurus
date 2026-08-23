@@ -3,6 +3,19 @@ import LegalLayout, { H2 } from '@/app/LegalLayout';
 export const metadata = {
   title: 'Affiliate Disclosure | Mind Loft',
   description: 'How Mind Loft makes money through affiliate partnerships.',
+  alternates: { canonical: '/disclosure' },
+  openGraph: {
+    title: 'Affiliate Disclosure | Mind Loft',
+    description: 'How Mind Loft makes money through affiliate partnerships.',
+    url: '/disclosure',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Affiliate Disclosure | Mind Loft',
+    description: 'How Mind Loft makes money through affiliate partnerships.',
+  },
 };
 
 export default function DisclosurePage() {

@@ -5,9 +5,21 @@ import Grain from '../Grain';
 import { T } from '@/lib/theme';
 
 export const metadata = {
-  title: 'Create Your Own Grid | Source of Truths',
-  description:
-    'Pick a format, fill the tiles with your favorite top-ten lists, and download a clean, shareable grid.',
+  title: 'Create Your Own Grid | Mind Loft',
+  description: 'Pick a format, fill the tiles with your favorite top-ten lists, and download a clean, shareable grid.',
+  alternates: { canonical: '/create' },
+  openGraph: {
+    title: 'Create Your Own Grid | Mind Loft',
+    description: 'Pick a format, fill the tiles with your favorite top-ten lists, and download a clean, shareable grid.',
+    url: '/create',
+    type: 'website',
+    siteName: 'Mind Loft',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Create Your Own Grid | Mind Loft',
+    description: 'Pick a format, fill the tiles with your favorite top-ten lists, and download a clean, shareable grid.',
+  },
 };
 
 export default function Page() {
