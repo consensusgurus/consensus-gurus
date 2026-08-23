@@ -79,6 +79,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
+  Building2,
   Grid2x2,
   Type, Clock, Globe, Hash, Share2, BarChart3, RotateCcw, RefreshCw, Check, X,
   Trophy, Link2, Flag, CalendarCheck, Scale, Grid3x3, LayoutGrid, Newspaper, FlagTriangleRight,
@@ -113,7 +114,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -188,6 +189,9 @@ export const GAME_META = {
   niche:  { accent: '#115e59', badgeBg: '#115e59', badgeInk: T.white, Fin: LayoutGrid },
   shoe:  { accent: '#0c4a6e', badgeBg: '#0c4a6e', badgeInk: T.white, Fin: Layers },
   queen: { accent: '#a16207', badgeBg: '#a16207', badgeInk: T.white, Fin: Gem },
+  towers: { accent: '#075985', badgeBg: '#075985', badgeInk: T.white, Fin: Building2 },
+  mercury: { accent: '#991b1b', badgeBg: '#991b1b', badgeInk: T.white, Fin: Thermometer },
+  polka: { accent: '#16a34a', badgeBg: '#16a34a', badgeInk: T.white, Fin: CircleDot },
   race:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: FlagTriangleRight },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
@@ -252,6 +256,9 @@ const ALL_DAILY_GAMES = [
   { key: 'cages',  cat: 'numbers',   name: 'Cages',  tag: 'The daily killer sudoku',    blurb: 'Killer sudoku: nothing is printed but the cage totals, and they are the whole clue set.', href: '/cages' },
   { key: 'niche',  cat: 'trivia',    name: 'Niche',  tag: 'One answer, two categories', blurb: 'Fill the grid with answers that fit both their row and their column, from a different universe every day. Rare picks are the flex.', href: '/niche' },
   { key: 'sixes',  cat: 'numbers',   name: 'Sixes',  tag: 'The daily mini sudoku',     blurb: 'A 6x6 sudoku in boxes two tall and three wide. The short one: nothing counts against you, so the clock decides the day.', href: '/sixes' },
+  { key: 'towers', cat: 'numbers',   name: 'Towers', tag: 'Count the towers in view',  blurb: 'A skyline Latin square: border clues count the towers you can see, taller ones hiding shorter. 5x5 weekdays, 7x7 Sundays.', href: '/towers' },
+  { key: 'mercury', cat: 'numbers',  name: 'Mercury', tag: 'The daily thermo sudoku',  blurb: 'Digits climb every thermometer from its bulb. Pure visual ordering, one logical solution, and Sundays print almost nothing.', href: '/mercury' },
+  { key: 'polka',  cat: 'numbers',   name: 'Polka',  tag: 'No numbers, only dots',     blurb: 'Kropki: not one digit printed. White dots mean consecutive, black mean double, and the silent edges are clues too.', href: '/polka' },
   { key: 'sando',  cat: 'numbers',   name: 'Sando',  tag: 'The daily sandwich sudoku',  blurb: 'Each margin number totals the digits between that line\u2019s 1 and its 9. Find them and the grid falls out.', href: '/sando' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   blurb: 'Slice the number grid into regions that every one of them adds up to the same total.', href: '/carve' },
   { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            blurb: 'Pick the answers today’s other players will not. The rarer your pick, the more it pays.', href: '/outwit' },

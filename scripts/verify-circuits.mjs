@@ -62,6 +62,11 @@ const MED = {
   // shape (it walks a 5-12 move line with replies between, so past Mate).
   // Replace with the measured median at the next snapshot re-measure.
   queen: 75,
+  // Towers, Mercury and Polka launched 2026-08-24 with no live clock data:
+  // estimated from their shapes (a 5x5 speed board under Sixes; a kropki 9x9
+  // near Quilt; a thermo 9x9 between Quilt and Sando). Replace with measured
+  // medians at the next snapshot re-measure.
+  towers: 110, polka: 750, mercury: 900,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.
@@ -92,7 +97,11 @@ for (const c of CIRCUITS) {
   if (isMarquee(c.id)) fails.push(`a skill circuit may not use the marquee id (${MARQUEE_ID})`);
   if (!c.name || !c.blurb) fails.push(`${c.id}: needs both a name and a blurb (both are reader-facing on the band)`);
   if (!Array.isArray(c.keys) || c.keys.length < 2) fails.push(`${c.id}: needs at least 2 games to be a run`);
-  else if (c.keys.length > MAX) fails.push(`${c.id}: ${c.keys.length} games, cap is ${MAX}`);
+  else if (c.rotate) {
+    // a ROTATING circuit: the cap applies to the DAY'S SELECTION, not the pool
+    if (c.rotate !== MAX) fails.push(`${c.id}: rotating circuits play ${MAX} a day (rotate is ${c.rotate})`);
+    if (c.keys.length <= c.rotate) fails.push(`${c.id}: a rotating pool of ${c.keys.length} is not bigger than its window`);
+  } else if (c.keys.length > MAX) fails.push(`${c.id}: ${c.keys.length} games, cap is ${MAX}`);
   if (circuitById(c.id) !== c) fails.push(`${c.id}: circuitById does not resolve to it`);
 }
 
@@ -173,15 +182,46 @@ CIRCUIT_NAME_LISTS.forEach(([name, names], i) => {
 // ── 7. the read accessors agree with the data ───────────────────────────────
 for (const c of CIRCUITS) {
   const live = circuitKeysFor(c.id, todayIso);
-  const expected = c.keys.filter((k) => DAILY_GAME_MAP[k] && !retiredAlready(k));
+  const filtered = c.keys.filter((k) => DAILY_GAME_MAP[k] && !retiredAlready(k));
+  // for a rotating circuit the expected selection is RECOMPUTED here with its
+  // own day-index math, never read back off the library it is checking
+  const expected = c.rotate && filtered.length > c.rotate
+    ? (() => {
+        const idx = Math.floor(Date.parse(todayIso + 'T12:00:00Z') / 86400000);
+        const n = filtered.length;
+        const start = ((idx % n) + n) % n;
+        const pick = new Set();
+        for (let i = 0; i < c.rotate; i++) pick.add((start + i) % n);
+        return filtered.filter((_, i) => pick.has(i));
+      })()
+    : filtered;
   if (live.join(',') !== expected.join(',')) {
     fails.push(`${c.id}: circuitKeysFor returned [${live.join(',')}], expected [${expected.join(',')}]`);
   }
   if (live.length < 2) {
     fails.push(`${c.id}: only ${live.length} live game(s) today — the band needs at least 2 to render a run`);
   }
-  if (live.length < c.keys.length) {
+  if (!c.rotate && live.length < c.keys.length) {
     warns.push(`${c.id}: down to ${live.length} live games (retirement), was ${c.keys.length}`);
+  }
+}
+// a rotating circuit plays fair: over one full pool-length cycle of days, the
+// selection is always `rotate` games, always in pool (ascent) order, and every
+// pool member appears exactly `rotate` times
+for (const c of CIRCUITS) {
+  if (!c.rotate) continue;
+  const n = c.keys.length;
+  const seen = Object.fromEntries(c.keys.map((k) => [k, 0]));
+  for (let d = 0; d < n; d++) {
+    const iso = new Date(Date.parse(todayIso + 'T12:00:00Z') + d * 86400000).toISOString().slice(0, 10);
+    const sel = circuitKeysFor(c.id, iso);
+    if (sel.length !== c.rotate) fails.push(`${c.id}: ${iso} plays ${sel.length} games, rotate is ${c.rotate}`);
+    const order = sel.map((k) => c.keys.indexOf(k));
+    if (order.some((v, i) => i && v < order[i - 1])) fails.push(`${c.id}: ${iso} selection is not in pool order`);
+    for (const k of sel) seen[k] += 1;
+  }
+  for (const [k, ct] of Object.entries(seen)) {
+    if (ct !== c.rotate) fails.push(`${c.id}: ${k} plays ${ct} of ${n} days in a cycle, expected ${c.rotate}`);
   }
 }
 if (!circuitKeysFor(MARQUEE_ID, todayIso).length) {
@@ -226,6 +266,20 @@ for (const c of CIRCUITS) {
   if (!c.trophy) continue;
   const known = c.keys.filter((k) => k in MED);
   if (known.length !== c.keys.length) continue; // already warned above
+  if (c.rotate) {
+    // a rotating circuit's day is a WINDOW of the pool, so every window must
+    // land in the declared tier, not just the pool total
+    for (let s = 0; s < c.keys.length; s++) {
+      let total = 0;
+      for (let i = 0; i < c.rotate; i++) total += MED[c.keys[(s + i) % c.keys.length]];
+      const want = TIER_AT(total);
+      if (c.trophy.tier !== want) {
+        fails.push(`${c.id}: the window starting at ${c.keys[s]} totals ${total}s (${want}), trophy says ${c.trophy.tier}`);
+        break;
+      }
+    }
+    continue;
+  }
   const total = known.reduce((a, k) => a + MED[k], 0);
   const want = TIER_AT(total);
   if (c.trophy.tier !== want) {

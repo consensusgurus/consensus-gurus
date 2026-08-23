@@ -14,6 +14,9 @@ import { PUZZLES as SIXES_FULL } from '../sixes/puzzles';
 import { PUZZLES as NICHE_FULL } from '../niche/puzzles';
 import { PUZZLES as SHOE_FULL } from '../shoe/puzzles';
 import { PUZZLES as QUEEN_FULL } from '../queen/puzzles';
+import { PUZZLES as TOWERS_FULL } from '../towers/puzzles';
+import { PUZZLES as MERCURY_FULL } from '../mercury/puzzles';
+import { PUZZLES as POLKA_FULL } from '../polka/puzzles';
 const QUILT = QUILT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CAGES = CAGES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SANDO = SANDO_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -21,6 +24,9 @@ const SIXES = SIXES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const NICHE = NICHE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const SHOE = SHOE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const QUEEN = QUEEN_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const TOWERS = TOWERS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const MERCURY = MERCURY_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const POLKA = POLKA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 import { PUZZLES as CARVE } from '../carve/puzzles';
 import { PUZZLES as CIRCA } from '../circa/puzzles';
 import { PUZZLES as OUTRANK } from '../outrank/puzzles';
@@ -188,6 +194,9 @@ const GAMES = [
   { key: 'suds', name: 'Suds', path: '/suds', tag: 'Fill the 9×9 grid, 1–9', accent: '#ea580c', bg: '#fff5ed', border: 'rgba(234,88,12,0.4)', src: SUDS },
   { key: 'quilt', name: 'Quilt', path: '/quilt', tag: 'Nine crooked regions, 1–9', accent: '#a21caf', bg: '#fdf4ff', border: 'rgba(162,28,175,0.4)', src: QUILT },
   { key: 'cages', name: 'Cages', path: '/cages', tag: 'Killer sudoku, no clues', accent: '#6b21a8', bg: '#f6f2fd', border: 'rgba(107,33,168,0.4)', src: CAGES },
+  { key: 'towers', name: 'Towers', path: '/towers', tag: 'Skyscrapers, clues on the border', accent: '#075985', bg: '#eaf4fa', border: 'rgba(7,89,133,0.4)', src: TOWERS },
+  { key: 'mercury', name: 'Mercury', path: '/mercury', tag: 'The daily thermo sudoku', accent: '#991b1b', bg: '#fdf1f1', border: 'rgba(153,27,27,0.4)', src: MERCURY },
+  { key: 'polka', name: 'Polka', path: '/polka', tag: 'Kropki, no numbers at all', accent: '#16a34a', bg: '#ecf9f1', border: 'rgba(22,163,74,0.4)', src: POLKA },
   { key: 'queen', name: 'Queen', path: '/queen', tag: 'White to play and promote', accent: '#a16207', bg: '#faf3e3', border: 'rgba(161,98,7,0.4)', src: QUEEN },
   { key: 'shoe', name: 'Shoe', path: '/shoe', tag: 'The daily blackjack shoe', accent: '#0c4a6e', bg: '#e8f3fa', border: 'rgba(12,74,110,0.4)', src: SHOE },
   { key: 'niche', name: 'Niche', path: '/niche', tag: 'One answer, two categories', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)', src: NICHE },

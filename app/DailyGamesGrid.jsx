@@ -68,6 +68,9 @@ const GAMES = [
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'One answer, two categories', img: '/games/btn-niche.png' },
   { key: 'shoe', href: '/shoe', name: 'Shoe', tag: 'The daily blackjack shoe', img: '/games/btn-shoe.png' },
   { key: 'queen', href: '/queen', name: 'Queen', tag: 'White to play and promote', img: '/games/btn-queen.png' },
+  { key: 'towers', href: '/towers', name: 'Towers', tag: 'Count the towers in view', img: '/games/btn-towers.png' },
+  { key: 'mercury', href: '/mercury', name: 'Mercury', tag: 'The daily thermo sudoku', img: '/games/btn-mercury.png' },
+  { key: 'polka', href: '/polka', name: 'Polka', tag: 'No numbers, only dots', img: '/games/btn-polka.png' },
   { key: 'carve', href: '/carve', name: 'Carve', tag: 'Equal-sum blocks', img: '/games/btn-carve.png' },
   { key: 'extra', href: '/extra', name: 'Extra', tag: 'Name the story', img: '/games/btn-extra.png' },
   { key: 'stet', href: '/stet', name: 'Stet', tag: 'Spot the error, fix the copy', img: '/games/btn-stet.png' },
@@ -134,7 +137,7 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'rung', 'babel', 'barter'] },
   { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'sixes', 'quilt', 'cages', 'sando', 'carve', 'cipher', 'crunch', 'blitz'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'sixes', 'towers', 'quilt', 'cages', 'sando', 'mercury', 'polka', 'carve', 'cipher', 'crunch', 'blitz'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },

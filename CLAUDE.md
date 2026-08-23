@@ -3621,6 +3621,41 @@ the `game` prefix test is a fallback. `isLoft` is the one caller that is safe by
 carries a `ROUTE_TO_KEY` map built off the registry's `href` overrides. Do not rely on that map
 elsewhere, it is local to the Loft flag.
 
+## The sudoku trio (Towers, Mercury, Polka) and the ROTATING Sudoku circuit (owner, 2026-08-23)
+
+Three sudoku-family dailies launched 2026-08-24: **Towers** (skyscrapers: border clues count
+the visible towers, taller hiding shorter; 5x5 weekdays, 7x7 Sundays; the ramp is the
+printed-clue count and nothing else, Mon 14 down to Sat 9 of 20, Sunday 18 of 28),
+**Mercury** (thermo sudoku: digits strictly increase along every thermometer from its bulb;
+the ramp is the printed-given count, Mon 30 down to Sat 15; the Sunday Edition prints 8
+under nine thermometers - zero-given was probed and is OUT OF REACH of the graded technique
+set on random layouts, dig floors bottom at 7-13, so eight is stated rather than fudged),
+and **Polka** (kropki: the full dot set and no digits at all; white = differ by 1, black =
+double, no dot = neither, and a 1-2 pair may carry either dot, picked by position parity;
+difficulty is a MEASURED COST like Sixes, bands Mon <=10 / Tue 11-24 / Wed 25-38 /
+Thu 39-54 / Fri 55-78 / Sat 79-110 / Sunday 120+). All three: flat-10 solve, miss null on
+the registry row, the day resolves on the clock. Banks run 2026-08-24 through 2026-10-04.
+Generators scripts/gen-{towers,mercury,polka}.mjs with engines in the *-core.mjs files;
+INDEPENDENT verifiers scripts/verify-{towers,mercury,polka}.mjs (no imports from the cores,
+per the Cages/Sando rule; Mercury's and Polka's graded solvers police every elimination
+against sol). scripts/sudoku-trio-mutation-test.mjs breaks each bank five ways via the
+VERIFY_<GAME>_BANK override and requires every mutation caught. On Towers, a completed
+propagation solve doubles as the uniqueness proof (line-sweep eliminations are sound, so an
+all-singleton end state IS exactly-one-solution); the brute counter runs only on the 5x5s
+because it explodes on a 7x7.
+
+**The Sudoku circuit ROTATES - the only rotating skill circuit (owner, 2026-08-23).** Its
+lib/circuits.js entry carries a POOL of eight keys plus a `rotate: 5` field: a sliding
+window over the pool advances one game per ET day (deterministic from the date, no bank, no
+storage), every pool member plays five days in every eight, and the day's five still run
+shortest first because the pool is stored in ascending measured order and the window
+re-sorts to it. The selection lives ONLY in circuitKeysFor, so the board route
+(?circuit=sudoku), the trophies engine, the console band, the filter strip and the landing
+page all follow with no edits of their own. scripts/verify-circuits.mjs recomputes the
+window with its own day-index math and proves: five a day, in pool order, every member
+exactly five appearances per eight-day cycle, and every one of the eight windows totalling
+into the gold trophy tier.
+
 ## Sunday Editions — the flag, the label, and which games have one (owner rule, 2026-07-20)
 
 Twelve of the twenty daily games run a bigger/harder **Sunday Edition**. Eight do not.
@@ -3721,6 +3756,9 @@ archive and hub chips use the short form `Sun`.
 | Shoe | seven hands of blackjack instead of five, dealt off the entire 52-card deck instead of a 36-card cut, so a perfect counter knows exactly what is left (from launch, 2026-08-23) |
 | Queen | a win in twelve, the longest walk against the weekday five to nine (from launch, 2026-08-21) |
 | Race | a win in five, the longest race against the weekday three and four (from launch, 2026-08-21) |
+| Towers | a 7x7 skyline instead of the weekday 5x5 (from launch, 2026-08-24) |
+| Mercury | nine thermometers and eight printed digits, against six thermometers and fifteen to thirty digits on weekdays (from launch, 2026-08-24) |
+| Polka | a deal from the top of the measured difficulty distribution (from launch, 2026-08-24) |
 
 **Every daily on the roster runs a Sunday Edition.** A new daily game should decide at launch
 whether it has one (see "Adding a BRAND NEW daily game" below).
