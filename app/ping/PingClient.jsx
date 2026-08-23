@@ -31,7 +31,7 @@ import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
-import { CITIES, findCity, suggestCities, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
+import { CITIES, findCity, suggestCities, citiesInCountry, haversineMiles, continentOf, normCity } from '@/lib/ping-cities';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
@@ -288,13 +288,18 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     return best;
   }, [guesses]);
 
-  // live autocomplete suggestions (hide already-guessed + the exact-match echo)
+  // Live autocomplete: city names AND countries (typing "japan" lists the
+  // Japanese cities), minus anything already guessed. The list does NOT hide
+  // itself once the field exactly names a city (owner rule, 2026-08-23): it
+  // used to drop the single remaining row as an "echo", so finishing a city
+  // name made the row you were reaching for vanish under your finger, which
+  // reads as the game refusing the guess. The row is a valid tap target and
+  // stays; committing the guess is what clears it.
   const suggestions = useMemo(() => {
     if (!playing) return [];
-    const list = suggestCities(val, 8).filter((c) => !guessedKeys.has(`${normCity(c.name)}|${normCity(c.country)}`));
-    // if the field already exactly names a city, don't show a 1-item echo
-    if (list.length === 1 && normCity(list[0].name) === normCity(val)) return [];
-    return list.slice(0, 6);
+    return suggestCities(val, 8)
+      .filter((c) => !guessedKeys.has(`${normCity(c.name)}|${normCity(c.country)}`))
+      .slice(0, 6);
   }, [val, playing, guessedKeys]);
 
   useEffect(() => {
@@ -504,6 +509,13 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       const hay = [normCity(top.name), ...((top.aliases || []).map(normCity))];
       if (hay.some((h) => h.startsWith(q))) { commitGuess(top); return; }
     }
+    // a typed COUNTRY: unambiguous when the atlas holds only one city in it
+    // ("iceland" -> Reykjavik), otherwise send them to the list rather than
+    // picking one of its cities for them. This runs AFTER the city-prefix
+    // check above so "mexico" still commits Mexico City.
+    const inCountry = citiesInCountry(val);
+    if (inCountry.length === 1) { commitGuess(inCountry[0]); return; }
+    if (inCountry.length > 1) { say(`Pick a city in ${inCountry[0].country}.`); return; }
     if (q.length) say('No match. Pick a city from the list.');
   }
 
@@ -626,7 +638,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         { label: `Hot, within ${fmtDistIn(200, unit)}`, style: { background: '#fee2e2', border: '1.5px solid #9a3d0c', color: '#9a3d0c' } },
       ]}
       steps={[
-        <>Guess <b>any world city</b> to begin. There are <b>no clues</b> and <b>no guess limit</b>.</>,
+        <>Guess <b>any world city</b> to begin. There are <b>no clues</b> and <b>no guess limit</b>. Type a city, or a <b>country</b> to see the cities in it.</>,
         <>Each guess pings back one number: the <b>distance in {unitWord(unit)}</b> to the secret city. No direction, just the distance, and it shrinks as you close in.</>,
         <>Flip the <b>mi / km</b> switch above the guess box any time. It only changes what you read, never your score.</>,
         <>Land on the city, or <b>Give up</b> and still be scored on how close your best guess got, ranked against everyone who played.</>,
@@ -805,7 +817,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 {closest ? (
                   <>Closest so far: <b style={{ color: COLORS.ink }}>{closest.name}</b>, {fmtDist(closest.mi)} away &middot; no guess limit</>
                 ) : (
-                  <>Any major world city &middot; each guess shows the {unitWord(unit)} to the target &middot; no guess limit</>
+                  <>Any major world city &middot; type a <b style={{ color: COLORS.ink }}>country</b> to see its cities &middot; no guess limit</>
                 )}
               </div>
             </div>
