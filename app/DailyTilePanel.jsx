@@ -827,25 +827,30 @@ export default function DailyTilePanel({
              without moving it in the JSX. */
           .dtp-idt,.dtp-nm{display:contents;}
           .dtp-hd > *,.dtp-nm > *{flex:1 1 auto;min-width:0;justify-content:center;font-size:11px;}
-          /* SHARE AND PLAY SPLIT THE WIDTH, Play on the right (owner,
-             2026-08-07). They shipped flush and hard-edged first and read as two
-             slabs jammed together, so both take the site's 8px radius, the strip
-             keeps an even 8px inset around them, and Share carries a hairline
-             outline: its fill is a translucent gold that needs an edge to read as
-             a button, where Play's solid white does not.
-             flex-basis calc(50% - 4px) plus the 8px gap is what reserves the line
-             for exactly those two, so every remaining chip wraps below them. */
+          /* PLAY TAKES THE WHOLE LINE AND SHARE DROPS TO THE CHIPS (owner,
+             2026-08-23: "i hate how the share + play buttons look on mobile ...
+             play should be prominent"). From 2026-08-07 they were half and half,
+             which said the two were worth the same tap, and Share was the louder
+             of them: translucent gold on navy carrying gold ink is a fill and an
+             ink of the same hue at low contrast, so the one control nobody came
+             for was also the one that was hardest to read.
+             So Play is now the drawer's single primary, full width, solid white,
+             the only filled thing in the strip; and Share joins the line below as
+             one more outline chip beside the pin, which is what it is. Nothing on
+             the strip competes with Play, and nothing is gold-on-navy. */
           .dtp-hd{padding:8px;gap:8px;align-items:stretch;}
-          .dtp-sharechip{order:-2;flex:1 1 calc(50% - 4px);box-sizing:border-box;justify-content:center;
-            border:0;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.32);
-            padding:14px 8px;font-size:12px;letter-spacing:.03em;
-            background:rgba(232,180,58,.2);color:var(--gold);}
-          .dtp-sharechip:hover{background:rgba(232,180,58,.3);color:var(--gold);}
-          .dtp-sharechip:hover svg{color:var(--gold);}
-          .dtp-acts{order:-1;flex:1 1 calc(50% - 4px);box-sizing:border-box;display:flex;gap:0;}
+          /* flex:1 1 auto, matching the flame / done / pin rule below, so the
+             chip line spends its slack evenly whatever chips this game has:
+             Share alone fills the line, Share and the pin split it, and four
+             chips wrap without any of them truncating a label. */
+          .dtp-sharechip{order:0;flex:1 1 auto;justify-content:center;box-shadow:none;}
+          /* 100%, not calc(50% - 4px): the basis is what reserves the line, so
+             this is the single property that moves the chips off Play's row. */
+          .dtp-acts{order:-1;flex:1 1 100%;box-sizing:border-box;display:flex;gap:0;}
           .dtp-play{flex:1 1 auto;background:var(--white);color:var(--blue-deep);
-            font-size:13.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
-            border-radius:8px;padding:14px 8px;gap:7px;}
+            font-size:15px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+            border-radius:10px;padding:16px 8px;gap:9px;}
+          .dtp-play svg{width:17px;height:17px;}
           /* Line two: the status chips, spaced by the strip's own gap. */
           .dtp-flame,.dtp-donechip,.dtp-pinchip{flex:1 1 auto;margin:0;}
           .dtp-play:hover{background:var(--blue-200);transform:none;}
@@ -856,7 +861,15 @@ export default function DailyTilePanel({
           .dtp-flame,.dtp-donechip,.dtp-pinchip{padding:6px 12px;}
           .dtp-flame{background:rgba(232,180,58,0.2);border-color:rgba(232,180,58,0.5);color:var(--gold);}
           .dtp-donechip{background:rgba(34,197,94,0.22);border-color:rgba(74,222,128,0.5);color:#bfe6cf;}
-          .dtp-sharechip{background:rgba(232,180,58,0.18);border-color:rgba(232,180,58,0.5);color:var(--gold);}
+          /* Quiet, and the same object the pin is (owner, 2026-08-23). This is
+             the LATER declaration of the two, so it is the one that decides the
+             colour: the gold fill above it was what made Share compete with
+             Play and what made its own label hard to read on navy. */
+          .dtp-sharechip{background:transparent;border-color:rgba(255,255,255,0.3);color:#cfe0fb;padding:6px 12px;}
+          .dtp-sharechip:hover{background:rgba(255,255,255,0.1);color:var(--white);}
+          /* The white-panel hover ink from the desktop block would put a near
+             black icon on navy at this width. */
+          .dtp-sharechip:hover svg{color:inherit;}
           .dtp-pinchip{border-color:rgba(255,255,255,0.3);color:#cfe0fb;}
           .dtp-pinchip.on{background:var(--white);border-color:var(--white);color:var(--accent);}
           /* TWO-LEVEL DRAWER (owner, 2026-08-07). display:contents on the grid

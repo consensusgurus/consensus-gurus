@@ -170,7 +170,13 @@ export default function LoftFinish({
     return () => clearTimeout(t);
   }, [iqReady]);
   const iqShow = iqReady || iqStalled;
-  const roster = useDailyRoster({ active: browse });
+  // ALWAYS ON since 2026-08-23, where it used to wait for the browse toggle:
+  // the category row under the handoff needs the same roster, and it renders
+  // without being asked for. It is one /api/quiz/daily-me read, and a fresh
+  // caller now joins one already in flight (see fetchDailyMe), so on a card
+  // whose client is asking the same question in the same tick this costs no
+  // extra request at all.
+  const roster = useDailyRoster({ active: true });
   const [pickCat, setPickCat] = useState(null);
   const myCat = (catRank && catRank.cat)
     || (roster.cats.find((c) => c.games.some((g) => g.name === name)) || {}).cat
@@ -245,6 +251,26 @@ export default function LoftFinish({
   const simBits = simOpt && simOpt.sub ? String(simOpt.sub).split('\u00b7') : [];
   const simName = simBits.length > 1 ? simBits[0].trim() : null;
   const simTag = simBits.length > 1 ? simBits.slice(1).join('\u00b7').trim() : null;
+
+  // MORE OF WHAT YOU JUST PLAYED (owner, 2026-08-23: "it took seven clicks to
+  // get to the next logic game", and "users should have an easier time
+  // continuing with their game type"). The card named ONE same-category game in
+  // the Up next band and put the rest of the category at the FOOT of the card
+  // behind a toggle, so a reader who did not want that one guess had to scroll
+  // past the IQ bar, today's board and the whole options grid before another
+  // Logic title was even visible. This is the rest of the category, unplayed,
+  // one tap each, directly under the handoff it widens.
+  //
+  // Up next's own game is dropped rather than repeated: it is the row directly
+  // above this one, matched on NAME, which is unique across the registry and is
+  // the only identity the option carries (its sub line is "Name \u00b7 tag").
+  // Games already finished today are dropped rather than greyed, because this
+  // is a shortcut; the browse panel at the foot of the card still lists the
+  // whole category with its Played marks for anyone who wants that.
+  const catNext = ((roster.cats.find((c) => c.cat === myCat) || {}).games || [])
+    .filter((g) => g.key !== selfKey && g.name !== name && !g.played
+      && g.name !== simName && !(simOpt && g.name === simOpt.label))
+    .slice(0, 6);
   const opts = sorted.filter((o) => o.tone !== 'main' && o.tone !== 'similar');
   // Which options span the full width: every primary, plus the last of any run
   // of half tiles that would otherwise be odd.
@@ -786,6 +812,37 @@ export default function LoftFinish({
           </span>
           <span className="go">Play</span>
         </a>
+      ) : null}
+
+      {/* The rest of the category. SELF-CONTAINED styles, for the reason the
+          fast-retry panel states at length above: .loft-next has a dead second
+          declaration in LoftCap.jsx that wins on the properties it names, so a
+          new block here shares no class with anything and names what it needs.
+          It scrolls sideways rather than wrapping, so a ten-game category costs
+          the card one line whatever the viewport. */}
+      {catNext.length ? (
+        <div className="lfc-more">
+          <style>{`
+            .lfc-more{margin-top:8px;}
+            .lfc-more>b{display:block;font-weight:800;font-size:9.5px;line-height:1;
+              letter-spacing:.11em;text-transform:uppercase;color:var(--slate);margin:0 0 6px 2px;}
+            .lfc-row{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;
+              padding-bottom:2px;-webkit-overflow-scrolling:touch;}
+            .lfc-row::-webkit-scrollbar{display:none;}
+            .lfc-row>a{flex:none;display:flex;align-items:center;gap:8px;
+              padding:7px 11px 7px 8px;border-radius:10px;border:2px solid var(--border);
+              background:var(--surface-alt);color:var(--ink);text-decoration:none;
+              font-weight:800;font-size:13px;line-height:1;white-space:nowrap;}
+            .lfc-row>a:hover{border-color:rgba(37,99,235,.4);background:rgba(37,99,235,.07);}
+            .lfc-row>a img{flex:none;border-radius:6px;}
+          `}</style>
+          <b>More {myCat}</b>
+          <div className="lfc-row">
+            {catNext.map((g) => (
+              <a key={g.key} href={g.href}><img src={g.img} alt="" width={22} height={22} />{g.name}</a>
+            ))}
+          </div>
+        </div>
       ) : null}
 
       {/* ONE loading state for the WHOLE bar (owner, 2026-08-17). Each of the

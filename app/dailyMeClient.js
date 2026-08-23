@@ -18,8 +18,12 @@
 // the request the card was already making.
 
 const TTL_MS = 4000;
+// How long a fresh caller may join a fresh request that is STILL IN FLIGHT.
+// Short on purpose: it is meant to catch two components mounting in the same
+// tick, never to serve an answer that predates something written since.
+const JOIN_MS = 400;
 
-let entry = null; // { key, at, promise }
+let entry = null; // { key, at, promise, fresh, pending }
 
 // The query string every caller should build, so identical questions produce
 // identical keys. `game` scopes the full scoring to one puzzle; without it the
@@ -47,9 +51,27 @@ export function fetchDailyMe(qs, { fresh = false } = {}) {
   // A non-fresh caller joins an identical request from the last few seconds,
   // in flight or just settled. A fresh caller always goes to the origin.
   if (!fresh && entry && entry.key === qs && now - entry.at < TTL_MS) return entry.promise;
+  // TWO FRESH CALLERS IN THE SAME TICK ARE ONE QUESTION (2026-08-23). The end
+  // card asks, and from this date so does the category row rendered beside it;
+  // both pass fresh, so both went to the origin for an answer neither could
+  // possibly have received yet. A fresh caller may therefore join a fresh
+  // request that is still PENDING and started within JOIN_MS.
+  //
+  // It may NOT join one that has SETTLED, which is the whole reason `fresh`
+  // exists: the card's retry loop is looking for its OWN just-written row, and
+  // a settled answer is exactly the stale one it is retrying past. Nor can it
+  // join across a finish, since DailyEndCard calls invalidateDailyMe() on
+  // sot:daily-updated and that drops the entry outright.
+  if (fresh && entry && entry.key === qs && entry.fresh && entry.pending
+      && now - entry.at < JOIN_MS) return entry.promise;
   const url = '/api/quiz/daily-me?' + qs + (fresh ? `&fresh=1&_=${now}` : '');
   const promise = fetch(url, { cache: 'no-store' }).then((r) => r.json());
-  entry = { key: qs, at: now, promise };
+  entry = { key: qs, at: now, promise, fresh, pending: true };
+  // Settle the flag either way. The handlers are attached to a DERIVED promise,
+  // so a rejection is still delivered to the caller that asked for it and this
+  // adds no unhandled rejection of its own.
+  const settle = () => { if (entry && entry.promise === promise) entry.pending = false; };
+  promise.then(settle, settle);
   return promise;
 }
 

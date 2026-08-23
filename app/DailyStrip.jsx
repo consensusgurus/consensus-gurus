@@ -870,16 +870,29 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // "Most recently" is the newest ET day the viewer finished anything in that
   // category, read off lastPlay so it counts the whole history, with plays over
   // the last RECENT_DAYS days as the tiebreak when two categories were last
-  // played on the SAME day. "Most popular" is today's crowd plays, the very
-  // figure this card prints and the board's Players column shows, so the two can
-  // never contradict each other.
+  // played on the SAME day.
+  //
+  // WHICH GAME INSIDE THAT CATEGORY IS YOUR CALL, NOT THE ROOM'S (owner,
+  // 2026-08-23: "up next is almost never what i want to play"). Until this date
+  // the card got the category right and then handed the slot to whatever the
+  // whole site was playing most in it, which is a figure about everybody except
+  // the one person reading it. Nothing in the rule could ever learn: a title you
+  // have declined every day for a month stayed permanently eligible, because
+  // popular-and-unplayed is precisely what it is, so the card kept re-offering
+  // the same refusal. See topByAffinity below for the order it uses now. The
+  // crowd term survives as a TIEBREAK, which is what answers for a viewer with
+  // no history in that category at all, and the plays figure the card prints
+  // stays the crowd's, since that is the number the board's Players column
+  // shows and the two must not contradict each other.
   const habitDays = (g) => (recent[g.key] || 0);
   const habitAllTime = (g) => ((archive[g.key] && archive[g.key].played) || 0);
   const hasHabit = (g) => (habitDays(g) > 0 || habitAllTime(g) > 0);
-  // The habit ranking survives, and Familiar favorite in slot 3 still reads it
-  // (owner, 2026-08-10). The two cards are no longer first and second place in
-  // one list, which is the point: Up next answers "what else is in the thing you
-  // were just doing" and the favourite answers "what do YOU play most".
+  // Familiar favorite in slot 3 reads this ranking, and since 2026-08-23 so
+  // does Up next, inside one category. That is not the pair of cards collapsing
+  // into one: Up next is scoped to the category you were last in and the
+  // favourite is scoped to nothing, so they answer "more of what you were just
+  // doing" and "the game you play most, full stop". They can never PRINT the
+  // same game either, because favGame below excludes whatever Up next took.
   // `games` is already in board order and the index is the last tiebreak.
   const habitRank = games.filter((g) => !done.has(g.key))
     .map((g, i) => ({ g, i }))
@@ -907,13 +920,25 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // `games` array's first entry: `games` is pin-sorted, and a pinned game must
   // not jump the category's popularity order.
   const boardAt = new Map(games.map((g, i) => [g.key, i]));
-  const topByPlays = (pool) => (pool.length
-    ? [...pool].sort((a, b) => ((playsOf(b.key) || 0) - (playsOf(a.key) || 0))
+  //   1  plays in the last RECENT_DAYS days   the habit you are in NOW
+  //   2  all-time plays from the archive      a habit older than that window
+  //   3  today's crowd plays                  no history here, so ask the room
+  //   4  board order                          holds the pick still all morning
+  //
+  // Term 4 matters more than it looks: through an ET morning every crowd count
+  // is still 0, and without a stable last term the card would reshuffle itself
+  // on each poll. It is board order rather than `games[0]` for the reason the
+  // old rule gave, that `games` is pin-sorted and a pinned game must not jump
+  // its category's order.
+  const topByAffinity = (pool) => (pool.length
+    ? [...pool].sort((a, b) => (habitDays(b) - habitDays(a))
+      || (habitAllTime(b) - habitAllTime(a))
+      || ((playsOf(b.key) || 0) - (playsOf(a.key) || 0))
       || (boardAt.get(a.key) - boardAt.get(b.key)))[0]
     : null);
   const byCategory = (pool) => {
     for (const c of catRank) {
-      const hit = topByPlays(pool.filter((g) => g.cat === c));
+      const hit = topByAffinity(pool.filter((g) => g.cat === c));
       if (hit) return hit;
     }
     return null;
@@ -932,6 +957,14 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   const openAny = games.filter((g) => !done.has(g.key));
   const nextGame = byCategory(openFresh) || byCategory(openAny)
     || habitFresh[0] || habitRank[0] || null;
+
+  // THE CATEGORY THE FILTER STRIP JUMPS TO (owner, 2026-08-23: "it took seven
+  // clicks to get to the next logic game"). Same walk Up next makes, and
+  // deliberately the same answer: the most recently played category that still
+  // has something open in it. A category where the viewer has finished
+  // everything is skipped rather than offered as an empty board, and a viewer
+  // with no history at all gets null, so the strip renders exactly as before.
+  const moreCat = catRank.find((c) => games.some((g) => g.cat === c && !done.has(g.key))) || null;
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
@@ -999,7 +1032,7 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // number along (3 with nothing paused, 5 with two), so the fix is parity, not
   // an extra card: the cap now fills FOUR slots and the count is always even.
   //
-  //   1  Up next            the crowd's pick in your most recent category
+  //   1  Up next            YOUR most played open game in your last category
   //   2  Easiest board      the thinnest field today, unchanged
   //   3  Familiar favorite  the game YOU play most, on the habit ranking
   //   4  a paused game      else New to you, a game with no history at all
@@ -3289,6 +3322,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            tab and its rule have to be. -2px above pulls the rule down onto the
            strip's own 2px bottom border so the two read as one edge. */
         .sl-filt button.on{color:var(--white);border-bottom-color:var(--white);background:transparent;}
+        /* The Continue pill. White ink so it reads as the one shortcut in a row
+           of tabs, and it never takes the underline, because it is not a tab:
+           tapping it lights the real category tab further along the strip. */
+        .sl-filt .sl-fmore{color:var(--white);}
         /* The phone's inline copy of the circuits. Above 900px they live in
            their own lighter strip (.sl-filt2), which is the owner-approved
            desktop split, so this copy is hidden there. NOT SUFFICIENT ON ITS
@@ -3791,6 +3828,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
+          /* Brighter than a category pill and quieter than the selected one,
+             since it is neither: it is the way back into a category. */
+          .sl-filt .sl-fmore{background:rgba(255,255,255,.22);color:var(--white);
+            box-shadow:inset 0 0 0 1px rgba(255,255,255,.45);}
           /* ONE LONG FLICKABLE ROW (owner, 2026-08-17). The circuits used to be
              a SECOND strip stacked under this one. On a phone two navy scrolling
              rows in the same shade do not read as two questions, they read as
@@ -4628,6 +4669,19 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         <div className={`sl-filtw${(filtMore.l || filt2More.l) ? ' ml' : ''}${(filtMore.r || filt2More.r) ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All']]
+            // CONTINUE THE THING YOU WERE JUST DOING (owner, 2026-08-23). The
+            // category pills are A-Z, so on a 390px phone Logic sits seventh
+            // and off the right edge: reaching it costs a sideways flick before
+            // the tap, which is most of the seven clicks the owner counted. So
+            // the category Up next walks to is pinned to the SECOND slot, where
+            // it is always in view whatever the roster grows to.
+            //
+            // It is a JUMP, not a tab: role="button", never `.on`, and the real
+            // A-Z pill for that category is what lights up once the filter
+            // lands, so the strip still has exactly one selected tab. It is
+            // absent for a viewer with no played category (a guest, a first
+            // visit), which is also why it can never be the only pill.
+            .concat(moreCat ? [['more:' + moreCat, 'More ' + (CAT_SHORT[moreCat] || moreCat), 'sl-fmore', moreCat]] : [])
             // Paused and Done, which used to be the gold and green bands at the
             // foot of the board. They carry their counts because that is the
             // one thing a band said that a chip otherwise would not.
@@ -4651,14 +4705,17 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
             // so both copies ship and CSS picks. Source order stays desktop's;
             // the phone moves these and the state chips with `order`.
             .concat(cats ? CIRCUITS_AZ.map((n) => ['circuit:' + n, n, 'sl-fc']) : [])
-            .map(([k, label, cls]) => (
+            // A fourth element makes the entry a JUMP: it sets the filter to
+            // `to` while keeping its own key, which never equals `filter`, so
+            // it can never claim the selected state from the tab it points at.
+            .map(([k, label, cls, to]) => (
             <button
               key={k}
               type="button"
-              role="tab"
-              aria-selected={filter === k}
-              className={[cls, filter === k ? 'on' : null].filter(Boolean).join(' ') || undefined}
-              onClick={() => setFilter(k)}
+              role={to ? 'button' : 'tab'}
+              aria-selected={to ? undefined : filter === k}
+              className={[cls, !to && filter === k ? 'on' : null].filter(Boolean).join(' ') || undefined}
+              onClick={() => setFilter(to || k)}
             >{label}</button>
           ))}
         </div>
