@@ -19,6 +19,14 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
+import DailyFiveBand from '../DailyFiveBand';
+import TodayClient from '../today/TodayClient';
+
+// THE MARQUEE HOME (owner, 2026-08-24): the category-first shelves (the /today
+// preview, promoted) replace the cap/slate/rails console on the homepage.
+// Kill switch: set false to restore the old console instantly. /home-preview
+// (v3) renders its own branch and is unaffected either way.
+const MARQUEE_HOME = true;
 import HomeRails from '../HomeRails';
 import XpTile from './XpTile';
 import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
@@ -2197,6 +2205,12 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             rail (Quiz of the Day + Last Played). The board carries the daily
             leaderboard (Today's Top 3 + expand) itself. Stacks to one column
             (board first) below 1200px. */}
+        {MARQUEE_HOME && !v3 ? (
+          <div className="dhx-marquee" style={{ marginBottom: 12 }}>
+            <DailyFiveBand />
+            <TodayClient />
+          </div>
+        ) : (
         <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>
           <style>{`
             .qzh .dhx{display:grid;grid-template-columns:284px minmax(0,1fr) 300px;gap:10px;align-items:start;margin-bottom:12px;}
@@ -2578,6 +2592,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             />
           </div>
         </div>
+        )}
 
         {/* The hub row (featured tiles + Top SoT Player + Duel + Category Mastery)
             was dismantled 2026-07-29: Top SoT Player moved into the left
