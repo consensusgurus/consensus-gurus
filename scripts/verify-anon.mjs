@@ -28,12 +28,13 @@
 //   sunday       a board flagged sunday lands on a real Sunday and runs longer
 //                than the weekday median.
 //   ramp         the cold start descends across the week: Monday is the way in,
-//                Sunday is the wall. Each weekday carries a BAND rather than a
+//                Saturday is the wall. Each weekday carries a BAND rather than a
 //                floor, because a floor alone lets every board pile up against
 //                it and the ramp flattens (rule 11, a floor is not a target).
 //
 // Boards live before ANON_FLOOR_FROM are frozen history and skip the floors,
-// and boards before ANON_RAMP_FROM skip the band on top of that.
+// and boards before ANON_RAMP_FROM skip the band on top of that. Boards from
+// ANON_WARM_FROM carry the higher closed floor and the warmer bands.
 
 import { readFileSync } from 'node:fs';
 import { PUZZLES } from '../app/anon/puzzles.js';
@@ -59,7 +60,6 @@ const FORCED_PCT = 0.32;
 // From ANON_SUNDAY_HARD_FROM, when boards are authored under this rule rather
 // than sorted under it, Sunday takes the week's hardest window outright.
 const ANON_RAMP_FROM = '2026-08-09';          // 08-07 and 08-08 are played and frozen
-const ANON_SUNDAY_HARD_FROM = '2026-09-30';   // first Sunday authored to the ramp
 const DOW_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const BAND = {              // [min, max] share of the passage forced, by weekday
   1: [0.55, 0.78],          // Mon, the way in
@@ -70,7 +70,39 @@ const BAND = {              // [min, max] share of the passage forced, by weekda
   6: [0.35, 0.45],          // Sat
   0: [0.28, 0.68],          // Sun, wide for the banked eight
 };
-const SUNDAY_BAND = [0.28, 0.38];   // from ANON_SUNDAY_HARD_FROM: the week's wall
+
+// THE WARM REBUILD (owner, 2026-08-24). Measured across Aug 7-23: the median
+// score among Anon's TOP TEN finishers was 48% of the board, while the top tens
+// of Crux, Emcee and Garble were all finishing 100%, and 27% of Anon's
+// leaderboard rows were under a quarter of the board. It also drew 208 plays to
+// Crux's 1,627, the least-played Word game by a factor of two. That is the top
+// of the field, so the field itself was worse.
+//
+// The cause was the closed pool, not the passages. Only 221 words in
+// lib/anon-categories.js were both common enough for the generator to place and
+// sharp at their length, so a board seated about 9 categories across 21 answers
+// and the other 12 answers had nothing but the passage behind them. The lexicon
+// now holds 459 such words across 102 categories, and boards authored from
+// 2026-09-30 seat 10 to 14. Nothing about the SHARPNESS promise moved: a printed
+// category still admits at most CAND_CAP words at its length, which is the only
+// reason printing one helps at all.
+//
+// SUNDAY IS NO LONGER THE COLDEST DAY. The retired ANON_SUNDAY_HARD_FROM would
+// have put Sunday in a 28-38% window from this very date, which is the coldest
+// board of the week on the longest passage of the week. Sunday keeps the length
+// dial, which is a real step up, and gives up the coldness dial: both at once is
+// how a day ends with nobody finishing. Sunday's band now sits around Tuesday's.
+const ANON_WARM_FROM = '2026-09-30';
+const CLOSED_MIN_WARM = 10;
+const BAND_WARM = {         // read off the bank that landed, not written first
+  1: [0.66, 0.81],          // Mon, the way in
+  2: [0.61, 0.69],          // Tue
+  3: [0.56, 0.63],          // Wed
+  4: [0.52, 0.59],          // Thu
+  5: [0.48, 0.56],          // Fri
+  6: [0.42, 0.52],          // Sat, the wall
+  0: [0.56, 0.79],          // Sun, long rather than cold
+};
 const WORD_CAP = 3;
 const AUTHOR_CAP = 6;
 
@@ -158,7 +190,8 @@ for (const p of PUZZLES) {
 
   if (p.live < ANON_FLOOR_FROM) continue;   // frozen history
 
-  if (closed.length < CLOSED_MIN) err(p, `${closed.length} closed answers, floor is ${CLOSED_MIN}`);
+  const closedFloor = p.live >= ANON_WARM_FROM ? CLOSED_MIN_WARM : CLOSED_MIN;
+  if (closed.length < closedFloor) err(p, `${closed.length} closed answers, floor is ${closedFloor}`);
   if (closed.length !== p.closed) err(p, `stored closed=${p.closed}, recomputed ${closed.length}`);
 
   // --- cold start, recomputed ---
@@ -178,7 +211,7 @@ for (const p of PUZZLES) {
 
   // --- the weekday ramp ---
   if (p.live >= ANON_RAMP_FROM) {
-    const [lo, hi] = (dow === 0 && p.live >= ANON_SUNDAY_HARD_FROM) ? SUNDAY_BAND : BAND[dow];
+    const [lo, hi] = p.live >= ANON_WARM_FROM ? BAND_WARM[dow] : BAND[dow];
     const share = forced / total;
     if (share < lo || share > hi) {
       err(p, `${DOW_NAME[dow]} cold start ${Math.round(100 * share)}%, band is ${Math.round(100 * lo)}-${Math.round(100 * hi)}%`);
