@@ -210,6 +210,17 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const { duelToken, duelInfo, duelSubmitted } = useDuelContext(PUZZLE.quizId, searchParams);
   const viewedRef = useRef(false);
   const cellRefs = useRef({});
+  // WHICH HALF the player is working in. Every letter has a cell in BOTH the
+  // passage and the bank, and the ref map was keyed by cell index alone, so the
+  // two copies overwrote each other and only the one that mounted last (the
+  // passage) was ever reachable. focusCell therefore scrolled to the PASSAGE
+  // copy on every keystroke, which on desktop threw the page down to the
+  // acrostic the moment a bank row was typed in and left the row being filled
+  // off screen above it (owner, 2026-08-24). Refs are keyed by half now, and
+  // this records the half last clicked so the keyboard keeps scrolling the half
+  // the player is actually reading. On a narrow screen only one half is
+  // rendered at a time, so `view` decides there.
+  const halfRef = useRef('b');
 
   const fill = g.fill || new Array(N).fill('');
   const playing = g.status === 'playing';
@@ -345,11 +356,22 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   }
 
   // ---- input ----
-  const focusCell = useCallback((n) => {
+  // The cell for index n in the half the player is working in. A half that is
+  // not rendered leaves a DETACHED node behind in the map (the ref callback only
+  // writes, it never clears), so every candidate is checked for being connected
+  // before it is used, or the fallback silently scrolls nothing.
+  const cellEl = useCallback((n) => {
+    const h = narrow ? view : halfRef.current;
+    const pick = (k) => { const e = cellRefs.current[k]; return e && e.isConnected !== false ? e : null; };
+    return pick(`${h}${n}`) || pick(`b${n}`) || pick(`q${n}`);
+  }, [narrow, view]);
+
+  const focusCell = useCallback((n, from) => {
     setCur(n);
-    const el = cellRefs.current[`q${n}`];
+    if (from) halfRef.current = from;
+    const el = cellEl(n);
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, []);
+  }, [cellEl]);
 
   const move = useCallback((n, d) => {
     const a = A[owner[n]];
@@ -489,7 +511,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     if (!g.t0 || scrolledIn.current) return undefined;
     scrolledIn.current = true;
     const id = requestAnimationFrame(() => {
-      const el = cellRefs.current[`q${cur}`];
+      const el = cellEl(cur);
       if (!el || !el.getBoundingClientRect) return;
       const r = el.getBoundingClientRect();
       const foot = rail.height;
@@ -498,7 +520,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
       }
     });
     return () => cancelAnimationFrame(id);
-  }, [g.t0, cur, rail.height]);
+  }, [g.t0, cur, rail.height, cellEl]);
 
   const cellCls = (n) => {
     const c = ['an-cell'];
@@ -511,10 +533,10 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   function Cell({ n, small }) {
     return (
       <div
-        ref={(el) => { if (el) cellRefs.current[`q${n}`] = el; }}
+        ref={(el) => { if (el) cellRefs.current[`${small ? 'b' : 'q'}${n}`] = el; }}
         className={cellCls(n)}
         style={{ width: small ? cw - 2 : cw, height: small ? ch - 2 : ch }}
-        onClick={() => focusCell(n)}
+        onClick={() => focusCell(n, small ? 'b' : 'q')}
       >{fill[n] || ''}</div>
     );
   }
