@@ -5,7 +5,7 @@
 // Logic, then the rest. White tiles carry the ORIGINAL colored game art
 // (/games/btn-<key>.png); state language matches the slate: gold = paused,
 // green = done, dimmed = a sudoku resting out of today's five, crowd count on
-// unplayed tiles.
+// unplayed tiles. Each tile also names the game's current leader.
 //
 // DATA is the same plumbing the slate uses, deliberately:
 //   - done/paused detection is DailyStrip's three-pass recipe verbatim:
@@ -13,16 +13,21 @@
 //     (completed/played/abandoned/inProgress ids, streaks), (3) per-puzzle
 //     saves keyed by the daily-combined payload's nums, gated on t0 per the
 //     opening-is-not-starting rule.
-//   - per-game plays/standings come from /api/quiz/daily-combined.
+//   - per-game plays/standings/leaders come from /api/quiz/daily-combined.
 //   - the drawer IS DailyTilePanel, mounted static (its own <=900 branch
 //     proves it renders position:static; .tdy-pw forces that at every width).
 //   - the Sudoku shelf is the sudoku circuit: pool of eight, today's five from
 //     circuitKeysFor, the resting three dimmed. The date is read in an EFFECT,
 //     never during render, so SSR and the client agree.
 //   - the live feed section is ANONYMOUS by owner rule (2026-08-10): rows
-//     carry results without attribution, the slab carries the day's totals.
+//     carry results without attribution, the band carries the day's totals.
+//
+// NEVER add a blanket `.tdy a { color: ... }` rule here. The drawer is
+// DailyTilePanel, whose link colors are single-class selectors; a `.tdy a`
+// rule out-specifies them and turned the slab's Play button white-on-white
+// (caught live, 2026-08-24). Style anchors by their own class only.
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
@@ -51,6 +56,48 @@ const TROPHY = (
     <path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" />
   </svg>
 );
+const CROWN = (
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="#e8b43a" aria-hidden="true" style={{ flex: 'none' }}>
+    <path d="M3 7l3.8 3.4L12 3l5.2 7.4L21 7l-1.7 12H4.7z" />
+  </svg>
+);
+
+// A shelf's tile track with desktop scroll affordances: an edge nudge chip on
+// whichever side has more to show, plus a short ground-colored fade under it.
+// Same idea as the slate's category-strip cue, made clickable for a mouse; on
+// touch the chips are hidden and the track simply flicks.
+function TilesRow({ children }) {
+  const ref = useRef(null);
+  const [can, setCan] = useState({ l: false, r: false });
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const upd = () => setCan({ l: el.scrollLeft > 4, r: el.scrollLeft < el.scrollWidth - el.clientWidth - 4 });
+    upd();
+    el.addEventListener('scroll', upd, { passive: true });
+    window.addEventListener('resize', upd);
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(upd) : null;
+    if (ro) ro.observe(el);
+    return () => {
+      el.removeEventListener('scroll', upd);
+      window.removeEventListener('resize', upd);
+      if (ro) ro.disconnect();
+    };
+  }, []);
+  const nudge = (dir) => {
+    const el = ref.current;
+    if (el) el.scrollBy({ left: dir * Math.max(200, el.clientWidth - 160), behavior: 'smooth' });
+  };
+  return (
+    <div className="tdy-tw">
+      <div className="tdy-tiles" ref={ref}>{children}</div>
+      <div className={'tdy-fade l' + (can.l ? ' on' : '')} aria-hidden="true" />
+      <div className={'tdy-fade r' + (can.r ? ' on' : '')} aria-hidden="true" />
+      {can.l ? <button type="button" className="tdy-nud l" onClick={() => nudge(-1)} aria-label="Scroll back">‹</button> : null}
+      {can.r ? <button type="button" className="tdy-nud r" onClick={() => nudge(1)} aria-label="Scroll forward">›</button> : null}
+    </div>
+  );
+}
 
 export default function TodayClient() {
   // Build the shelves once: the sudoku circuit pool leaves Numbers and becomes
@@ -134,7 +181,7 @@ export default function TodayClient() {
     return () => { alive = false; };
   }, []);
 
-  // ── the day's combined board: per-game plays, standings, my rows ──
+  // ── the day's combined board: per-game plays, standings, leaders, my rows ──
   const [board, setBoard] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -151,6 +198,11 @@ export default function TodayClient() {
   const playsOf = (key) => {
     const b = bgFor(key);
     return b && typeof b.plays === 'number' ? b.plays : null;
+  };
+  const leaderOf = (key) => {
+    const b = bgFor(key);
+    const top = b && Array.isArray(b.board) && b.board[0] ? b.board[0] : null;
+    return top && top.username ? top.username : null;
   };
   const myRow = (key) => {
     const bg = bgFor(key);
@@ -196,7 +248,7 @@ export default function TodayClient() {
       if (alive && d && !d.error) setTotals({ today: d.today || 0, todayPlayers: d.todayPlayers || 0 });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
-      if (alive && d && Array.isArray(d.plays)) setRecent(d.plays.slice(0, 14));
+      if (alive && d && Array.isArray(d.plays)) setRecent(d.plays.slice(0, 18));
     }).catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -248,13 +300,12 @@ export default function TodayClient() {
     if (inprog.has(g.key)) return { cls: 'tp', text: 'Resume' };
     if (isResting(shelf, g.key)) return { cls: 'tr', text: 'Back soon' };
     const n = playsOf(g.key);
-    return { cls: '', text: n != null ? `${n.toLocaleString()} playing` : ' ' };
+    return { cls: '', text: n != null ? `${n.toLocaleString()} playing` : ' ' };
   };
 
-  const feedName = (quizId) => {
+  const feedGame = (quizId) => {
     const m = /^([a-z]+)-\d/.exec(quizId || '');
-    if (m && DAILY_GAME_MAP[m[1]]) return DAILY_GAME_MAP[m[1]].name;
-    return quizId || 'Quiz';
+    return m && DAILY_GAME_MAP[m[1]] ? DAILY_GAME_MAP[m[1]] : null;
   };
   const agoLabel = (iso) => {
     if (!iso) return '';
@@ -263,9 +314,11 @@ export default function TodayClient() {
     if (m < 60) return `${m}m ago`;
     return `${Math.round(m / 60)}h ago`;
   };
+  const fmtPts = (n) => (typeof n === 'number' ? (Math.round(n * 10) / 10).toLocaleString() : '');
 
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
-  const meInTop = meKey ? overall.slice(0, 10).some((r) => r && r.userKey === meKey) : true;
+  const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
+  const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
 
   return (
     <div className="tdy">
@@ -274,16 +327,16 @@ export default function TodayClient() {
       <div className="tdy-wrap">
         <div className="tdy-today">
           <div>
-            <div className="tdy-eb">{dateLabel || ' '}</div>
+            <div className="tdy-eb">{dateLabel || ' '}</div>
             <h1>The day&rsquo;s puzzles, by category</h1>
           </div>
           <div className="tdy-right">
-            <span className="tdy-ct">{day.ready || day.done ? `${day.done} of ${day.total} played today` : ' '}</span>
-            <a className="tdy-mini" href="#tdy-feed">
+            <span className="tdy-ct">{day.ready || day.done ? `${day.done} of ${day.total} played today` : ' '}</span>
+            <a className="tdy-mini" href="#tdy-boards">
               <span className="ic"><span className="tdy-pulse" /></span>
               <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
             </a>
-            <a className="tdy-mini" href="#tdy-board">
+            <a className="tdy-mini" href="#tdy-boards">
               <span className="ic">{TROPHY}</span>
               <span><span className="k">Leaderboards</span><span className="v">{day.dayRank ? `You're #${day.dayRank.toLocaleString()} today` : "Today's standings"}</span></span>
             </a>
@@ -312,10 +365,11 @@ export default function TodayClient() {
                 </div>
                 <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
               </div>
-              <div className="tdy-tiles">
+              <TilesRow>
                 {shelf.games.map((g) => {
                   const st = statusLine(shelf, g);
                   const resting = isResting(shelf, g.key);
+                  const leader = resting ? null : leaderOf(g.key);
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
                   else if (inprog.has(g.key)) cls.push('paused');
@@ -333,10 +387,11 @@ export default function TodayClient() {
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSel(sel === g.key ? null : g.key); }}
                         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setSel(sel === g.key ? null : g.key); } }}
                       >{st.text}</span>
+                      <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
                     </a>
                   );
                 })}
-              </div>
+              </TilesRow>
               {selHere ? (
                 <div className="tdy-pw">
                   <DailyTilePanel
@@ -360,47 +415,61 @@ export default function TodayClient() {
           );
         })}
 
-        <div className="tdy-restband" id="tdy-board" style={{ paddingTop: 38 }}>
-          <h3>Today&rsquo;s leaderboard</h3>
-          <i>{board && typeof board.maxTotal === 'number' ? `Best 25 games count · out of ${board.maxTotal}` : 'Combined placement across the day'}</i>
-        </div>
-        <div className="tdy-card">
-          {overall.length ? (
-            <>
-              {overall.slice(0, 10).map((r, i) => (
-                <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
-                  <b>{(r && r.rank) || i + 1}</b>
-                  <span className="nm">{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
-                  <span className="sc">{r && typeof r.total === 'number' ? r.total.toLocaleString() : ''}</span>
-                </div>
-              ))}
-              {!meInTop && board && board.me && typeof board.me.rank === 'number' ? (
-                <div className="tdy-lr me">
-                  <b>{board.me.rank}</b>
-                  <span className="nm">{board.me.username || 'You'} · You</span>
-                  <span className="sc">{typeof board.me.total === 'number' ? board.me.total.toLocaleString() : ''}</span>
-                </div>
-              ) : null}
-              <a className="tdy-more" href="/quizzes/hub?tab=daily">Full standings &amp; game boards →</a>
-            </>
-          ) : (
-            <div className="tdy-empty">The day&rsquo;s board is loading, or nobody has played yet.</div>
-          )}
-        </div>
-
-        <div className="tdy-restband" id="tdy-feed" style={{ paddingTop: 30 }}>
-          <h3><span className="tdy-pulse" style={{ display: 'inline-block', marginRight: 8 }} />Live feed</h3>
-          <i>{totals ? `${totals.today.toLocaleString()} plays · ${totals.todayPlayers.toLocaleString()} players today` : 'Results as they land'}</i>
-        </div>
-        <div className="tdy-card">
-          {recent && recent.length ? recent.map((p, i) => (
-            <div key={i} className="tdy-lr">
-              <span className="nm">{feedName(p.quizId)}</span>
-              <span className="sc">{p && p.total > 0 ? `${p.score}/${p.total} · ` : ''}{agoLabel(p.playedAt)}</span>
+        <div className="tdy-two" id="tdy-boards">
+          <div>
+            <div className="tdy-restband" style={{ paddingTop: 38 }}>
+              <h3>{TROPHY}<span style={{ marginLeft: 8 }}>Today&rsquo;s leaderboard</span></h3>
+              <i>{board && typeof board.maxTotal === 'number' ? `Best ${bestN} of ${totalGames} · ${board.maxTotal.toLocaleString()} pts max · resets at midnight` : 'Combined placement across the day'}</i>
             </div>
-          )) : (
-            <div className="tdy-empty">Recent results land here.</div>
-          )}
+            <div className="tdy-card">
+              {overall.length ? (
+                <>
+                  <div className="tdy-cols"><b>#</b><span>Player</span><s>Games</s><s>Total</s></div>
+                  {overall.slice(0, 12).map((r, i) => (
+                    <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
+                      <b>{(r && r.rank) || i + 1}</b>
+                      <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
+                      <span className="gm">{r && typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${totalGames}` : ''}</span>
+                      <span className="sc">{fmtPts(r && r.total)}</span>
+                    </div>
+                  ))}
+                  {!meInTop && board && board.me && typeof board.me.rank === 'number' ? (
+                    <div className="tdy-lr me">
+                      <b>{board.me.rank}</b>
+                      <span className="nm">{board.me.username || 'You'} · You</span>
+                      <span className="gm">{typeof board.me.gamesPlayed === 'number' ? `${board.me.gamesPlayed}/${totalGames}` : ''}</span>
+                      <span className="sc">{fmtPts(board.me.total)}</span>
+                    </div>
+                  ) : null}
+                  <a className="tdy-more" href="/quizzes/hub?tab=daily">Full standings &amp; per-game boards →</a>
+                </>
+              ) : (
+                <div className="tdy-empty">The day&rsquo;s board is loading, or nobody has played yet.</div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="tdy-restband" style={{ paddingTop: 38 }}>
+              <h3><span className="tdy-pulse" style={{ display: 'inline-block' }} /><span style={{ marginLeft: 8 }}>Live feed</span></h3>
+              <i>{totals ? `${totals.today.toLocaleString()} plays · ${totals.todayPlayers.toLocaleString()} players today` : 'Results as they land'}</i>
+            </div>
+            <div className="tdy-card">
+              {recent && recent.length ? recent.map((p, i) => {
+                const g = feedGame(p.quizId);
+                return (
+                  <div key={i} className="tdy-lr feed">
+                    {g ? <img className="fic" src={g.img} alt="" aria-hidden="true" loading="lazy" /> : <span className="fdot" aria-hidden="true" />}
+                    <span className="nm">{g ? g.name : (p.quizId || 'Quiz')}</span>
+                    {p && p.total > 0 ? <span className="gm">{`${p.score}/${p.total}`}</span> : <span className="gm" />}
+                    <span className="sc">{agoLabel(p.playedAt)}</span>
+                  </div>
+                );
+              }) : (
+                <div className="tdy-empty">Recent results land here.</div>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="tdy-foot">{`${totalGames} daily puzzles · new drops at midnight Eastern`}</div>
@@ -411,59 +480,78 @@ export default function TodayClient() {
 
 const CSS = `
 .tdy{background:${GROUND};font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
-.tdy a{text-decoration:none;color:inherit;}
 .tdy-wrap{max-width:1280px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 .tdy-today{display:flex;align-items:flex-end;gap:16px;padding:26px 2px 18px;color:var(--white);}
 .tdy-eb{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;min-height:13px;}
 .tdy-today h1{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0;color:var(--white);}
 .tdy-right{margin-left:auto;display:flex;align-items:center;gap:9px;}
 .tdy-ct{font-size:12.5px;font-weight:700;color:#8fa8dc;white-space:nowrap;font-variant-numeric:tabular-nums;margin-right:5px;}
-.tdy-mini{display:flex;align-items:center;gap:10px;background:#121f3f;border:1px solid #22345e;border-radius:10px;padding:7px 13px 7px 9px;}
+.tdy-mini{display:flex;align-items:center;gap:10px;background:#121f3f;border:1px solid #22345e;border-radius:10px;padding:7px 13px 7px 9px;text-decoration:none;}
 .tdy-mini:hover{background:#182a52;border-color:#2f4a85;}
 .tdy-mini .ic{width:26px;height:26px;border-radius:8px;background:#16306e;display:flex;align-items:center;justify-content:center;flex:none;}
 .tdy-mini .k{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8fa8dc;font-weight:800;line-height:1;}
 .tdy-mini .v{display:block;font-size:12.5px;font-weight:800;color:var(--white);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,.5);animation:tdypul 2s infinite;flex:none;}
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(90,212,143,.5);}70%{box-shadow:0 0 0 7px rgba(90,212,143,0);}100%{box-shadow:0 0 0 0 rgba(90,212,143,0);}}
-.tdy-go{background:var(--gold);color:#2a1f04;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;border-radius:8px;padding:9px 14px;white-space:nowrap;}
+.tdy-go{background:var(--gold);color:#2a1f04;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none;}
 .tdy-go:hover{background:#f2c451;}
 .tdy-row{display:block;}
 .tdy-hd{display:flex;align-items:center;gap:12px;color:var(--white);border-left:4px solid #2563eb;padding:2px 2px 2px 12px;margin:16px 0 10px;}
 .tdy-hd .eb{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8fa8dc;}
 .tdy-hd h2{font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--white);}
 .tdy-hd .nt{font-size:11.5px;font-weight:600;color:#7d95c9;margin-top:3px;}
-.tdy-cta{margin-left:auto;border:1px solid #2c437c;color:#cfe0ff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 12px;white-space:nowrap;flex:none;}
+.tdy-cta{margin-left:auto;border:1px solid #2c437c;color:#cfe0ff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 12px;white-space:nowrap;flex:none;text-decoration:none;}
 .tdy-cta:hover{border-color:#4f74cc;color:#fff;}
 .tdy-cta.gold{background:var(--gold);border-color:var(--gold);color:#2a1f04;}
+.tdy-tw{position:relative;}
 .tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;}
 .tdy-tiles::-webkit-scrollbar{display:none;}
-.tdy-t{flex:none;width:130px;background:var(--white);border-radius:12px;padding:14px 8px 11px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 18px rgba(3,7,18,.45);}
+.tdy-fade{position:absolute;top:0;bottom:10px;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
+.tdy-fade.l{left:0;background:linear-gradient(90deg,${GROUND},rgba(11,15,26,0));}
+.tdy-fade.r{right:0;background:linear-gradient(270deg,${GROUND},rgba(11,15,26,0));}
+.tdy-fade.on{opacity:1;}
+.tdy-nud{position:absolute;top:50%;transform:translateY(-60%);width:30px;height:30px;border-radius:50%;background:#121f3f;border:1px solid #2c437c;color:#cfe0ff;font-size:17px;font-weight:800;line-height:1;cursor:pointer;z-index:4;display:flex;align-items:center;justify-content:center;padding:0 0 2px;font-family:inherit;}
+.tdy-nud:hover{border-color:#4f74cc;color:#fff;background:#182a52;}
+.tdy-nud.l{left:-8px;}
+.tdy-nud.r{right:-8px;}
+.tdy-t{flex:none;width:130px;background:var(--white);border-radius:12px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(3,7,18,.45);text-decoration:none;}
 .tdy-t:hover{background:var(--surface);}
 .tdy-t img{width:52px;height:52px;border-radius:11px;display:block;flex:none;}
 .tdy-t b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
-.tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;}
+.tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;cursor:pointer;}
 .tdy-st:hover{background:var(--surface-alt);color:var(--ink);}
 .tdy-st.tk{color:var(--success-deep);font-weight:800;}
 .tdy-st.tp{color:#a16207;font-weight:800;}
-.tdy-st.tr{color:#9aa0ab;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+.tdy-st.tr{color:#9aa0ab;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:default;}
+.tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:114px;overflow:hidden;}
+.tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tdy-t.done{background:#f0f7f1;}
 .tdy-t.paused{background:#fffaeb;box-shadow:inset 0 0 0 1.5px var(--gold),0 6px 18px rgba(3,7,18,.45);}
 .tdy-t.resting{opacity:.5;cursor:default;}
 .tdy-t.sel{box-shadow:0 0 0 2.5px var(--blue),0 6px 18px rgba(3,7,18,.45);}
 .tdy-pw{position:relative;margin:0 2px 12px;}
 .tdy-pw .dtp{position:static;overflow:visible;height:auto;animation:none;}
-.tdy-restband{display:flex;align-items:baseline;gap:12px;color:var(--white);padding:30px 2px 4px;}
-.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;margin:0;}
+.tdy-restband{display:flex;align-items:baseline;gap:12px;color:var(--white);padding:30px 2px 4px;flex-wrap:wrap;}
+.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;margin:0;display:inline-flex;align-items:center;}
 .tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#5a6f9e;}
+.tdy-two{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
 .tdy-card{background:var(--white);border-radius:12px;box-shadow:0 10px 30px rgba(3,7,18,.5);padding:10px 12px;margin:10px 2px 0;}
+.tdy-cols{display:flex;align-items:center;gap:9px;padding:4px 10px 8px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#9aa0ab;font-weight:800;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.tdy-cols b{width:18px;flex:none;font-weight:800;}
+.tdy-cols span{flex:1 1 auto;}
+.tdy-cols s{text-decoration:none;flex:none;width:56px;text-align:right;}
 .tdy-lr{display:flex;align-items:center;gap:9px;padding:8px 10px;border-left:4px solid transparent;border-radius:0 7px 7px 0;font-size:13px;color:var(--ink);}
 .tdy-lr b{font-size:11px;color:#9aa0ab;width:18px;flex:none;font-variant-numeric:tabular-nums;font-weight:800;}
-.tdy-lr .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;}
-.tdy-lr .sc{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--slate);white-space:nowrap;font-weight:700;font-size:12.5px;}
+.tdy-lr .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800;flex:1 1 auto;display:inline-flex;align-items:center;gap:6px;}
+.tdy-lr .gm{flex:none;width:56px;text-align:right;font-variant-numeric:tabular-nums;color:#9aa0ab;font-weight:700;font-size:11.5px;}
+.tdy-lr .sc{flex:none;width:56px;text-align:right;font-variant-numeric:tabular-nums;color:var(--slate);white-space:nowrap;font-weight:800;font-size:12.5px;}
 .tdy-lr.first{border-left-color:var(--gold);background:#fffaf0;}
 .tdy-lr.me{border-left-color:var(--blue);background:#eef3ff;}
 .tdy-lr.me .nm{color:var(--blue-deep);}
-.tdy-more{display:block;font-size:11.5px;font-weight:800;color:var(--blue-deep);padding:10px 10px 4px;}
+.tdy-lr .fic{width:22px;height:22px;border-radius:5px;flex:none;}
+.tdy-lr .fdot{width:22px;height:22px;border-radius:5px;flex:none;background:var(--surface-alt);}
+.tdy-lr.feed .sc{font-weight:700;color:#9aa0ab;font-size:11.5px;width:64px;}
+.tdy-more{display:block;font-size:11.5px;font-weight:800;color:var(--blue-deep);padding:10px 10px 4px;text-decoration:none;}
 .tdy-empty{padding:14px 10px;font-size:12.5px;font-weight:600;color:var(--slate);}
 .tdy-foot{padding:40px 2px 40px;color:#3d4d75;font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
@@ -476,7 +564,10 @@ const CSS = `
   .tdy-hd{margin-left:14px;margin-right:14px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:118px;}
+  .tdy-nud{display:none;}
+  .tdy-fade{display:none;}
   .tdy-restband{padding-left:16px;padding-right:16px;}
+  .tdy-two{grid-template-columns:1fr;}
   .tdy-card{border-radius:0;margin:10px 0 0;}
   .tdy-pw{margin:0 0 12px;}
   .tdy-foot{padding-left:16px;}
