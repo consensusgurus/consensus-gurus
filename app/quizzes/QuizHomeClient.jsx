@@ -19,7 +19,6 @@ import {
 import { QUIZZES } from '@/lib/quizzes';
 import { KIDS_GAMES } from '@/lib/kids';
 import DailyStrip from '../DailyStrip';
-import DailyFiveBand from '../DailyFiveBand';
 import TodayClient from '../today/TodayClient';
 
 // THE MARQUEE HOME (owner, 2026-08-24): the category-first shelves (the /today
@@ -2209,7 +2208,6 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             (board first) below 1200px. */}
         {MARQUEE_HOME ? (
           <div className="dhx-marquee" style={{ marginBottom: 12 }}>
-            <DailyFiveBand />
             <TodayClient />
           </div>
         ) : (

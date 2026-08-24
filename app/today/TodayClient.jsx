@@ -30,6 +30,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
+import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
 import DailyTilePanel from '../DailyTilePanel';
 import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
@@ -128,6 +129,16 @@ export default function TodayClient() {
   const sudokuActive = useMemo(() => {
     if (!today) return null;
     try { return new Set(circuitKeysFor('sudoku', today)); } catch (e) { return null; }
+  }, [today]);
+
+  // The Daily Five, as a strip card rather than the old console band (owner,
+  // 2026-08-24). A game played on its own still counts toward the run, so the
+  // card reads progress straight off the same `done` set the shelves use. An
+  // unbanked date returns no roster and the card simply doesn't render, same
+  // rule as the run itself.
+  const fiveKeys = useMemo(() => {
+    if (!today) return [];
+    try { return fiveFor(today) || []; } catch (e) { return []; }
   }, [today]);
 
   // ── play state: DailyStrip's three passes ──
@@ -392,6 +403,21 @@ export default function TodayClient() {
           </div>
           <div className="tdy-right">
             <span className="tdy-ct">{day.ready || day.done ? `${day.done} of ${day.total} played today` : ' '}</span>
+            {fiveKeys.length >= 2 ? (() => {
+              const fiveDone = fiveKeys.filter((k) => done.has(k)).length;
+              const nextKey = fiveKeys.find((k) => !done.has(k));
+              const nextG = nextKey ? DAILY_GAME_MAP[nextKey] : null;
+              const href = !nextG ? '/daily-five' : `${nextG.href}?five=1`;
+              return (
+                <a className="tdy-mini" href={href}>
+                  <span className="ic five">5</span>
+                  <span>
+                    <span className="k">The Daily Five</span>
+                    <span className="v">{!nextG ? 'Done · see the board' : (fiveDone ? `${fiveDone} of ${fiveKeys.length} · next ${nextG.name}` : `Start · ${nextG.name}`)}</span>
+                  </span>
+                </a>
+              );
+            })() : null}
             <a className="tdy-mini" href="#tdy-boards">
               <span className="ic"><span className="tdy-pulse" /></span>
               <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
@@ -676,6 +702,7 @@ const CSS = `
 .tdy-mini{display:flex;align-items:center;gap:10px;background:#121f3f;border:1px solid #22345e;border-radius:10px;padding:7px 13px 7px 9px;text-decoration:none;}
 .tdy-mini:hover{background:#182a52;border-color:#2f4a85;}
 .tdy-mini .ic{width:26px;height:26px;border-radius:8px;background:#16306e;display:flex;align-items:center;justify-content:center;flex:none;}
+.tdy-mini .ic.five{background:var(--gold);color:#2a1f04;font-size:13.5px;font-weight:800;}
 .tdy-mini .k{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8fa8dc;font-weight:800;line-height:1;}
 .tdy-mini .v{display:block;font-size:12.5px;font-weight:800;color:var(--white);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,.5);animation:tdypul 2s infinite;flex:none;}
