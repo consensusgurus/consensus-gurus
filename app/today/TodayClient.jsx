@@ -39,6 +39,27 @@ const GROUND = '#0b0f1a';
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
 const SUDOKU_COLOR = '#1d4ed8'; // not in CAT_BLUE; the mockup's pick, distinct from Numbers and Trivia
 
+// Sum a set of games' per-game boards into one standings list. Same known
+// limit as the Loft's category leaders: each per-game board carries only its
+// named top rows, so a player outside every game's top board is invisible to
+// the sum. Shared by the shelf-header leader chip and the standings panel.
+function aggregateShelf(bgames, games) {
+  const acc = new Map();
+  for (const g of games) {
+    const bg = bgames.find((x) => x && x.key === g.key);
+    const rows = bg && Array.isArray(bg.board) ? bg.board : [];
+    for (const r of rows) {
+      if (!r || !r.userKey) continue;
+      const cur = acc.get(r.userKey) || { userKey: r.userKey, username: r.username, pts: 0, games: 0 };
+      cur.pts += (typeof r.points === 'number' ? r.points : 0);
+      cur.games += 1;
+      acc.set(r.userKey, cur);
+    }
+  }
+  return [...acc.values()]
+    .sort((a, b) => b.pts - a.pts || a.games - b.games || String(a.username || '').localeCompare(String(b.username || '')));
+}
+
 function catColor(name) {
   if (name === 'Sudoku') return SUDOKU_COLOR;
   if (name === 'Crowd Psychology') return catBlue('crowd');
@@ -383,26 +404,25 @@ export default function TodayClient() {
   const catAgg = useMemo(() => {
     if (!bgames) return null;
     const out = {};
-    for (const s of shelves) {
-      const acc = new Map();
-      for (const g of s.games) {
-        const bg = bgames.find((x) => x && x.key === g.key);
-        const rows = bg && Array.isArray(bg.board) ? bg.board : [];
-        for (const r of rows) {
-          if (!r || !r.userKey) continue;
-          const cur = acc.get(r.userKey) || { userKey: r.userKey, username: r.username, pts: 0, games: 0 };
-          cur.pts += (typeof r.points === 'number' ? r.points : 0);
-          cur.games += 1;
-          acc.set(r.userKey, cur);
-        }
-      }
-      out[s.name] = [...acc.values()]
-        .sort((a, b) => b.pts - a.pts || a.games - b.games || String(a.username || '').localeCompare(String(b.username || '')))
-        .slice(0, 12);
-    }
+    for (const s of shelves) out[s.name] = aggregateShelf(bgames, s.games).slice(0, 12);
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgames]);
+
+  // THE SHELF'S LEADER, rendered beside the category name (owner, 2026-08-24).
+  // The per-tile crown names who is top of ONE game; this names who is top of
+  // the whole CATEGORY today, on the same combined points the standings panel
+  // below and the daily board itself run on. Keyed kind+name so the circuits
+  // view gets one too (a circuit is a set of games like any other shelf).
+  const shelfLead = useMemo(() => {
+    if (!bgames) return {};
+    const out = {};
+    for (const s of [...shelves, ...circuitShelves]) {
+      const top = aggregateShelf(bgames, s.games)[0];
+      if (top && top.username) out[(s.kind || 'cat') + s.name] = top;
+    }
+    return out;
+  }, [bgames, shelves, circuitShelves]);
 
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
@@ -467,7 +487,18 @@ export default function TodayClient() {
               <div className="tdy-hd" style={{ borderLeftColor: shelf.color }}>
                 <div>
                   <div className="eb">{shelf.kind === 'circuit' ? `Circuit · ${shelf.games.length} today` : (shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`)}</div>
-                  <h2>{shelf.name}</h2>
+                  <div className="tdy-hnm">
+                    <h2>{shelf.name}</h2>
+                    {(() => {
+                      const L = shelfLead[(shelf.kind || 'cat') + shelf.name];
+                      if (!L) return null;
+                      return (
+                        <span className="tdy-hld" title={L.username + ' leads ' + shelf.name + ' today: ' + L.pts + ' points across ' + L.games + (L.games === 1 ? ' game' : ' games')}>
+                          {CROWN}<i>{L.username}</i><b>{L.pts}</b>
+                        </span>
+                      );
+                    })()}
+                  </div>
                   {shelf.kind === 'circuit' && shelf.blurb ? (
                     <div className="nt">{shelf.blurb}</div>
                   ) : null}
@@ -745,6 +776,10 @@ const CSS = `
 .tdy-hd .eb{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8fa8dc;}
 .tdy-hd h2{font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--white);}
 .tdy-hd .nt{font-size:11.5px;font-weight:600;color:#7d95c9;margin-top:3px;}
+.tdy-hnm{display:flex;align-items:center;gap:9px;min-width:0;}
+.tdy-hld{display:inline-flex;align-items:center;gap:5px;flex:none;max-width:190px;border-radius:999px;padding:2px 9px 2px 8px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.4);}
+.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#f2dda6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tdy-hld b{font-size:10px;font-weight:800;color:#c6a35c;font-variant-numeric:tabular-nums;flex:none;}
 .tdy-cta{margin-left:auto;border:1px solid #2c437c;color:#cfe0ff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 12px;white-space:nowrap;flex:none;text-decoration:none;}
 .tdy-cta:hover{border-color:#4f74cc;color:#fff;}
 .tdy-cta.gold{background:var(--gold);border-color:var(--gold);color:#2a1f04;}
@@ -831,6 +866,7 @@ const CSS = `
   .tdy-mini{flex:1 1 auto;}
   .tdy-go{flex:1 1 100%;text-align:center;}
   .tdy-hd{margin-left:14px;margin-right:14px;}
+  .tdy-hld{max-width:132px;}
   .tdy-view{padding-left:16px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:118px;}
