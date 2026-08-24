@@ -113,14 +113,20 @@ for (const c of CIRCUITS) {
   }
 }
 
-// ── 3. exclusive ────────────────────────────────────────────────────────────
-// Every eligible daily sits in EXACTLY ONE skill circuit. That is what makes
-// "finish all thirteen" mean "play everything", and what stops one play paying
-// into two skill boards.
+// ── 3. overlap (a WARNING, never a failure) ─────────────────────────────────
+// NOT EXCLUSIVE ANY MORE (owner ruling, 2026-08-24, the same day exhaustiveness
+// went). This used to fail a bank where any game sat in two circuits, on the
+// grounds that one play must not pay into two skill boards. That was never what
+// it did: the marquee already overlaps every skill circuit it draws from, and a
+// circuit board is the same day's rows narrowed to a roster, not a share of a
+// pot. What the rule actually did was force a single answer where two were
+// true, which is how Four and Chain came to be in Table Games but not Board
+// Games. Overlap is reported so a roster change is visible in the run, and
+// forgiven.
 const owner = new Map();
 for (const c of CIRCUITS) {
   for (const k of c.keys || []) {
-    if (owner.has(k)) fails.push(`"${k}" is in two circuits: ${owner.get(k)} and ${c.id}`);
+    if (owner.has(k)) owner.set(k, owner.get(k) + ', ' + c.id);
     else owner.set(k, c.id);
   }
 }
@@ -151,6 +157,10 @@ const eligible = DAILY_KEYS.filter((k) => !EXCLUDED[k] && !retiredAlready(k));
 const missing = eligible.filter((k) => !owner.has(k));
 if (missing.length) {
   warns.push(`${missing.length} eligible daily game(s) are in no circuit: ${missing.join(', ')}`);
+}
+const shared = [...owner.entries()].filter(([, v]) => v.includes(','));
+if (shared.length) {
+  warns.push(`${shared.length} game(s) in more than one circuit: ${shared.map(([k, v]) => k + ' (' + v + ')').join('; ')}`);
 }
 const strays = [...owner.keys()].filter((k) => retiredAlready(k));
 if (strays.length) warns.push(`retired game(s) still named in a circuit (harmless, filtered at read time): ${strays.join(', ')}`);

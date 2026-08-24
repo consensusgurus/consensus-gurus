@@ -216,14 +216,14 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 
 /* CIRCUITS (owner list, 2026-08-15). The cross-cut: a category says what a game
    IS, a circuit says what SKILL it exercises, so they are two axes and a game
-   can sit in one, both or neither. Six of the owner's twenty-one were dropped
-   because they only restated a top-level category and would have rendered as
-   "Trivia: Trivia 7" (Trivia, End Games, Solitaire, Arcade, Crowd, Geography).
+   can sit in one, both or neither. A circuit that only restated a top-level
+   category was dropped, and since 2026-08-24 the strip also DEDUPES the two
+   axes on the label, so a circuit sharing a category's name never renders as a
+   second chip saying the same word.
 
-   Circuits cross categories on purpose: Babel is Word Building and a Classic
-   Board Game, Blitz is Mental Math and Survival, Span is Spatial Puzzles and
-   the whole of Geography, Outrank is Ranking and Crowd. Keyed by display name,
-   which is how the list was given and how the roster reads.
+   Circuits cross categories on purpose: Span is Spatial Puzzles and the whole
+   of Geography, Outrank is Ranking and Crowd. Keyed by display name, which is
+   how the list was given and how the roster reads.
 
    MODULE SCOPE, NOT COMPONENT SCOPE, and that is load-bearing. slateMatch calls
    circuitsOf, and slateList runs slateMatch during render some 250 lines above
@@ -239,13 +239,13 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // unchanged ([displayName, [gameName, ...]]), so circuitsOf, slateMatch and the
 // filter strip below are untouched.
 //
-// What changed in the rosters themselves: the fourteen ad-hoc groups ran from 2
-// to 7 games, left eleven games in no circuit at all and put two games in two.
-// They are now thirteen EXCLUSIVE circuits capped at five, covering every
-// eligible daily exactly once, ordered shortest-median-first like the Daily
-// Five. Renames on the way: Anagrams became Wordplay, Chess and Board Games
-// merged into Chess & Board, History became Recall, Survival became Table
-// Games. See the block comment in lib/circuits.js for why.
+// What changed in the rosters themselves: they became SIXTEEN circuits ordered
+// shortest-median-first like the Daily Five, each one holding the games its own
+// title describes. They are NOT exclusive and NOT exhaustive (owner ruling,
+// 2026-08-24): a game may be in several circuits or in none, and only the cap
+// of five on a fixed roster and the floor of two still bind. So circuitsOf can
+// return two names for one game, which is why it has always returned an array.
+// See the block comment in lib/circuits.js for the whole rule set.
 const CIRCUITS = CIRCUIT_NAME_LISTS;
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
 /* THE FILTER STRIP IS ONE STRIP, AT EVERY WIDTH, WITH NO NAME IN IT TWICE
