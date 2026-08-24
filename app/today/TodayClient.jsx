@@ -29,7 +29,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { CIRCUITS, circuitById, circuitPageHref } from '@/lib/circuits';
+import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
 import DailyTilePanel from '../DailyTilePanel';
@@ -133,6 +133,24 @@ export default function TodayClient() {
   // sudoku CIRCUIT that day; it is NOT a playability signal. An earlier version
   // dimmed the other three "Back soon" and blocked their clicks, which was
   // wrong (owner caught Mercury, 2026-08-24). All eight tiles render normally.
+
+  // CATEGORIES vs CIRCUITS are separate views under a faint selector (owner,
+  // 2026-08-24: "not mixing categories and circuits"). Categories is the pure
+  // category slate; Circuits shows one shelf per circuit with that DAY'S
+  // members (circuitKeysFor) and a Play-the-circuit control. A game can sit in
+  // several circuits, which is the nature of circuits, not a bug.
+  const [view, setView] = useState('cats');
+  const circuitShelves = useMemo(() => {
+    if (!today) return [];
+    return CIRCUITS.map((c) => {
+      let keys;
+      try { keys = circuitKeysFor(c.id, today) || []; } catch (e) { keys = []; }
+      const games = keys.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+      if (!games.length) return null;
+      const color = c.id === 'sudoku' ? SUDOKU_COLOR : catColor(games[0].cat);
+      return { kind: 'circuit', id: c.id, name: c.name, blurb: c.blurb || '', color, games };
+    }).filter(Boolean);
+  }, [today]);
 
   // The Daily Five, as a strip card rather than the old console band (owner,
   // 2026-08-24). A game played on its own still counts toward the run, so the
@@ -312,7 +330,7 @@ export default function TodayClient() {
   }, [flat, inprog, done]);
 
   const shelfCta = (shelf) => {
-    if (shelf.name === 'Sudoku') return { label: 'Play the circuit', href: circuitPageHref('sudoku'), gold: false };
+    if (shelf.kind === 'circuit') return { label: 'Play the circuit', href: circuitPageHref(shelf.id), gold: false };
     const paused = shelf.games.find((g) => inprog.has(g.key) && !done.has(g.key));
     if (paused) return { label: `Resume · ${paused.name}`, href: paused.href, gold: true };
     const next = shelf.games.find((g) => !done.has(g.key));
@@ -431,21 +449,27 @@ export default function TodayClient() {
           </div>
         </div>
 
-        {shelves.map((shelf, si) => {
+        <div className="tdy-view" role="tablist" aria-label="Group the slate by">
+          <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => { setView('cats'); setSel(null); }}>Categories</button>
+          <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => { setView('circuits'); setSel(null); }}>Circuits</button>
+        </div>
+
+        {(view === 'circuits' ? circuitShelves : shelves).map((shelf, si, arr) => {
           const cta = shelfCta(shelf);
-          const selHere = sel && shelf.games.some((g) => g.key === sel) ? shelf.games.find((g) => g.key === sel) : null;
+          const selShelf = sel ? arr.find((s) => s.games.some((g) => g.key === sel)) : null;
+          const selHere = selShelf === shelf ? shelf.games.find((g) => g.key === sel) : null;
           const selBg = selHere ? bgFor(selHere.key) : null;
           return (
-            <section key={shelf.name} className="tdy-row">
-              {si === 4 ? (
+            <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
+              {view === 'cats' && si === 4 ? (
                 <div className="tdy-restband"><h3>The rest of the slate</h3><i>{`${CAT_ORDER.length - 4} more categories`}</i></div>
               ) : null}
               <div className="tdy-hd" style={{ borderLeftColor: shelf.color }}>
                 <div>
-                  <div className="eb">{shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`}</div>
+                  <div className="eb">{shelf.kind === 'circuit' ? `Circuit · ${shelf.games.length} today` : (shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`)}</div>
                   <h2>{shelf.name}</h2>
-                  {shelf.name === 'Sudoku' ? (
-                    <div className="nt">All eight play daily. The circuit counts five of them, easiest first, a different mix each day.</div>
+                  {shelf.kind === 'circuit' && shelf.blurb ? (
+                    <div className="nt">{shelf.blurb}</div>
                   ) : null}
                 </div>
                 <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
@@ -706,6 +730,10 @@ const CSS = `
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(90,212,143,.5);}70%{box-shadow:0 0 0 7px rgba(90,212,143,0);}100%{box-shadow:0 0 0 0 rgba(90,212,143,0);}}
 .tdy-go{background:var(--gold);color:#2a1f04;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none;}
 .tdy-go:hover{background:#f2c451;}
+.tdy-view{display:flex;gap:6px;padding:0 2px 6px;}
+.tdy-viewbtn{font-family:inherit;background:none;border:1px solid #24365f;color:#8fa8dc;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer;}
+.tdy-viewbtn:hover{border-color:#4f74cc;color:#fff;}
+.tdy-viewbtn.on{background:#121f3f;border-color:#4f74cc;color:#fff;}
 .tdy-row{display:block;}
 .tdy-hd{display:flex;align-items:center;gap:12px;color:var(--white);border-left:4px solid #2563eb;padding:2px 2px 2px 12px;margin:16px 0 10px;}
 .tdy-hd .eb{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8fa8dc;}
@@ -796,6 +824,7 @@ const CSS = `
   .tdy-mini{flex:1 1 auto;}
   .tdy-go{flex:1 1 100%;text-align:center;}
   .tdy-hd{margin-left:14px;margin-right:14px;}
+  .tdy-view{padding-left:16px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:118px;}
   .tdy-nud{display:none;}
