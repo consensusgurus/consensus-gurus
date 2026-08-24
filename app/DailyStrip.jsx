@@ -248,14 +248,69 @@ const CAT_SHORT = { 'Crowd Psychology': 'Crowd' };
 // Games. See the block comment in lib/circuits.js for why.
 const CIRCUITS = CIRCUIT_NAME_LISTS;
 const circuitsOf = (g) => CIRCUITS.filter(([, names]) => names.includes(g.name)).map(([n]) => n);
-/* THE FILTER STRIP'S OWN ORDER: A-Z (owner, 2026-08-18). CIRCUITS above keeps
-   the order the owner gave it, since circuitsOf reads it to build a single
-   game's chips and the fill panel walks it for its groups; only the strip
-   re-sorts, because a fifteen-chip scrolling row in no order at all is a linear
-   read. Same reasoning as DailySlateRail, which sorts its 60-odd game names A-Z
-   over the home board's order for exactly this. */
-const CIRCUITS_AZ = CIRCUITS.map(([n]) => n)
-  .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }));
+/* THE FILTER STRIP IS ONE STRIP, AT EVERY WIDTH, WITH NO NAME IN IT TWICE
+   (owner, 2026-08-24). Three changes that are really one change:
+
+   ONE STRIP. The circuits used to be a SECOND navy row on a desktop and, on a
+   phone, a duplicate copy of themselves at the tail of row one, with each
+   breakpoint display:none-ing the copy it did not want. That cost two rows, two
+   refs, two overflow states, two scroll effects and a class (.sl-fc) whose only
+   job was to hide the copy that was not wanted, and it had already mis-fired
+   once and rendered every circuit twice. There is ONE list now, rendered once.
+   The widths still differ, but only in how a chip is PAINTED: an underlined tab
+   above 900px, a pill below it. No markup branch, so nothing to desynchronise
+   between the server render and hydration, and nothing announced twice.
+
+   NO DUPLICATE NAMES. A category and a circuit could carry the same name, which
+   put one word in the strip twice pointing at two different sets (Arcade was
+   both, a 2-game category and a 5-game circuit). The list is deduped on the
+   LABEL THE READER SEES and the CATEGORY WINS: it is the axis the board itself
+   groups by, and the circuit is still runnable from /circuits. Arcade's roster
+   was cut to the category's two games the same day, so the two now name the
+   same pair anyway. See the block comment in lib/circuits.js.
+
+   LEAD, THEN A-Z. Five subjects lead in a fixed order and everything else
+   follows alphabetically. The lead is the owner's order, not a size ranking,
+   and its real job is the first slot on a 390px phone: pure A-Z put Word
+   seventh, behind Arcade, Cards, Crowd, End Game and Geography, so the deepest
+   pool on the site could only be reached with a sideways flick. A lead name
+   that is not on today's board is skipped rather than rendered empty, so the
+   order survives a roster change on its own. Note that Sudoku is a CIRCUIT and
+   the other four are categories, which is exactly why the strip has to hold
+   both kinds in ONE list rather than in two rows.
+
+   WHAT LEFT WITH THEM: the "More in X" pill (owner, 2026-08-24). It jumped to
+   the viewer's most-played unfinished category and sat in slot two, so in the
+   commonest case of all, a reader whose top category also leads the row, the
+   strip opened "More Logic ... Logic" and named the same thing twice under two
+   different labels. The category it pointed at is in the strip already, and Up
+   next on the cap above makes the same walk to the same game. */
+const STRIP_LEAD = ['Word', 'Sudoku', 'Logic', 'End Game', 'Trivia'];
+const CIRCUIT_NAMES = CIRCUITS.map(([n]) => n);
+/* [filterKey, label] for every subject chip in the strip, deduped and ordered.
+   `withCircuits` is false on the plain slate layout, which has never carried
+   circuit chips; the catboard passes true. Pure, so it stays at module scope
+   with the rest of the strip's data. */
+const stripSubjects = (catNames, withCircuits) => {
+  // Categories FIRST in the pool, which is what makes them win a name clash.
+  const pool = catNames.map((c) => [c, CAT_SHORT[c] || c])
+    .concat(withCircuits ? CIRCUIT_NAMES.map((n) => ['circuit:' + n, n]) : []);
+  const seen = new Set();
+  const rest = [];
+  for (const e of pool) {
+    const label = String(e[1]).toLowerCase();
+    if (seen.has(label)) continue;
+    seen.add(label);
+    rest.push(e);
+  }
+  const lead = [];
+  for (const name of STRIP_LEAD) {
+    const i = rest.findIndex((e) => e[1] === name);
+    if (i >= 0) lead.push(rest.splice(i, 1)[0]);
+  }
+  rest.sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'en', { sensitivity: 'base' }));
+  return lead.concat(rest);
+};
 /* THE FILL PANEL (owner, 2026-08-15). A narrow group is three rows and then
    600px of white, because the board's height is MEASURED to the fold (--dh-fit)
    and does not shrink when a filter empties it. Rather than let that read as a
@@ -643,10 +698,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // to work under a mouse. Nothing renders when everything already fits.
   const filtRef = useRef(null);
   const [filtMore, setFiltMore] = useState({ l: false, r: false });
-  // Row two of the filter strip, the circuits. Its own ref and its own state,
-  // because the overflow of one scroller says nothing about the other.
-  const filt2Ref = useRef(null);
-  const [filt2More, setFilt2More] = useState({ l: false, r: false });
   const [phone, setPhone] = useState(false);
   // The Sundays tab. `sunToday` is computed in an effect, never during render:
   // the server has no idea what day it is in Eastern time and a mismatch is a
@@ -961,13 +1012,10 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   const nextGame = byCategory(openFresh) || byCategory(openAny)
     || habitFresh[0] || habitRank[0] || null;
 
-  // THE CATEGORY THE FILTER STRIP JUMPS TO (owner, 2026-08-23: "it took seven
-  // clicks to get to the next logic game"). Same walk Up next makes, and
-  // deliberately the same answer: the most recently played category that still
-  // has something open in it. A category where the viewer has finished
-  // everything is skipped rather than offered as an empty board, and a viewer
-  // with no history at all gets null, so the strip renders exactly as before.
-  const moreCat = catRank.find((c) => games.some((g) => g.cat === c && !done.has(g.key))) || null;
+  // (The strip's "More in X" jump lived here until 2026-08-24, along with the
+  // category walk that fed it. Both are gone; the strip's block comment at
+  // module scope has the reasoning. Up next on the cap above still makes the
+  // same walk and still lands on the same game, so nothing was lost with it.)
 
   // ── leaderboard wiring (only when a board payload is provided) ──
   // bgames / byKey / hasBoard are built above, beside the display order.
@@ -1544,29 +1592,8 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
     el.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
     return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
-  }, [slate, sunToday, slateCats.join('|')]);
-  useEffect(() => {
-    const el = filt2Ref.current;
-    if (!el) return undefined;
-    const update = () => {
-      const more = el.scrollWidth - el.clientWidth;
-      setFilt2More({ l: el.scrollLeft > 2, r: more > 2 && el.scrollLeft < more - 2 });
-    };
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
-    return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
-  }, [slate, cats]);
-  const nudgeFilt2 = (dir) => {
-    const el = filt2Ref.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * Math.max(120, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
-  };
+  }, [slate, cats, sunToday, slateCats.join('|')]);
   const nudgeFilt = (dir) => {
-    // Both rows, every width. A row that already fits has nothing to scroll,
-    // so this is a no-op on it and the top row stays put, which is the point.
-    const e2 = filt2Ref.current;
-    if (e2) e2.scrollBy({ left: dir * Math.max(120, Math.round(e2.clientWidth * 0.7)), behavior: 'smooth' });
     const el = filtRef.current;
     if (!el) return;
     // Most of a screenful, not all of it: leaving a tab or two in view is what
@@ -3325,16 +3352,11 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
            tab and its rule have to be. -2px above pulls the rule down onto the
            strip's own 2px bottom border so the two read as one edge. */
         .sl-filt button.on{color:var(--white);border-bottom-color:var(--white);background:transparent;}
-        /* The Continue pill. White ink so it reads as the one shortcut in a row
-           of tabs, and it never takes the underline, because it is not a tab:
-           tapping it lights the real category tab further along the strip. */
-        .sl-filt .sl-fmore{color:var(--white);}
-        /* The phone's inline copy of the circuits. Above 900px they live in
-           their own lighter strip (.sl-filt2), which is the owner-approved
-           desktop split, so this copy is hidden there. NOT SUFFICIENT ON ITS
-           OWN: the min-width:901px block sets display on .sl-filt button at a
-           higher specificity, so the desktop hide is repeated down there. */
-        .sl-filt .sl-fc{display:none;}
+        /* The state chips carry a dot beside their label, so they lay out as a
+           flex row at EVERY width. This rule used to live in the phone block
+           alone, because above 900px the same declarations reached them through
+           .dhome.cats .sl-filt button. */
+        .sl-filt .sl-fs{display:inline-flex;align-items:center;gap:6px;}
         .sl-head,.sl-row{display:grid;grid-template-columns:44px minmax(0,1fr) 74px 72px 64px 132px 88px 112px;align-items:center;gap:10px;padding:6px 14px;}
         .sl-head{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:0 1px 0 var(--border);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);font-weight:800;position:sticky;top:0;z-index:3;}
         /* Pinnable board: one 26px star column at the far left, 36px including
@@ -3831,38 +3853,18 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           .sl-filt button.on{border-bottom-color:transparent;}
           .sl-filt button:hover{color:var(--white);}
           .sl-filt button.on{background:var(--white);color:var(--blue-deep);border-bottom-color:transparent;}
-          /* Brighter than a category pill and quieter than the selected one,
-             since it is neither: it is the way back into a category. */
-          .sl-filt .sl-fmore{background:rgba(255,255,255,.22);color:var(--white);
-            box-shadow:inset 0 0 0 1px rgba(255,255,255,.45);}
-          /* ONE LONG FLICKABLE ROW (owner, 2026-08-17). The circuits used to be
-             a SECOND strip stacked under this one. On a phone two navy scrolling
-             rows in the same shade do not read as two questions, they read as
-             one line overflowing, and they cost a whole band for chips you can
-             only reach by scrolling anyway. So here the circuits join THIS row,
-             after the categories, and the second strip is hidden.
-
-             The same chips are rendered TWICE in the markup, once in each strip,
-             and each breakpoint display:none's the copy it does not want. That
-             is deliberate and it is the approach the catboard and the home rails
-             already use: a matchMedia branch in the markup would desynchronise
-             SSR from hydration, and display:none takes the hidden copy out of
-             the accessibility tree as well as off the screen, so no chip is
-             announced twice.
-
-             STATES GO LAST, by the order property rather than by source
-             position, so the
-             desktop strip is untouched. The row should open on All and the
-             categories: Ready / Paused / Failed / Done are a state filter, not a
-             subject, and putting them first is what pushed every category off
-             the right edge before you could see one.
+          /* ONE LONG FLICKABLE ROW (owner, 2026-08-17), and since 2026-08-24
+             the desktop reads the same one. The circuits used to be a SECOND
+             strip stacked under this one AND a duplicate copy of themselves at
+             the tail of this one, with each breakpoint hiding the copy it did
+             not want. On a phone two navy scrolling rows in the same shade never
+             read as two questions, they read as one line overflowing. It is one
+             list in source order now, states last, so nothing here reorders
+             anything and there is no second copy to hide.
 
              NO CHEVRONS: a phone flicks. They are hidden rather than removed so
              the desktop affordance is unchanged, and the 30px padding they
              reserved comes back off the strip with them. */
-          .sl-filt .sl-fc{display:inline-flex;align-items:center;gap:6px;order:3;}
-          .sl-filt .sl-fs{display:inline-flex;align-items:center;gap:6px;order:4;}
-          .sl-filtw2{display:none;}
           .sl-fnav{display:none;}
           .sl-filtw.mr .sl-filt{padding-right:8px;}
           .sl-filtw.ml .sl-filt{padding-left:8px;}
@@ -4149,28 +4151,18 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
              387.3px while the rows they divide broke at 384px, so the board
              disagreed with its own columns before the cap was ever involved. */
           background-origin:content-box;}
-        /* THE FILTER STRIP WRAPS rather than scrolling sideways: with the
-           circuits in it there are 26 chips, and a one-line strip hides most of
-           them behind an arrow. The circuits are the half a reader has not seen
-           before, so they are the worst half to hide. */
-        /* TWO ROWS, and it has to be smaller to manage it: with the four
-           state chips, nine categories, fifteen circuits and Sundays there are
-           about thirty, which at the strip's normal size is three rows. */
-        /* TWO ROWS, each one line and each scrolling on its own. Wrapping was
-           the previous attempt and it made a block of chips of indeterminate
-           height that pushed the board around; a scroller is a fixed height
-           whatever is in it. */
+        /* ONE ROW, one line, scrolling on its own, with the chevrons at either
+           end as the way a mouse reaches the rest. Wrapping was an earlier
+           answer and it made a block of chips of indeterminate height that
+           pushed the board around; a scroller is a fixed height whatever is in
+           it. Two rows was the answer after that (owner, 2026-08-18) and it is
+           gone too: see the strip's block comment at module scope.
+
+           It has to be smaller than the strip's base size to manage it, since
+           with the state chips, the categories, the circuits and Sundays there
+           are about thirty chips in a 1180px console. */
         .dhome.cats .sl-filt{flex-wrap:nowrap;overflow-x:auto;}
         .dhome.cats .sl-filt button{font-size:10px;letter-spacing:.06em;padding:7px 11px;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1 0 auto;}
-        /* AND THE PHONE'S CIRCUIT COPY STAYS HIDDEN UP HERE (owner, 2026-08-18).
-           The line above sets display on EVERY button in the strip, which at
-           (0,3,1) outranks the base .sl-filt .sl-fc{display:none} at (0,2,0), so
-           all fifteen circuits were rendering at the tail of row one AND again
-           in row two: every circuit named twice. Re-hidden at (0,4,0), beside
-           the rule that broke it and inside the same desktop-only block, so the
-           phone (which has no row two) is untouched. Any future rule that sets
-           display on .sl-filt button must stay ABOVE this one. */
-        .dhome.cats .sl-filt .sl-fc{display:none;}
         /* The same four colours the header pills use, so the strip and the
            header say the same thing the same way. */
         .sl-sdot{width:6px;height:6px;border-radius:50%;flex:none;display:block;}
@@ -4178,18 +4170,6 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
         .sl-sdot.prg{background:var(--gold);}
         .sl-sdot.fal{background:#f08a8a;}
         .sl-sdot.dne{background:#5ad48f;}
-        /* The circuits row: a shade lighter than the navy above it, which is
-           the whole point, and its own bottom rule so the pair reads as a unit
-           rather than as one strip that happens to have wrapped. */
-        .dhome.cats .sl-filtw2{position:relative;flex:none;}
-        .dhome.cats .sl-filt2{background:#1a2e61;border-top:1px solid #0f1d3e;}
-        .dhome.cats .sl-filtw2::before,.dhome.cats .sl-filtw2::after{content:'';position:absolute;top:0;bottom:0;width:60px;pointer-events:none;z-index:1;}
-        .dhome.cats .sl-filtw2:not(.ml)::before,.dhome.cats .sl-filtw2:not(.mr)::after{display:none;}
-        .dhome.cats .sl-filtw2.ml::before{left:0;background:linear-gradient(to right,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filtw2.mr::after{right:0;background:linear-gradient(to left,#1a2e61 0,#1a2e61 30px,rgba(44,79,168,0) 100%);}
-        .dhome.cats .sl-filt2 button{color:#c6d6f4;}
-        .dhome.cats .sl-filt2 button:hover{color:var(--white);}
-        .dhome.cats .sl-filt2 button.on{color:var(--white);border-bottom-color:var(--white);}
         /* ALL MEANS ALL (owner, 2026-08-15), and it is the default. The slate
            hides done rows behind a peek budget, which is right when the board
            is a to-do list and wrong when the strip has a Done chip of its own:
@@ -4669,85 +4649,48 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
           the phone's order flip (bar -1, title 0, board 1) still lands it between
           the title band and the board on source order alone. */}
       {slate ? (
-        <div className={`sl-filtw${(filtMore.l || filt2More.l) ? ' ml' : ''}${(filtMore.r || filt2More.r) ? ' mr' : ''}`}>
+        <div className={`sl-filtw${filtMore.l ? ' ml' : ''}${filtMore.r ? ' mr' : ''}`}>
         <div className="sl-filt" ref={filtRef} role="tablist" aria-label="Filter the slate">
           {[['all', 'All']]
-            // CONTINUE THE THING YOU WERE JUST DOING (owner, 2026-08-23). The
-            // category pills are A-Z, so on a 390px phone Logic sits seventh
-            // and off the right edge: reaching it costs a sideways flick before
-            // the tap, which is most of the seven clicks the owner counted. So
-            // the category Up next walks to is pinned to the SECOND slot, where
-            // it is always in view whatever the roster grows to.
+            // The subjects: categories and circuits in ONE deduped list, five
+            // leading in a fixed order and the rest A-Z. Built by stripSubjects
+            // at module scope, where the reasoning for all of that lives.
+            .concat(stripSubjects(slateCats, cats))
+            // LAST of the subjects, and absent on a Sunday: on the day itself
+            // the Sunday Editions ARE the board, so a tab pointing at last
+            // week's would only be competing with them.
+            .concat(sunToday ? [] : [['sunday', 'Sundays']])
+            // Ready / Paused / Failed / Done, which used to be the bands at the
+            // foot of the board. They carry their counts because that is the one
+            // thing a band said that a chip otherwise would not.
             //
-            // It is a JUMP, not a tab: role="button", never `.on`, and the real
-            // A-Z pill for that category is what lights up once the filter
-            // lands, so the strip still has exactly one selected tab. It is
-            // absent for a viewer with no played category (a guest, a first
-            // visit), which is also why it can never be the only pill.
-            .concat(moreCat ? [['more:' + moreCat, 'More ' + (CAT_SHORT[moreCat] || moreCat), 'sl-fmore', moreCat]] : [])
-            // Paused and Done, which used to be the gold and green bands at the
-            // foot of the board. They carry their counts because that is the
-            // one thing a band said that a chip otherwise would not.
+            // AFTER the subjects at BOTH widths, and by source order now rather
+            // than by the phone's CSS order property. A state is not a subject:
+            // leading with four of them is what pushed every category off the
+            // right edge of a 390px phone, which is why the phone already
+            // reordered them to the end. One strip means one answer, and the
+            // desktop takes the phone's.
             .concat(cats ? [['ready', <><i className="sl-sdot rdy" />Ready {nReadyAll}</>, 'sl-fs']] : [])
             .concat(cats && nProgAll ? [['paused', <><i className="sl-sdot prg" />Paused {nProgAll}</>, 'sl-fs']] : [])
             .concat(cats && nFailAll ? [['failed', <><i className="sl-sdot fal" />Failed {nFailAll}</>, 'sl-fs']] : [])
             .concat(cats && nDoneAll ? [['done', <><i className="sl-sdot dne" />Done {nDoneAll}</>, 'sl-fs']] : [])
-            // A-Z (owner, 2026-08-18), sorted on the LABEL the reader sees, so
-            // CAT_SHORT is applied before the sort. slateCats is first-appearance
-            // order off the board, which is meaningful on the board and arbitrary
-            // in a strip you scan. The state chips above (All / Ready / Paused /
-            // Failed / Done) keep their state order, and Sundays stays last.
-            .concat(slateCats.map((c) => [c, CAT_SHORT[c] || c])
-              .sort((a, b) => String(a[1]).localeCompare(String(b[1]), 'en', { sensitivity: 'base' })))
-            // LAST in the strip, and absent on a Sunday: on the day itself the
-            // Sunday Editions ARE the board, so a tab pointing at last week's
-            // would only be competing with them.
-            .concat(sunToday ? [] : [['sunday', 'Sundays']])
-            // PHONE ONLY (display:none above 900px, see .sl-fc). The circuits
-            // are their own strip on a desktop and one long flickable row here,
-            // so both copies ship and CSS picks. Source order stays desktop's;
-            // the phone moves these and the state chips with `order`.
-            .concat(cats ? CIRCUITS_AZ.map((n) => ['circuit:' + n, n, 'sl-fc']) : [])
-            // A fourth element makes the entry a JUMP: it sets the filter to
-            // `to` while keeping its own key, which never equals `filter`, so
-            // it can never claim the selected state from the tab it points at.
-            .map(([k, label, cls, to]) => (
+            .map(([k, label, cls]) => (
             <button
               key={k}
               type="button"
-              role={to ? 'button' : 'tab'}
-              aria-selected={to ? undefined : filter === k}
-              className={[cls, !to && filter === k ? 'on' : null].filter(Boolean).join(' ') || undefined}
-              onClick={() => setFilter(to || k)}
+              role="tab"
+              aria-selected={filter === k}
+              className={[cls, filter === k ? 'on' : null].filter(Boolean).join(' ') || undefined}
+              onClick={() => setFilter(k)}
             >{label}</button>
           ))}
         </div>
-        {/* ROW TWO: the circuits. Its own strip, a shade lighter than the
-            row above so the two read as different questions rather than one
-            long overflowing line, and it scrolls horizontally on its own with
-            the same chevron affordance when it does not fit. */}
-        {cats ? (
-          <div className={`sl-filtw sl-filtw2${filt2More.l ? ' ml' : ''}${filt2More.r ? ' mr' : ''}`}>
-          <div className="sl-filt sl-filt2" ref={filt2Ref} role="tablist" aria-label="Filter by circuit">
-            {CIRCUITS_AZ.map((n) => (
-              <button
-                key={'circuit:' + n}
-                type="button"
-                role="tab"
-                aria-selected={filter === 'circuit:' + n}
-                className={filter === 'circuit:' + n ? 'on' : undefined}
-                onClick={() => setFilter('circuit:' + n)}
-              >{n}</button>
-            ))}
-          </div>
-          </div>
-        ) : null}
-        {(filtMore.l || filt2More.l) ? (
+        {filtMore.l ? (
           <button type="button" className="sl-fnav l" onClick={() => nudgeFilt(-1)} aria-label="Scroll the categories left">
             <ChevronLeft size={14} strokeWidth={3} />
           </button>
         ) : null}
-        {(filtMore.r || filt2More.r) ? (
+        {filtMore.r ? (
           <button type="button" className="sl-fnav r" onClick={() => nudgeFilt(1)} aria-label="Scroll the categories right">
             <ChevronRight size={14} strokeWidth={3} />
           </button>

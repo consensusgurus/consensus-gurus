@@ -125,7 +125,19 @@ for (const c of CIRCUITS) {
   }
 }
 
-// ── 4. exhaustive ───────────────────────────────────────────────────────────
+// ── 4. coverage (a WARNING, never a failure) ────────────────────────────────
+// NOT EXHAUSTIVE ANY MORE (owner ruling, 2026-08-24). This used to FAIL a
+// bank where any eligible daily sat in no circuit, and that rule is what built
+// the dishonest rosters it was meant to protect: Arcade held five only because
+// three quiz games had nowhere else to go, so a title nobody would have chosen
+// for them was applied to reach the cap. A circuit's title has to describe its
+// roster, and a game with no honest home stays out. An uncovered game is
+// therefore reported and then forgiven.
+//
+// Exclusivity (section 3 above) is still a FAILURE, and the two are not the
+// same kind of rule: a game in two circuits pays one play into two skill
+// boards, which is a scoring bug, while a game in none is a curation choice.
+//
 // Derived from the registry, never from a number written down here. A game that
 // retired in the PAST is out of scope (it has no live puzzle to run); a game
 // with a FUTURE retirement date stays in and drops out of its circuit on its
@@ -138,7 +150,7 @@ const retiredAlready = (k) => {
 const eligible = DAILY_KEYS.filter((k) => !EXCLUDED[k] && !retiredAlready(k));
 const missing = eligible.filter((k) => !owner.has(k));
 if (missing.length) {
-  fails.push(`${missing.length} eligible daily game(s) are in NO circuit: ${missing.join(', ')}`);
+  warns.push(`${missing.length} eligible daily game(s) are in no circuit: ${missing.join(', ')}`);
 }
 const strays = [...owner.keys()].filter((k) => retiredAlready(k));
 if (strays.length) warns.push(`retired game(s) still named in a circuit (harmless, filtered at read time): ${strays.join(', ')}`);
