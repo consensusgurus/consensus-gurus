@@ -623,7 +623,7 @@ export default function TodayClient() {
                         <a className="tdy-more" href={circuitPageHref(pickCirc)}>{c ? `The ${c.name} circuit →` : ''}</a>
                       </>
                     ) : (
-                      <div className="tdy-empty">Nobody has played this circuit yet today.</div>
+                      <div className="tdy-empty">No complete runs on this circuit yet today. A circuit ranks players who finish all of the day&rsquo;s games in it.</div>
                     )}
                   </>
                 );
