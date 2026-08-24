@@ -5748,3 +5748,50 @@ only thing that got brighter is a button. Before touching `cta`, grep for
 3. **The blue game-tile art still matches**, since the hue did not change. Any future hue change
    needs ~65 PNGs under `/games/blue/` redrawn, and `tileFallback` silently swaps a missing file
    for the full-colour original, so a half-done redraw shows as one garish tile and no error.
+
+## The game's stats, archive and leaderboards live on the GAME PAGE (owner, 2026-08-24)
+
+The record / archive / leaderboard panel used to be reachable from ONE place: you expanded a puzzle
+tile on the home board and `DailyTilePanel` opened as a drawer under it. The marquee home retired
+that gesture, and the content was in the wrong place to begin with, since the person who wants a
+game's archive and standings is the person playing it. It now sits at the foot of every daily page
+behind one control, **"See stats, archive, leaderboard, and more"**.
+
+**`app/GamePanel.jsx` is that control plus the panel, and it renders the SAME component.** It mounts
+`DailyTilePanel` rather than reimplementing it, so the phone accordion, the desktop slab, the six-row
+calendar, the history chart and the crowd-answer spoiler gate all carry over untouched. Do not write
+a second version of that panel; a copy would drift within a week.
+
+- **It replaced "Show overview and more."** That control did one thing: flip the page out of focus
+  mode so the tail below the board (Report an issue, the About prose, the footer) came back.
+  `GamePanel` still does that, via its `onShow` prop, and then opens the panel. One button, not two.
+- **It renders at every stage** — before the start gate, mid-play, and under the finish card — not
+  only in focus mode. That is why the mount sits OUTSIDE the `{focusMode && (...)}` guard it replaced.
+- **THE BUTTON KEEPS `className="loft-showchrome"` AND MUST STAY IN THE DOM.** This is load-bearing,
+  not leftover. `LoftCap` paints every sibling of the play stage in navy body copy with `!important`
+  and excludes exactly two wrappers: one holding `.loft-report` and one holding `.loft-showchrome`.
+  Drop the class, or unmount the button while the panel is open, and the panel's white card is
+  repainted `#bfd0ee` on white and becomes unreadable. That is also why the button toggles to "Hide"
+  rather than disappearing.
+- **Lazy, and through the shared clients.** Nothing is fetched until the first open. Then two reads:
+  `/api/quiz/daily-game` for the archive drops, the all-time board and the viewer's record, and
+  `/api/quiz/daily-me` through `fetchDailyMe` for today's board and the viewer's row on it, so it
+  joins whatever request the end card or `DailyBoardPanel` already has in flight rather than starting
+  another. Mounted on 70 clients, a page nobody opens it on costs one component that renders a button.
+- **`self` is the ROUTE name, copied from the `ReportIssue` line beside it**, because the route is not
+  always the registry key (`/parker` is `park`, `/jesters` is `jester`). `resolveGame` accepts either
+  and resolves through the roster, so nobody has to remember the two exceptions. An unresolvable
+  `self` renders nothing at all rather than an empty panel.
+- **Both Play controls are hidden** (`.dtp-play`, `.dtp-sgo`): on the game's own page they are
+  self-links, so "Play" would reload the page and "Play again" would look like a replay it is not.
+
+**The home board no longer expands anything.** `app/today/TodayClient.jsx` lost the drawer, its
+per-game `daily-game` fetch, the `sel` state and the `.tdy-pw` wrapper; a tile's status chip is a
+plain label again and the whole tile is a link to the game. `DailyStrip.jsx` (the pre-marquee console,
+behind `MARQUEE_HOME`) still carries its own copy of the drawer and was deliberately left alone.
+
+**Mounted by `scripts/patch-game-panel.mjs`**, anchored edits against a copy taken from the SAME fetch
+the deploy commit is built on, per the stale-base rule. Every anchor must match EXACTLY ONCE (zero
+means origin moved, two means the anchor is too loose and the patch would land twice) and both throw.
+A new daily game gets the mount by copying the one line beside its `ReportIssue`; it needs no props
+beyond `self`, `name` and `onShow`.

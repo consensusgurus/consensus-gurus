@@ -14,25 +14,27 @@
 //     saves keyed by the daily-combined payload's nums, gated on t0 per the
 //     opening-is-not-starting rule.
 //   - per-game plays/standings/leaders come from /api/quiz/daily-combined.
-//   - the drawer IS DailyTilePanel, mounted static (its own <=900 branch
-//     proves it renders position:static; .tdy-pw forces that at every width).
+//   - a tile is a LINK AND NOTHING ELSE (owner, 2026-08-24). The status chip
+//     used to open a DailyTilePanel drawer under the shelf; that panel now
+//     lives at the foot of each game's own page, behind "See stats, archive,
+//     leaderboard, and more" (app/GamePanel.jsx), where the person reading it
+//     is the person playing. Nothing on this page expands any more.
 //   - the Sudoku shelf is the sudoku circuit POOL (all eight grids publish a
 //     puzzle every day). The date is read in an EFFECT, never during render,
 //     so SSR and the client agree.
 //   - the live feed section is ANONYMOUS by owner rule (2026-08-10): rows
 //     carry results without attribution, the band carries the day's totals.
 //
-// NEVER add a blanket `.tdy a { color: ... }` rule here. The drawer is
-// DailyTilePanel, whose link colors are single-class selectors; a `.tdy a`
-// rule out-specifies them and turned the slab's Play button white-on-white
-// (caught live, 2026-08-24). Style anchors by their own class only.
+// NEVER add a blanket `.tdy a { color: ... }` rule here. It out-specifies the
+// single-class selectors the tiles and rails style their own anchors with, and
+// it once turned a Play button white-on-white (caught live, 2026-08-24). Style
+// anchors by their own class only.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
-import DailyTilePanel from '../DailyTilePanel';
 import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 
 const GROUND = '#0b0f1a';
@@ -186,7 +188,6 @@ export default function TodayClient() {
   // ── play state: DailyStrip's three passes ──
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
-  const [streaks, setStreaks] = useState({});
 
   // (1) same-device breadcrumbs, first paint
   useEffect(() => {
@@ -207,7 +208,6 @@ export default function TodayClient() {
     let alive = true;
     fetchDayStatus().then((data) => {
       if (!alive || !data) return;
-      if (data.streaks && typeof data.streaks === 'object') setStreaks(data.streaks);
       const [Y, M, D] = etToday().split('-').map(Number);
       const yy = Y % 100;
       const completed = new Set(data.completed || []);
@@ -305,23 +305,6 @@ export default function TodayClient() {
     }).catch(() => {});
     return () => { alive = false; };
   }, []);
-
-  // ── the drawer: selected game + its archive/all-time payload ──
-  const [sel, setSel] = useState(null);
-  const [gameData, setGameData] = useState({});
-  useEffect(() => {
-    if (!sel || gameData[sel]) return;
-    const qs = new URLSearchParams({ game: sel });
-    try { const a = localStorage.getItem('sot_quiz_anon'); if (a) qs.set('anonId', a); } catch (e) {}
-    try { const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null'); if (id && id.email) qs.set('email', id.email); } catch (e) {}
-    let alive = true;
-    fetch('/api/quiz/daily-game?' + qs.toString())
-      .then((r) => r.json())
-      .then((d) => { if (alive && d && !d.error) setGameData((cur) => ({ ...cur, [sel]: d })); })
-      .catch(() => {});
-    return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel]);
 
   // ── the foot leaderboards: Overall / By game / By category / Circuits ──
   const [mode, setMode] = useState('overall');
@@ -470,15 +453,12 @@ export default function TodayClient() {
         </div>
 
         <div className="tdy-view" role="tablist" aria-label="Group the slate by">
-          <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => { setView('cats'); setSel(null); }}>Categories</button>
-          <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => { setView('circuits'); setSel(null); }}>Circuits</button>
+          <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
+          <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => setView('circuits')}>Circuits</button>
         </div>
 
-        {(view === 'circuits' ? circuitShelves : shelves).map((shelf, si, arr) => {
+        {(view === 'circuits' ? circuitShelves : shelves).map((shelf, si) => {
           const cta = shelfCta(shelf);
-          const selShelf = sel ? arr.find((s) => s.games.some((g) => g.key === sel)) : null;
-          const selHere = selShelf === shelf ? shelf.games.find((g) => g.key === sel) : null;
-          const selBg = selHere ? bgFor(selHere.key) : null;
           return (
             <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
               {view === 'cats' && si === 4 ? (
@@ -512,43 +492,16 @@ export default function TodayClient() {
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
                   else if (inprog.has(g.key)) cls.push('paused');
-                  if (sel === g.key) cls.push('sel');
                   return (
                     <a key={g.key} className={cls.join(' ')} href={g.href}>
                       <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
                       <b>{g.name}</b>
-                      <span
-                        className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}
-                        role="button"
-                        tabIndex={0}
-                        title="Record, board & archive"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSel(sel === g.key ? null : g.key); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setSel(sel === g.key ? null : g.key); } }}
-                      >{st.text}</span>
+                      <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
                       <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
                     </a>
                   );
                 })}
               </TilesRow>
-              {selHere ? (
-                <div className="tdy-pw">
-                  <DailyTilePanel
-                    key={'panel-' + selHere.key}
-                    game={selHere}
-                    accent={shelf.color}
-                    isDone={done.has(selHere.key)}
-                    inProgress={inprog.has(selHere.key)}
-                    streak={streaks[selHere.key] || 0}
-                    todayRow={myRow(selHere.key)}
-                    todayField={selBg && typeof selBg.field === 'number' ? selBg.field : null}
-                    standings={selBg && Array.isArray(selBg.board) ? selBg.board : []}
-                    meKey={meKey}
-                    data={gameData[selHere.key] || null}
-                    canPin={false}
-                    onClose={() => setSel(null)}
-                  />
-                </div>
-              ) : null}
             </section>
           );
         })}
@@ -806,9 +759,6 @@ const CSS = `
 .tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tdy-t.done{background:#f0f7f1;}
 .tdy-t.paused{background:#fffaeb;box-shadow:inset 0 0 0 1.5px var(--gold),0 6px 18px rgba(3,7,18,.45);}
-.tdy-t.sel{box-shadow:0 0 0 2.5px var(--blue),0 6px 18px rgba(3,7,18,.45);}
-.tdy-pw{position:relative;margin:0 2px 12px;}
-.tdy-pw .dtp{position:static;overflow:visible;height:auto;animation:none;}
 .tdy-restband{display:flex;align-items:baseline;gap:12px;color:var(--white);padding:30px 2px 4px;flex-wrap:wrap;}
 .tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;margin:0;display:inline-flex;align-items:center;}
 .tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#5a6f9e;}
@@ -875,7 +825,6 @@ const CSS = `
   .tdy-restband{padding-left:16px;padding-right:16px;}
   .tdy-two{grid-template-columns:1fr;}
   .tdy-card{border-radius:0;margin:10px 0 0;}
-  .tdy-pw{margin:0 0 12px;}
   .tdy-foot{padding-left:16px;}
 }
 @media(max-width:560px){

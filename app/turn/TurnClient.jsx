@@ -36,6 +36,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
@@ -959,11 +960,12 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           </div>
 
 
-          {focusMode && (
-            <div style={{ textAlign: 'center', margin: '18px 0 0' }}>
-              <button type="button" className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>Show overview and more</button>
-            </div>
-          )}
+          {/* The game's own record, archive and leaderboards, at the foot of the
+            page (owner, 2026-08-24). This is the panel that used to open from a
+            home-page puzzle tile. GamePanel renders its own button and also
+            flips the page out of focus mode on first open, which is all the
+            "Show overview and more" control it replaces ever did. */}
+          <GamePanel self="turn" name="Turn" onShow={() => setShowChrome(true)} />
 
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
             {LOFT && (

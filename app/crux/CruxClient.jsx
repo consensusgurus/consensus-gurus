@@ -38,6 +38,7 @@ import { hintAllowed, spendHint } from '@/lib/hint-gate';
 import { T } from '@/lib/theme';
 import { isLoft } from '@/lib/loft';
 import LoftCap from '../LoftCap';
+import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
@@ -1546,11 +1547,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
 
         <div>
-        {focusMode && (
-          <div style={{ maxWidth: 640, margin: '30px auto 0', textAlign: 'center' }}>
-            <button className="loft-showchrome" onClick={() => setShowChrome(true)} style={{ fontFamily: SANS, fontWeight: 800, fontSize: 13, letterSpacing: '0.03em', color: T.blueDeep, background: 'none', border: '1.5px solid var(--accent-border)', borderRadius: 9, padding: '10px 20px', cursor: 'pointer' }}>Show overview and more</button>
-          </div>
-        )}
+        {/* The game's own record, archive and leaderboards, at the foot of the
+            page (owner, 2026-08-24). This is the panel that used to open from a
+            home-page puzzle tile. GamePanel renders its own button and also
+            flips the page out of focus mode on first open, which is all the
+            "Show overview and more" control it replaces ever did. */}
+        <GamePanel self="crux" name="Crux" onShow={() => setShowChrome(true)} />
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           {LOFT && (
