@@ -29,7 +29,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
+import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
 import DailyTilePanel from '../DailyTilePanel';
 import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
@@ -66,7 +66,7 @@ const CROWN = (
 // whichever side has more to show, plus a short ground-colored fade under it.
 // Same idea as the slate's category-strip cue, made clickable for a mouse; on
 // touch the chips are hidden and the track simply flicks.
-function TilesRow({ children }) {
+function TilesRow({ children, light = false }) {
   const ref = useRef(null);
   const [can, setCan] = useState({ l: false, r: false });
   useEffect(() => {
@@ -89,7 +89,7 @@ function TilesRow({ children }) {
     if (el) el.scrollBy({ left: dir * Math.max(200, el.clientWidth - 160), behavior: 'smooth' });
   };
   return (
-    <div className="tdy-tw">
+    <div className={'tdy-tw' + (light ? ' light' : '')}>
       <div className="tdy-tiles" ref={ref}>{children}</div>
       <div className={'tdy-fade l' + (can.l ? ' on' : '')} aria-hidden="true" />
       <div className={'tdy-fade r' + (can.r ? ' on' : '')} aria-hidden="true" />
@@ -245,7 +245,7 @@ export default function TodayClient() {
   useEffect(() => {
     let alive = true;
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
-      if (alive && d && !d.error) setTotals({ today: d.today || 0, todayPlayers: d.todayPlayers || 0 });
+      if (alive && d && !d.error) setTotals({ today: d.today || 0, todayPlayers: d.todayPlayers || 0, todayTime: d.todayTime || 0 });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
       if (alive && d && Array.isArray(d.plays)) setRecent(d.plays.slice(0, 18));
@@ -269,6 +269,24 @@ export default function TodayClient() {
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sel]);
+
+  // ── the foot leaderboards: Overall / By game / By category / Circuits ──
+  const [mode, setMode] = useState('overall');
+  const [pickGame, setPickGame] = useState('crux');
+  const [pickCat, setPickCat] = useState('Word');
+  const [pickCirc, setPickCirc] = useState(CIRCUITS[0] ? CIRCUITS[0].id : 'sudoku');
+  const [circBoards, setCircBoards] = useState({});
+  useEffect(() => {
+    if (mode !== 'circuits' || !pickCirc || circBoards[pickCirc]) return;
+    const qs = identityQs();
+    let alive = true;
+    fetch('/api/quiz/daily-combined?circuit=' + encodeURIComponent(pickCirc) + (qs ? `&${qs}` : ''))
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.overall)) setCircBoards((cur) => ({ ...cur, [pickCirc]: d })); })
+      .catch(() => {});
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, pickCirc]);
 
   const isResting = (shelf, key) => shelf.name === 'Sudoku' && sudokuActive && !sudokuActive.has(key);
 
@@ -315,6 +333,48 @@ export default function TodayClient() {
     return `${Math.round(m / 60)}h ago`;
   };
   const fmtPts = (n) => (typeof n === 'number' ? (Math.round(n * 10) / 10).toLocaleString() : '');
+  const fmtClock = (s) => {
+    if (typeof s !== 'number' || !(s >= 0)) return '';
+    const m = Math.floor(s / 60), ss = Math.round(s % 60);
+    return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}:${String(ss).padStart(2, '0')}`;
+  };
+  const fmtDur = (s) => {
+    if (typeof s !== 'number' || s <= 0) return '0m';
+    const m = Math.floor(s / 60);
+    const d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60;
+    const parts = [];
+    if (d) parts.push(`${d}d`);
+    if (h) parts.push(`${h}h`);
+    if (mm || !parts.length) parts.push(`${mm}m`);
+    return parts.join(' ');
+  };
+
+  // Category standings, summed from the per-game boards the payload already
+  // carries (same approach as the Loft's category leaders, same known limit:
+  // only each game's named top-board players are visible to the sum).
+  const catAgg = useMemo(() => {
+    if (!bgames) return null;
+    const out = {};
+    for (const s of shelves) {
+      const acc = new Map();
+      for (const g of s.games) {
+        const bg = bgames.find((x) => x && x.key === g.key);
+        const rows = bg && Array.isArray(bg.board) ? bg.board : [];
+        for (const r of rows) {
+          if (!r || !r.userKey) continue;
+          const cur = acc.get(r.userKey) || { userKey: r.userKey, username: r.username, pts: 0, games: 0 };
+          cur.pts += (typeof r.points === 'number' ? r.points : 0);
+          cur.games += 1;
+          acc.set(r.userKey, cur);
+        }
+      }
+      out[s.name] = [...acc.values()]
+        .sort((a, b) => b.pts - a.pts || a.games - b.games || String(a.username || '').localeCompare(String(b.username || '')))
+        .slice(0, 12);
+    }
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bgames]);
 
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
@@ -418,43 +478,170 @@ export default function TodayClient() {
         <div className="tdy-two" id="tdy-boards">
           <div>
             <div className="tdy-restband" style={{ paddingTop: 38 }}>
-              <h3>{TROPHY}<span style={{ marginLeft: 8 }}>Today&rsquo;s leaderboard</span></h3>
-              <i>{board && typeof board.maxTotal === 'number' ? `Best ${bestN} of ${totalGames} · ${board.maxTotal.toLocaleString()} pts max · resets at midnight` : 'Combined placement across the day'}</i>
+              <h3>{TROPHY}<span style={{ marginLeft: 8 }}>Today&rsquo;s leaderboards</span></h3>
+              <i>Resets at midnight Eastern</i>
             </div>
             <div className="tdy-card">
-              {overall.length ? (
-                <>
-                  <div className="tdy-cols"><b>#</b><span>Player</span><s>Games</s><s>Total</s></div>
-                  {overall.slice(0, 12).map((r, i) => (
-                    <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
-                      <b>{(r && r.rank) || i + 1}</b>
-                      <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
-                      <span className="gm">{r && typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${totalGames}` : ''}</span>
-                      <span className="sc">{fmtPts(r && r.total)}</span>
-                    </div>
+              <div className="tdy-tabs">
+                {[['overall', 'Overall'], ['games', 'By game'], ['cats', 'By category'], ['circuits', 'Circuits']].map(([k, l]) => (
+                  <button key={k} type="button" className={'tdy-tab' + (mode === k ? ' on' : '')} onClick={() => setMode(k)}>{l}</button>
+                ))}
+              </div>
+
+              {mode === 'games' ? (
+                <TilesRow light>
+                  {flat.map(({ g }) => (
+                    <button key={g.key} type="button" className={'tdy-pick' + (pickGame === g.key ? ' on' : '')} onClick={() => setPickGame(g.key)}>
+                      <img src={g.img} alt="" aria-hidden="true" loading="lazy" />{g.name}
+                    </button>
                   ))}
-                  {!meInTop && board && board.me && typeof board.me.rank === 'number' ? (
-                    <div className="tdy-lr me">
-                      <b>{board.me.rank}</b>
-                      <span className="nm">{board.me.username || 'You'} · You</span>
-                      <span className="gm">{typeof board.me.gamesPlayed === 'number' ? `${board.me.gamesPlayed}/${totalGames}` : ''}</span>
-                      <span className="sc">{fmtPts(board.me.total)}</span>
-                    </div>
-                  ) : null}
-                  <a className="tdy-more" href="/quizzes/hub?tab=daily">Full standings &amp; per-game boards →</a>
-                </>
-              ) : (
-                <div className="tdy-empty">The day&rsquo;s board is loading, or nobody has played yet.</div>
-              )}
+                </TilesRow>
+              ) : null}
+              {mode === 'cats' ? (
+                <TilesRow light>
+                  {shelves.map((s) => (
+                    <button key={s.name} type="button" className={'tdy-pick txt' + (pickCat === s.name ? ' on' : '')} onClick={() => setPickCat(s.name)}>{s.name}</button>
+                  ))}
+                </TilesRow>
+              ) : null}
+              {mode === 'circuits' ? (
+                <TilesRow light>
+                  {CIRCUITS.map((c) => (
+                    <button key={c.id} type="button" className={'tdy-pick txt' + (pickCirc === c.id ? ' on' : '')} onClick={() => setPickCirc(c.id)}>{c.name}</button>
+                  ))}
+                </TilesRow>
+              ) : null}
+
+              {mode === 'overall' ? (
+                overall.length ? (
+                  <>
+                    <div className="tdy-sub">{board && typeof board.maxTotal === 'number' ? `Best ${bestN} of ${totalGames} games · ${board.maxTotal.toLocaleString()} pts max` : 'Combined placement across the day'}</div>
+                    <div className="tdy-cols"><b>#</b><span>Player</span><s>Games</s><s>Total</s></div>
+                    {overall.slice(0, 12).map((r, i) => (
+                      <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
+                        <b>{(r && r.rank) || i + 1}</b>
+                        <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
+                        <span className="cell">{r && typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${totalGames}` : ''}</span>
+                        <span className="cell pts">{fmtPts(r && r.total)}</span>
+                      </div>
+                    ))}
+                    {!meInTop && board && board.me && typeof board.me.rank === 'number' ? (
+                      <div className="tdy-lr me">
+                        <b>{board.me.rank}</b>
+                        <span className="nm">{board.me.username || 'You'} · You</span>
+                        <span className="cell">{typeof board.me.gamesPlayed === 'number' ? `${board.me.gamesPlayed}/${totalGames}` : ''}</span>
+                        <span className="cell pts">{fmtPts(board.me.total)}</span>
+                      </div>
+                    ) : null}
+                    <a className="tdy-more" href="/quizzes/hub?tab=daily">Full standings on the Stat Hub →</a>
+                  </>
+                ) : (
+                  <div className="tdy-empty">The day&rsquo;s board is loading, or nobody has played yet.</div>
+                )
+              ) : null}
+
+              {mode === 'games' ? (() => {
+                const g = DAILY_GAME_MAP[pickGame];
+                const bg = bgFor(pickGame);
+                const rows = bg && Array.isArray(bg.board) ? bg.board : (bgames ? [] : null);
+                const eg = g && g.cat === 'End Game';
+                const missLabel = eg ? 'Tries' : (g && g.miss ? g.miss : null);
+                return (
+                  <>
+                    <div className="tdy-sub">{bg ? `${(bg.field || 0).toLocaleString()} played today${g && g.tag ? ` · ${g.tag}` : ''}` : 'Loading the board…'}</div>
+                    {rows === null ? (
+                      <div className="tdy-empty">Loading the board&hellip;</div>
+                    ) : rows.length ? (
+                      <>
+                        <div className="tdy-cols"><b>#</b><span>Player</span><s>Score</s>{missLabel ? <s>{missLabel}</s> : null}<s>Time</s><s>Pts</s></div>
+                        {rows.slice(0, 12).map((r, i) => (
+                          <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
+                            <b>{(r && r.rank) || i + 1}</b>
+                            <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
+                            <span className="cell">{r && r.score != null ? `${r.score}${r.total ? '/' + r.total : ''}` : ''}</span>
+                            {missLabel ? <span className="cell">{eg ? (r && r.tries != null ? r.tries : '—') : (r && r.guessesUsed != null ? r.guessesUsed : '—')}</span> : null}
+                            <span className="cell">{fmtClock(r && r.timeElapsed)}</span>
+                            <span className="cell pts">{fmtPts(r && r.points)}</span>
+                          </div>
+                        ))}
+                        <a className="tdy-more" href={g ? g.href : '#'}>{g ? `Play ${g.name} →` : ''}</a>
+                      </>
+                    ) : (
+                      <div className="tdy-empty">No registered results on this board yet today.</div>
+                    )}
+                  </>
+                );
+              })() : null}
+
+              {mode === 'cats' ? (() => {
+                const s = shelves.find((x) => x.name === pickCat);
+                const rows = catAgg ? (catAgg[pickCat] || []) : null;
+                return (
+                  <>
+                    <div className="tdy-sub">{`Placement points summed across ${s ? s.games.length : 0} ${pickCat} games`}</div>
+                    {rows === null ? (
+                      <div className="tdy-empty">Loading the board&hellip;</div>
+                    ) : rows.length ? (
+                      <>
+                        <div className="tdy-cols"><b>#</b><span>Player</span><s>Games</s><s>Pts</s></div>
+                        {rows.map((r, i) => (
+                          <div key={r.userKey} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r.userKey === meKey ? ' me' : '')}>
+                            <b>{i + 1}</b>
+                            <span className="nm">{i === 0 ? CROWN : null}{r.username || 'Player'}{meKey && r.userKey === meKey ? ' · You' : ''}</span>
+                            <span className="cell">{`${r.games}/${s ? s.games.length : 0}`}</span>
+                            <span className="cell pts">{fmtPts(r.pts)}</span>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <div className="tdy-empty">Nobody on this category&rsquo;s boards yet today.</div>
+                    )}
+                  </>
+                );
+              })() : null}
+
+              {mode === 'circuits' ? (() => {
+                const d = circBoards[pickCirc];
+                const c = circuitById(pickCirc);
+                const rows = d && Array.isArray(d.overall) ? d.overall : null;
+                return (
+                  <>
+                    <div className="tdy-sub">{(c && c.blurb) || ''}{d && typeof d.maxTotal === 'number' ? `${c && c.blurb ? ' · ' : ''}Best ${d.bestN} · ${d.maxTotal} pts max` : ''}</div>
+                    {rows === null ? (
+                      <div className="tdy-empty">Loading the circuit board&hellip;</div>
+                    ) : rows.length ? (
+                      <>
+                        <div className="tdy-cols"><b>#</b><span>Player</span><s>Games</s><s>Total</s></div>
+                        {rows.slice(0, 12).map((r, i) => (
+                          <div key={(r && r.userKey) || i} className={'tdy-lr' + (i === 0 ? ' first' : '') + (meKey && r && r.userKey === meKey ? ' me' : '')}>
+                            <b>{(r && r.rank) || i + 1}</b>
+                            <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
+                            <span className="cell">{r && typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}${d && d.gameCount ? '/' + d.gameCount : ''}` : ''}</span>
+                            <span className="cell pts">{fmtPts(r && r.total)}</span>
+                          </div>
+                        ))}
+                        <a className="tdy-more" href={circuitPageHref(pickCirc)}>{c ? `The ${c.name} circuit →` : ''}</a>
+                      </>
+                    ) : (
+                      <div className="tdy-empty">Nobody has played this circuit yet today.</div>
+                    )}
+                  </>
+                );
+              })() : null}
             </div>
           </div>
 
           <div>
             <div className="tdy-restband" style={{ paddingTop: 38 }}>
               <h3><span className="tdy-pulse" style={{ display: 'inline-block' }} /><span style={{ marginLeft: 8 }}>Live feed</span></h3>
-              <i>{totals ? `${totals.today.toLocaleString()} plays · ${totals.todayPlayers.toLocaleString()} players today` : 'Results as they land'}</i>
+              <i>Results as they land, anonymous by design</i>
             </div>
             <div className="tdy-card">
+              <div className="tdy-fstats">
+                <div><b>{totals ? totals.today.toLocaleString() : '—'}</b><span>Plays today</span></div>
+                <div><b>{totals ? totals.todayPlayers.toLocaleString() : '—'}</b><span>Players</span></div>
+                <div><b>{totals ? fmtDur(totals.todayTime) : '—'}</b><span>Time played</span></div>
+              </div>
               {recent && recent.length ? recent.map((p, i) => {
                 const g = feedGame(p.quizId);
                 return (
@@ -552,6 +739,30 @@ const CSS = `
 .tdy-lr .fdot{width:22px;height:22px;border-radius:5px;flex:none;background:var(--surface-alt);}
 .tdy-lr.feed .sc{font-weight:700;color:#9aa0ab;font-size:11.5px;width:64px;}
 .tdy-more{display:block;font-size:11.5px;font-weight:800;color:var(--blue-deep);padding:10px 10px 4px;text-decoration:none;}
+.tdy-tabs{display:flex;gap:6px;padding:2px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap;}
+.tdy-tab{font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:var(--surface);color:var(--slate);border:0;cursor:pointer;}
+.tdy-tab.on{background:var(--accent);color:var(--white);}
+.tdy-tab:hover:not(.on){background:var(--surface-alt);color:var(--ink);}
+.tdy-tw.light .tdy-tiles{padding:2px 2px 8px;gap:6px;}
+.tdy-pick{font-family:inherit;display:inline-flex;align-items:center;gap:6px;flex:none;padding:5px 11px 5px 6px;border-radius:999px;background:var(--surface);font-size:11.5px;font-weight:800;color:var(--ink);border:0;cursor:pointer;white-space:nowrap;}
+.tdy-pick img{width:18px;height:18px;border-radius:4px;display:block;}
+.tdy-pick.txt{padding:6px 12px;}
+.tdy-pick.on{background:var(--accent);color:var(--white);}
+.tdy-pick:hover:not(.on){background:var(--surface-alt);}
+.tdy-tw.light .tdy-fade{bottom:8px;}
+.tdy-tw.light .tdy-fade.l{background:linear-gradient(90deg,var(--white),rgba(255,255,255,0));}
+.tdy-tw.light .tdy-fade.r{background:linear-gradient(270deg,var(--white),rgba(255,255,255,0));}
+.tdy-tw.light .tdy-nud{background:var(--white);border-color:var(--border);color:var(--slate);box-shadow:0 2px 8px rgba(3,7,18,.18);}
+.tdy-tw.light .tdy-nud:hover{color:var(--ink);border-color:#c9d2e0;background:var(--white);}
+.tdy-sub{font-size:11px;font-weight:700;color:#9aa0ab;padding:2px 10px 8px;}
+.tdy-lr .cell{flex:none;width:52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--slate);font-weight:700;font-size:12px;white-space:nowrap;}
+.tdy-lr .cell.pts{font-weight:800;color:var(--ink);}
+.tdy-cols s{width:52px;}
+.tdy-fstats{display:flex;border-bottom:1px solid var(--border);margin-bottom:8px;padding:4px 0 10px;}
+.tdy-fstats>div{flex:1 1 0;padding:0 12px;border-right:1px solid var(--border);}
+.tdy-fstats>div:last-child{border-right:none;}
+.tdy-fstats b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink);}
+.tdy-fstats span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9aa0ab;font-weight:800;}
 .tdy-empty{padding:14px 10px;font-size:12.5px;font-weight:600;color:var(--slate);}
 .tdy-foot{padding:40px 2px 40px;color:#3d4d75;font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
