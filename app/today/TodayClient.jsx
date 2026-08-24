@@ -494,7 +494,7 @@ export default function TodayClient() {
                       if (!L) return null;
                       return (
                         <span className="tdy-hld" title={L.username + ' leads ' + shelf.name + ' today: ' + L.pts + ' points across ' + L.games + (L.games === 1 ? ' game' : ' games')}>
-                          {CROWN}<i>{L.username}</i><b>{L.pts}</b>
+                          {CROWN}<i>{L.username}</i><b>{L.pts} pts</b>
                         </span>
                       );
                     })()}
