@@ -722,6 +722,7 @@ const CSS = `
 .tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;margin:0;display:inline-flex;align-items:center;}
 .tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#5a6f9e;}
 .tdy-two{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
+.tdy-two>div{min-width:0;}
 .tdy-card{background:var(--white);border-radius:12px;box-shadow:0 10px 30px rgba(3,7,18,.5);padding:10px 12px;margin:10px 2px 0;}
 .tdy-cols{display:flex;align-items:center;gap:9px;padding:4px 10px 8px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#9aa0ab;font-weight:800;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .tdy-cols b{width:18px;flex:none;font-weight:800;}
