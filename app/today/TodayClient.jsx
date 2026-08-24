@@ -4,8 +4,8 @@
 // shelf per category on the midnight ground, ordered Word, Sudoku, End Game,
 // Logic, then the rest. White tiles carry the ORIGINAL colored game art
 // (/games/btn-<key>.png); state language matches the slate: gold = paused,
-// green = done, dimmed = a sudoku resting out of today's five, crowd count on
-// unplayed tiles. Each tile also names the game's current leader.
+// green = done, crowd count on unplayed tiles, alphabetical within each shelf.
+// Each tile also names the game's current leader.
 //
 // DATA is the same plumbing the slate uses, deliberately:
 //   - done/paused detection is DailyStrip's three-pass recipe verbatim:
@@ -16,9 +16,9 @@
 //   - per-game plays/standings/leaders come from /api/quiz/daily-combined.
 //   - the drawer IS DailyTilePanel, mounted static (its own <=900 branch
 //     proves it renders position:static; .tdy-pw forces that at every width).
-//   - the Sudoku shelf is the sudoku circuit: pool of eight, today's five from
-//     circuitKeysFor, the resting three dimmed. The date is read in an EFFECT,
-//     never during render, so SSR and the client agree.
+//   - the Sudoku shelf is the sudoku circuit POOL (all eight grids publish a
+//     puzzle every day). The date is read in an EFFECT, never during render,
+//     so SSR and the client agree.
 //   - the live feed section is ANONYMOUS by owner rule (2026-08-10): rows
 //     carry results without attribution, the band carries the day's totals.
 //
@@ -29,7 +29,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
+import { CIRCUITS, circuitById, circuitPageHref } from '@/lib/circuits';
 import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
 import DailyTilePanel from '../DailyTilePanel';
@@ -111,6 +111,8 @@ export default function TodayClient() {
       let games;
       if (name === 'Sudoku') games = pool.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
       else games = DAILY_GAMES.filter((g) => live.has(g.key) && g.cat === name && !poolSet.has(g.key));
+      // Alphabetical within each shelf (owner, 2026-08-24).
+      games = games.slice().sort((a, b) => a.name.localeCompare(b.name));
       return { name, color: catColor(name), games };
     }).filter((s) => s.games.length);
   }, []);
@@ -126,10 +128,11 @@ export default function TodayClient() {
       setDateLabel(new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).replace(',', ' ·'));
     } catch (e) { setDateLabel(iso); }
   }, []);
-  const sudokuActive = useMemo(() => {
-    if (!today) return null;
-    try { return new Set(circuitKeysFor('sudoku', today)); } catch (e) { return null; }
-  }, [today]);
+  // NOTE: every sudoku grid publishes a puzzle every day. The circuit's 5-of-8
+  // rotating window (circuitKeysFor) only decides which five count toward the
+  // sudoku CIRCUIT that day; it is NOT a playability signal. An earlier version
+  // dimmed the other three "Back soon" and blocked their clicks, which was
+  // wrong (owner caught Mercury, 2026-08-24). All eight tiles render normally.
 
   // The Daily Five, as a strip card rather than the old console band (owner,
   // 2026-08-24). A game played on its own still counts toward the run, so the
@@ -299,17 +302,14 @@ export default function TodayClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, pickCirc]);
 
-  const isResting = (shelf, key) => shelf.name === 'Sudoku' && sudokuActive && !sudokuActive.has(key);
-
   // Continue: first paused game in shelf order, else first unplayed
   const flat = useMemo(() => shelves.flatMap((s) => s.games.map((g) => ({ g, shelf: s }))), [shelves]);
   const continueGame = useMemo(() => {
     const paused = flat.find(({ g }) => inprog.has(g.key) && !done.has(g.key));
     if (paused) return { g: paused.g, resume: true };
-    const next = flat.find(({ g, shelf }) => !done.has(g.key) && !isResting(shelf, g.key));
+    const next = flat.find(({ g }) => !done.has(g.key));
     return next ? { g: next.g, resume: false } : null;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [flat, inprog, done, sudokuActive]);
+  }, [flat, inprog, done]);
 
   const shelfCta = (shelf) => {
     if (shelf.name === 'Sudoku') return { label: 'Play the circuit', href: circuitPageHref('sudoku'), gold: false };
@@ -327,7 +327,6 @@ export default function TodayClient() {
       return { cls: 'tk', text: `✓ ${sc}` };
     }
     if (inprog.has(g.key)) return { cls: 'tp', text: 'Resume' };
-    if (isResting(shelf, g.key)) return { cls: 'tr', text: 'Back soon' };
     const n = playsOf(g.key);
     return { cls: '', text: n != null ? `${n.toLocaleString()} playing` : ' ' };
   };
@@ -443,10 +442,10 @@ export default function TodayClient() {
               ) : null}
               <div className="tdy-hd" style={{ borderLeftColor: shelf.color }}>
                 <div>
-                  <div className="eb">{shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids · 5 today` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`}</div>
+                  <div className="eb">{shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`}</div>
                   <h2>{shelf.name}</h2>
                   {shelf.name === 'Sudoku' ? (
-                    <div className="nt">Five on the card each day from a pool of eight, easiest grid first. A different mix tomorrow.</div>
+                    <div className="nt">All eight play daily. The circuit counts five of them, easiest first, a different mix each day.</div>
                   ) : null}
                 </div>
                 <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
@@ -454,15 +453,13 @@ export default function TodayClient() {
               <TilesRow>
                 {shelf.games.map((g) => {
                   const st = statusLine(shelf, g);
-                  const resting = isResting(shelf, g.key);
-                  const leader = resting ? null : leaderOf(g.key);
+                  const leader = leaderOf(g.key);
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
                   else if (inprog.has(g.key)) cls.push('paused');
-                  else if (resting) cls.push('resting');
                   if (sel === g.key) cls.push('sel');
                   return (
-                    <a key={g.key} className={cls.join(' ')} href={g.href} onClick={resting ? (e) => e.preventDefault() : undefined} aria-disabled={resting || undefined}>
+                    <a key={g.key} className={cls.join(' ')} href={g.href}>
                       <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
                       <b>{g.name}</b>
                       <span
@@ -736,12 +733,10 @@ const CSS = `
 .tdy-st:hover{background:var(--surface-alt);color:var(--ink);}
 .tdy-st.tk{color:var(--success-deep);font-weight:800;}
 .tdy-st.tp{color:#a16207;font-weight:800;}
-.tdy-st.tr{color:#9aa0ab;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:default;}
 .tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:114px;overflow:hidden;}
 .tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tdy-t.done{background:#f0f7f1;}
 .tdy-t.paused{background:#fffaeb;box-shadow:inset 0 0 0 1.5px var(--gold),0 6px 18px rgba(3,7,18,.45);}
-.tdy-t.resting{opacity:.5;cursor:default;}
 .tdy-t.sel{box-shadow:0 0 0 2.5px var(--blue),0 6px 18px rgba(3,7,18,.45);}
 .tdy-pw{position:relative;margin:0 2px 12px;}
 .tdy-pw .dtp{position:static;overflow:visible;height:auto;animation:none;}
