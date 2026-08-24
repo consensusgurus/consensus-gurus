@@ -333,6 +333,22 @@ export default function TodayClient() {
     return next ? { g: next.g, resume: false } : null;
   }, [flat, inprog, done]);
 
+  // Completed games sink to the FAR RIGHT of their row (owner, 2026-08-24). A
+  // shelf is read left to right as "what should I play next", so a game you
+  // have already finished today is the one tile on it with nothing left to
+  // offer, and it was sitting mid-strip purely because of the alphabet. Stable
+  // partition, so the shelf's alphabetical order survives inside each block,
+  // and paused games are NOT moved: they are unfinished business and belong
+  // where the reader expects them. `done` is empty on the first render and
+  // filled in an effect, so the server and the first client paint agree and
+  // the tiles reorder only once the day's state lands.
+  const sinkDone = (games) => {
+    const open = [];
+    const finished = [];
+    for (const g of games) (done.has(g.key) ? finished : open).push(g);
+    return finished.length ? open.concat(finished) : games;
+  };
+
   const shelfCta = (shelf) => {
     if (shelf.kind === 'circuit') return { label: 'Play the circuit', href: circuitPageHref(shelf.id), gold: false };
     const paused = shelf.games.find((g) => inprog.has(g.key) && !done.has(g.key));
@@ -486,7 +502,7 @@ export default function TodayClient() {
                 <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
               </div>
               <TilesRow>
-                {shelf.games.map((g) => {
+                {sinkDone(shelf.games).map((g) => {
                   const st = statusLine(shelf, g);
                   const leader = leaderOf(g.key);
                   const cls = ['tdy-t'];
