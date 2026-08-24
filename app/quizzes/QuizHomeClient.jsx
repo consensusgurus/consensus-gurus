@@ -24,8 +24,10 @@ import TodayClient from '../today/TodayClient';
 
 // THE MARQUEE HOME (owner, 2026-08-24): the category-first shelves (the /today
 // preview, promoted) replace the cap/slate/rails console on the homepage.
-// Kill switch: set false to restore the old console instantly. /home-preview
-// (v3) renders its own branch and is unaffected either way.
+// Kill switch: set false to restore the old console instantly. Replaces the
+// console on every variant, v3 included: app/page.js serves variant="v3", so
+// gating on !v3 would exempt the homepage itself (shipped that way for one
+// deploy, 2026-08-24).
 const MARQUEE_HOME = true;
 import HomeRails from '../HomeRails';
 import XpTile from './XpTile';
@@ -2205,7 +2207,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             rail (Quiz of the Day + Last Played). The board carries the daily
             leaderboard (Today's Top 3 + expand) itself. Stacks to one column
             (board first) below 1200px. */}
-        {MARQUEE_HOME && !v3 ? (
+        {MARQUEE_HOME ? (
           <div className="dhx-marquee" style={{ marginBottom: 12 }}>
             <DailyFiveBand />
             <TodayClient />
