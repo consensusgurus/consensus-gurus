@@ -714,7 +714,13 @@ export default function TodayClient() {
 
 const CSS = `
 .tdy{background:${GROUND};font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
-.tdy-wrap{max-width:1280px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
+.tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
+/* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
+   side padding), so the wrap sheds its own width cap and padding there to line
+   up exactly with the quiz browse sections below. The phone negative margins
+   mirror .qzh's side padding (16px to 900px, 14px under 560) so the full-bleed
+   phone treatment still reaches the screen edges. */
+.dhx-marquee .tdy-wrap{max-width:none;padding-left:0;padding-right:0;}
 .tdy-today{display:flex;align-items:flex-end;gap:16px;padding:26px 2px 18px;color:var(--white);}
 .tdy-eb{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;min-height:13px;}
 .tdy-today h1{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0;color:var(--white);}
@@ -818,6 +824,7 @@ const CSS = `
 .tdy-foot{padding:40px 2px 40px;color:#3d4d75;font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
+  .dhx-marquee{margin-left:-16px;margin-right:-16px;}
   .tdy-today{padding:20px 16px 14px;flex-wrap:wrap;}
   .tdy-right{flex:1 1 100%;margin-left:0;flex-wrap:wrap;gap:8px;}
   .tdy-ct{flex:1 1 100%;margin-right:0;}
@@ -834,5 +841,8 @@ const CSS = `
   .tdy-card{border-radius:0;margin:10px 0 0;}
   .tdy-pw{margin:0 0 12px;}
   .tdy-foot{padding-left:16px;}
+}
+@media(max-width:560px){
+  .dhx-marquee{margin-left:-14px;margin-right:-14px;}
 }
 `;
