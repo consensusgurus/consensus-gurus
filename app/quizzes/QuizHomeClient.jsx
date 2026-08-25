@@ -2174,7 +2174,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             (board first) below 1200px. */}
         {MARQUEE_HOME ? (
           <div className="dhx-marquee" style={{ marginBottom: 12 }}>
-            <TodayClient />
+            <TodayClient onSignup={() => setSignupOpen(true)} />
           </div>
         ) : (
         <div className={v3 ? 'dhx dhx-v3' : 'dhx'}>

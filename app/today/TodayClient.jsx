@@ -49,6 +49,10 @@ import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
 import savedIdentity from '@/lib/saved-identity';
 import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
+// The pins are the ones the old console (DailyStrip) already wrote: same
+// /api/quiz/favorites, same account column, same two-tier promotion. Nothing
+// new is stored for My games.
+import useMyGames from '../useMyGames';
 
 const PAPER = '#f7f8fa';
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
@@ -108,12 +112,34 @@ function pinnedBarH() {
   }
   return h;
 }
+// The category jump bar is sticky UNDERNEATH the masthead, so a jump has to
+// clear BOTH. pinnedBarH takes the tallest sticky masthead; this adds the bar's
+// own height on top of that rather than folding it into the same max.
+function jumpBarH() {
+  try {
+    const el = document.querySelector('.tdy-jb');
+    if (!el) return 0;
+    if (getComputedStyle(el).position !== 'sticky') return 0;
+    return el.getBoundingClientRect().height;
+  } catch (e) { return 0; }
+}
+
+// A section id for a shelf, stable across the categories and circuits views.
+function secId(shelf) {
+  return 'tdy-' + (shelf.kind || 'cat') + '-' + String(shelf.name).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
+// The hand-dragged category order lives on this browser. Pins live on the
+// account (they are a set worth carrying between devices); a shelf order is a
+// per-screen preference, so it needs no column and no migration.
+const CAT_ORDER_KEY = 'sot_cat_order';
+
 function jumpTo(e, id) {
   try {
     const el = document.getElementById(id);
     if (!el) return;
     e.preventDefault();
-    const y = el.getBoundingClientRect().top + window.scrollY - (pinnedBarH() + 14);
+    const y = el.getBoundingClientRect().top + window.scrollY - (pinnedBarH() + jumpBarH() + 14);
     const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     window.scrollTo({ top: Math.min(max, Math.max(0, y)), behavior: 'smooth' });
     try { window.history.replaceState(null, '', '#' + id); } catch (x) {}
@@ -168,7 +194,7 @@ function TilesRow({ children, light = false }) {
   );
 }
 
-export default function TodayClient() {
+export default function TodayClient({ onSignup = null } = {}) {
   // Build the shelves once: the sudoku circuit pool leaves Numbers and becomes
   // its own category. Static, so the server and client render the same rows.
   const shelves = useMemo(() => {
@@ -185,6 +211,108 @@ export default function TodayClient() {
     }).filter((s) => s.games.length);
   }, []);
   const totalGames = useMemo(() => shelves.reduce((n, s) => n + s.games.length, 0), [shelves]);
+
+  // ── THE READER'S OWN NAVIGATION (owner, 2026-08-25) ──────────────────
+  // 69 games across ten sideways-scrolling shelves meant roughly half the
+  // slate sat off-screen with no way to reach it by name, and the ten shelves
+  // ran in an editorial order that suited nobody in particular. Four
+  // additions, all of them personal to the reader:
+  //   1. a STICKY BAR of category jump chips, each chip's own tint fill being
+  //      its done/total meter, so the bar doubles as the day's progress.
+  //   2. MY GAMES, the pinned set, above every category, with a star on every
+  //      tile. Pins are the account-stored ones /api/quiz/favorites already
+  //      holds (migration 45), so a guest gets a teaser instead.
+  //   3. REORDER, a hand-dragged category order, DEFAULTING to how much this
+  //      player plays each category.
+  //   4. an A TO Z index of the whole slate, reachable from the bar at any
+  //      scroll depth.
+  // SSR SAFETY, the same discipline forYou and sinkDone already follow: pins,
+  // archive counts and the stored order all start empty, so the server and the
+  // first client paint render the plain editorial order with no My games
+  // shelf, and the personal layer lands a moment later from its effects.
+  const { favorites, canPin, registered, loaded: pinsLoaded, max: pinMax, toggleFavorite } = useMyGames();
+
+  // Per-game archive counts ride along on the SAME fetchDayStatus payload the
+  // day state already reads (pass 2 below): archive[key].played is how many of
+  // that game's days this player has played. No extra request, which is what
+  // makes a play-count-ordered home cheap enough to ship at all (the 2026-08-02
+  // most-played tier was cut because it put a full quiz_results scan on the
+  // homepage critical path; this reads a payload that was already in flight).
+  const [archive, setArchive] = useState(null);
+  // null = the default order. An array = the reader dragged their own.
+  const [catOrder, setCatOrder] = useState(null);
+  // 'az' | 'order' | null, the bar's two dropdowns.
+  const [sheet, setSheet] = useState(null);
+  // Which chip is ringed. Set from a scroll listener, so it bails out when the
+  // answer has not changed.
+  const [here, setHere] = useState(null);
+  // The bar sticks under whatever masthead this page has, and the two differ
+  // by width, so the offset is measured rather than hardcoded.
+  const [barTop, setBarTop] = useState(0);
+  const dragFrom = useRef(null);
+
+  useEffect(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CAT_ORDER_KEY) || 'null');
+      if (Array.isArray(raw) && raw.length) {
+        const clean = raw.filter((n) => CAT_ORDER.includes(n));
+        if (clean.length) setCatOrder(clean);
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
+    const upd = () => setBarTop(pinnedBarH());
+    upd();
+    window.addEventListener('resize', upd);
+    // The masthead can settle after its own fonts and chips land.
+    const t = setTimeout(upd, 500);
+    return () => { window.removeEventListener('resize', upd); clearTimeout(t); };
+  }, []);
+
+  const catPlays = useMemo(() => {
+    const out = {};
+    for (const s of shelves) {
+      out[s.name] = archive
+        ? s.games.reduce((n, g) => n + ((archive[g.key] && archive[g.key].played) || 0), 0)
+        : 0;
+    }
+    return out;
+  }, [shelves, archive]);
+
+  // A hand-dragged order wins. Otherwise the shelves sort by how much this
+  // player plays each category. Array.prototype.sort is stable, so categories
+  // the player has never touched keep the editorial order among themselves.
+  const orderedShelves = useMemo(() => {
+    if (catOrder && catOrder.length) {
+      const idx = new Map(catOrder.map((n, i) => [n, i]));
+      return shelves.slice().sort((a, b) => (idx.has(a.name) ? idx.get(a.name) : 99) - (idx.has(b.name) ? idx.get(b.name) : 99));
+    }
+    if (!archive) return shelves;
+    return shelves.slice().sort((a, b) => (catPlays[b.name] || 0) - (catPlays[a.name] || 0));
+  }, [shelves, catOrder, archive, catPlays]);
+
+  // Pins, filtered to games actually on today's slate: the route caps and
+  // cleans against the roster, which still holds retired games.
+  const pinned = useMemo(() => {
+    if (!canPin || !favorites || !favorites.length) return [];
+    const onSlate = new Map();
+    for (const s of shelves) for (const g of s.games) onSlate.set(g.key, g);
+    return favorites.map((k) => onSlate.get(k)).filter(Boolean);
+  }, [favorites, canPin, shelves]);
+
+  const azGames = useMemo(() => {
+    const all = [];
+    for (const s of shelves) for (const g of s.games) all.push({ g, color: s.color });
+    all.sort((a, b) => a.g.name.localeCompare(b.g.name));
+    const groups = [];
+    for (const it of all) {
+      const L = it.g.name.charAt(0).toUpperCase();
+      if (!groups.length || groups[groups.length - 1].letter !== L) groups.push({ letter: L, items: [] });
+      groups[groups.length - 1].items.push(it);
+    }
+    return { groups, count: all.length };
+  }, [shelves]);
 
   // ── the day, read in an effect so SSR and the client never disagree ──
   const [today, setToday] = useState(null);
@@ -259,6 +387,9 @@ export default function TodayClient() {
     let alive = true;
     fetchDayStatus().then((data) => {
       if (!alive || !data) return;
+      // Free with this payload: per-game archive progress, which is what the
+      // default category order sorts on.
+      if (data.archive && typeof data.archive === 'object') setArchive(data.archive);
       const [Y, M, D] = etToday().split('-').map(Number);
       const yy = Y % 100;
       const completed = new Set(data.completed || []);
@@ -382,7 +513,9 @@ export default function TodayClient() {
   }, [mode, pickCirc]);
 
   // Continue: first paused game in shelf order, else first unplayed
-  const flat = useMemo(() => shelves.flatMap((s) => s.games.map((g) => ({ g, shelf: s }))), [shelves]);
+  // Ordered, not editorial: if a reader has put Trivia at the top, "up next"
+  // should come from Trivia.
+  const flat = useMemo(() => orderedShelves.flatMap((s) => s.games.map((g) => ({ g, shelf: s }))), [orderedShelves]);
   const continueGame = useMemo(() => {
     const paused = flat.find(({ g }) => inprog.has(g.key) && !done.has(g.key));
     if (paused) return { g: paused.g, resume: true };
@@ -468,6 +601,153 @@ export default function TodayClient() {
     const n = playsOf(g.key);
     return { cls: '', text: n != null ? `${n.toLocaleString()} playing` : ' ' };
   };
+
+  // ── the pin star ────────────────────────────────────────────────────
+  // Bottom-left of the tile, mirroring where the old console put it. A tap
+  // leaves :hover stuck on a phone until the next tap elsewhere, so the
+  // handler drops focus explicitly and every hover rule sits behind
+  // @media(hover:hover) (the 2026-08-02 star lesson).
+  const pinBtn = (key) => {
+    if (!canPin) return null;
+    const on = favorites.indexOf(key) >= 0;
+    const nm = DAILY_GAME_MAP[key] ? DAILY_GAME_MAP[key].name : key;
+    return (
+      <button
+        type="button"
+        className={'tdy-pinb' + (on ? ' on' : '')}
+        aria-pressed={on}
+        aria-label={on ? `Unpin ${nm} from My games` : `Pin ${nm} to My games`}
+        title={on ? 'Unpin from My games' : `Pin to My games${pinMax ? ` (up to ${pinMax})` : ''}`}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try { e.currentTarget.blur(); } catch (x) {}
+          toggleFavorite(key);
+        }}
+      >
+        {on ? '\u2605' : '\u2606'}
+      </button>
+    );
+  };
+
+  const mineDone = pinned.filter((g) => done.has(g.key)).length;
+  const mineCta = (() => {
+    if (!pinned.length) return null;
+    const paused = pinned.find((g) => inprog.has(g.key) && !done.has(g.key));
+    if (paused) return { label: `Resume \u00b7 ${paused.name}`, href: paused.href, gold: true };
+    const next = pinned.find((g) => !done.has(g.key));
+    if (next) return { label: `Play \u00b7 ${next.name}`, href: next.href, gold: false };
+    return { label: 'All done today', href: pinned[0].href, gold: false };
+  })();
+
+  // ── the hand-dragged category order ─────────────────────────────────
+  const applyOrder = (names) => {
+    setCatOrder(names);
+    try { localStorage.setItem(CAT_ORDER_KEY, JSON.stringify(names)); } catch (e) {}
+  };
+  const moveCat = (i, d) => {
+    const names = orderedShelves.map((s) => s.name);
+    const j = i + d;
+    if (j < 0 || j >= names.length) return;
+    const t = names[i]; names[i] = names[j]; names[j] = t;
+    applyOrder(names);
+  };
+  const resetOrder = () => {
+    setCatOrder(null);
+    try { localStorage.removeItem(CAT_ORDER_KEY); } catch (e) {}
+  };
+
+  // ── which chip is ringed ────────────────────────────────────────────
+  const spyShelves = view === 'circuits' ? circuitShelves : orderedShelves;
+  useEffect(() => {
+    const ids = spyShelves.map((s) => secId(s));
+    const spy = () => {
+      let best = null;
+      const line = pinnedBarH() + jumpBarH() + 40;
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top - line <= 0) best = id;
+      }
+      setHere((cur) => (cur === best ? cur : best));
+    };
+    spy();
+    window.addEventListener('scroll', spy, { passive: true });
+    window.addEventListener('resize', spy);
+    return () => { window.removeEventListener('scroll', spy); window.removeEventListener('resize', spy); };
+  }, [spyShelves]);
+
+  const azPanel = () => (
+    <>
+      <div className="tdy-shhd"><b>Every game, A to Z</b><i>{`${azGames.count} on the slate today`}</i></div>
+      <div className="tdy-az">
+        {azGames.groups.map((grp) => (
+          <div className="tdy-azg" key={grp.letter}>
+            <span className="tdy-azl">{grp.letter}</span>
+            <div className="tdy-azw">
+              {grp.items.map(({ g, color }) => (
+                <a
+                  key={g.key}
+                  className={'tdy-azi' + (done.has(g.key) ? ' done' : inprog.has(g.key) ? ' paused' : '')}
+                  href={g.href}
+                >
+                  <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                  <span className="cd" style={{ background: color }} aria-hidden="true" />
+                  {g.name}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
+  const orderPanel = () => (
+    <>
+      <div className="tdy-shhd">
+        <b>Your category order</b>
+        <i>{catOrder && catOrder.length ? 'Your own order, kept on this browser' : 'Sorted by how much you play each one'}</i>
+      </div>
+      <div className="tdy-reo">
+        {orderedShelves.map((s, i) => (
+          <div
+            key={s.name}
+            className="tdy-reor"
+            draggable
+            onDragStart={() => { dragFrom.current = i; }}
+            onDragEnd={() => { dragFrom.current = null; }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const from = dragFrom.current;
+              dragFrom.current = null;
+              if (from == null || from === i) return;
+              const names = orderedShelves.map((x) => x.name);
+              const moved = names.splice(from, 1)[0];
+              names.splice(i, 0, moved);
+              applyOrder(names);
+            }}
+          >
+            <span className="gr" aria-hidden="true">{'\u22ee\u22ee'}</span>
+            <span className="dot" style={{ background: s.color }} aria-hidden="true" />
+            <span className="nm">{s.name}</span>
+            <span className="pl">{archive ? `${(catPlays[s.name] || 0).toLocaleString()} played` : `${s.games.length} games`}</span>
+            <span className="mv">
+              <button type="button" onClick={() => moveCat(i, -1)} aria-label={`Move ${s.name} up`}>{'\u2191'}</button>
+              <button type="button" onClick={() => moveCat(i, 1)} aria-label={`Move ${s.name} down`}>{'\u2193'}</button>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="tdy-reoft">
+        {catOrder && catOrder.length ? (
+          <button type="button" className="tdy-jb2" onClick={resetOrder}>Reset to my play counts</button>
+        ) : null}
+        <span className="note">Drag a row, or use the arrows on a phone. It saves as you go.</span>
+      </div>
+    </>
+  );
 
   const feedGame = (quizId) => {
     const m = /^([a-z]+)-\d/.exec(quizId || '');
@@ -560,6 +840,61 @@ export default function TodayClient() {
           </div>
         </div>
 
+        <div className="tdy-jb" style={{ top: barTop }}>
+          <div className="tdy-jbin">
+            <div className="tdy-jbt">
+              {canPin && pinned.length ? (
+                <button
+                  type="button"
+                  className={'tdy-jc mine' + (here === 'tdy-mine' ? ' here' : '')}
+                  style={{ '--pc': `${Math.round((100 * mineDone) / pinned.length)}%` }}
+                  onClick={(e) => jumpTo(e, 'tdy-mine')}
+                >
+                  <span className="nm">{'\u2605 My games'}</span>
+                  <span className="ct">{`${mineDone}/${pinned.length}`}</span>
+                </button>
+              ) : null}
+              {spyShelves.map((s) => {
+                const dn = s.games.filter((g) => done.has(g.key)).length;
+                const tot = s.games.length;
+                const id = secId(s);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={'tdy-jc' + (tot > 0 && dn >= tot ? ' full' : '') + (here === id ? ' here' : '')}
+                    style={{ '--cc': s.color, '--pc': `${tot ? Math.round((100 * dn) / tot) : 0}%` }}
+                    onClick={(e) => jumpTo(e, id)}
+                  >
+                    <span className="dot" aria-hidden="true" />
+                    <span className="nm">{s.name}</span>
+                    <span className="ct">{`${dn}/${tot}`}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              className={'tdy-jb2' + (sheet === 'az' ? ' on' : '')}
+              aria-expanded={sheet === 'az'}
+              onClick={() => setSheet(sheet === 'az' ? null : 'az')}
+            >A to Z</button>
+            {view === 'cats' ? (
+              <button
+                type="button"
+                className={'tdy-jb2' + (sheet === 'order' ? ' on' : '')}
+                aria-expanded={sheet === 'order'}
+                onClick={() => setSheet(sheet === 'order' ? null : 'order')}
+              >Reorder</button>
+            ) : null}
+          </div>
+          {sheet ? (
+            <div className="tdy-jbsh">
+              <div className="tdy-jbshin">{sheet === 'az' ? azPanel() : orderPanel()}</div>
+            </div>
+          ) : null}
+        </div>
+
         {forYou.length ? (
           <section className="tdy-shc foryou" style={{ '--cc': '#2563eb' }}>
             <div className="tdy-hd">
@@ -587,12 +922,64 @@ export default function TodayClient() {
           </section>
         ) : null}
 
+        {canPin && pinned.length ? (
+          <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
+            <div className="tdy-shc" style={{ '--cc': '#a1750b' }}>
+              <div className="tdy-hd">
+                <div>
+                  <div className="eb">{`Yours \u00b7 ${pinned.length} pinned`}</div>
+                  <div className="tdy-hnm">
+                    <h2>{'\u2605 My games'}</h2>
+                    <span className={'tdy-prg' + (mineDone >= pinned.length ? ' full' : '')}>
+                      <b>{`${mineDone} of ${pinned.length}`}</b>
+                      <span className="pb" aria-hidden="true"><span style={{ width: `${Math.round((100 * mineDone) / pinned.length)}%` }} /></span>
+                    </span>
+                  </div>
+                </div>
+                {mineCta ? (
+                  <a
+                    className={mineCta.gold ? 'tdy-cta gold' : 'tdy-cta'}
+                    style={mineCta.gold ? undefined : { background: '#a1750b', borderColor: '#a1750b' }}
+                    href={mineCta.href}
+                  >{mineCta.label}</a>
+                ) : null}
+              </div>
+              <TilesRow>
+                {pinned.map((g) => {
+                  const st = statusLine(null, g);
+                  const leader = leaderOf(g.key);
+                  const cls = ['tdy-t'];
+                  if (done.has(g.key)) cls.push('done');
+                  else if (inprog.has(g.key)) cls.push('paused');
+                  return (
+                    <a key={g.key} className={cls.join(' ')} href={g.href}>
+                      {pinBtn(g.key)}
+                      <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                      <b>{g.name}</b>
+                      <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
+                      <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
+                    </a>
+                  );
+                })}
+              </TilesRow>
+            </div>
+          </section>
+        ) : null}
+
+        {pinsLoaded && !registered ? (
+          <div className="tdy-teaser">
+            <span className="ti">{'\u2605 My games'}</span>
+            <span className="ts">Pin the handful you actually play and they sit right here, above every category.</span>
+            {onSignup ? <button type="button" className="tb" onClick={onSignup}>Sign in to pin</button> : null}
+          </div>
+        ) : null}
+
         <div className="tdy-view" role="tablist" aria-label="Group the slate by">
           <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
           <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => setView('circuits')}>Circuits</button>
         </div>
 
-        {(view === 'circuits' ? circuitShelves : shelves).map((shelf, si) => {
+        {spyShelves.map((shelf, si) => {
           const cta = shelfCta(shelf);
           const dn = shelf.games.filter((g) => done.has(g.key)).length;
           const tot = shelf.games.length;
@@ -603,7 +990,7 @@ export default function TodayClient() {
           ) : null;
           if (collapsed) {
             return (
-              <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
+              <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
                 {rest}
                 <div className="tdy-catdone">
                   <b className="nm">{shelf.name}</b>
@@ -624,7 +1011,7 @@ export default function TodayClient() {
             );
           }
           return (
-            <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
+            <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
               {rest}
               <div className="tdy-shc" style={{ '--cc': shelf.color }}>
                 <div className="tdy-hd">
@@ -661,6 +1048,7 @@ export default function TodayClient() {
                     else if (inprog.has(g.key)) cls.push('paused');
                     return (
                       <a key={g.key} className={cls.join(' ')} href={g.href}>
+                        {pinBtn(g.key)}
                         <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
                         <b>{g.name}</b>
                         <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
@@ -1045,5 +1433,96 @@ const CSS = `
 }
 @media(max-width:560px){
   .dhx-marquee{margin-left:-14px;margin-right:-14px;}
+}
+
+/* ══ the reader's own navigation (owner, 2026-08-25) ══ */
+
+/* The sticky category jump bar. Its top offset is set inline from a live
+   measurement of whatever masthead this page carries, since the desktop and
+   phone mastheads are different elements. */
+.tdy-jb{position:sticky;z-index:40;background:rgba(247,249,252,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
+.tdy-jbin{display:flex;align-items:center;gap:8px;padding:8px 2px;}
+.tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
+.tdy-jbt::-webkit-scrollbar{display:none;}
+/* The chip's own tint fill IS its progress meter, which is what keeps ten
+   categories and both buttons on one line at desktop widths. A separate
+   meter element cost ~32px a chip and pushed the last category off the bar. */
+.tdy-jc{position:relative;overflow:hidden;flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid #dfe4ec;border-radius:999px;padding:5px 12px 5px 9px;cursor:pointer;font-family:inherit;color:var(--ink);-webkit-tap-highlight-color:transparent;}
+.tdy-jc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--pc,0%);background:color-mix(in srgb,var(--cc,#2563eb) 16%,#fff);transition:width .25s;}
+.tdy-jc>*{position:relative;}
+.tdy-jc:hover{border-color:#b6c2d6;}
+.tdy-jc .dot{width:7px;height:7px;border-radius:50%;background:var(--cc);flex:none;}
+.tdy-jc .nm{font-size:12px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
+.tdy-jc .ct{font-size:10.5px;font-weight:800;color:#9aa0ab;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tdy-jc.full{border-color:#cfe6d4;}
+.tdy-jc.full::before{background:#e6f6e9;}
+.tdy-jc.full .ct{color:var(--success-deep);}
+.tdy-jc.here{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.16);}
+.tdy-jc.mine{border-color:#eeda9e;}
+.tdy-jc.mine::before{background:#fdf3d7;}
+.tdy-jc.mine .nm{color:#8a6d1a;}
+.tdy-jc.mine .ct{color:var(--gold-ink);}
+.tdy-jb2{flex:none;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-deep);background:var(--accent-soft);border:1.5px solid var(--accent-border);border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
+.tdy-jb2:hover{background:#e2ecff;}
+.tdy-jb2.on{background:var(--accent);border-color:var(--accent);color:var(--white);}
+/* A sticky element is a positioned element, so the dropdown anchors to the
+   bar rather than to the page. */
+.tdy-jbsh{position:absolute;left:0;right:0;top:100%;background:var(--white);border-bottom:1px solid #e3e7ee;box-shadow:0 14px 28px rgba(16,24,40,.10);max-height:62vh;overflow:auto;}
+.tdy-jbshin{padding:14px clamp(16px,1.7vw,24px) 18px;}
+.tdy-shhd{display:flex;align-items:baseline;gap:10px;margin-bottom:11px;}
+.tdy-shhd b{font-size:13px;font-weight:800;color:var(--ink);}
+.tdy-shhd i{font-style:normal;font-size:11.5px;font-weight:600;color:#9aa0ab;}
+
+/* A to Z */
+.tdy-az{display:flex;flex-wrap:wrap;gap:6px 8px;}
+.tdy-azg{display:flex;align-items:flex-start;gap:8px;flex:none;margin-right:10px;}
+.tdy-azl{font-size:12px;font-weight:800;color:#c0c6d2;width:13px;flex:none;padding-top:5px;}
+.tdy-azw{display:flex;flex-wrap:wrap;gap:5px;max-width:660px;}
+.tdy-azi{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid #e9edf3;border-radius:8px;padding:4px 9px 4px 5px;font-size:12px;font-weight:700;color:var(--ink);text-decoration:none;}
+.tdy-azi:hover{background:#e9eff7;}
+.tdy-azi img{width:18px;height:18px;border-radius:4px;display:block;}
+.tdy-azi .cd{width:6px;height:6px;border-radius:50%;flex:none;}
+.tdy-azi.done{background:#eef7ef;border-color:#d8ecd9;}
+.tdy-azi.paused{background:#fff7e0;border-color:#ecd9a0;}
+
+/* Reorder */
+.tdy-reo{display:flex;flex-wrap:wrap;gap:8px;}
+.tdy-reor{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid #e6eaf1;border-radius:10px;padding:8px 10px;width:300px;cursor:grab;}
+.tdy-reor .gr{color:#b6bdc9;font-size:14px;line-height:1;letter-spacing:2px;flex:none;}
+.tdy-reor .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+.tdy-reor .nm{font-size:13px;font-weight:800;color:var(--ink);flex:1 1 auto;}
+.tdy-reor .pl{font-size:10.5px;font-weight:800;color:#9aa0ab;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.tdy-reor .mv{display:flex;gap:3px;flex:none;}
+.tdy-reor .mv button{font-family:inherit;width:22px;height:22px;border-radius:6px;border:1px solid #dfe4ec;background:var(--white);color:var(--slate);font-size:11px;font-weight:800;cursor:pointer;padding:0;line-height:1;}
+.tdy-reor .mv button:hover{border-color:#b6c2d6;color:var(--ink);}
+.tdy-reoft{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;}
+.tdy-reoft .note{font-size:11.5px;font-weight:600;color:#9aa0ab;}
+
+/* The pin star. Every hover rule sits behind @media(hover:hover): on a phone a
+   tap applies :hover and the browser keeps painting it until you tap
+   elsewhere, which left a block behind the star on the old console. */
+.tdy-t{position:relative;}
+.tdy-pinb{position:absolute;left:5px;bottom:5px;width:22px;height:22px;border-radius:6px;border:0;background:transparent;color:#c3c9d4;cursor:pointer;font-size:14px;line-height:1;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.tdy-pinb.on{color:var(--gold);}
+@media(hover:hover){
+  .tdy-pinb{opacity:0;transition:opacity .12s;}
+  .tdy-t:hover .tdy-pinb,.tdy-pinb:focus-visible,.tdy-pinb.on{opacity:1;}
+  .tdy-pinb:hover{background:rgba(16,24,40,.06);}
+}
+
+/* The guest teaser: pins live on the account, so a signed-out reader is shown
+   what the row is for rather than an empty shelf. */
+.tdy-teaser{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--gold);border-radius:14px;padding:13px 18px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.tdy-teaser .ti{font-size:14.5px;font-weight:800;color:var(--ink);}
+.tdy-teaser .ts{font-size:12.5px;font-weight:700;color:var(--slate);}
+.tdy-teaser .tb{margin-left:auto;font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;background:var(--accent);color:var(--white);border:0;border-radius:999px;padding:7px 15px;cursor:pointer;white-space:nowrap;}
+.tdy-teaser .tb:hover{background:#2d4a7d;}
+
+@media(max-width:900px){
+  .tdy-jbin{padding:8px 14px;}
+  .tdy-jbshin{padding:14px 14px 18px;}
+  .tdy-reor{width:100%;}
+  .tdy-azw{max-width:none;}
+  .tdy-teaser{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
 }
 `;
