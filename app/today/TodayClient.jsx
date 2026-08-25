@@ -88,6 +88,38 @@ function identityQs() {
   return p.toString();
 }
 
+// The two hero chips jump down to the boards row. A bare hash lands the target
+// flush with the viewport top, which on the homepage is UNDER the pinned
+// masthead, so the heading you asked for is the one thing you cannot see. Same
+// fix focusListSearch in QuizCommandHeader uses: measure whatever bar is
+// actually pinned and scroll to the target minus its height. The candidates
+// differ by width (the masthead is one sticky .qchm on desktop and collapses to
+// display:contents with .qchm-r1 pinned on a phone) and /today has no masthead
+// at all, so take the tallest one whose COMPUTED position is sticky or fixed.
+function pinnedBarH() {
+  let h = 0;
+  for (const sel of ['.qch-bar', '.qchm-r1', '.qchm']) {
+    const el = document.querySelector(sel);
+    if (!el) continue;
+    let pos = '';
+    try { pos = getComputedStyle(el).position; } catch (e) {}
+    if (pos !== 'sticky' && pos !== 'fixed') continue;
+    h = Math.max(h, el.getBoundingClientRect().height);
+  }
+  return h;
+}
+function jumpTo(e, id) {
+  try {
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    const y = el.getBoundingClientRect().top + window.scrollY - (pinnedBarH() + 14);
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: Math.min(max, Math.max(0, y)), behavior: 'smooth' });
+    try { window.history.replaceState(null, '', '#' + id); } catch (x) {}
+  } catch (x) {}
+}
+
 const TROPHY = (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e8b43a" strokeWidth="2.1" aria-hidden="true" style={{ flex: 'none' }}>
     <path d="M6 4h12v3.5a6 6 0 0 1-12 0zM6 5H3.5v1.8a3 3 0 0 0 3 3M18 5h2.5v1.8a3 3 0 0 1-3 3M9.5 20h5M12 13.5V20" />
@@ -314,13 +346,19 @@ export default function TodayClient() {
   const day = useDayStats();
   const [totals, setTotals] = useState(null);
   const [recent, setRecent] = useState(null);
+  // Plays SO FAR TODAY per quiz id, so each feed row can say how busy that
+  // game is (owner, 2026-08-24). /api/quiz/recent already computes it as
+  // todayByQuiz; the feed just was not reading it.
+  const [dayCounts, setDayCounts] = useState(null);
   useEffect(() => {
     let alive = true;
     fetch('/api/quiz/totals').then((r) => r.json()).then((d) => {
       if (alive && d && !d.error) setTotals({ today: d.today || 0, todayPlayers: d.todayPlayers || 0, todayTime: d.todayTime || 0 });
     }).catch(() => {});
     fetch('/api/quiz/recent').then((r) => r.json()).then((d) => {
-      if (alive && d && Array.isArray(d.plays)) setRecent(d.plays.slice(0, 18));
+      if (!alive || !d) return;
+      if (Array.isArray(d.plays)) setRecent(d.plays.slice(0, 18));
+      if (d.todayByQuiz && typeof d.todayByQuiz === 'object') setDayCounts(d.todayByQuiz);
     }).catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -511,11 +549,11 @@ export default function TodayClient() {
             <div className="bar" aria-hidden="true"><span style={{ width: `${heroPct}%` }} /></div>
           </div>
           <div className="hr">
-            <a className="tdy-mini" href="#tdy-boards">
+            <a className="tdy-mini" href="#tdy-boards" onClick={(e) => jumpTo(e, 'tdy-boards')}>
               <span className="ic">{TROPHY}</span>
               <span><span className="k">Leaderboards</span><span className="v">{day.dayRank ? `You're #${day.dayRank.toLocaleString()} today` : "Today's standings"}</span></span>
             </a>
-            <a className="tdy-mini" href="#tdy-boards">
+            <a className="tdy-mini" href="#tdy-feed" onClick={(e) => jumpTo(e, 'tdy-feed')}>
               <span className="ic"><span className="tdy-pulse" /></span>
               <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
             </a>
@@ -792,7 +830,7 @@ export default function TodayClient() {
             </div>
           </div>
 
-          <div>
+          <div id="tdy-feed">
             <div className="tdy-restband" style={{ paddingTop: 38 }}>
               <h3><span className="tdy-pulse" style={{ display: 'inline-block' }} /><span style={{ marginLeft: 8 }}>Live feed</span></h3>
               <i>Results as they land, anonymous by design</i>
@@ -805,10 +843,14 @@ export default function TodayClient() {
               </div>
               {recent && recent.length ? recent.map((p, i) => {
                 const g = feedGame(p.quizId);
+                const n = dayCounts ? Number(dayCounts[p.quizId]) || 0 : 0;
                 return (
                   <div key={i} className="tdy-lr feed">
                     {g ? <img className="fic" src={g.img} alt="" aria-hidden="true" loading="lazy" /> : <span className="fdot" aria-hidden="true" />}
-                    <span className="nm">{g ? g.name : (p.quizId || 'Quiz')}</span>
+                    <span className="nm">
+                      <i className="fnm">{g ? g.name : (p.quizId || 'Quiz')}</i>
+                      {n > 0 ? <i className="fx" title={`${n.toLocaleString()} play${n === 1 ? '' : 's'} today`}>{`${n.toLocaleString()} ${n === 1 ? 'play' : 'plays'}`}</i> : null}
+                    </span>
                     {p && p.total > 0 ? <span className="gm">{`${p.score}/${p.total}`}</span> : <span className="gm" />}
                     <span className="sc">{agoLabel(p.playedAt)}</span>
                   </div>
@@ -943,6 +985,15 @@ const CSS = `
 .tdy-lr .fic{width:22px;height:22px;border-radius:5px;flex:none;}
 .tdy-lr .fdot{width:22px;height:22px;border-radius:5px;flex:none;background:var(--surface-alt);}
 .tdy-lr.feed .sc{font-weight:700;color:#9aa0ab;font-size:11.5px;width:64px;}
+/* The feed row's name is now two pieces (the game, then how many plays it has
+   taken today), so the ellipsis moves off .nm and onto the name itself or the
+   count gets squeezed out of a narrow column. */
+.tdy-lr.feed .nm{overflow:visible;}
+.tdy-lr.feed .fnm{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tdy-lr.feed .fx{font-style:normal;flex:none;font-size:10.5px;font-weight:800;color:#9aa0ab;letter-spacing:.01em;white-space:nowrap;font-variant-numeric:tabular-nums;}
+/* Backstop for a native hash jump (no JS, or a /#tdy-feed link followed cold):
+   jumpTo does the real offsetting, this keeps the heading off the masthead. */
+#tdy-boards,#tdy-feed{scroll-margin-top:112px;}
 .tdy-more{display:block;font-size:11.5px;font-weight:800;color:var(--blue-deep);padding:10px 10px 4px;text-decoration:none;}
 .tdy-tabs{display:flex;gap:6px;padding:2px 4px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap;}
 .tdy-tab{font-family:inherit;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;border-radius:999px;background:var(--surface);color:var(--slate);border:0;cursor:pointer;}
