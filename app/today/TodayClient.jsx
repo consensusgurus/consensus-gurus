@@ -966,6 +966,13 @@ export default function TodayClient({ onSignup = null } = {}) {
           </section>
         ) : null}
 
+        {canPin && !pinned.length ? (
+          <div className="tdy-teaser">
+            <span className="ti">{'\u2605 My games'}</span>
+            <span className="ts">Star any game and it sits right here, above every category.</span>
+          </div>
+        ) : null}
+
         {pinsLoaded && !registered ? (
           <div className="tdy-teaser">
             <span className="ti">{'\u2605 My games'}</span>
