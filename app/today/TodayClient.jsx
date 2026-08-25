@@ -979,7 +979,7 @@ const CSS = `
   .tdy-hero .bar{width:100%;}
   .tdy-view{padding-left:16px;}
   .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
-  .tdy-hd{padding-left:18px;padding-right:14px;}
+  .tdy-hd{padding-left:18px;padding-right:14px;flex-wrap:wrap;row-gap:6px;}
   .tdy-hld{max-width:132px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:118px;}
