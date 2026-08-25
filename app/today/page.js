@@ -20,7 +20,7 @@ export const metadata = {
 
 export default function TodayPage() {
   return (
-    <div style={{ minHeight: '100vh', background: '#f4f6f9' }}>
+    <div style={{ minHeight: '100vh', background: '#e7ecf3' }}>
       <QuizNavHeader />
       <TodayClient />
     </div>

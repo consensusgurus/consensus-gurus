@@ -1,7 +1,9 @@
 'use client';
 
-// The marquee category home (live preview at /today), on the PAPER ground since
-// 2026-08-24 (owner-approved blend, artifact "the-blend"): the navy site header
+// The marquee category home (live preview at /today), on the light paper ground
+// since 2026-08-24 (owner-approved blend, artifact "the-blend"), deepened to
+// #e7ecf3 on 2026-08-25 so the white cards and tiles read as lit surfaces
+// rather than three shades of the same white: the navy site header
 // stays untouched above this component; the component itself flips to the light
 // paper theme the game pages use. Top to bottom:
 //   - a WELCOME band in the scheme blues: time-of-day greeting + the day meter
@@ -54,7 +56,6 @@ import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats
 // new is stored for My games.
 import useMyGames from '../useMyGames';
 
-const PAPER = '#f7f8fa';
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
 const SUDOKU_COLOR = '#1d4ed8'; // not in CAT_BLUE; the mockup's pick, distinct from Numbers and Trivia
 
@@ -1321,28 +1322,42 @@ const CSS = `
 
 /* ── tile tracks ── */
 .tdy-tw{position:relative;}
+/* THE TILES ARE THE OBJECTS (owner, 2026-08-25). They used to be #f7f8fa with
+   a #edeff3 hairline and no shadow, sitting on a white card: a 3% delta on the
+   one thing the page is actually about. They are white chips with a real edge
+   and a small lift now, and the track they sit in is tinted 5% with the
+   category colour, so each shelf reads as its own tray. The light-variant tracks (the
+   foot leaderboard's game and category pickers) keep the plain white card
+   behind them, which is why the tint is scoped away from them. */
 .tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:12px 14px 12px;scrollbar-width:none;}
+.tdy-tw:not(.light) .tdy-tiles{background:color-mix(in srgb,var(--cc,#2563eb) 5%,#fff);}
 .tdy-tiles::-webkit-scrollbar{display:none;}
 .tdy-fade{position:absolute;top:0;bottom:0;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
-.tdy-fade.l{left:0;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));}
-.tdy-fade.r{right:0;background:linear-gradient(270deg,#fff,rgba(255,255,255,0));}
+.tdy-fade.l{left:0;background:linear-gradient(90deg,color-mix(in srgb,var(--cc,#2563eb) 5%,#fff),rgba(255,255,255,0));}
+.tdy-fade.r{right:0;background:linear-gradient(270deg,color-mix(in srgb,var(--cc,#2563eb) 5%,#fff),rgba(255,255,255,0));}
 .tdy-fade.on{opacity:1;}
 .tdy-nud{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:var(--white);border:1px solid #d7dce6;color:var(--slate);font-size:17px;font-weight:800;line-height:1;cursor:pointer;z-index:4;display:flex;align-items:center;justify-content:center;padding:0 0 2px;font-family:inherit;box-shadow:0 2px 8px rgba(16,24,40,.14);}
 .tdy-nud:hover{border-color:#a8b6cc;color:var(--ink);}
 .tdy-nud.l{left:4px;}
 .tdy-nud.r{right:4px;}
-.tdy-t{flex:none;width:124px;background:${PAPER};border:1px solid #edeff3;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;}
-.tdy-t:hover{background:#eef2f7;}
-.tdy-t img{width:48px;height:48px;border-radius:10px;display:block;flex:none;}
-.tdy-t b{color:var(--ink);font-size:13px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
+.tdy-t{flex:none;width:130px;background:var(--white);border:1px solid #dfe4ec;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05),0 3px 8px rgba(16,24,40,.05);}
+/* Behind hover:hover with the pin star, and for the same reason: a tap applies
+   :hover on a phone and the browser keeps painting it until you tap elsewhere,
+   so a tile would sit lifted after you came back from playing it. */
+@media(hover:hover){
+  .tdy-t{transition:box-shadow .14s,transform .14s;}
+  .tdy-t:hover{box-shadow:0 2px 4px rgba(16,24,40,.07),0 9px 20px rgba(16,24,40,.10);transform:translateY(-1px);}
+}
+.tdy-t img{width:58px;height:58px;border-radius:11px;display:block;flex:none;}
+.tdy-t b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
 .tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;}
 .tdy-st.tk{color:var(--success-deep);font-weight:800;}
 .tdy-st.tp{color:#a16207;font-weight:800;}
 .tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:112px;overflow:hidden;}
 .tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-t.done{background:#eef7ef;border-color:#d8ecd9;}
-.tdy-t.paused{background:#fff7e0;border-color:#ecd9a0;}
-.tdy-t.fy{width:138px;}
+.tdy-t.done{background:#eef7ef;border-color:#c8e2ce;}
+.tdy-t.paused{background:#fff7e0;border-color:#e6c97e;}
+.tdy-t.fy{width:144px;}
 .tdy-why{font-size:9.5px;font-weight:800;border-radius:999px;padding:3px 9px;white-space:nowrap;}
 .tdy-why.g{background:#fdf3d7;color:#8a6d1a;}
 .tdy-why.b{background:#e7eeff;color:#1d4ed8;}
@@ -1428,8 +1443,8 @@ const CSS = `
   .tdy-hd{padding-left:18px;padding-right:14px;flex-wrap:wrap;row-gap:6px;}
   .tdy-hld{max-width:132px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
-  .tdy-t{width:118px;}
-  .tdy-t.fy{width:130px;}
+  .tdy-t{width:124px;}
+  .tdy-t.fy{width:136px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
   .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
@@ -1447,7 +1462,7 @@ const CSS = `
 /* The sticky category jump bar. Its top offset is set inline from a live
    measurement of whatever masthead this page carries, since the desktop and
    phone mastheads are different elements. */
-.tdy-jb{position:sticky;z-index:40;background:rgba(247,249,252,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
+.tdy-jb{position:sticky;z-index:40;background:rgba(231,236,243,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
 .tdy-jbin{display:flex;align-items:center;gap:8px;padding:8px 2px;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
 .tdy-jbt::-webkit-scrollbar{display:none;}

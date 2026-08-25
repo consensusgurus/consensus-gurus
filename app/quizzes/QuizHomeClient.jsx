@@ -463,6 +463,19 @@ function FeedbackModal({ mode, onClose }) {
 }
 
 // ─── main ───────────────────────────────────────────────────────────────────
+// THE HOME GROUND IS DEEPER THAN T.paper, ON PURPOSE (owner, 2026-08-25).
+// Measured before the change: the whole page lived inside a 4% slice of the
+// value range (ground #f4f6f9, cards #ffffff, tiles #f7f8fa, card shadow at 4%
+// opacity over 2px of blur), so nothing could read as sitting forward of
+// anything else. Dropping the ground is the cheapest fix: every white card on
+// the page, the marquee shelves and the quiz browse sheets alike, starts
+// reading as a lit surface instead of blending into the page.
+//
+// DO NOT "fix" this by moving T.paper. That token is the ground on every daily
+// GAME page, where a white board sits on it and the contrast is already right.
+// This is the home surface only.
+const HOME_GROUND = '#e7ecf3';
+
 export default function QuizHomeClient({ variant = 'current', sourceCount = 0 }) {
   // HOME v3, served at /home-preview only. Everything it changes is gated on
   // this one flag, so / renders byte-identically to before.
@@ -2040,7 +2053,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
 
   return (
     <QuizDoneContext.Provider value={doneCtx}>
-    <div className="qzloft" style={{ background: T.paper, minHeight: '100vh', position: 'relative' }}>
+    <div className="qzloft" style={{ background: HOME_GROUND, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}
