@@ -1346,8 +1346,13 @@ const CSS = `
    which would have won over this rule, so that was removed at the call site. */
 .tdy-cta{margin-left:auto;border:1px solid var(--white);background:var(--white);color:var(--cc,#2563eb);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
 .tdy-cta:hover{filter:none;background:#eef2f8;border-color:#eef2f8;}
-.tdy-cta.gold{background:var(--white);border-color:var(--white);color:#7f5a08;}
-.tdy-cta.gold:hover{filter:none;background:#fdf3d7;border-color:#fdf3d7;}
+/* RESUME KEEPS ITS GOLD FILL. Inverting it to a white pill like the ordinary
+   CTA (shipped for one deploy, 2026-08-25) made the two indistinguishable and
+   threw away the site-wide "gold means resume" signal. Gold on a filled band is
+   only 2.7-4.2:1 of separation, so the white hairline is what detaches it, and
+   that hairline is 5.2:1 or better against every band including the gold one. */
+.tdy-cta.gold{background:var(--gold);border-color:rgba(255,255,255,.85);color:#2a1f04;}
+.tdy-cta.gold:hover{filter:none;background:#f2c451;border-color:var(--white);}
 
 /* ── tile tracks ── */
 .tdy-tw{position:relative;}
