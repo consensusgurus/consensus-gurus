@@ -480,7 +480,9 @@ export default function TodayClient({ onSignup = null } = {}) {
   const [recent, setRecent] = useState(null);
   // Plays SO FAR TODAY per quiz id, so each feed row can say how busy that
   // game is (owner, 2026-08-24). /api/quiz/recent already computes it as
-  // todayByQuiz; the feed just was not reading it.
+  // todayByQuiz; the feed just was not reading it. Since 2026-08-25 the row
+  // FACE carries its own play number (p.dayIndex) and this total is what the
+  // tooltip reads, so a row says both where it sits and how big the day is.
   const [dayCounts, setDayCounts] = useState(null);
   useEffect(() => {
     let alive = true;
@@ -807,22 +809,22 @@ export default function TodayClient({ onSignup = null } = {}) {
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
-  const myPts = board && board.me && typeof board.me.total === 'number' ? board.me.total : null;
   // THE HERO OWNS TODAY, THE NAVY STRIP OWNS ALL TIME (owner, 2026-08-25).
   // The daily RANK left this line: it was printing here, in the strip above,
   // and on the Leaderboards chip six inches to the right, and the chip is the
   // one a reader who cares about it is going to tap anyway. So rank now lives
   // in exactly one place on the page.
   //
-  // Both of the day's currencies are NAMED, because they are different numbers
-  // that both mean "how you did today" and sat unlabelled 100px apart: `pts`
-  // is placement on today's combined board, `IQ` is what the day banked toward
-  // the lifetime total in the strip above.
+  // ONE CURRENCY HERE, SPELLED OUT (owner, 2026-08-25). The combined-board
+  // `pts` figure came off the line as well: two unlabelled numbers side by
+  // side ("134 pts · 224 IQ today") read as one fact stated twice, and pts
+  // is placement, which the Leaderboards chip and the boards below already own.
+  // What is left is how much of the day you have played and what it banked,
+  // named in full so neither number needs the reader to know the jargon.
   const heroSub = (() => {
     const parts = [];
     if (day.ready || day.done) parts.push(`${day.done} of ${day.total} played`);
-    if (myPts != null && myPts > 0) parts.push(`${fmtPts(myPts)} pts`);
-    if (day.todayXp) parts.push(`${day.todayXp.toLocaleString()} IQ today`);
+    if (day.todayXp) parts.push(`${day.todayXp.toLocaleString()} IQ points gained today`);
     return parts.join(' · ');
   })();
   const heroPct = day.total ? Math.round((100 * day.done) / day.total) : 0;
@@ -1249,13 +1251,18 @@ export default function TodayClient({ onSignup = null } = {}) {
               </div>
               {recent && recent.length ? recent.map((p, i) => {
                 const g = feedGame(p.quizId);
-                const n = dayCounts ? Number(dayCounts[p.quizId]) || 0 : 0;
+                // This row's OWN play number for the day, not the day total
+                // (owner, 2026-08-25): the feed counts up as it climbs, so ten
+                // rows of the same game read #6 through #15 instead of ten
+                // copies of "15 plays". The total stays on the tooltip.
+                const n = Number(p.dayIndex) || 0;
+                const tot = dayCounts ? Number(dayCounts[p.quizId]) || 0 : 0;
                 return (
                   <div key={i} className="tdy-lr feed">
                     {g ? <img className="fic" src={g.img} alt="" aria-hidden="true" loading="lazy" /> : <span className="fdot" aria-hidden="true" />}
                     <span className="nm">
                       <i className="fnm">{g ? g.name : (p.quizId || 'Quiz')}</i>
-                      {n > 0 ? <i className="fx" title={`${n.toLocaleString()} play${n === 1 ? '' : 's'} today`}>{`${n.toLocaleString()} ${n === 1 ? 'play' : 'plays'}`}</i> : null}
+                      {n > 0 ? <i className="fx" title={tot > 0 ? `Play ${n.toLocaleString()} of ${tot.toLocaleString()} today` : `Play ${n.toLocaleString()} today`}>{`play #${n.toLocaleString()}`}</i> : null}
                     </span>
                     {p && p.total > 0 ? <span className="gm">{`${p.score}/${p.total}`}</span> : <span className="gm" />}
                     <span className="sc">{agoLabel(p.playedAt)}</span>

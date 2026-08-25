@@ -1359,7 +1359,10 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
     .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0)), [catalog]);
   const mostPlayedAll = useMemo(() => catalog.slice()
     .sort((a, b) => plays(b.id) - plays(a.id) || a.title.localeCompare(b.title)), [catalog, totals]);
-  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, title: resolveTitle(p.quizId), dayCount: dayPlays[p.quizId] || 0 })), [recent, titleById, dayPlays]);
+  // dayIndex is this ROW's own play number for the day, dayCount the day's
+  // total for that quiz (owner, 2026-08-25: the face counts up, the tooltip
+  // carries the total, so ten rows of one game no longer read identically).
+  const liveAll = useMemo(() => recent.filter((p) => p && p.quizId && resolveTitle(p.quizId)).map((p) => ({ ...p, title: resolveTitle(p.quizId), dayCount: dayPlays[p.quizId] || 0, dayIndex: Number(p.dayIndex) || 0 })), [recent, titleById, dayPlays]);
   // "Last Played" browse column: most recent plays, deduped to distinct quizzes
   // (the live feed relocated into the browse grid as the first column).
   const lastPlayed = useMemo(() => {
@@ -2761,7 +2764,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
             ) : liveAll.map((f, i) => (
               <Link href={playHref(f.quizId)} className="qrow" key={i} title={f.title}>
                 <span className="qtitle">{stripVerb(f.title)}</span>
-                {f.dayCount > 0 ? <span className="lf-day" title={`${f.dayCount} play${f.dayCount === 1 ? '' : 's'} today`}>(x{f.dayCount})</span> : null}
+                {f.dayIndex > 0 ? <span className="lf-day" title={f.dayCount > 0 ? `Play ${f.dayIndex} of ${f.dayCount} today` : `Play ${f.dayIndex} today`}>play #{f.dayIndex}</span> : null}
                 <span className="qmeta" style={{ gap: 8 }}>
                   <span className="lf-extra scorebadge" style={{ flex: 'none', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 7, fontVariantNumeric: 'tabular-nums', background: f.total && f.score / f.total >= 0.8 ? '#e7f7ed' : '#eef1f6', color: f.total && f.score / f.total >= 0.8 ? T.successDeep : C.soft }}>{f.score}/{f.total}</span>
                   <span className="lf-extra" style={{ color: C.soft }}>{relTime(f.playedAt)}</span>

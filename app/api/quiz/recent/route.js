@@ -28,7 +28,7 @@ function startOfEasternTodayUTC() {
 }
 
 // GET /api/quiz/recent -> { plays: [{quizId, username, score, total, playedAt,
-//   isAnon, attempt}], todayByQuiz: { <quizId>: <plays since ET midnight> } }
+//   isAnon, attempt, dayIndex}], todayByQuiz: { <quizId>: <plays since ET midnight> } }
 // The 1000 most recent completed games, newest first (a deep window so the
 // Last Played board can still surface 5 distinct quizzes when the newest plays
 // are dominated by a single quiz). Powers the /quizzes live
@@ -59,16 +59,29 @@ export async function GET() {
     // midnight cutoff instead of scanning the whole table. A daily game's id
     // already carries today's date (<key>-M-D-YY), so the raw quiz_id count IS
     // that game's count for the day, with no rollup needed.
+    //
+    // The same walk also numbers each row WITHIN that count (owner,
+    // 2026-08-25). Stamping the day total on every row made ten Jesters rows
+    // all read the same "15 plays" and told the reader nothing about the row
+    // it sat on; the feed now counts up, so the oldest Jesters play on screen
+    // is play #6 and the newest is #15. Walking backwards visits the newest
+    // play first, so the n-th row seen for a quiz is the n-th from the END of
+    // its day; that becomes a 1-based position once the total is known.
     const dayCutoff = startOfEasternTodayUTC();
     const todayByQuiz = {};
+    const fromEnd = new Map(); // row id -> { q, n } (n = n-th newest today)
     for (let i = (cached || []).length - 1; i >= 0; i -= 1) {
       const r = cached[i];
       const t = r && r.created_at ? Date.parse(r.created_at) : 0;
       if (!t) continue;
       if (t < dayCutoff) break;
       if (!r.quiz_id || HIDDEN_QUIZ_IDS.has(r.quiz_id)) continue;
-      todayByQuiz[r.quiz_id] = (todayByQuiz[r.quiz_id] || 0) + 1;
+      const n = (todayByQuiz[r.quiz_id] || 0) + 1;
+      todayByQuiz[r.quiz_id] = n;
+      if (r.id != null) fromEnd.set(r.id, { q: r.quiz_id, n });
     }
+    const dayIndexById = new Map();
+    for (const [id, v] of fromEnd) dayIndexById.set(id, (todayByQuiz[v.q] || 0) - v.n + 1);
 
     // Compute the per-(player, quiz) attempt number for each recent row by
     // counting that player's earlier rows for the same quiz, over the full
@@ -127,6 +140,9 @@ export async function GET() {
         playedAt: r.created_at || null,
         isAnon,
         attempt,
+        // This play's own place in its quiz's day: 1 = the day's first play,
+        // and todayByQuiz[quizId] = the newest. 0 for a row from an earlier day.
+        dayIndex: dayIndexById.get(r.id) || 0,
         pct: (Number(r.total) > 0) ? pctOf(r.quiz_id, Math.min(1, (Number(r.score) || 0) / Number(r.total))) : null,
       };
     });
