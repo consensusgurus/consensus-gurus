@@ -908,7 +908,7 @@ export default function TodayClient({ onSignup = null } = {}) {
 
         {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
-            <div className="tdy-shc" style={{ '--cc': '#8a6309' }}>
+            <div className="tdy-shc" style={{ '--cc': '#2b3241' }}>
               <div className="tdy-hd">
                 <div>
                   <div className="eb">{`Yours \u00b7 ${pinned.length} pinned`}</div>
@@ -1474,8 +1474,36 @@ const CSS = `
   .tdy-hero .bar{width:100%;}
   .tdy-view{padding-left:16px;}
   .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
-  .tdy-hd{padding-left:18px;padding-right:14px;flex-wrap:wrap;row-gap:6px;}
-  .tdy-hld{max-width:132px;}
+  /* ONE HEADER SHAPE AT PHONE WIDTH (owner, 2026-08-25). It was a plain
+     flex-wrap, so whether the CTA dropped to its own row depended on how long
+     that shelf's leader name and CTA label happened to be: some headers came
+     out two rows and some three, at three different heights, and a long
+     category name broke across lines while a short one did not. Every shelf is
+     now the same shape whatever the content:
+
+       row 1   eyebrow
+       row 2   name  .  N of M  ...............  leader chip
+       row 3   the CTA, full width
+
+     Three things make it deterministic. The meta block is forced to a full row
+     (flex-basis:100%), so the wrap no longer depends on content. The name never
+     wraps, it ellipsises. And the progress BAR is dropped, because the "N of M"
+     beside it already says the same thing and its 44px was the difference
+     between "Crowd Psychology" fitting and being cut off at 392px.
+
+     The CTA going full width also settles the other half of it: it was an
+     arbitrary size sitting beside the leader chip, and the two now read as
+     different kinds of thing rather than two mismatched pills. */
+  .tdy-hd{padding-left:16px;padding-right:16px;flex-wrap:wrap;row-gap:8px;align-items:center;}
+  .tdy-hd > div{flex:1 1 100%;min-width:0;}
+  .tdy-hd .nt{flex:1 1 100%;}
+  .tdy-hnm{flex-wrap:nowrap;min-width:0;gap:8px;}
+  .tdy-hd h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;}
+  .tdy-prg{flex:none;}
+  .tdy-prg .pb{display:none;}
+  .tdy-hld{flex:none;max-width:112px;margin-left:auto;padding:2px 8px;}
+  .tdy-hld i{font-size:10.5px;}
+  .tdy-cta{flex:1 1 100%;margin-left:0;text-align:center;padding:8px 13px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
   .tdy-t.fy{width:136px;}
@@ -1489,6 +1517,9 @@ const CSS = `
 }
 @media(max-width:560px){
   .dhx-marquee{margin-left:-14px;margin-right:-14px;}
+  /* the last of the headroom on a small Android, so the longest category name
+     still clears its leader chip */
+  .tdy-hld{max-width:100px;}
 }
 
 /* ══ the reader's own navigation (owner, 2026-08-25) ══ */
