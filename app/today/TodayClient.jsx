@@ -57,7 +57,6 @@ import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats
 import useMyGames from '../useMyGames';
 
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
-const SUDOKU_COLOR = '#1d4ed8'; // not in CAT_BLUE; the mockup's pick, distinct from Numbers and Trivia
 
 // Sum a set of games' per-game boards into one standings list. Same known
 // limit as the Loft's category leaders: each per-game board carries only its
@@ -81,7 +80,6 @@ function aggregateShelf(bgames, games) {
 }
 
 function catColor(name) {
-  if (name === 'Sudoku') return SUDOKU_COLOR;
   if (name === 'Crowd Psychology') return catBlue('crowd');
   return catBlue(name);
 }
@@ -351,7 +349,7 @@ export default function TodayClient({ onSignup = null } = {}) {
       try { keys = circuitKeysFor(c.id, today) || []; } catch (e) { keys = []; }
       const games = keys.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
       if (!games.length) return null;
-      const color = c.id === 'sudoku' ? SUDOKU_COLOR : catColor(games[0].cat);
+      const color = c.id === 'sudoku' ? catBlue('sudoku') : catColor(games[0].cat);
       return { kind: 'circuit', id: c.id, name: c.name, blurb: c.blurb || '', color, games };
     }).filter(Boolean);
   }, [today]);
@@ -910,7 +908,7 @@ export default function TodayClient({ onSignup = null } = {}) {
 
         {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
-            <div className="tdy-shc" style={{ '--cc': '#a1750b' }}>
+            <div className="tdy-shc" style={{ '--cc': '#8a6309' }}>
               <div className="tdy-hd">
                 <div>
                   <div className="eb">{`Yours \u00b7 ${pinned.length} pinned`}</div>
@@ -1057,7 +1055,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                       <div className="nt">{shelf.blurb}</div>
                     ) : null}
                   </div>
-                  <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} style={cta.gold ? undefined : { background: shelf.color, borderColor: shelf.color }} href={cta.href}>{cta.label}</a>
+                  <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
                 </div>
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
@@ -1317,25 +1315,39 @@ const CSS = `
 .tdy-row{display:block;}
 .tdy-shc{background:var(--white);border:1px solid #e7e9ee;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);margin:14px 2px 0;}
 .tdy-shc.foryou{margin-top:16px;}
-.tdy-hd{display:flex;align-items:center;gap:12px;padding:9px 14px 9px 18px;position:relative;background:#eef2f8;background:color-mix(in srgb,var(--cc) 9%,#fff);}
-.tdy-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
-.tdy-hd .eb{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:#6b7280;}
-.tdy-hd h2{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--ink);}
-.tdy-hd .nt{font-size:11.5px;font-weight:600;color:#6b7280;margin-top:3px;}
+/* THE HEADER IS A FILLED BAND (owner, 2026-08-25). It was a 9% tint of the
+   category colour with a 4px rule; the whole strip now takes the colour solid
+   and everything on it inverts to white. The rail is gone: a 4px rule on a
+   filled band of the same colour is invisible by definition.
+
+   NOTHING HERE IS DIMMED WITH OPACITY, and that is load-bearing rather than a
+   style choice. The hues in lib/home-blues clear 4.5:1 against PURE white with
+   no headroom, so white at .78 lands at 3.46 on Word and the 9.5px eyebrow
+   fails. Hierarchy on this band comes from size and weight only. Same reason
+   the leader chip keeps its opaque gold instead of becoming a white wash of the
+   hue, which fails on five of the ten categories. */
+.tdy-hd{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 16px;position:relative;background:var(--cc,#2563eb);}
+.tdy-hd .eb{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--white);}
+.tdy-hd h2{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--white);}
+.tdy-hd .nt{font-size:11.5px;font-weight:600;color:var(--white);margin-top:3px;}
 .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
 .tdy-prg{display:inline-flex;align-items:center;gap:6px;flex:none;margin-top:2px;}
-.tdy-prg b{font-size:11px;font-weight:800;color:#6b7280;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.tdy-prg .pb{width:44px;height:4px;border-radius:99px;background:rgba(16,24,40,.10);overflow:hidden;}
-.tdy-prg .pb span{display:block;height:100%;background:var(--cc);border-radius:99px;transition:width .3s;}
-.tdy-prg.full b{color:var(--success-deep);}
-.tdy-prg.full .pb span{background:#22c55e;}
+.tdy-prg b{font-size:11px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tdy-prg .pb{width:44px;height:4px;border-radius:99px;background:rgba(255,255,255,.32);overflow:hidden;}
+.tdy-prg .pb span{display:block;height:100%;background:var(--white);border-radius:99px;transition:width .3s;}
+/* a full bar is a solid white bar at 100%: green on a coloured band either
+   clashes or, on Trivia, disappears into it */
+.tdy-prg.full b{color:var(--white);}
+.tdy-prg.full .pb span{background:var(--white);}
 .tdy-hld{display:inline-flex;align-items:center;gap:5px;flex:none;max-width:190px;border-radius:999px;padding:2px 9px 2px 8px;background:#fdf3d7;border:1px solid #eeda9e;}
-.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#8a6d1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-hld b{font-size:10px;font-weight:800;color:#a1750b;font-variant-numeric:tabular-nums;flex:none;}
-.tdy-cta{margin-left:auto;border:1px solid var(--cc);background:var(--cc);color:var(--white);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
-.tdy-cta:hover{filter:brightness(1.12);}
-.tdy-cta.gold{background:var(--gold);border-color:var(--gold);color:#2a1f04;}
-.tdy-cta.gold:hover{filter:none;background:#f2c451;}
+.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#836617;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tdy-hld b{font-size:10px;font-weight:800;color:#8a6309;font-variant-numeric:tabular-nums;flex:none;}
+/* the CTA inverts with the band. It used to carry an inline background too,
+   which would have won over this rule, so that was removed at the call site. */
+.tdy-cta{margin-left:auto;border:1px solid var(--white);background:var(--white);color:var(--cc,#2563eb);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
+.tdy-cta:hover{filter:none;background:#eef2f8;border-color:#eef2f8;}
+.tdy-cta.gold{background:var(--white);border-color:var(--white);color:#7f5a08;}
+.tdy-cta.gold:hover{filter:none;background:#fdf3d7;border-color:#fdf3d7;}
 
 /* ── tile tracks ── */
 .tdy-tw{position:relative;}

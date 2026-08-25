@@ -1543,6 +1543,44 @@ that only touch internals (descriptions, itemYelp, this file). Don't ping URLs t
 live yet — wait for the Vercel deploy, and remember the Hobby-plan deploy limit (a push that
 silently didn't deploy means the URL 404s; verify before pinging).
 
+## Category shelf headers are FILLED BANDS in real hues (owner, 2026-08-25)
+
+The category shelves on the marquee home (`app/today/TodayClient.jsx`, `.tdy-hd`) carry a header
+strip filled SOLID with that category's colour, white ink, white CTA. It was a 9% tint plus a 4px
+rule. **This supersedes the one-blue-family ruling of 2026-08-04 FOR `CAT_BLUE` ONLY.** `DEPT_BLUE`
+(the live feed, sixteen departments as small chips) is unchanged and still one blue family; that
+part of the ruling stands.
+
+**Why the ruling moved, in one measurement.** A filled band is a different problem from a 7px dot:
+
+| | hue spread | L* spread |
+|---|---|---|
+| one blue family (old `CAT_BLUE`) | 43 deg | 21.5 |
+| real hues (new) | 328 deg | 14.4 |
+
+Read the right way round, that is backwards for a band. The shelves differed in how DARK they were
+rather than in what colour they were, so Word (24.6 L*) read as heavier and more important than
+Trivia (46.1 L*), a ranking nobody intended. Real hues invert it: distinct colours at near-equal
+weight. Filling the band therefore FORCED the hue decision, and there is no cheap middle, a
+blue-family tint differentiates nothing either.
+
+**Two rules for any surface that fills a band with these:**
+
+1. **Never dim band ink with opacity.** Every hue clears 4.5:1 against PURE white and has no
+   headroom past it, so white at .78 lands at 3.46 on Word and the 9.5px eyebrow fails. Hierarchy
+   comes from size and weight. Same reason the leader chip keeps opaque gold rather than becoming a
+   white wash of the hue, which fails on five of the ten categories.
+2. **Adjacent shelves in `CAT_ORDER` must sit >=30 deg apart in hue** so neighbours are always
+   tellable. Changing one value means re-checking its neighbours, not just its own contrast.
+
+**Knock-on, deliberate:** `catBlue` is imported by `DailyStrip`, `HomeRails` and `QuizHomeClient`
+too, so the category dots, the mastery bars, the Loft category slips and the last-played chips all
+take the real hues in the same push. Audited before shipping: the only other place that puts TEXT
+on the colour is `DailyStrip`'s `.dh-tcat` (white on `catCol`), which every hue clears.
+
+**The name `CAT_BLUE` is now historical** and the values are not blues. Renaming it is mechanical
+across six call sites and should be its own commit, never folded into a colour edit.
+
 ## Homepage Discover ordering: no two product lists adjacent
 
 The Discover (default, seeded-shuffle) sort on the homepage must never place two
