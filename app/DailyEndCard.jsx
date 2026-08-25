@@ -87,7 +87,7 @@ import {
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
-  ArrowLeftRight, Gem, Map as MapIcon,
+  ArrowLeftRight, Gem, Map as MapIcon, Divide,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -114,7 +114,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -194,6 +194,7 @@ export const GAME_META = {
   polka: { accent: '#16a34a', badgeBg: '#16a34a', badgeInk: T.white, Fin: CircleDot },
   atlas: { accent: '#047857', badgeBg: '#047857', badgeInk: T.white, Fin: MapIcon },
   sport: { accent: '#7c2d12', badgeBg: '#7c2d12', badgeInk: T.white, Fin: Trophy },
+  calc: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: Divide },
   race:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: FlagTriangleRight },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
@@ -293,6 +294,7 @@ const ALL_DAILY_GAMES = [
   { key: 'fib',    cat: 'logic',     name: 'Fib',    tag: 'One clue is lying',          blurb: 'A logic grid where exactly one clue is false. Find the lie, then solve the rest.', href: '/fib' },
   { key: 'streak', cat: 'trivia',    name: 'Streak', tag: 'Forty questions, one life',  blurb: 'Forty trivia questions, sudden death. One wrong answer ends the run for the day.', href: '/streak' },
   { key: 'deep',   cat: 'trivia',    name: 'Deep',   tag: 'One topic, fifteen questions', blurb: 'One subject a day, fifteen questions on it, easy to expert. One wrong answer ends the dive.', href: '/deep' },
+  { key: 'calc',  cat: 'numbers',   name: 'Calc',  tag: 'Walk the calculator',      blurb: 'Step across a grid of numbers and operators, one touching button at a time, and land on exactly the target. Reads left to right, like a calculator.', href: '/calc' },
   { key: 'sport', cat: 'trivia',    name: 'Sport', tag: 'Every sport, one life', blurb: 'Twenty-five sports questions, gimme to expert, five lanes a round from the NFL to the Olympics. One wrong answer ends the run.', href: '/sport' },
   { key: 'atlas', cat: 'geography', name: 'Atlas', tag: 'Twenty-five questions, one life', blurb: 'Twenty-five geography questions, gimme to expert, five subjects a round. One wrong answer ends the run.', href: '/atlas' },
   { key: 'anon',  cat: 'word',       name: 'Anon',   tag: 'A clueless acrostic',    blurb: "An unsigned passage and a bank of answers built from its letters. Solve them, and their first letters spell out who wrote it.", href: '/anon' },

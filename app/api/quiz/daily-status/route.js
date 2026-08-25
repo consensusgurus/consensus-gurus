@@ -32,7 +32,7 @@ const CACHE_HEADERS = { 'Cache-Control': 'public, s-maxage=30, stale-while-reval
 // Daily-game quizIds look like `<game>-<M>-<D>-<YY>` (e.g. crux-7-14-26). This
 // matches only those, so a normal quiz that happens to share a prefix can't leak
 // in.
-const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|quilt|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket|lode|etch|hedge|listed|mate|four|park|check|rung|crunch|taire|fib|streak|feud|babel|glyph|hands|chain|turn|suffice|strata|redact|paths|deep|anon|blocks|chomp|sweep|docket|blitz|defend|cages|sando|barter|plot|sixes|niche|shoe|queen|towers|mercury|polka|atlas|sport)-\d+-\d+-\d+$/;
+const DAILY_RE = /^(crux|emcee|garble|links|span|dating|tally|suds|quilt|circa|extra|carve|stet|outwit|tuck|alibi|cipher|ping|warmer|jester|sworn|outrank|shards|axiom|hearsay|venn|stands|bracket|lode|etch|hedge|listed|mate|four|park|check|rung|crunch|taire|fib|streak|feud|babel|glyph|hands|chain|turn|suffice|strata|redact|paths|deep|anon|blocks|chomp|sweep|docket|blitz|defend|cages|sando|barter|plot|sixes|niche|shoe|queen|towers|mercury|polka|atlas|sport|calc)-\d+-\d+-\d+$/;
 
 // GET /api/quiz/daily-status?anonId=&email=
 // The player's daily-game history, resolved by the identity the quiz client

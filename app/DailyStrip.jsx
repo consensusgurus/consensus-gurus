@@ -127,6 +127,7 @@ const GAMES = [
   { key: 'anon', href: '/anon', name: 'Anon', img: '/games/btn-anon.png', store: 'sot_anon_day', tag: "A clueless acrostic" , cat: 'Word' },
   { key: 'atlas', href: '/atlas', name: 'Atlas', img: '/games/btn-atlas.png', store: 'sot_atlas_day', tag: "Twenty-five questions, one life" , cat: 'Geography' },
   { key: 'sport', href: '/sport', name: 'Sport', img: '/games/btn-sport.png', store: 'sot_sport_day', tag: "Every sport, one life" , cat: 'Trivia' },
+  { key: 'calc', href: '/calc', name: 'Calc', img: '/games/btn-calc.png', store: 'sot_calc_day', tag: "Walk the calculator" , cat: 'Numbers' },
 // Retired games leave the board by themselves the morning after their bank's
 // last drop (RETIRED_DAILY in lib/daily-games). Every count on this strip is
 // derived from GAMES, so the "all N done" copy follows along.
