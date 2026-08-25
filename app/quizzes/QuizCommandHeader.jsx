@@ -220,6 +220,21 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     // from `home`, both below: it sits in normal flow rather than sticking, and
     // its nav links out instead of scrolling the page it is on.
     const inner = variant === 'inner';
+    // ONE TIMEFRAME PER SURFACE (owner, 2026-08-25). Counted on the live home:
+    // the daily rank printed THREE times inside 200px (this strip, the hero's
+    // sub-line, the Leaderboards chip), games-played three times, and the day's
+    // IQ gain twice inside this strip alone. So the surfaces were split by
+    // timeframe rather than de-duplicated one at a time:
+    //
+    //   this strip  -> WHO YOU ARE, ALL TIME: Player, Rank, IQ points.
+    //   the hero    -> TODAY: played, points, IQ gained.
+    //   the chips   -> navigation, plus the one fact they navigate to.
+    //
+    // So Played and Daily rank leave the strip ON THE HOME ONLY, where a hero
+    // sits 60px below saying both, bigger and warmer. Every other surface
+    // (`inner`: quiz boards, Stat Hub, Duel, profiles) has no hero, so it keeps
+    // the full five cells and is untouched by this.
+    const home = !inner;
     const stat = (label, value, sub, subCls, cellCls) => (
       <div className={`qchm-cell${cellCls ? ` ${cellCls}` : ''}`}>
         <div className="qchm-k">{label}</div>
@@ -369,9 +384,13 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             <>
               <div className="qchm-cell qchm-hidem"><div className="qchm-k">Player</div><div className="qchm-v">{me.name}</div></div>
               {rank ? stat('Rank', <>{`#${fmtK(rank)}`}{totalPlayers ? <i>{` of ${totalPlayers.toLocaleString()}`}</i> : null}</>, moveTxt, moved ? (day.rankChange > 0 ? 'qchm-up' : 'qchm-down') : '') : null}
-              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i><i className="qchm-day">{dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
-              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
-              {stat(
+              {/* The big value is the LIFETIME total on the home, with the day's
+                  gain left to the small change sub-line the way the Rank cell
+                  leaves its movement there. On `inner` the inline +N stays,
+                  since nothing else on those pages reports the day. */}
+              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i><i className="qchm-day">{!home && dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
+              {home ? null : stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
+              {home ? null : stat(
                 'Daily rank',
                 dayRank
                   ? <>{`#${fmtK(dayRank)}`}{dayField ? <i className="qchm-day">{` of ${dayField.toLocaleString()}`}</i> : null}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>

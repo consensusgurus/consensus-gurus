@@ -808,11 +808,21 @@ export default function TodayClient({ onSignup = null } = {}) {
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
   const myPts = board && board.me && typeof board.me.total === 'number' ? board.me.total : null;
+  // THE HERO OWNS TODAY, THE NAVY STRIP OWNS ALL TIME (owner, 2026-08-25).
+  // The daily RANK left this line: it was printing here, in the strip above,
+  // and on the Leaderboards chip six inches to the right, and the chip is the
+  // one a reader who cares about it is going to tap anyway. So rank now lives
+  // in exactly one place on the page.
+  //
+  // Both of the day's currencies are NAMED, because they are different numbers
+  // that both mean "how you did today" and sat unlabelled 100px apart: `pts`
+  // is placement on today's combined board, `IQ` is what the day banked toward
+  // the lifetime total in the strip above.
   const heroSub = (() => {
     const parts = [];
     if (day.ready || day.done) parts.push(`${day.done} of ${day.total} played`);
     if (myPts != null && myPts > 0) parts.push(`${fmtPts(myPts)} pts`);
-    if (day.dayRank) parts.push(`#${day.dayRank.toLocaleString()} today`);
+    if (day.todayXp) parts.push(`${day.todayXp.toLocaleString()} IQ today`);
     return parts.join(' · ');
   })();
   const heroPct = day.total ? Math.round((100 * day.done) / day.total) : 0;
