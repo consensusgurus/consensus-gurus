@@ -521,7 +521,7 @@ export default function AtlasClient({ puzzles = [], questionsByNum = {}, forceNu
       {LOFT && (
         <LoftCap
           name="Atlas"
-          cat="Trivia"
+          cat="Geography"
           outcome={playing ? null : (won ? 'won' : (depth > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
