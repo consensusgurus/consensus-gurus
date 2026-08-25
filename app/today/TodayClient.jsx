@@ -1,11 +1,21 @@
 'use client';
 
-// The marquee category home (live preview at /today). One sideways-scrolling
-// shelf per category on the midnight ground, ordered Word, Sudoku, End Game,
-// Logic, then the rest. White tiles carry the ORIGINAL colored game art
-// (/games/btn-<key>.png); state language matches the slate: gold = paused,
-// green = done, crowd count on unplayed tiles, alphabetical within each shelf.
-// Each tile also names the game's current leader.
+// The marquee category home (live preview at /today), on the PAPER ground since
+// 2026-08-24 (owner-approved blend, artifact "the-blend"): the navy site header
+// stays untouched above this component; the component itself flips to the light
+// paper theme the game pages use. Top to bottom:
+//   - a WELCOME band in the scheme blues: time-of-day greeting + the day meter
+//     (played / pts / rank + progress bar), with Leaderboards and Live feed
+//     chips on its right edge. The greeting and the clock are read in EFFECTS,
+//     never during render, so SSR and the client agree.
+//   - a FOR YOU row (blue chrome): paused games, the Daily Five's next game,
+//     the next unplayed game, and a date-rotated spotlight pick. Every Resume
+//     control is GOLD (owner rule); gold otherwise marks only paused tiles.
+//   - one white shelf CARD per category: tinted header strip with a 4px rule
+//     in the category color, a done-count + progress bar on the label, and a
+//     CTA chip filled with the category color (gold when it is a Resume).
+//     A category with every game done collapses to a green band with the
+//     scores ("Show tiles" expands it).
 //
 // DATA is the same plumbing the slate uses, deliberately:
 //   - done/paused detection is DailyStrip's three-pass recipe verbatim:
@@ -24,6 +34,8 @@
 //     so SSR and the client agree.
 //   - the live feed section is ANONYMOUS by owner rule (2026-08-10): rows
 //     carry results without attribution, the band carries the day's totals.
+//   - completed games sink to the FAR RIGHT of their row (owner, 2026-08-24);
+//     paused games are NOT moved.
 //
 // NEVER add a blanket `.tdy a { color: ... }` rule here. It out-specifies the
 // single-class selectors the tiles and rails style their own anchors with, and
@@ -35,9 +47,10 @@ import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
+import savedIdentity from '@/lib/saved-identity';
 import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 
-const GROUND = '#0b0f1a';
+const PAPER = '#f7f8fa';
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
 const SUDOKU_COLOR = '#1d4ed8'; // not in CAT_BLUE; the mockup's pick, distinct from Numbers and Trivia
 
@@ -87,9 +100,9 @@ const CROWN = (
 );
 
 // A shelf's tile track with desktop scroll affordances: an edge nudge chip on
-// whichever side has more to show, plus a short ground-colored fade under it.
-// Same idea as the slate's category-strip cue, made clickable for a mouse; on
-// touch the chips are hidden and the track simply flicks.
+// whichever side has more to show, plus a short white fade under it (the
+// tracks all live inside white cards on the paper ground). On touch the chips
+// are hidden and the track simply flicks.
 function TilesRow({ children, light = false }) {
   const ref = useRef(null);
   const [can, setCan] = useState({ l: false, r: false });
@@ -144,12 +157,19 @@ export default function TodayClient() {
   // ── the day, read in an effect so SSR and the client never disagree ──
   const [today, setToday] = useState(null);
   const [dateLabel, setDateLabel] = useState('');
+  const [greet, setGreet] = useState('Welcome back');
+  const [who, setWho] = useState('');
   useEffect(() => {
     const iso = etToday();
     setToday(iso);
     try {
       setDateLabel(new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).replace(',', ' ·'));
     } catch (e) { setDateLabel(iso); }
+    try {
+      const h = new Date().getHours();
+      setGreet(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
+    } catch (e) {}
+    setWho(savedIdentity().username || '');
   }, []);
   // NOTE: every sudoku grid publishes a puzzle every day. The circuit's 5-of-8
   // rotating window (circuitKeysFor) only decides which five count toward the
@@ -175,11 +195,10 @@ export default function TodayClient() {
     }).filter(Boolean);
   }, [today]);
 
-  // The Daily Five, as a strip card rather than the old console band (owner,
-  // 2026-08-24). A game played on its own still counts toward the run, so the
-  // card reads progress straight off the same `done` set the shelves use. An
-  // unbanked date returns no roster and the card simply doesn't render, same
-  // rule as the run itself.
+  // The Daily Five: a game played on its own still counts toward the run, so
+  // the For you tile reads progress straight off the same `done` set the
+  // shelves use. An unbanked date returns no roster and the tile simply
+  // doesn't render, same rule as the run itself.
   const fiveKeys = useMemo(() => {
     if (!today) return [];
     try { return fiveFor(today) || []; } catch (e) { return []; }
@@ -333,6 +352,49 @@ export default function TodayClient() {
     return next ? { g: next.g, resume: false } : null;
   }, [flat, inprog, done]);
 
+  // THE FOR YOU ROW (owner-approved blend, 2026-08-24): paused games first,
+  // then the Daily Five's next game (pushed before the plain next-unplayed so
+  // the run's reason and its ?five=1 link win when they are the same game),
+  // then the next unplayed game, then a spotlight pick rotated by date over
+  // the whole roster, same for everyone, like the quiz hub's QOTD. Deduped by
+  // game key. On the server this renders exactly one tile (the first game of
+  // the first shelf as "Up next") because done/inprog/today all start empty,
+  // so SSR and the first client paint agree; the effects fill it in.
+  const spotKey = useMemo(() => {
+    if (!today || !DAY_ROSTER.length) return null;
+    let h = 0;
+    for (const ch of today) h = ((h * 31) + ch.charCodeAt(0)) >>> 0;
+    return DAY_ROSTER[h % DAY_ROSTER.length];
+  }, [today]);
+  const forYou = useMemo(() => {
+    const items = []; const seen = new Set();
+    const push = (g, why, cls, href) => {
+      if (!g || seen.has(g.key)) return;
+      seen.add(g.key);
+      items.push({ g, why, cls, href: href || g.href });
+    };
+    let paused = 0;
+    for (const { g } of flat) {
+      if (paused >= 4) break;
+      if (inprog.has(g.key) && !done.has(g.key)) { push(g, 'Paused', 'g'); paused += 1; }
+    }
+    if (fiveKeys.length >= 2) {
+      const fiveDone = fiveKeys.filter((k) => done.has(k)).length;
+      const nk = fiveKeys.find((k) => !done.has(k));
+      const ng = nk ? DAILY_GAME_MAP[nk] : null;
+      if (ng) push(ng, `Daily Five · ${fiveDone} of ${fiveKeys.length}`, 'b', `${ng.href}?five=1`);
+    }
+    const nxt = flat.find(({ g }) => !done.has(g.key) && !inprog.has(g.key));
+    if (nxt) push(nxt.g, 'Up next', 'b');
+    if (spotKey && DAILY_GAME_MAP[spotKey]) push(DAILY_GAME_MAP[spotKey], 'Spotlight today', 's');
+    return items;
+  }, [flat, inprog, done, fiveKeys, spotKey]);
+
+  // A finished category collapses to a band with the scores; "Show tiles"
+  // reopens it. `done` is empty on the server, so nothing is collapsed at
+  // first paint and hydration agrees.
+  const [openDone, setOpenDone] = useState(() => new Set());
+
   // Completed games sink to the FAR RIGHT of their row (owner, 2026-08-24). A
   // shelf is read left to right as "what should I play next", so a game you
   // have already finished today is the one tile on it with nothing left to
@@ -426,47 +488,66 @@ export default function TodayClient() {
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
+  const myPts = board && board.me && typeof board.me.total === 'number' ? board.me.total : null;
+  const heroSub = (() => {
+    const parts = [];
+    if (day.ready || day.done) parts.push(`${day.done} of ${day.total} played`);
+    if (myPts != null && myPts > 0) parts.push(`${fmtPts(myPts)} pts`);
+    if (day.dayRank) parts.push(`#${day.dayRank.toLocaleString()} today`);
+    return parts.join(' · ');
+  })();
+  const heroPct = day.total ? Math.round((100 * day.done) / day.total) : 0;
 
   return (
     <div className="tdy">
       <style>{CSS}</style>
 
       <div className="tdy-wrap">
-        <div className="tdy-today">
-          <div>
-            <div className="tdy-eb">{dateLabel || ' '}</div>
-            <h1>The day&rsquo;s puzzles, by category</h1>
+        <div className="tdy-hero">
+          <div className="hl">
+            <div className="hi">{dateLabel || ' '}</div>
+            <h1>{who ? `${greet}, ${who}` : greet}</h1>
+            <div className="sub">{heroSub || 'The day’s puzzles, by category'}</div>
+            <div className="bar" aria-hidden="true"><span style={{ width: `${heroPct}%` }} /></div>
           </div>
-          <div className="tdy-right">
-            <span className="tdy-ct">{day.ready || day.done ? `${day.done} of ${day.total} played today` : ' '}</span>
-            {fiveKeys.length >= 2 ? (() => {
-              const fiveDone = fiveKeys.filter((k) => done.has(k)).length;
-              const nextKey = fiveKeys.find((k) => !done.has(k));
-              const nextG = nextKey ? DAILY_GAME_MAP[nextKey] : null;
-              const href = !nextG ? '/daily-five' : `${nextG.href}?five=1`;
-              return (
-                <a className="tdy-mini" href={href}>
-                  <span className="ic five">5</span>
-                  <span>
-                    <span className="k">The Daily Five</span>
-                    <span className="v">{!nextG ? 'Done · see the board' : (fiveDone ? `${fiveDone} of ${fiveKeys.length} · next ${nextG.name}` : `Start · ${nextG.name}`)}</span>
-                  </span>
-                </a>
-              );
-            })() : null}
-            <a className="tdy-mini" href="#tdy-boards">
-              <span className="ic"><span className="tdy-pulse" /></span>
-              <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
-            </a>
+          <div className="hr">
             <a className="tdy-mini" href="#tdy-boards">
               <span className="ic">{TROPHY}</span>
               <span><span className="k">Leaderboards</span><span className="v">{day.dayRank ? `You're #${day.dayRank.toLocaleString()} today` : "Today's standings"}</span></span>
             </a>
-            {continueGame ? (
-              <a className="tdy-go" href={continueGame.g.href}>{`${continueGame.resume ? 'Continue' : 'Play'} · ${continueGame.g.name}`}</a>
-            ) : null}
+            <a className="tdy-mini" href="#tdy-boards">
+              <span className="ic"><span className="tdy-pulse" /></span>
+              <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
+            </a>
           </div>
         </div>
+
+        {forYou.length ? (
+          <section className="tdy-shc foryou" style={{ '--cc': '#2563eb' }}>
+            <div className="tdy-hd">
+              <div>
+                <div className="eb">For you</div>
+                <div className="tdy-hnm"><h2>Continue</h2></div>
+              </div>
+              {continueGame ? (
+                <a className={continueGame.resume ? 'tdy-cta gold' : 'tdy-cta'} style={continueGame.resume ? undefined : { background: '#2563eb', borderColor: '#2563eb' }} href={continueGame.g.href}>
+                  {`${continueGame.resume ? 'Resume' : 'Play'} · ${continueGame.g.name}`}
+                </a>
+              ) : (
+                <a className="tdy-cta" style={{ background: '#2563eb', borderColor: '#2563eb' }} href="/daily-five">All done today</a>
+              )}
+            </div>
+            <TilesRow>
+              {forYou.map(({ g, why, cls, href }) => (
+                <a key={g.key} className={'tdy-t fy' + (cls === 'g' ? ' paused' : '')} href={href}>
+                  <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                  <b>{g.name}</b>
+                  <span className={`tdy-why ${cls}`}>{why}</span>
+                </a>
+              ))}
+            </TilesRow>
+          </section>
+        ) : null}
 
         <div className="tdy-view" role="tablist" aria-label="Group the slate by">
           <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
@@ -475,49 +556,82 @@ export default function TodayClient() {
 
         {(view === 'circuits' ? circuitShelves : shelves).map((shelf, si) => {
           const cta = shelfCta(shelf);
+          const dn = shelf.games.filter((g) => done.has(g.key)).length;
+          const tot = shelf.games.length;
+          const allDone = view === 'cats' && tot > 0 && dn >= tot;
+          const collapsed = allDone && !openDone.has(shelf.name);
+          const rest = view === 'cats' && si === 4 ? (
+            <div className="tdy-restband"><h3>The rest of the slate</h3><i>{`${CAT_ORDER.length - 4} more categories`}</i></div>
+          ) : null;
+          if (collapsed) {
+            return (
+              <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
+                {rest}
+                <div className="tdy-catdone">
+                  <b className="nm">{shelf.name}</b>
+                  <span className="ck">{`All ${tot} done`}</span>
+                  {shelf.games.map((g) => {
+                    const r = myRow(g.key);
+                    const sc = r && r.score != null && r.total ? `${r.score}/${r.total}` : '✓';
+                    return (
+                      <a key={g.key} className="it" href={g.href}>
+                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                        <span>{`${g.name} ✓ ${sc}`}</span>
+                      </a>
+                    );
+                  })}
+                  <button type="button" className="show" onClick={() => setOpenDone((cur) => new Set([...cur, shelf.name]))}>Show tiles</button>
+                </div>
+              </section>
+            );
+          }
           return (
             <section key={(shelf.kind || 'cat') + shelf.name} className="tdy-row">
-              {view === 'cats' && si === 4 ? (
-                <div className="tdy-restband"><h3>The rest of the slate</h3><i>{`${CAT_ORDER.length - 4} more categories`}</i></div>
-              ) : null}
-              <div className="tdy-hd" style={{ borderLeftColor: shelf.color }}>
-                <div>
-                  <div className="eb">{shelf.kind === 'circuit' ? `Circuit · ${shelf.games.length} today` : (shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`)}</div>
-                  <div className="tdy-hnm">
-                    <h2>{shelf.name}</h2>
-                    {(() => {
-                      const L = shelfLead[(shelf.kind || 'cat') + shelf.name];
-                      if (!L) return null;
-                      return (
-                        <span className="tdy-hld" title={L.username + ' leads ' + shelf.name + ' today: ' + L.pts + ' points across ' + L.games + (L.games === 1 ? ' game' : ' games')}>
-                          {CROWN}<i>{L.username}</i><b>{L.pts} pts</b>
-                        </span>
-                      );
-                    })()}
+              {rest}
+              <div className="tdy-shc" style={{ '--cc': shelf.color }}>
+                <div className="tdy-hd">
+                  <div>
+                    <div className="eb">{shelf.kind === 'circuit' ? `Circuit · ${shelf.games.length} today` : (shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`)}</div>
+                    <div className="tdy-hnm">
+                      <h2>{shelf.name}</h2>
+                      <span className={'tdy-prg' + (dn >= tot ? ' full' : '')}>
+                        <b>{`${dn} of ${tot}`}</b>
+                        <span className="pb" aria-hidden="true"><span style={{ width: `${tot ? Math.round((100 * dn) / tot) : 0}%` }} /></span>
+                      </span>
+                      {(() => {
+                        const L = shelfLead[(shelf.kind || 'cat') + shelf.name];
+                        if (!L) return null;
+                        return (
+                          <span className="tdy-hld" title={L.username + ' leads ' + shelf.name + ' today: ' + L.pts + ' points across ' + L.games + (L.games === 1 ? ' game' : ' games')}>
+                            {CROWN}<i>{L.username}</i><b>{L.pts} pts</b>
+                          </span>
+                        );
+                      })()}
+                    </div>
+                    {shelf.kind === 'circuit' && shelf.blurb ? (
+                      <div className="nt">{shelf.blurb}</div>
+                    ) : null}
                   </div>
-                  {shelf.kind === 'circuit' && shelf.blurb ? (
-                    <div className="nt">{shelf.blurb}</div>
-                  ) : null}
+                  <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} style={cta.gold ? undefined : { background: shelf.color, borderColor: shelf.color }} href={cta.href}>{cta.label}</a>
                 </div>
-                <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
+                <TilesRow>
+                  {sinkDone(shelf.games).map((g) => {
+                    const st = statusLine(shelf, g);
+                    const leader = leaderOf(g.key);
+                    const cls = ['tdy-t'];
+                    if (done.has(g.key)) cls.push('done');
+                    else if (inprog.has(g.key)) cls.push('paused');
+                    return (
+                      <a key={g.key} className={cls.join(' ')} href={g.href}>
+                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                        <b>{g.name}</b>
+                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
+                        <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
+                      </a>
+                    );
+                  })}
+                </TilesRow>
               </div>
-              <TilesRow>
-                {sinkDone(shelf.games).map((g) => {
-                  const st = statusLine(shelf, g);
-                  const leader = leaderOf(g.key);
-                  const cls = ['tdy-t'];
-                  if (done.has(g.key)) cls.push('done');
-                  else if (inprog.has(g.key)) cls.push('paused');
-                  return (
-                    <a key={g.key} className={cls.join(' ')} href={g.href}>
-                      <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                      <b>{g.name}</b>
-                      <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
-                      <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
-                    </a>
-                  );
-                })}
-              </TilesRow>
             </section>
           );
         })}
@@ -713,7 +827,7 @@ export default function TodayClient() {
 }
 
 const CSS = `
-.tdy{background:${GROUND};font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+.tdy{background:${PAPER};font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
@@ -721,66 +835,99 @@ const CSS = `
    mirror .qzh's side padding (16px to 900px, 14px under 560) so the full-bleed
    phone treatment still reaches the screen edges. */
 .dhx-marquee .tdy-wrap{max-width:none;padding-left:0;padding-right:0;}
-.tdy-today{display:flex;align-items:flex-end;gap:16px;padding:26px 2px 18px;color:var(--white);}
-.tdy-eb{font-size:11px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;min-height:13px;}
-.tdy-today h1{font-size:clamp(21px,2.4vw,27px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0;color:var(--white);}
-.tdy-right{margin-left:auto;display:flex;align-items:center;gap:9px;}
-.tdy-ct{font-size:12.5px;font-weight:700;color:#8fa8dc;white-space:nowrap;font-variant-numeric:tabular-nums;margin-right:5px;}
-.tdy-mini{display:flex;align-items:center;gap:10px;background:#121f3f;border:1px solid #22345e;border-radius:10px;padding:7px 13px 7px 9px;text-decoration:none;}
-.tdy-mini:hover{background:#182a52;border-color:#2f4a85;}
-.tdy-mini .ic{width:26px;height:26px;border-radius:8px;background:#16306e;display:flex;align-items:center;justify-content:center;flex:none;}
-.tdy-mini .ic.five{background:var(--gold);color:#2a1f04;font-size:13.5px;font-weight:800;}
-.tdy-mini .k{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8fa8dc;font-weight:800;line-height:1;}
-.tdy-mini .v{display:block;font-size:12.5px;font-weight:800;color:var(--white);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;}
-.tdy-pulse{width:6px;height:6px;border-radius:50%;background:#5ad48f;box-shadow:0 0 0 0 rgba(90,212,143,.5);animation:tdypul 2s infinite;flex:none;}
-@keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(90,212,143,.5);}70%{box-shadow:0 0 0 7px rgba(90,212,143,0);}100%{box-shadow:0 0 0 0 rgba(90,212,143,0);}}
-.tdy-go{background:var(--gold);color:#2a1f04;font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;border-radius:8px;padding:9px 14px;white-space:nowrap;text-decoration:none;}
-.tdy-go:hover{background:#f2c451;}
-.tdy-view{display:flex;gap:6px;padding:0 2px 6px;}
-.tdy-viewbtn{font-family:inherit;background:none;border:1px solid #24365f;color:#8fa8dc;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer;}
-.tdy-viewbtn:hover{border-color:#4f74cc;color:#fff;}
-.tdy-viewbtn.on{background:#121f3f;border-color:#4f74cc;color:#fff;}
+
+/* ── the welcome band: Dawn's greeting in the scheme blues ── */
+.tdy-hero{background:linear-gradient(115deg,#dbeafe 0%,#e8effe 55%,#f2f6ff 100%);border-radius:18px;padding:20px 24px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:18px 2px 0;}
+.tdy-hero .hi{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#1d4ed8;min-height:13px;}
+.tdy-hero h1{font-size:clamp(21px,2.3vw,26px);font-weight:800;letter-spacing:-.02em;color:#16255f;margin:4px 0 0;}
+.tdy-hero .sub{font-size:13px;font-weight:700;color:#5a6a8a;margin-top:6px;font-variant-numeric:tabular-nums;}
+.tdy-hero .bar{width:170px;height:7px;border-radius:99px;background:rgba(255,255,255,.6);overflow:hidden;margin-top:9px;}
+.tdy-hero .bar span{display:block;height:100%;background:#2563eb;border-radius:99px;transition:width .3s;}
+.tdy-hero .hr{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;}
+.tdy-mini{display:flex;align-items:center;gap:10px;background:var(--white);border-radius:12px;padding:8px 14px 8px 10px;text-decoration:none;box-shadow:0 8px 20px rgba(30,58,138,.12);}
+.tdy-mini:hover{background:#fbfcff;}
+.tdy-mini .ic{width:26px;height:26px;border-radius:8px;background:#eef3ff;display:flex;align-items:center;justify-content:center;flex:none;}
+.tdy-mini .k{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#1d4ed8;font-weight:800;line-height:1;}
+.tdy-mini .v{display:block;font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.tdy-pulse{width:6px;height:6px;border-radius:50%;background:#22a35f;box-shadow:0 0 0 0 rgba(34,163,95,.5);animation:tdypul 2s infinite;flex:none;}
+@keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(34,163,95,.5);}70%{box-shadow:0 0 0 7px rgba(34,163,95,0);}100%{box-shadow:0 0 0 0 rgba(34,163,95,0);}}
+
+/* ── the view selector ── */
+.tdy-view{display:flex;gap:6px;padding:14px 2px 0;}
+.tdy-viewbtn{font-family:inherit;background:var(--white);border:1px solid #d7dce6;color:#6b7280;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer;}
+.tdy-viewbtn:hover{border-color:#a8b6cc;color:var(--ink);}
+.tdy-viewbtn.on{background:#1e3a8a;border-color:#1e3a8a;color:var(--white);}
+
+/* ── shelf cards: white on paper, tinted header strip, 4px category rule ── */
 .tdy-row{display:block;}
-.tdy-hd{display:flex;align-items:center;gap:12px;color:var(--white);border-left:4px solid #2563eb;padding:2px 2px 2px 12px;margin:16px 0 10px;}
-.tdy-hd .eb{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#8fa8dc;}
-.tdy-hd h2{font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--white);}
-.tdy-hd .nt{font-size:11.5px;font-weight:600;color:#7d95c9;margin-top:3px;}
-.tdy-hnm{display:flex;align-items:center;gap:9px;min-width:0;}
-.tdy-hld{display:inline-flex;align-items:center;gap:5px;flex:none;max-width:190px;border-radius:999px;padding:2px 9px 2px 8px;background:rgba(232,180,58,0.14);border:1px solid rgba(232,180,58,0.4);}
-.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#f2dda6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-hld b{font-size:10px;font-weight:800;color:#c6a35c;font-variant-numeric:tabular-nums;flex:none;}
-.tdy-cta{margin-left:auto;border:1px solid #2c437c;color:#cfe0ff;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 12px;white-space:nowrap;flex:none;text-decoration:none;}
-.tdy-cta:hover{border-color:#4f74cc;color:#fff;}
+.tdy-shc{background:var(--white);border:1px solid #e7e9ee;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);margin:14px 2px 0;}
+.tdy-shc.foryou{margin-top:16px;}
+.tdy-hd{display:flex;align-items:center;gap:12px;padding:9px 14px 9px 18px;position:relative;background:#eef2f8;background:color-mix(in srgb,var(--cc) 9%,#fff);}
+.tdy-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
+.tdy-hd .eb{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:#6b7280;}
+.tdy-hd h2{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--ink);}
+.tdy-hd .nt{font-size:11.5px;font-weight:600;color:#6b7280;margin-top:3px;}
+.tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
+.tdy-prg{display:inline-flex;align-items:center;gap:6px;flex:none;margin-top:2px;}
+.tdy-prg b{font-size:11px;font-weight:800;color:#6b7280;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tdy-prg .pb{width:44px;height:4px;border-radius:99px;background:rgba(16,24,40,.10);overflow:hidden;}
+.tdy-prg .pb span{display:block;height:100%;background:var(--cc);border-radius:99px;transition:width .3s;}
+.tdy-prg.full b{color:var(--success-deep);}
+.tdy-prg.full .pb span{background:#22c55e;}
+.tdy-hld{display:inline-flex;align-items:center;gap:5px;flex:none;max-width:190px;border-radius:999px;padding:2px 9px 2px 8px;background:#fdf3d7;border:1px solid #eeda9e;}
+.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#8a6d1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tdy-hld b{font-size:10px;font-weight:800;color:#a1750b;font-variant-numeric:tabular-nums;flex:none;}
+.tdy-cta{margin-left:auto;border:1px solid var(--cc);background:var(--cc);color:var(--white);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
+.tdy-cta:hover{filter:brightness(1.12);}
 .tdy-cta.gold{background:var(--gold);border-color:var(--gold);color:#2a1f04;}
+.tdy-cta.gold:hover{filter:none;background:#f2c451;}
+
+/* ── tile tracks ── */
 .tdy-tw{position:relative;}
-.tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none;}
+.tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:12px 14px 12px;scrollbar-width:none;}
 .tdy-tiles::-webkit-scrollbar{display:none;}
-.tdy-fade{position:absolute;top:0;bottom:10px;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
-.tdy-fade.l{left:0;background:linear-gradient(90deg,${GROUND},rgba(11,15,26,0));}
-.tdy-fade.r{right:0;background:linear-gradient(270deg,${GROUND},rgba(11,15,26,0));}
+.tdy-fade{position:absolute;top:0;bottom:0;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
+.tdy-fade.l{left:0;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));}
+.tdy-fade.r{right:0;background:linear-gradient(270deg,#fff,rgba(255,255,255,0));}
 .tdy-fade.on{opacity:1;}
-.tdy-nud{position:absolute;top:50%;transform:translateY(-60%);width:30px;height:30px;border-radius:50%;background:#121f3f;border:1px solid #2c437c;color:#cfe0ff;font-size:17px;font-weight:800;line-height:1;cursor:pointer;z-index:4;display:flex;align-items:center;justify-content:center;padding:0 0 2px;font-family:inherit;}
-.tdy-nud:hover{border-color:#4f74cc;color:#fff;background:#182a52;}
-.tdy-nud.l{left:-8px;}
-.tdy-nud.r{right:-8px;}
-.tdy-t{flex:none;width:130px;background:var(--white);border-radius:12px;padding:14px 8px 10px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:0 6px 18px rgba(3,7,18,.45);text-decoration:none;}
-.tdy-t:hover{background:var(--surface);}
-.tdy-t img{width:52px;height:52px;border-radius:11px;display:block;flex:none;}
-.tdy-t b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
-.tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;cursor:pointer;}
-.tdy-st:hover{background:var(--surface-alt);color:var(--ink);}
+.tdy-nud{position:absolute;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;background:var(--white);border:1px solid #d7dce6;color:var(--slate);font-size:17px;font-weight:800;line-height:1;cursor:pointer;z-index:4;display:flex;align-items:center;justify-content:center;padding:0 0 2px;font-family:inherit;box-shadow:0 2px 8px rgba(16,24,40,.14);}
+.tdy-nud:hover{border-color:#a8b6cc;color:var(--ink);}
+.tdy-nud.l{left:4px;}
+.tdy-nud.r{right:4px;}
+.tdy-t{flex:none;width:124px;background:${PAPER};border:1px solid #edeff3;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;}
+.tdy-t:hover{background:#eef2f7;}
+.tdy-t img{width:48px;height:48px;border-radius:10px;display:block;flex:none;}
+.tdy-t b{color:var(--ink);font-size:13px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
+.tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;}
 .tdy-st.tk{color:var(--success-deep);font-weight:800;}
 .tdy-st.tp{color:#a16207;font-weight:800;}
-.tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:114px;overflow:hidden;}
+.tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:112px;overflow:hidden;}
 .tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-t.done{background:#f0f7f1;}
-.tdy-t.paused{background:#fffaeb;box-shadow:inset 0 0 0 1.5px var(--gold),0 6px 18px rgba(3,7,18,.45);}
-.tdy-restband{display:flex;align-items:baseline;gap:12px;color:var(--white);padding:30px 2px 4px;flex-wrap:wrap;}
-.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#8fa8dc;margin:0;display:inline-flex;align-items:center;}
-.tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#5a6f9e;}
+.tdy-t.done{background:#eef7ef;border-color:#d8ecd9;}
+.tdy-t.paused{background:#fff7e0;border-color:#ecd9a0;}
+.tdy-t.fy{width:138px;}
+.tdy-why{font-size:9.5px;font-weight:800;border-radius:999px;padding:3px 9px;white-space:nowrap;}
+.tdy-why.g{background:#fdf3d7;color:#8a6d1a;}
+.tdy-why.b{background:#e7eeff;color:#1d4ed8;}
+.tdy-why.s{background:#e9edf5;color:#233a63;}
+
+/* ── a finished category collapses to a band ── */
+.tdy-catdone{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--success-deep);border-radius:14px;padding:12px 16px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
+.tdy-catdone .nm{font-size:14.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em;}
+.tdy-catdone .ck{font-size:11px;font-weight:800;color:var(--success-deep);white-space:nowrap;}
+.tdy-catdone .it{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:#3f4757;padding-left:10px;border-left:1px solid #e7e9ee;white-space:nowrap;text-decoration:none;}
+.tdy-catdone .it img{width:20px;height:20px;border-radius:5px;display:block;}
+.tdy-catdone .show{margin-left:auto;font-family:inherit;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-deep);border:1.5px solid #cddffb;background:#eef3ff;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
+.tdy-catdone .show:hover{background:#e2ecff;}
+
+.tdy-restband{display:flex;align-items:baseline;gap:12px;padding:26px 2px 0;flex-wrap:wrap;}
+.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#9aa0ab;margin:0;display:inline-flex;align-items:center;}
+.tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#b3b9c4;}
+
+/* ── the foot boards + live feed ── */
 .tdy-two{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
 .tdy-two>div{min-width:0;}
-.tdy-card{background:var(--white);border-radius:12px;box-shadow:0 10px 30px rgba(3,7,18,.5);padding:10px 12px;margin:10px 2px 0;}
+.tdy-card{background:var(--white);border:1px solid #e7e9ee;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:10px 12px;margin:10px 2px 0;}
 .tdy-cols{display:flex;align-items:center;gap:9px;padding:4px 10px 8px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#9aa0ab;font-weight:800;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .tdy-cols b{width:18px;flex:none;font-weight:800;}
 .tdy-cols span{flex:1 1 auto;}
@@ -822,25 +969,27 @@ const CSS = `
 .tdy-fstats b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink);}
 .tdy-fstats span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9aa0ab;font-weight:800;}
 .tdy-empty{padding:14px 10px;font-size:12.5px;font-weight:600;color:var(--slate);}
-.tdy-foot{padding:40px 2px 40px;color:#3d4d75;font-size:11px;font-weight:600;letter-spacing:.04em;}
+.tdy-foot{padding:40px 2px 40px;color:#9aa0ab;font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
-  .tdy-today{padding:20px 16px 14px;flex-wrap:wrap;}
-  .tdy-right{flex:1 1 100%;margin-left:0;flex-wrap:wrap;gap:8px;}
-  .tdy-ct{flex:1 1 100%;margin-right:0;}
-  .tdy-mini{flex:1 1 auto;}
-  .tdy-go{flex:1 1 100%;text-align:center;}
-  .tdy-hd{margin-left:14px;margin-right:14px;}
-  .tdy-hld{max-width:132px;}
+  .tdy-hero{margin:0;border-radius:0;padding:18px 16px;}
+  .tdy-hero .hr{flex:1 1 100%;margin-left:0;}
+  .tdy-hero .hr .tdy-mini{flex:1 1 auto;}
+  .tdy-hero .bar{width:100%;}
   .tdy-view{padding-left:16px;}
+  .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
+  .tdy-hd{padding-left:18px;padding-right:14px;}
+  .tdy-hld{max-width:132px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:118px;}
+  .tdy-t.fy{width:130px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
+  .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
   .tdy-restband{padding-left:16px;padding-right:16px;}
   .tdy-two{grid-template-columns:1fr;}
-  .tdy-card{border-radius:0;margin:10px 0 0;}
+  .tdy-card{border-radius:0;border-left:none;border-right:none;margin:10px 0 0;}
   .tdy-foot{padding-left:16px;}
 }
 @media(max-width:560px){
