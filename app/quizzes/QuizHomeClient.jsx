@@ -1960,57 +1960,23 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
       .qzh .lblive-sub{position:sticky;top:0;z-index:1;display:block;padding:9px 13px 8px;background:var(--white);border-bottom:1px solid ${C.line};font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${C.soft};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     }
 
-    /* ── THE LOFT GROUND (owner, 2026-08-12) ────────────────────────────────
-       Home used to be white cards on a white ground, so the browse cards were
-       held apart by a single 1px hairline and nothing else, and the navy
-       console ended at a cliff, with no middle value anywhere between the
-       header navy and the cards.
-       The page now sits on var(--ground), the same navy world the daily puzzle
-       pages moved to, and every card is a lit white object on it.
-
-       THE HEADER, THE CONSOLE AND THE CARDS THEMSELVES ARE UNCHANGED, and
-       .qzh keeps its dark ink, because that ink is what every white card
-       inherits. Only two things are touched: the handful of elements printed
-       STRAIGHT onto the ground, and the bare row lists (search results, a
-       category's full list, View all), which had no card of their own because
-       they never needed one against white. They get the same white sheet
-       every other block on this page already has. */
+    /* ── THE PAPER GROUND (owner, 2026-08-24: "apply background fully") ─────
+       The page sits on T.paper, the same light ground the daily game pages
+       use, matching the marquee home's paper treatment above. This REPLACED
+       the 2026-08-12 midnight Loft ground: the heavy dark-ground shadows,
+       the border:0 lit-surface rule, and the footer's light-blue re-ink are
+       all gone with it (pale-on-pale text would be unreadable here). Cards
+       return to the light convention: white, 1px hairline, soft shadow. The
+       bare row lists keep the white sheet the dark ground gave them, since
+       it reads just as well on paper. */
     .qzh .qz-empty{padding:18px 2px;font-size:14px;color:${C.soft};}
-    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:0;border-radius:14px;padding:15px 18px;box-shadow:0 10px 30px rgba(4,9,24,0.46);}
+    .qzh > .qflow,.qzh > .qfull,.qzh > .qz-empty,.qzh > section{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:15px 18px;box-shadow:0 1px 2px rgba(16,24,40,0.04);}
     /* CategoryFull is a <section> whose own head bar must stay flush to the top
        of the sheet, so the sheet carries no padding and the list inside does. */
     .qzh > section{padding:0;overflow:hidden;}
     .qzh > section > .colhead{border-radius:0;margin-bottom:0;}
     .qzh > section > .qfull{border:none;border-radius:0;box-shadow:none;padding:13px 18px 16px;}
-    /* Cards lift off the ground rather than leaning on a hairline that is now
-       invisible against it. DailyStrip is deliberately excluded: on a phone its
-       stat bar goes transparent, and a shadow on nothing is a floating rectangle. */
-    .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 10px 30px rgba(4,9,24,0.46);}
-    /* ...and they carry NO outline, because a 1px hairline meant to separate a
-       white card from a white page reads as a ring against the ground (owner,
-       2026-08-12: the rails had one and the console in the middle never did, so
-       the three columns did not match).
-
-       IT HAS TO BE 'border:0', NOT 'border-color:transparent'. The transparent
-       version was tried first, to avoid reflowing by the 1px the border box
-       occupies, and it made the ring WORSE: background-clip defaults to
-       border-box, so the card's own white background paints straight through a
-       transparent border and a grey ring became a WHITE one. Removing the
-       border outright is the fix, and the 1px it gives back is free here since
-       every one of these is sized by its grid track or by the page width, not
-       by its own content.
-
-       Outer card roots only, listed by name rather than swept: every inner
-       divider (.hr-foot, the row hairlines, the section rules inside the
-       leaderboard stack) still needs its line. .hr-panel belongs to HomeRails
-       and is scoped under .qzh on purpose, so the rails keep their outline
-       anywhere else they render. */
-    .qzh .hr-panel,.qzh .qz-toolrow,.qzh .catcard{border:0;}
-    /* The footer component is shared with every LIGHT page on the site, so it is
-       re-inked HERE rather than in Footer.jsx. Its colours are inline styles,
-       which is why these need !important. */
-    .qzloft footer,.qzloft footer div,.qzloft footer a,.qzloft footer span{color:#c3d4ee !important;}
-    .qzloft footer,.qzloft footer *{border-top-color:rgba(255,255,255,0.16) !important;}
+    .qzh .catcard,.qzh .qz-toolrow,.qzh .hr-panel{box-shadow:0 1px 2px rgba(16,24,40,0.04);}
   `;
 
   const renderLb = () => (
@@ -2074,7 +2040,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
 
   return (
     <QuizDoneContext.Provider value={doneCtx}>
-    <div className="qzloft" style={{ background: C.ground, minHeight: '100vh', position: 'relative' }}>
+    <div className="qzloft" style={{ background: T.paper, minHeight: '100vh', position: 'relative' }}>
       <Grain />
       <style>{css}</style>
       {/* Live ticker marquee removed from the quiz home per owner (2026-07-28). */}

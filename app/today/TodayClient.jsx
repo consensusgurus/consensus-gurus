@@ -827,7 +827,7 @@ export default function TodayClient() {
 }
 
 const CSS = `
-.tdy{background:${PAPER};font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+.tdy{background:transparent;font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
