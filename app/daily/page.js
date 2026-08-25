@@ -81,6 +81,7 @@ import { PUZZLES as SWEEP_FULL } from '../sweep/puzzles';
 import { PUZZLES as PATHS_FULL } from '../paths/puzzles';
 import { PUZZLES as DEEP_FULL } from '../deep/puzzles';
 import { PUZZLES as ANON_FULL } from '../anon/puzzles';
+import { PUZZLES as ATLAS_FULL } from '../atlas/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
@@ -139,6 +140,7 @@ const SWEEP = SWEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const PATHS = PATHS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEEP = DEEP_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ANON = ANON_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const ATLAS = ATLAS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
@@ -255,6 +257,7 @@ const GAMES = [
   { key: 'chomp', name: 'Chomp', path: '/chomp', tag: 'Eat them in order', accent: '#a8430f', bg: '#fbeadf', border: 'rgba(168,67,15,0.4)', src: CHOMP },
   { key: 'blocks', name: 'Blocks', path: '/blocks', tag: 'Same shapes, same order', accent: '#1d4ed8', bg: '#e8edfa', border: 'rgba(29,78,216,0.4)', src: BLOCKS },
   { key: 'sweep', name: 'Sweep', path: '/sweep', tag: 'No bottom edge', accent: '#0f766e', bg: '#e2f2f0', border: 'rgba(15,118,110,0.4)', src: SWEEP },
+  { key: 'atlas', name: 'Atlas', path: '/atlas', tag: 'Twenty-five questions, one life', accent: '#047857', bg: '#e7f4ee', border: 'rgba(4,120,87,0.4)', src: ATLAS },
 ];
 
 const breadcrumbJsonLd = {

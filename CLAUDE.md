@@ -5856,3 +5856,44 @@ the deploy commit is built on, per the stale-base rule. Every anchor must match 
 means origin moved, two means the anchor is too loose and the patch would land twice) and both throw.
 A new daily game gets the mount by copying the one line beside its `ReportIssue`; it needs no props
 beyond `self`, `name` and `onShow`.
+
+## Atlas: the daily geography gauntlet (launched 2026-08-25)
+
+Streak's shape at twenty-five: five tiers of five, one life, twenty seconds a question,
+everyone plays the same twenty-five in the same order. Key `atlas`, route `/atlas`.
+
+- **Every tier block cycles the SAME five subjects in the SAME order:** Capitals, Physical
+  World, Flags and Borders, Places and Landmarks, Countries and Peoples.
+  `scripts/verify-atlas.mjs` enforces the tier ramp AND the subject cycle, so a day cannot be
+  authored out of order.
+- **It is filed in TWO categories on purpose (owner, 2026-08-25).** `lib/daily-games.js` gives
+  each game exactly one `cat`, and Atlas's is `Geography`, which is what the slate filter strip
+  and the tile chip read. It is ALSO listed in the `trivia` key list in `app/DailyGamesGrid.jsx`
+  and `app/daily/DailyArchiveClient.jsx`, so the more-games grid and the archive surface it
+  under Geography and Trivia both. A game can sit in two of those key lists; it cannot yet sit
+  in two registry categories, and nobody has needed that engine change. It is also in the
+  **Gauntlet** circuit, which is now four games rather than three (share copy counted).
+- **No Sunday Edition**, matching its two siblings Streak and Deep, so no entry in
+  `lib/sunday-editions.js` and the verifier FAILS any day flagged `sunday`.
+- **Scoring follows Streak exactly:** Atlas is in `XP_LINEAR_DAILIES` (a battery of independent
+  questions pays linearly, so twenty right is twenty right) and shares Streak's `dailyAnswered`
+  branch in `lib/quiz-scoring.js`, graded out of cleared + 1 because the player also faced the
+  question that killed them. Deep and Blitz are in NEITHER, which reads as an oversight rather
+  than a decision; both were left alone because changing them re-scores history.
+- **Bank: 30 days, 2026-08-25 to 2026-09-23, 750 questions.** Extend it by authoring days in the
+  same shape and re-running the verifier.
+
+**How the bank was built, and the two things worth repeating.** It was authored one SUBJECT at a
+time (five passes of 150, one per lane) rather than one day at a time, which is what keeps a lane
+free of internal duplicates. Then:
+
+1. **The day a question lands on is free, so optimize it.** Within a lane, the tier-N questions
+   are interchangeable across days, so a local search permuted the day assignment until no day
+   carried the same answer twice. Twelve same-day collisions went to zero without rewriting a
+   single question.
+2. **The real defect was the same FACT asked twice in two different lanes**, on two different
+   days: Angel Falls, the Nile at Cairo, Victoria Falls, Kilimanjaro, Pompeii and nine more, all
+   invisible to a duplicate-STEM check because the wording differed. The verifier now WARNS on
+   any two questions that share an answer and one distinctive word. Most of those warnings are
+   false positives, since the same country is a fair answer to several genuinely different
+   questions, so read them rather than chasing zero.

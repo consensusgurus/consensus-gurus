@@ -67,6 +67,10 @@ const MED = {
   // near Quilt; a thermo 9x9 between Quilt and Sando). Replace with measured
   // medians at the next snapshot re-measure.
   towers: 110, polka: 750, mercury: 900,
+  // Atlas launched 2026-08-25 with no live clock data yet: estimated from its
+  // shape (25 multiple-choice questions, so between Deep's 15 and Streak's 40).
+  // Replace with the measured median at the next snapshot re-measure.
+  atlas: 45,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.

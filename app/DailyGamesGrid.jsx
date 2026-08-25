@@ -65,6 +65,7 @@ const GAMES = [
   { key: 'cages', href: '/cages', name: 'Cages', tag: 'The daily killer sudoku', img: '/games/btn-cages.png' },
   { key: 'sando', href: '/sando', name: 'Sando', tag: 'The daily sandwich sudoku', img: '/games/btn-sando.png' },
   { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'The daily mini sudoku', img: '/games/btn-sixes.png' },
+  { key: 'atlas', href: '/atlas', name: 'Atlas', tag: 'Twenty-five questions, one life', img: '/games/btn-atlas.png' },
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'One answer, two categories', img: '/games/btn-niche.png' },
   { key: 'shoe', href: '/shoe', name: 'Shoe', tag: 'The daily blackjack shoe', img: '/games/btn-shoe.png' },
   { key: 'queen', href: '/queen', name: 'Queen', tag: 'White to play and promote', img: '/games/btn-queen.png' },
@@ -136,10 +137,10 @@ const GAMES_BY_KEY = Object.fromEntries(GAMES.map((g) => [g.key, g]));
 // everywhere else.
 const CATEGORIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'rung', 'babel', 'barter'] },
-  { key: 'geography', label: 'Geography', keys: ['span', 'ping'] },
+  { key: 'geography', label: 'Geography', keys: ['atlas', 'span', 'ping'] },
   { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'sixes', 'towers', 'quilt', 'cages', 'sando', 'mercury', 'polka', 'carve', 'cipher', 'crunch', 'blitz'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
-  { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
+  { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'atlas', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'defend', 'queen', 'four', 'check', 'chain', 'turn'] },
   { key: 'cards', label: 'Cards', keys: ['taire', 'hands', 'shoe'] },
