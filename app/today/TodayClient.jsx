@@ -895,33 +895,6 @@ export default function TodayClient({ onSignup = null } = {}) {
           ) : null}
         </div>
 
-        {forYou.length ? (
-          <section className="tdy-shc foryou" style={{ '--cc': '#2563eb' }}>
-            <div className="tdy-hd">
-              <div>
-                <div className="eb">For you</div>
-                <div className="tdy-hnm"><h2>Continue</h2></div>
-              </div>
-              {continueGame ? (
-                <a className={continueGame.resume ? 'tdy-cta gold' : 'tdy-cta'} style={continueGame.resume ? undefined : { background: '#2563eb', borderColor: '#2563eb' }} href={continueGame.g.href}>
-                  {`${continueGame.resume ? 'Resume' : 'Play'} · ${continueGame.g.name}`}
-                </a>
-              ) : (
-                <a className="tdy-cta" style={{ background: '#2563eb', borderColor: '#2563eb' }} href="/daily-five">All done today</a>
-              )}
-            </div>
-            <TilesRow>
-              {forYou.map(({ g, why, cls, href }) => (
-                <a key={g.key} className={'tdy-t fy' + (cls === 'g' ? ' paused' : '')} href={href}>
-                  <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                  <b>{g.name}</b>
-                  <span className={`tdy-why ${cls}`}>{why}</span>
-                </a>
-              ))}
-            </TilesRow>
-          </section>
-        ) : null}
-
         {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
             <div className="tdy-shc" style={{ '--cc': '#a1750b' }}>
@@ -963,6 +936,33 @@ export default function TodayClient({ onSignup = null } = {}) {
                 })}
               </TilesRow>
             </div>
+          </section>
+        ) : null}
+
+        {forYou.length ? (
+          <section className="tdy-shc foryou" style={{ '--cc': '#2563eb' }}>
+            <div className="tdy-hd">
+              <div>
+                <div className="eb">For you</div>
+                <div className="tdy-hnm"><h2>Continue</h2></div>
+              </div>
+              {continueGame ? (
+                <a className={continueGame.resume ? 'tdy-cta gold' : 'tdy-cta'} style={continueGame.resume ? undefined : { background: '#2563eb', borderColor: '#2563eb' }} href={continueGame.g.href}>
+                  {`${continueGame.resume ? 'Resume' : 'Play'} · ${continueGame.g.name}`}
+                </a>
+              ) : (
+                <a className="tdy-cta" style={{ background: '#2563eb', borderColor: '#2563eb' }} href="/daily-five">All done today</a>
+              )}
+            </div>
+            <TilesRow>
+              {forYou.map(({ g, why, cls, href }) => (
+                <a key={g.key} className={'tdy-t fy' + (cls === 'g' ? ' paused' : '')} href={href}>
+                  <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                  <b>{g.name}</b>
+                  <span className={`tdy-why ${cls}`}>{why}</span>
+                </a>
+              ))}
+            </TilesRow>
           </section>
         ) : null}
 
