@@ -3998,6 +3998,67 @@ archive grids before 2026-08-20 can still turn up ST, JA or PE. **Boards through
 are played and frozen** and keep their two-letter answers; the verifier check and the copy
 are both worded for the two eras, per the standing grandfathering rule.
 
+## A DAILY THAT PAINTS CELLS COMMITS ON LIFT, NOT ON TOUCH (owner rule, 2026-08-24)
+
+Etch's squares are 12 to 25px on a 390px phone against Apple's 44px minimum touch target, and its
+Fill tool scored the error on `pointerdown`. So a fingertip that covered four squares and landed on
+the wrong one cost a point, permanently: Undo restores the square but never decrements `errors`. The
+feedback was "my fingers are too fat for etch", and measuring it showed that even the easiest board
+of the week sits at 57% of the minimum target, with Sunday at 27%.
+
+**The rule: on a TOUCH pointer a stroke is a PREVIEW until the finger lifts, and nothing is scored
+before the lift.** Mouse is deliberately untouched, since a cursor is one pixel wide and needs no
+aiming. Three mechanics, and a game that paints cells needs all three:
+
+1. **Commit on lift.** pointerdown starts a pending stroke that RENDERS but does not write. The whole
+   stroke lands in ONE write on pointerup, with errors counted there and nowhere else, so a square
+   you preview and slide away from was never filled and never scored. One undo entry per stroke.
+2. **Press and hold to aim.** Hold still for `AIM_HOLD_MS` and the target square starts FOLLOWING the
+   finger, re-deriving its action from whatever square it is now over (sliding onto a filled square
+   offers to clear it). Move more than `AIM_SLOP_PX` first and it is a sweep instead, so a quick drag
+   to fill a run is never caught in aim mode. Aim and drag are the same gesture at small distances,
+   and a dwell is the only honest discriminator between them.
+3. **A callout ABOVE the finger**, naming the square (R4 · C7) and what will happen when it lifts. A
+   fingertip hides the square it is on, so a preview drawn only under it is feedback nobody can see.
+
+**Do NOT answer a fat-finger complaint by forgiving the mistake.** Letting Undo take back an error,
+or not counting a fill that is cleared within a few seconds, turns Etch into free probing: tap every
+square, keep the ones that stay black, and score a clean 10 with no logic at all. Where errors ARE
+the score, the only honest fixes make the target bigger or make the tap correctable BEFORE it
+commits. Both of those are what this section is.
+
+**The callout's POSITION is not React state.** A 20x20 board is ~540 divs, and re-rendering them on
+every pointermove is jank a phone cannot afford, so the position is written straight to the node and
+a render happens only when the target SQUARE changes. `sameCells` guards the sweep path for the same
+reason. Any future preview that follows a finger needs the same treatment.
+
+**Touch drags are LINE LOCKED** (`runBetween`), running along the row or the column the finger has
+travelled further in, ties going to the row. A free-form path smears diagonally across squares
+nobody aimed at, which is the same fat-finger problem wearing a different hat. The mouse path stays
+free-form.
+
+### The phone board takes its width back
+
+Measured on a 390px phone, before and after: squares went 23.2 -> 28.4 (10x10), 15.5 -> 18.7 (15x15)
+and 12.0 -> 14.3 (20x20), about a fifth wider at every size, from two changes and no redesign. Under
+560px the board card and the Etch-scoped `.loft-stage` give up their horizontal padding, and the
+CLUE GUTTER narrows below the width of a playing square.
+
+**The gutter ratio is size-aware and was MEASURED, not guessed** (`gutFor`). The clue font shrinks
+more slowly than the board grows, so a single ratio that suits 10x10 clips 20x20: in DM Mono at the
+sizes `clueFs` actually renders, a two-digit clue is 10.8 / 8.4 / 7.2px against gutters of 18.7 /
+13.1 / 10.6px, and a first cut at a flat 0.66 clipped the Sunday board by 0.6px. Two digits is the
+widest clue any board carries (a run of 20 on a Sunday). Re-measure against the REAL computed font
+before narrowing any of these, and note that the desktop values are untouched: the phone template
+rides its own `--et-cols-m` / `--et-rows-m` / `--et-ar-m` custom properties, because `fr` cannot be
+computed inside `calc()`.
+
+**Verifying this without a phone.** The handlers are testable off the page: brace-match them out of
+the client (the trick `verify-endgame-playout.mjs` uses), stub `document.elementFromPoint` over a
+grid of known coordinates, and drive synthetic pointer sequences. That is how commit-on-lift, the
+hold-to-aim discriminator, the line lock, the free marks, the win path and the unchanged mouse path
+were all confirmed before the push, along with a unit test of the commit's error arithmetic.
+
 ## Sando is the SANDWICH SUDOKU, and the sums are the whole point (launched 2026-08-13)
 
 The fourth sudoku on the slate, after Suds (classic), Quilt (jigsaw) and Cages (killer).

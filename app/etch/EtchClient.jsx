@@ -252,6 +252,19 @@ function EtchGallery({ puzzles, rec, currentNum }) {
 }
 
 const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
+// Touch aiming. Hold still for AIM_HOLD_MS and the target square starts
+// following your finger; move more than AIM_SLOP_PX first and it is a sweep,
+// so a quick drag to fill a run never gets caught in aim mode.
+const AIM_HOLD_MS = 260;
+const AIM_SLOP_PX = 11;
+const AIM_LABEL = { 0: 'Clear', 1: 'Fill', 2: 'Mark ×' };
+// The clue gutter is narrower than a playing square ON A PHONE ONLY, which
+// hands its width back to the squares. It is size-aware because the clue font
+// shrinks more slowly than the board grows: measured in DM Mono at the sizes
+// clueFs actually renders, a two-digit clue is 10.8px at 10x10, 8.4px at 15x15
+// and 7.2px at 20x20, against gutters of 18.7 / 13.1 / 10.6px here. A flat
+// 0.66 clipped the 20x20 by 0.6px. Re-measure before narrowing any of these.
+function gutFor(w) { return w >= 18 ? 0.74 : w > 12 ? 0.7 : 0.66; }
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
 export default function EtchClient({ puzzles = [], forceNum = null }) {
@@ -311,6 +324,19 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
   const viewedRef = useRef(false);
   const undoRef = useRef([]);
   const paintRef = useRef(null);
+  // A TOUCH stroke is pending until the finger lifts: nothing is written and
+  // nothing is scored while it is on screen. See onCellDown below for why.
+  const pendRef = useRef(null);
+  const aimTimer = useRef(null);
+  const commitRef = useRef(() => {});
+  const [pend, setPend] = useState(null);   // { run: number[], val } — the preview
+  const [aim, setAim] = useState(null);     // { idx, val, aiming } — the callout
+  // The callout FOLLOWS the finger, but its position is not React state: a
+  // 20x20 board is ~540 divs and re-rendering them on every pointermove is
+  // exactly the jank a phone cannot afford. Position is written straight to
+  // the node, so a render only happens when the target SQUARE changes.
+  const aimElRef = useRef(null);
+  const aimPosRef = useRef({ x: 0, y: 0 });
 
   const cells = g.cells;
   const playing = g.status === 'playing';
@@ -560,16 +586,113 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       return t ? Number(t.getAttribute('data-i')) : -1;
     } catch (e) { return -1; }
   }
+  // the value a tap on this square would place, given the selected tool
+  function toggleFor(idx) {
+    const cur = gRef.current.cells[idx];
+    return mode === 'fill' ? (cur === 1 ? 0 : 1) : (cur === 2 ? 0 : 2);
+  }
+  // A touch drag is LINE LOCKED: it runs along the row or the column, whichever
+  // the finger has travelled further in. A fingertip covers several squares at
+  // once, and a free-form path smears diagonally across ones nobody aimed at.
+  function runBetween(a, b) {
+    const r1 = Math.floor(a / W), c1 = a % W, r2 = Math.floor(b / W), c2 = b % W;
+    const out = [];
+    if (Math.abs(c2 - c1) >= Math.abs(r2 - r1)) {
+      for (let c = Math.min(c1, c2); c <= Math.max(c1, c2); c++) out.push(r1 * W + c);
+    } else {
+      for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r++) out.push(r * W + c1);
+    }
+    return out;
+  }
+  function aimTop(y) { return y < 108 ? y + 42 : y - 66; }
+  function aimLeft(x) {
+    const w = typeof window !== 'undefined' ? window.innerWidth : 400;
+    return Math.max(56, Math.min(w - 56, x));
+  }
+  function positionAim(x, y) {
+    aimPosRef.current = { x, y };
+    const el = aimElRef.current;
+    if (!el) return;
+    el.style.left = aimLeft(x) + 'px';
+    el.style.top = aimTop(y) + 'px';
+  }
+  function sameCells(a, b) {
+    return a && b && a.length === b.length && a[0] === b[0] && a[a.length - 1] === b[b.length - 1];
+  }
+  function clearPending() {
+    pendRef.current = null;
+    clearTimeout(aimTimer.current);
+    setPend(null);
+    setAim(null);
+  }
+  // The whole touch stroke lands in ONE write, when the finger lifts. Errors
+  // are counted HERE and nowhere else on this path, so a square you preview
+  // and slide away from has never been filled and has never been scored.
+  function commitPending() {
+    const p = pendRef.current;
+    clearPending();
+    if (!p) return;
+    const cur = gRef.current;
+    if (cur.status !== 'playing') return;
+    const targets = p.run.filter((i) => i >= 0 && i < N && cur.cells[i] !== p.val);
+    if (!targets.length) return;
+    pushUndo(cur.cells);
+    const next = cur.cells.slice();
+    let errs = 0;
+    for (const i of targets) {
+      next[i] = p.val;
+      if (p.val === 1 && SOL[i] === 0) errs++;
+    }
+    const g2 = { ...cur, cells: next, errors: cur.errors + errs };
+    if (!g2.t0) g2.t0 = Date.now();
+    if (!errs && isSolved(next)) {
+      g2.status = 'won';
+      g2.tEnd = Date.now();
+      vibrate(HAPT.win);
+      postResult(g2, Math.max(1, Math.min(10, 10 - Math.ceil(g2.errors / 2))));
+      commit(g2);
+      setJustWon(true);
+      return;
+    }
+    if (errs) vibrate(HAPT.wrong);
+    commit(g2);
+  }
+  useEffect(() => { commitRef.current = commitPending; });
+  // place it on the frame it first appears, before it can flash at 0,0
+  useEffect(() => { if (aim) positionAim(aimPosRef.current.x, aimPosRef.current.y); }, [aim]);
+
   function onCellDown(e, idx) {
     if (e.button === 2) return;   // right-click is handled by onContextMenu (fill)
     if (gRef.current.status !== 'playing') return;
     if (!gRef.current.t0) startGame();
-    const cur = gRef.current.cells[idx];
-    const val = mode === 'fill' ? (cur === 1 ? 0 : 1) : (cur === 2 ? 0 : 2);
-    pushUndo(gRef.current.cells);
-    paintRef.current = { val };
-    applyPaint(idx, val);
+    const touch = e.pointerType === 'touch' || e.pointerType === 'pen';
+    const val = toggleFor(idx);
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+    if (!touch) {
+      // Mouse is unchanged: a click paints on the way down, a drag paints the
+      // squares it crosses. A cursor is one pixel wide and needs no aiming.
+      pushUndo(gRef.current.cells);
+      paintRef.current = { val };
+      applyPaint(idx, val);
+      return;
+    }
+    // Touch. The squares are 12-25px on a phone against a 44px minimum target,
+    // so the square under a fingertip is both hidden by it and easy to miss.
+    // Nothing is written yet: the stroke previews, a callout above the finger
+    // names the square it is on, and a press-and-hold lets the target follow
+    // the finger so a miss can be corrected before it costs anything.
+    pendRef.current = { val, run: [idx], anchor: idx, aiming: false, x0: e.clientX, y0: e.clientY };
+    aimPosRef.current = { x: e.clientX, y: e.clientY };
+    setPend({ run: [idx], val });
+    setAim({ idx, val, aiming: false });
+    clearTimeout(aimTimer.current);
+    aimTimer.current = setTimeout(() => {
+      const p = pendRef.current;
+      if (!p || p.run.length > 1) return;   // already a sweep, leave it alone
+      p.aiming = true;
+      setAim((a) => (a ? { ...a, aiming: true } : a));
+      vibrate(HAPT.ok);
+    }, AIM_HOLD_MS);
   }
   // right-click fills a square directly, whatever the selected tool
   function fillDirect(idx) {
@@ -581,15 +704,43 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     applyPaint(idx, val);
   }
   function onGridMove(e) {
-    if (!paintRef.current) return;
+    if (paintRef.current) {                 // mouse stroke, unchanged
+      const idx = cellFromPoint(e.clientX, e.clientY);
+      if (idx >= 0) applyPaint(idx, paintRef.current.val);
+      return;
+    }
+    const p = pendRef.current;
+    if (!p) return;
+    positionAim(e.clientX, e.clientY);
     const idx = cellFromPoint(e.clientX, e.clientY);
-    if (idx >= 0) applyPaint(idx, paintRef.current.val);
+    if (idx < 0) return;
+    if (p.aiming) {
+      // Aim mode: still one square, and it follows the finger. The action is
+      // re-derived from whatever square is now under it, so sliding onto a
+      // filled square offers to clear it rather than carrying the old value.
+      if (p.run.length === 1 && p.run[0] === idx) return;
+      const val = toggleFor(idx);
+      p.anchor = idx;
+      p.val = val;
+      p.run = [idx];
+      setPend({ run: [idx], val });
+      setAim((a) => (a ? { ...a, idx, val } : a));
+      return;
+    }
+    if (Math.abs(e.clientX - p.x0) <= AIM_SLOP_PX && Math.abs(e.clientY - p.y0) <= AIM_SLOP_PX) return;
+    clearTimeout(aimTimer.current);         // a real sweep never enters aim mode
+    const run = runBetween(p.anchor, idx);
+    if (sameCells(run, p.run)) return;        // still the same squares, no render
+    p.run = run;
+    setPend({ run, val: p.val });
+    setAim((a) => (a && a.idx !== idx ? { ...a, idx } : a));
   }
   useEffect(() => {
-    const stop = () => { paintRef.current = null; };
-    window.addEventListener('pointerup', stop);
-    window.addEventListener('pointercancel', stop);
-    return () => { window.removeEventListener('pointerup', stop); window.removeEventListener('pointercancel', stop); };
+    const up = () => { paintRef.current = null; commitRef.current(); };
+    const cancel = () => { paintRef.current = null; clearPending(); };
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', cancel);
+    return () => { window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', cancel); };
   }, []);
 
   // one free hint: fill a correct square that is still empty
@@ -677,6 +828,9 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
+  const GUTM = gutFor(W);
+  const pendSet = useMemo(() => (pend ? new Set(pend.run) : null), [pend]);
+  const pendVal = pend ? pend.val : null;
   const clueFs = W >= 18 ? 'clamp(6px, 1.15vw, 10px)' : W > 12 ? 'clamp(7px, 1.5vw, 11px)' : 'clamp(9px, 2vw, 13px)';
   const boardMax = W >= 18 ? 740 : W > 12 ? 620 : 470;
   const shellMax = W >= 18 ? 760 : 660;
@@ -693,7 +847,8 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       steps={[
         <>The numbers on each <b>row</b> and <b>column</b> are the lengths of its filled runs, in order, with at least one blank between them. A row clued <b>4 2</b> is four filled, a gap, then two.</>,
         <>Choose what a tap places with <b>Fill</b> / <b>Mark</b>. It opens on <b>Mark</b>, pencilling a &times; on a square you have ruled out, and remembers your choice next time.</>,
-        <>On <b>Fill</b>, tap a square or <b>drag</b> to fill a run. A <b>right-click</b> fills one directly from either tool, and a clue <b>dims</b> once its line matches.</>,
+        <>On <b>Fill</b>, tap a square or <b>drag</b> along a row or column to fill a run. A <b>right-click</b> fills one directly from either tool, and a clue <b>dims</b> once its line matches.</>,
+        <>On a touchscreen nothing is placed until you <b>lift</b> your finger, so a square you slide away from is never filled and never counts. <b>Press and hold</b>, then slide, to move the target square out from under your fingertip.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b>, on your first ever play, fills a correct square.</>,
       ]}
       knack="One solution per board, reachable by pure logic, so you never have to guess. Marking what you have ruled out is free, filling it wrong is not."
@@ -736,6 +891,15 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       <div className="et-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.et-wrap{padding-left:10px !important;padding-right:10px !important;}}
+          .et-grid{grid-template-columns:var(--et-cols);grid-template-rows:var(--et-rows);aspect-ratio:var(--et-ar);}
+          /* Phone: the board takes back the card and stage padding, and the
+             clue gutter narrows, so every square is about a fifth wider. */
+          @media(max-width:560px){
+            .et-grid{grid-template-columns:var(--et-cols-m);grid-template-rows:var(--et-rows-m);aspect-ratio:var(--et-ar-m);}
+            .et-clue-r{padding-right:1px !important;}
+            .et-card{padding-left:5px !important;padding-right:5px !important;}
+            .et-wrap .loft-stage{padding-left:3px !important;padding-right:3px !important;}
+          }
           .et-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .et-btn:hover{background:var(--accent-soft);}
           @media(max-width:560px){.et-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.et-ttl h1{font-size:21px;}.et-ttl-dot{display:none;}}
@@ -793,7 +957,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card et-card' : 'et-card'} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -807,7 +971,17 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
             <div
               onPointerMove={onGridMove}
-              style={{ display: 'grid', gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${gridRows}, minmax(0, 1fr))`, aspectRatio: `${gridCols} / ${gridRows}`, touchAction: 'none' }}
+              className="et-grid"
+              style={{
+                display: 'grid',
+                touchAction: 'none',
+                '--et-cols': `repeat(${maxRowClue}, minmax(0, 1fr)) repeat(${W}, minmax(0, 1fr))`,
+                '--et-rows': `repeat(${maxColClue}, minmax(0, 1fr)) repeat(${H}, minmax(0, 1fr))`,
+                '--et-ar': `${gridCols} / ${gridRows}`,
+                '--et-cols-m': `repeat(${maxRowClue}, minmax(0, ${GUTM}fr)) repeat(${W}, minmax(0, 1fr))`,
+                '--et-rows-m': `repeat(${maxColClue}, minmax(0, ${GUTM}fr)) repeat(${H}, minmax(0, 1fr))`,
+                '--et-ar-m': `${(maxRowClue * GUTM + W).toFixed(3)} / ${(maxColClue * GUTM + H).toFixed(3)}`,
+              }}
             >
               {Array.from({ length: gridRows * gridCols }).map((_, k) => {
                 const gr = Math.floor(k / gridCols), gc = k % gridCols;
@@ -830,7 +1004,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                   const off = maxRowClue - list.length;
                   const v = gc >= off ? list[gc - off] : null;
                   return (
-                    <div key={k} className={`et-clue${rowDone[r] ? ' done' : ''}`} style={{ fontSize: clueFs, paddingRight: 3, justifyContent: 'flex-end', borderTop: r % 5 === 0 && r !== 0 ? '2px solid rgba(28,30,36,0.35)' : undefined }}>
+                    <div key={k} className={`et-clue et-clue-r${rowDone[r] ? ' done' : ''}`} style={{ fontSize: clueFs, paddingRight: 3, justifyContent: 'flex-end', borderTop: r % 5 === 0 && r !== 0 ? '2px solid rgba(28,30,36,0.35)' : undefined }}>
                       {v === null || v === 0 ? '' : v}
                     </div>
                   );
@@ -838,7 +1012,13 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                 const r = gr - maxColClue, c = gc - maxRowClue, idx = r * W + c;
                 const v = cells[idx];
                 const wrong = v === 1 && SOL[idx] === 0;
-                const bg = wrong ? '#f4b8b8' : v === 1 ? COLORS.ink : T.white;
+                // pv is what a pending TOUCH stroke would put here, or null.
+                // It is a preview: not written, not scored, gone if the finger
+                // slides off before it lifts.
+                const pv = pendSet && pendSet.has(idx) ? pendVal : null;
+                const bg = pv !== null
+                  ? (pv === 1 ? 'rgba(28,30,36,0.42)' : pv === 0 ? 'rgba(28,30,36,0.05)' : T.white)
+                  : wrong ? '#f4b8b8' : v === 1 ? COLORS.ink : T.white;
                 return (
                   <div
                     key={k}
@@ -848,20 +1028,44 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     onContextMenu={(e) => { e.preventDefault(); fillDirect(idx); }}
                     style={{
                       background: bg,
+                      boxShadow: pv !== null ? `inset 0 0 0 2px ${COLORS.accent}` : undefined,
                       borderRight: `${c % 5 === 4 && c !== W - 1 ? 2 : 1}px solid ${c % 5 === 4 && c !== W - 1 ? 'rgba(28,30,36,0.75)' : 'rgba(28,30,36,0.22)'}`,
                       borderBottom: `${r % 5 === 4 && r !== H - 1 ? 2 : 1}px solid ${r % 5 === 4 && r !== H - 1 ? 'rgba(28,30,36,0.75)' : 'rgba(28,30,36,0.22)'}`,
                       borderLeft: c === 0 ? '2px solid rgba(28,30,36,0.75)' : undefined,
                       borderTop: r === 0 ? '2px solid rgba(28,30,36,0.75)' : undefined,
                     }}
                   >
-                    {v === 2 && (
-                      <span style={{ fontFamily: MONO, fontSize: clueFs, color: '#b9c0cc', lineHeight: 1 }}>&times;</span>
+                    {(pv !== null ? pv === 2 : v === 2) && (
+                      <span style={{ fontFamily: MONO, fontSize: clueFs, color: pv === 2 ? COLORS.accent : '#b9c0cc', lineHeight: 1 }}>&times;</span>
                     )}
                   </div>
                 );
               })}
             </div>
           </div>
+
+          {/* The aim callout. A fingertip hides the square it is on, so the
+              square it is on is named ABOVE the finger, along with what will
+              happen when it lifts. Touch only: it is only ever set there. */}
+          {aim && (
+            <div ref={aimElRef} aria-hidden style={{
+              position: 'fixed', zIndex: 60, pointerEvents: 'none',
+              left: aimLeft(aimPosRef.current.x),
+              top: aimTop(aimPosRef.current.y),
+              transform: 'translateX(-50%)',
+              background: COLORS.ink, color: T.white, borderRadius: 9,
+              padding: '5px 10px 6px', textAlign: 'center', whiteSpace: 'nowrap',
+              boxShadow: '0 5px 16px rgba(0,0,0,0.34)',
+            }}>
+              <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.09em', opacity: 0.7, lineHeight: 1.4 }}>
+                R{Math.floor(aim.idx / W) + 1} &middot; C{(aim.idx % W) + 1}
+              </div>
+              <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, lineHeight: 1.25 }}>{AIM_LABEL[aim.val]}</div>
+              {aim.aiming && (
+                <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, color: COLORS.accentSoft, lineHeight: 1.3 }}>slide to aim</div>
+              )}
+            </div>
+          )}
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
@@ -889,8 +1093,12 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: mode === 'mark' ? COLORS.accent : COLORS.faded }}>
               {mode === 'mark'
-                ? 'Marking: tap or drag to pencil × on squares you have ruled out.'
-                : 'Filling: tap a square, or drag across a run to fill it.'}
+                ? (mobileUi
+                    ? 'Marking: tap or drag, and it lands when you lift. Hold to aim.'
+                    : 'Marking: tap or drag to pencil × on squares you have ruled out.')
+                : (mobileUi
+                    ? 'Filling: tap or drag, and it lands when you lift. Hold to aim.'
+                    : 'Filling: tap a square, or drag across a run to fill it.')}
             </span>
             {identity && (filledRight > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
