@@ -922,8 +922,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 </div>
                 {mineCta ? (
                   <a
-                    className={mineCta.gold ? 'tdy-cta gold' : 'tdy-cta'}
-                    style={mineCta.gold ? undefined : { background: '#a1750b', borderColor: '#a1750b' }}
+                    className={mineCta.gold ? 'tdy-cta resume' : 'tdy-cta'}
                     href={mineCta.href}
                   >{mineCta.label}</a>
                 ) : null}
@@ -958,7 +957,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 <div className="tdy-hnm"><h2>Continue</h2></div>
               </div>
               {continueGame ? (
-                <a className={continueGame.resume ? 'tdy-cta gold' : 'tdy-cta'} style={continueGame.resume ? undefined : { background: '#2563eb', borderColor: '#2563eb' }} href={continueGame.g.href}>
+                <a className={continueGame.resume ? 'tdy-cta resume' : 'tdy-cta'} href={continueGame.g.href}>
                   {`${continueGame.resume ? 'Resume' : 'Play'} · ${continueGame.g.name}`}
                 </a>
               ) : (
@@ -1055,7 +1054,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                       <div className="nt">{shelf.blurb}</div>
                     ) : null}
                   </div>
-                  <a className={cta.gold ? 'tdy-cta gold' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
+                  <a className={cta.gold ? 'tdy-cta resume' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
                 </div>
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
@@ -1344,15 +1343,24 @@ const CSS = `
 .tdy-hld b{font-size:10px;font-weight:800;color:#8a6309;font-variant-numeric:tabular-nums;flex:none;}
 /* the CTA inverts with the band. It used to carry an inline background too,
    which would have won over this rule, so that was removed at the call site. */
-.tdy-cta{margin-left:auto;border:1px solid var(--white);background:var(--white);color:var(--cc,#2563eb);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
-.tdy-cta:hover{filter:none;background:#eef2f8;border-color:#eef2f8;}
-/* RESUME KEEPS ITS GOLD FILL. Inverting it to a white pill like the ordinary
-   CTA (shipped for one deploy, 2026-08-25) made the two indistinguishable and
-   threw away the site-wide "gold means resume" signal. Gold on a filled band is
-   only 2.7-4.2:1 of separation, so the white hairline is what detaches it, and
-   that hairline is 5.2:1 or better against every band including the gold one. */
-.tdy-cta.gold{background:var(--gold);border-color:rgba(255,255,255,.85);color:#2a1f04;}
-.tdy-cta.gold:hover{filter:none;background:#f2c451;border-color:var(--white);}
+/* TWO NEUTRAL PILLS, NOT TWO COLOURS (owner, 2026-08-25). Resume was gold and
+   the owner called it ugly on the filled bands, which it is. No HUE can replace
+   it: whatever you pick collides with the band that matches it (amber on the
+   Arcade umber band is 1.4:1), and a dark pill dies on the graphite My games
+   band at 1.36:1, which is exactly where Resume appears most.
+
+   So the two actions are told apart by FILL, not by colour, and both are white,
+   which means both inherit the band's own contrast on all twelve grounds:
+
+     Resume   solid white pill, band-hue ink   the strong action
+     Next     white outline, white ink         the quiet one
+
+   Gold is not gone from the surface, it still marks the leader chips and the My
+   games star, which is where it reads properly. */
+.tdy-cta{margin-left:auto;border:1.5px solid rgba(255,255,255,.75);background:transparent;color:var(--white);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
+.tdy-cta:hover{filter:none;background:rgba(255,255,255,.16);border-color:var(--white);}
+.tdy-cta.resume{background:var(--white);border-color:var(--white);color:var(--cc,#2563eb);}
+.tdy-cta.resume:hover{filter:none;background:#eef2f8;border-color:#eef2f8;}
 
 /* ── tile tracks ── */
 .tdy-tw{position:relative;}
@@ -1494,16 +1502,37 @@ const CSS = `
      The CTA going full width also settles the other half of it: it was an
      arbitrary size sitting beside the leader chip, and the two now read as
      different kinds of thing rather than two mismatched pills. */
-  .tdy-hd{padding-left:16px;padding-right:16px;flex-wrap:wrap;row-gap:8px;align-items:center;}
-  .tdy-hd > div{flex:1 1 100%;min-width:0;}
-  .tdy-hd .nt{flex:1 1 100%;}
-  .tdy-hnm{flex-wrap:nowrap;min-width:0;gap:8px;}
-  .tdy-hd h2{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto;}
-  .tdy-prg{flex:none;}
+  /* The leader chip was sharing a line with the category name and losing, so
+     handles ellipsised to "badgerbea...". Explicit grid placement instead, in
+     three rows that cannot drift with content:
+
+       row 1   eyebrow, full width
+       row 2   name ................................. N of M
+       row 3   leader chip .......... the CTA
+
+     Putting the chip on the CTA's row rather than the name's is what fixes it,
+     and it is not arbitrary. Grid column tracks are SHARED down the whole grid,
+     so a 165px chip in column 2 was setting that column's width for every row
+     and squeezing the name above it. Column 2 is now sized by the CTA and the
+     "N of M", which are both narrow, and the name gets everything else: 178px
+     at 340px wide, against a longest-name width of 145px.
+
+     It also makes the chip and the CTA visual peers on one line, which is the
+     other half of what was wrong with them.
+
+     Needs display:contents on both wrappers to promote .eb, h2, .tdy-prg and
+     .tdy-hld into the same grid, the pattern already used for .dtp-grid and
+     .tdy-idt. */
+  .tdy-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:7px;align-items:center;padding:11px 16px;}
+  .tdy-hd > div{display:contents;}
+  .tdy-hnm{display:contents;}
+  .tdy-hd .eb{grid-row:1;grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .tdy-hd h2{grid-row:2;grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .tdy-prg{grid-row:2;grid-column:2;justify-self:end;}
   .tdy-prg .pb{display:none;}
-  .tdy-hld{flex:none;max-width:112px;margin-left:auto;padding:2px 8px;}
-  .tdy-hld i{font-size:10.5px;}
-  .tdy-cta{flex:1 1 100%;margin-left:0;text-align:center;padding:8px 13px;}
+  .tdy-hld{grid-row:3;grid-column:1;justify-self:start;max-width:100%;margin-left:0;padding:2px 9px;}
+  .tdy-cta{grid-row:3;grid-column:2;justify-self:stretch;text-align:center;margin-left:0;padding:8px 14px;}
+  .tdy-hd .nt{grid-row:4;grid-column:1/-1;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
   .tdy-t.fy{width:136px;}
@@ -1517,9 +1546,6 @@ const CSS = `
 }
 @media(max-width:560px){
   .dhx-marquee{margin-left:-14px;margin-right:-14px;}
-  /* the last of the headroom on a small Android, so the longest category name
-     still clears its leader chip */
-  .tdy-hld{max-width:100px;}
 }
 
 /* ══ the reader's own navigation (owner, 2026-08-25) ══ */
