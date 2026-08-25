@@ -951,7 +951,7 @@ export default function TodayClient({ onSignup = null } = {}) {
         ) : null}
 
         {forYou.length ? (
-          <section className="tdy-shc foryou" style={{ '--cc': '#2563eb' }}>
+          <section className="tdy-shc foryou" style={{ '--cc': '#233a63' }}>
             <div className="tdy-hd">
               <div>
                 <div className="eb">For you</div>
