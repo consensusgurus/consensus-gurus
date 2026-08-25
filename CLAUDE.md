@@ -5897,3 +5897,46 @@ free of internal duplicates. Then:
    any two questions that share an answer and one distinctive word. Most of those warnings are
    false positives, since the same country is a fair answer to several genuinely different
    questions, so read them rather than chasing zero.
+
+## Sport: the daily sports gauntlet (launched 2026-08-25)
+
+The third game on Streak's shape, alongside [Atlas](#atlas-the-daily-geography-gauntlet-launched-2026-08-25).
+Twenty-five questions, five tiers of five, one life, twenty seconds each. Key `sport`, route
+`/sport`, launched the same day as Atlas.
+
+- **Five lanes, cycled in the same order every round:** NFL, NBA, MLB, Soccer, Everything Else.
+  The fifth lane carries the Olympics, tennis, golf, hockey, boxing, motorsport, cycling,
+  athletics, college sports, cricket and rugby, and the other four authors are fenced out of it.
+  `scripts/verify-sport.mjs` enforces the tier ramp AND the lane cycle.
+- **It is a TRIVIA game in the registry, not a Sports one (owner ruling, 2026-08-25).** The roster
+  has no Sports category and one game does not make one, so Sport files under Trivia everywhere:
+  the registry `cat`, the slate filter, the grid and the archive. If a second and third sports
+  daily ever ship, that is the moment to add the category, and the work is the same shape as any
+  other: `CAT_COLOR`, `CAT_GLYPH`, `catBlue` in lib/home-blues, the two key lists, and `FILL_DEPT`.
+- **No Sunday Edition**, matching Streak, Deep and Atlas. The verifier fails any day flagged
+  `sunday`.
+- **Scoring matches Streak and Atlas:** in `XP_LINEAR_DAILIES`, and in the shared `dailyAnswered`
+  branch graded out of cleared + 1. That branch now reads `key === 'streak' ? 40 : 25`, so a
+  fourth game of this shape only needs its key added to the two conditions.
+- **The Gauntlet circuit is now at its cap of five** (deep, atlas, sport, blitz, streak) and its
+  share copy counts them, so a sixth game of this shape cannot join without converting the
+  circuit to a rotating pool.
+- **Bank: 30 days, 2026-08-25 to 2026-09-23, 750 questions.**
+
+**THE RULE THIS BANK LIVES BY: EVERY FACT IS FROZEN.** A sports question is the easiest kind to
+write and the easiest kind to rot, because the answer sits in the world and keeps moving. Banned
+outright when authoring: a career total or "most ever" held by anyone still competing, a current
+champion, a current record holder, a team's current coach or roster, and any league's live team
+count. Allowed: a completed dated event, a retired player's final total, a franchise founding or
+relocation, and a rule that has stood for years. The two league-size questions that did ship were
+pinned to their expansions ("since the 1998 expansion", "since the Houston Texans joined in 2002")
+rather than left live, and that phrasing is the pattern to copy.
+
+The fact-check pass over the first bank found thirteen problems in 750 questions, and the useful
+thing is WHICH kinds: two live league counts, four wrong numbers or dates that read perfectly
+plausibly (Shula's 347 is his total including playoffs, not his regular-season 328; Frank Robinson
+was hired in October 1974 for the 1975 season; Penarol won the first TWO Libertadores, not three in
+a row; the USA's 1950 win over England was not its first World Cup), one wrong superlative (Eusebio,
+born in Mozambique, beat Weah to the first African-born Ballon d'Or by thirty years), and three
+questions whose stem referred to "that championship" with no antecedent. None of those is visible
+without checking each figure, so budget for the pass rather than trusting the authoring.

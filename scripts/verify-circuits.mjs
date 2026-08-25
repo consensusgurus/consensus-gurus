@@ -71,6 +71,10 @@ const MED = {
   // shape (25 multiple-choice questions, so between Deep's 15 and Streak's 40).
   // Replace with the measured median at the next snapshot re-measure.
   atlas: 45,
+  // Sport launched 2026-08-25 with no live clock data yet: the same shape as
+  // Atlas, 25 multiple-choice questions, so the same estimate. Replace with the
+  // measured median at the next snapshot re-measure.
+  sport: 45,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.
