@@ -77,6 +77,8 @@ export default function GamePanel({ self, name = null, onShow = null }) {
   const [me, setMe] = useState(null);       // /api/quiz/daily-me
   const [streak, setStreak] = useState(0);
   const [done, setDone] = useState(false);
+  // Is the end card on screen? See the effect below.
+  const [finished, setFinished] = useState(false);
   const wrapRef = useRef(null);
   const asked = useRef(false);
 
@@ -111,6 +113,40 @@ export default function GamePanel({ self, name = null, onShow = null }) {
     return () => { alive = false; };
   }, [open, key]);
 
+  // THE END CARD ALREADY SAYS ALL OF THIS (owner, 2026-08-26). A finish puts
+  // today's board, the day, the archive and what to play next on the card
+  // itself, so this control sitting under it offers the same content a second
+  // time and the page reads as repeating itself. It stands down while the card
+  // is up and comes back the moment it goes (a replay, or the archive opened
+  // from somewhere else).
+  //
+  // THE SIGNAL IS AN EVENT FROM LoftFinish, NOT A PROP. This component is
+  // mounted on 70 game clients from one copied line each, and every one of them
+  // names its own finished state differently (`playing`, `g.status`, `ended`),
+  // so a prop would mean 70 hand-edits and 70 chances to wire the wrong flag.
+  // The DOM read covers the mount itself, where the card may already be up: an
+  // archived board that was finished on a previous visit renders its finish in
+  // the same commit this mounts in.
+  //
+  // IT HIDES, IT DOES NOT UNMOUNT, and that is the same reason the button says
+  // "Hide" rather than disappearing when the panel is open: LoftCap paints every
+  // sibling of the play stage in navy body copy with !important and excludes
+  // exactly the wrappers holding .loft-report or .loft-showchrome. :has() is
+  // structural, so a display:none wrapper still satisfies it; an unmounted one
+  // does not, and the tail below would be repainted.
+  useEffect(() => {
+    const read = () => {
+      try { return !!document.querySelector('.loft-back'); } catch (e) { return false; }
+    };
+    setFinished(read());
+    const onFinish = (e) => {
+      const d = e && e.detail;
+      setFinished(d && typeof d.open === 'boolean' ? d.open : read());
+    };
+    window.addEventListener('sot:loft-finish', onFinish);
+    return () => window.removeEventListener('sot:loft-finish', onFinish);
+  }, []);
+
   // The side effects live OUT of the state updater on purpose: React may call
   // an updater twice, and onShow reaches into the game client's own state.
   const toggle = useCallback(() => {
@@ -138,7 +174,7 @@ export default function GamePanel({ self, name = null, onShow = null }) {
   const isDone = done || !!myRow;
 
   return (
-    <div className="gpn" ref={wrapRef}>
+    <div className={'gpn' + (finished ? ' gpn-off' : '')} ref={wrapRef}>
       {/* THE BUTTON KEEPS THE loft-showchrome CLASS, and that is load-bearing
           rather than laziness. LoftCap paints every sibling of the play stage
           in navy body copy with !important, and excludes exactly two wrappers:
@@ -168,6 +204,10 @@ export default function GamePanel({ self, name = null, onShow = null }) {
             standings={board && Array.isArray(board.board) ? board.board : []}
             meKey={me && me.me ? me.me.userKey : null}
             data={data}
+            /* Phone only in effect: it decides which of the drawer's three
+               bands start open, and above 900px there are no bands. Here the
+               reader pressed a control naming all three, so all three open. */
+            expandAll
             canPin={false}
             onClose={() => setOpen(false)}
           />
@@ -176,6 +216,8 @@ export default function GamePanel({ self, name = null, onShow = null }) {
 
       <style>{`
         .gpn{max-width:1080px;margin:30px auto 0;padding:0 16px;text-align:center;}
+        /* Hidden, never unmounted. See the end-card effect above. */
+        .gpn-off{display:none;}
         .gpn-btn{cursor:pointer;font-family:'Manrope',system-ui,-apple-system,sans-serif;
                  font-weight:800;font-size:13px;letter-spacing:.03em;}
         .gpn-panel{margin-top:14px;text-align:left;}

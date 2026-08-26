@@ -116,6 +116,22 @@ export default function LoftFinish({
   useEffect(() => {
     if (!savedIdentity().username) setGuest(true);
   }, []);
+  // THE PAGE UNDER THE CARD NEEDS TO KNOW THE CARD IS UP (owner, 2026-08-26).
+  // GamePanel's "See stats, archive, leaderboard, and more" sits at the foot of
+  // every game page and offers exactly what this card already carries, so it
+  // hides while this is mounted. An event rather than a prop drilled through 70
+  // game clients, and fired from here rather than measured from there because
+  // this component is the one that knows. Every branch of this card renders
+  // .loft-back, including the fast-retry panel and the circuit run card, so
+  // mount is the right moment for all of them.
+  useEffect(() => {
+    const fire = (open) => {
+      try { window.dispatchEvent(new CustomEvent('sot:loft-finish', { detail: { open } })); }
+      catch (e) {}
+    };
+    fire(true);
+    return () => fire(false);
+  }, []);
   // WHICH RUN is this finish part of — the marquee, one of the thirteen skill
   // circuits, or none? A circuit ID, not a boolean: it read the ?five=1 flag
   // alone until 2026-08-18, so finishing a game inside a skill circuit fell
