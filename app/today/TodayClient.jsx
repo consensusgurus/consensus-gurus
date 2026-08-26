@@ -912,20 +912,26 @@ export default function TodayClient({ onSignup = null } = {}) {
                 );
               })}
             </div>
-            <button
-              type="button"
-              className={'tdy-jb2' + (sheet === 'az' ? ' on' : '')}
-              aria-expanded={sheet === 'az'}
-              onClick={() => setSheet(sheet === 'az' ? null : 'az')}
-            >A to Z</button>
-            {view === 'cats' ? (
+            <div className="tdy-jbc">
+              <div className="tdy-view" role="tablist" aria-label="Group the slate by">
+                <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
+                <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => setView('circuits')}>Circuits</button>
+              </div>
               <button
                 type="button"
-                className={'tdy-jb2' + (sheet === 'order' ? ' on' : '')}
-                aria-expanded={sheet === 'order'}
-                onClick={() => setSheet(sheet === 'order' ? null : 'order')}
-              >Reorder</button>
-            ) : null}
+                className={'tdy-jb2' + (sheet === 'az' ? ' on' : '')}
+                aria-expanded={sheet === 'az'}
+                onClick={() => setSheet(sheet === 'az' ? null : 'az')}
+              >A to Z</button>
+              {view === 'cats' ? (
+                <button
+                  type="button"
+                  className={'tdy-jb2' + (sheet === 'order' ? ' on' : '')}
+                  aria-expanded={sheet === 'order'}
+                  onClick={() => setSheet(sheet === 'order' ? null : 'order')}
+                >Reorder</button>
+              ) : null}
+            </div>
           </div>
           {sheet ? (
             <div className="tdy-jbsh">
@@ -1018,11 +1024,6 @@ export default function TodayClient({ onSignup = null } = {}) {
             {onSignup ? <button type="button" className="tb" onClick={onSignup}>Sign in to pin</button> : null}
           </div>
         ) : null}
-
-        <div className="tdy-view" role="tablist" aria-label="Group the slate by">
-          <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
-          <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => setView('circuits')}>Circuits</button>
-        </div>
 
         {spyShelves.map((shelf, si) => {
           const cta = shelfCta(shelf);
@@ -1322,8 +1323,10 @@ const CSS = `
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#22a35f;box-shadow:0 0 0 0 rgba(34,163,95,.5);animation:tdypul 2s infinite;flex:none;}
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(34,163,95,.5);}70%{box-shadow:0 0 0 7px rgba(34,163,95,0);}100%{box-shadow:0 0 0 0 rgba(34,163,95,0);}}
 
-/* ── the view selector ── */
-.tdy-view{display:flex;gap:6px;padding:14px 2px 0;}
+/* ── the view selector, which lives INSIDE the jump bar (owner, 2026-08-25) ──
+   It was a row of its own under My games and Continue, 42px of chrome on a
+   phone to say a thing the bar it now sits in is already about. */
+.tdy-view{display:flex;gap:6px;flex:none;}
 .tdy-viewbtn{font-family:inherit;background:var(--white);border:1px solid #d7dce6;color:#6b7280;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer;}
 .tdy-viewbtn:hover{border-color:#a8b6cc;color:var(--ink);}
 .tdy-viewbtn.on{background:#1e3a8a;border-color:#1e3a8a;color:var(--white);}
@@ -1345,7 +1348,10 @@ const CSS = `
    hue, which fails on five of the ten categories. */
 .tdy-hd{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 16px;position:relative;background:var(--cc,#2563eb);}
 .tdy-hd .eb{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;font-weight:800;color:var(--white);}
-.tdy-hd h2{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin:2px 0 0;color:var(--white);}
+/* line-height 1.35, not 1.1: this heading is clipped (overflow:hidden, one
+   line, ellipsis) at phone width, and a clip box only as tall as 1.1 cuts the
+   tail off every descender in it. */
+.tdy-hd h2{font-size:17px;font-weight:800;letter-spacing:-.02em;line-height:1.35;margin:0;color:var(--white);}
 .tdy-hd .nt{font-size:11.5px;font-weight:600;color:var(--white);margin-top:3px;}
 .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
 .tdy-prg{display:inline-flex;align-items:center;gap:6px;flex:none;margin-top:2px;}
@@ -1502,59 +1508,81 @@ const CSS = `
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
-  .tdy-view{padding-left:16px;}
   .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
-  /* ONE HEADER SHAPE AT PHONE WIDTH (owner, 2026-08-25). It was a plain
-     flex-wrap, so whether the CTA dropped to its own row depended on how long
-     that shelf's leader name and CTA label happened to be: some headers came
-     out two rows and some three, at three different heights, and a long
-     category name broke across lines while a short one did not. Every shelf is
-     now the same shape whatever the content:
+  /* ONE HEADER SHAPE AT PHONE WIDTH (owner, 2026-08-25), in TWO rows since
+     2026-08-25 (the eyebrow row went, see below). It was a plain flex-wrap, so
+     whether the CTA dropped to its own row depended on how long that shelf's
+     leader name and CTA label happened to be: some headers came out two rows
+     and some three, at three different heights, and a long category name broke
+     across lines while a short one did not. Every category shelf is now the
+     same shape whatever the content:
 
-       row 1   eyebrow
-       row 2   name  .  N of M  ...............  leader chip
-       row 3   the CTA, full width
+       row 1   name ................................. N of M
+       row 2   leader chip .......................... the CTA
 
-     Three things make it deterministic. The meta block is forced to a full row
-     (flex-basis:100%), so the wrap no longer depends on content. The name never
-     wraps, it ellipsises. And the progress BAR is dropped, because the "N of M"
-     beside it already says the same thing and its 44px was the difference
-     between "Crowd Psychology" fitting and being cut off at 392px.
+     Three things make it deterministic. Explicit grid placement, so nothing
+     drifts with content. The name never wraps, it ellipsises. And the progress
+     BAR is dropped, because the "N of M" beside it already says the same thing
+     and its 44px was the difference between "Crowd Psychology" fitting and
+     being cut off at 392px.
 
-     The CTA going full width also settles the other half of it: it was an
-     arbitrary size sitting beside the leader chip, and the two now read as
-     different kinds of thing rather than two mismatched pills. */
-  /* The leader chip was sharing a line with the category name and losing, so
-     handles ellipsised to "badgerbea...". Explicit grid placement instead, in
-     three rows that cannot drift with content:
+     Putting the leader chip on the CTA's row rather than the name's is what
+     stops handles ellipsising to "badgerbea...", and it is not arbitrary. Grid
+     column tracks are SHARED down the whole grid, so a 165px chip in column 2
+     was setting that column's width for every row and squeezing the name above
+     it. Column 2 is sized by the CTA and the "N of M", which are both narrow,
+     and the name gets everything else. It also makes the chip and the CTA
+     visual peers on one line, which was the other half of what was wrong.
 
-       row 1   eyebrow, full width
-       row 2   name ................................. N of M
-       row 3   leader chip .......... the CTA
-
-     Putting the chip on the CTA's row rather than the name's is what fixes it,
-     and it is not arbitrary. Grid column tracks are SHARED down the whole grid,
-     so a 165px chip in column 2 was setting that column's width for every row
-     and squeezing the name above it. Column 2 is now sized by the CTA and the
-     "N of M", which are both narrow, and the name gets everything else: 178px
-     at 340px wide, against a longest-name width of 145px.
-
-     It also makes the chip and the CTA visual peers on one line, which is the
-     other half of what was wrong with them.
+     THE EYEBROW ROW WENT on 2026-08-25 (owner): "Category · 9 games" was a
+     whole row saying what the big name says and counting what the "N of M" on
+     the right already counts.
 
      Needs display:contents on both wrappers to promote .eb, h2, .tdy-prg and
      .tdy-hld into the same grid, the pattern already used for .dtp-grid and
      .tdy-idt. */
-  .tdy-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:7px;align-items:center;padding:11px 16px;}
+  .tdy-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:7px;align-items:center;padding:10px 16px;}
   .tdy-hd > div{display:contents;}
   .tdy-hnm{display:contents;}
-  .tdy-hd .eb{grid-row:1;grid-column:1/-1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-  .tdy-hd h2{grid-row:2;grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-  .tdy-prg{grid-row:2;grid-column:2;justify-self:end;}
+  .tdy-hd .eb{display:none;}
+  .tdy-hd h2{grid-row:1;grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .tdy-prg{grid-row:1;grid-column:2;justify-self:end;}
   .tdy-prg .pb{display:none;}
-  .tdy-hld{grid-row:3;grid-column:1;justify-self:start;max-width:100%;margin-left:0;padding:2px 9px;}
-  .tdy-cta{grid-row:3;grid-column:2;justify-self:stretch;text-align:center;margin-left:0;padding:8px 14px;}
-  .tdy-hd .nt{grid-row:4;grid-column:1/-1;}
+  .tdy-hld{grid-row:2;grid-column:1;justify-self:start;max-width:100%;margin-left:0;padding:2px 9px;}
+  .tdy-cta{grid-row:2;grid-column:2;justify-self:stretch;text-align:center;margin-left:0;padding:8px 14px;}
+  .tdy-hd .nt{grid-row:3;grid-column:1/-1;}
+  /* THE BAR IS TWO ROWS ON A PHONE (owner, 2026-08-25): the controls up top,
+     the categories on a scrolling row of their own underneath, where they get
+     the full width instead of whatever is left after four buttons.
+     column-reverse rather than a DOM change, so the desktop bar keeps its one
+     row and its source order. The chip track bleeds back out to the screen
+     edges (negative margin + matching padding) so a scrolled chip runs off the
+     side of the screen rather than stopping short of it. */
+     Both rows stick, and everything in them is a size down: two rows of the
+     desktop's sizes measured 98px of permanently locked screen against the old
+     bar's 48, and locking a quarter of a phone is not a trade worth making for
+     a row of chips. At these sizes it is 73px, and the row it replaced below
+     the shelves was 42 of them. */
+  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:6px;padding:6px 14px 7px;}
+  .tdy-jbt{margin:0 -14px;padding:1px 14px;}
+  .tdy-jbc{overflow-x:auto;scrollbar-width:none;}
+  .tdy-jbc::-webkit-scrollbar{display:none;}
+  .tdy-viewbtn,.tdy-jb2{font-size:10px;padding:5px 10px;}
+  .tdy-jc{padding:4px 10px 4px 8px;}
+  .tdy-jc .nm{font-size:11.5px;}
+  /* MY GAMES AND CONTINUE ARE ONE ROW (owner, 2026-08-25). Neither shelf has a
+     leader chip, so with the eyebrow gone the whole left half of row two was
+     empty and the CTA sat alone against it: on the two shelves a phone reader
+     meets first, the header was taller than it had any content for. Both names
+     are short and neither carries a chip, so they go back to the desktop's
+     single flex line, name + count on the left and the CTA on the right. The
+     CATEGORY shelves keep the grid, so they keep one uniform shape whether or
+     not that category has a leader today. */
+  #tdy-mine .tdy-hd,.tdy-shc.foryou .tdy-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;}
+  #tdy-mine .tdy-hd > div,.tdy-shc.foryou .tdy-hd > div,
+  #tdy-mine .tdy-hnm,.tdy-shc.foryou .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
+  #tdy-mine .tdy-cta,.tdy-shc.foryou .tdy-cta{margin-left:auto;max-width:58%;overflow:hidden;text-overflow:ellipsis;padding:7px 13px;}
+  #tdy-mine .tdy-tiles,.tdy-shc.foryou .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
   .tdy-t.fy{width:136px;}
@@ -1579,6 +1607,7 @@ const CSS = `
 .tdy-jbin{display:flex;align-items:center;gap:8px;padding:8px 2px;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
 .tdy-jbt::-webkit-scrollbar{display:none;}
+.tdy-jbc{display:flex;align-items:center;gap:8px;flex:none;}
 /* The chip's own tint fill IS its progress meter, which is what keeps ten
    categories and both buttons on one line at desktop widths. A separate
    meter element cost ~32px a chip and pushed the last category off the bar. */

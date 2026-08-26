@@ -310,7 +310,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
              anonymous player gets the Sign Up button here instead, unchanged. */
           .dch-loft .qchm-user{display:flex;order:3;margin-left:auto;}
           .dch-loft .qchm-nav{order:4;margin-left:12px;}
-          .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
+          .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
           .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
           .qchm-r2{background:#101d44;color:var(--white);border-bottom:3px solid var(--blue);}
           .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #192b59;white-space:nowrap;}
