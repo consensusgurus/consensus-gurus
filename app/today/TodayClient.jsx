@@ -48,8 +48,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
-import { fiveFor } from '@/lib/daily-five';
+import { CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
 import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
@@ -226,7 +225,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   //      player plays each category.
   //   4. an A TO Z index of the whole slate, reachable from the bar at any
   //      scroll depth.
-  // SSR SAFETY, the same discipline forYou and sinkDone already follow: pins,
+  // SSR SAFETY, the same discipline sinkDone already follows: pins,
   // archive counts and the stored order all start empty, so the server and the
   // first client paint render the plain editorial order with no My games
   // shelf, and the personal layer lands a moment later from its effects.
@@ -348,12 +347,13 @@ export default function TodayClient({ onSignup = null } = {}) {
   // dimmed the other three "Back soon" and blocked their clicks, which was
   // wrong (owner caught Mercury, 2026-08-24). All eight tiles render normally.
 
-  // CATEGORIES vs CIRCUITS are separate views under a faint selector (owner,
-  // 2026-08-24: "not mixing categories and circuits"). Categories is the pure
-  // category slate; Circuits shows one shelf per circuit with that DAY'S
-  // members (circuitKeysFor) and a Play-the-circuit control. A game can sit in
-  // several circuits, which is the nature of circuits, not a bug.
-  const [view, setView] = useState('cats');
+  // THE SELECTOR IS GONE (owner, 2026-08-26). Categories and Circuits were two
+  // views under a tablist in the jump bar, which made the reader choose between
+  // them before seeing either, and hid whichever one they did not pick. There is
+  // ONE slate now: the categories, with the circuits as a single shelf of their
+  // own sitting where the Continue row used to, treated like any other category
+  // (its own jump-bar chip, its own header band, its own tiles row). A game can
+  // sit in several circuits, which is the nature of circuits, not a bug.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = jbtRef.current;
@@ -368,7 +368,7 @@ export default function TodayClient({ onSignup = null } = {}) {
       if (ro) ro.disconnect();
       window.removeEventListener('resize', readJbNav);
     };
-  }, [view]);
+  }, []);
   const circuitShelves = useMemo(() => {
     if (!today) return [];
     return CIRCUITS.map((c) => {
@@ -379,15 +379,6 @@ export default function TodayClient({ onSignup = null } = {}) {
       const color = c.id === 'sudoku' ? catBlue('sudoku') : catColor(games[0].cat);
       return { kind: 'circuit', id: c.id, name: c.name, blurb: c.blurb || '', color, games };
     }).filter(Boolean);
-  }, [today]);
-
-  // The Daily Five: a game played on its own still counts toward the run, so
-  // the For you tile reads progress straight off the same `done` set the
-  // shelves use. An unbanked date returns no roster and the tile simply
-  // doesn't render, same rule as the run itself.
-  const fiveKeys = useMemo(() => {
-    if (!today) return [];
-    try { return fiveFor(today) || []; } catch (e) { return []; }
   }, [today]);
 
   // ── play state: DailyStrip's three passes ──
@@ -604,54 +595,9 @@ export default function TodayClient({ onSignup = null } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, pickCirc]);
 
-  // Continue: first paused game in shelf order, else first unplayed
-  // Ordered, not editorial: if a reader has put Trivia at the top, "up next"
-  // should come from Trivia.
+  // Ordered, not editorial: if a reader has put Trivia at the top, the flat
+  // walk of the slate starts in Trivia. Feeds the By game leaderboard.
   const flat = useMemo(() => orderedShelves.flatMap((s) => s.games.map((g) => ({ g, shelf: s }))), [orderedShelves]);
-  const continueGame = useMemo(() => {
-    const paused = flat.find(({ g }) => inprog.has(g.key) && !done.has(g.key));
-    if (paused) return { g: paused.g, resume: true };
-    const next = flat.find(({ g }) => !done.has(g.key));
-    return next ? { g: next.g, resume: false } : null;
-  }, [flat, inprog, done]);
-
-  // THE FOR YOU ROW (owner-approved blend, 2026-08-24): paused games first,
-  // then the Daily Five's next game (pushed before the plain next-unplayed so
-  // the run's reason and its ?five=1 link win when they are the same game),
-  // then the next unplayed game, then a spotlight pick rotated by date over
-  // the whole roster, same for everyone, like the quiz hub's QOTD. Deduped by
-  // game key. On the server this renders exactly one tile (the first game of
-  // the first shelf as "Up next") because done/inprog/today all start empty,
-  // so SSR and the first client paint agree; the effects fill it in.
-  const spotKey = useMemo(() => {
-    if (!today || !DAY_ROSTER.length) return null;
-    let h = 0;
-    for (const ch of today) h = ((h * 31) + ch.charCodeAt(0)) >>> 0;
-    return DAY_ROSTER[h % DAY_ROSTER.length];
-  }, [today]);
-  const forYou = useMemo(() => {
-    const items = []; const seen = new Set();
-    const push = (g, why, cls, href) => {
-      if (!g || seen.has(g.key)) return;
-      seen.add(g.key);
-      items.push({ g, why, cls, href: href || g.href });
-    };
-    let paused = 0;
-    for (const { g } of flat) {
-      if (paused >= 4) break;
-      if (inprog.has(g.key) && !done.has(g.key)) { push(g, 'Paused', 'g'); paused += 1; }
-    }
-    if (fiveKeys.length >= 2) {
-      const fiveDone = fiveKeys.filter((k) => done.has(k)).length;
-      const nk = fiveKeys.find((k) => !done.has(k));
-      const ng = nk ? DAILY_GAME_MAP[nk] : null;
-      if (ng) push(ng, `Daily Five · ${fiveDone} of ${fiveKeys.length}`, 'b', `${ng.href}?five=1`);
-    }
-    const nxt = flat.find(({ g }) => !done.has(g.key) && !inprog.has(g.key));
-    if (nxt) push(nxt.g, 'Up next', 'b');
-    if (spotKey && DAILY_GAME_MAP[spotKey]) push(DAILY_GAME_MAP[spotKey], 'Spotlight today', 's');
-    return items;
-  }, [flat, inprog, done, fiveKeys, spotKey]);
 
   // A finished category collapses to a band with the scores; "Show tiles"
   // reopens it. `done` is empty on the server, so nothing is collapsed at
@@ -750,9 +696,18 @@ export default function TodayClient({ onSignup = null } = {}) {
   };
 
   // ── which chip is ringed ────────────────────────────────────────────
-  const spyShelves = view === 'circuits' ? circuitShelves : orderedShelves;
+  const spyShelves = orderedShelves;
+  // My games and Circuits are sections above the categories, so they belong in
+  // the spy list too, in DOCUMENT order (the walk keeps the LAST id whose top
+  // has passed the line). Without them their chips carried a `here` ring that
+  // could never light, and scrolling through them ringed nothing at all.
+  const spyIds = useMemo(() => [
+    ...(canPin && pinned.length ? ['tdy-mine'] : []),
+    ...(circuitShelves.length ? ['tdy-circuits'] : []),
+    ...spyShelves.map((s) => secId(s)),
+  ], [canPin, pinned.length, circuitShelves.length, spyShelves]);
   useEffect(() => {
-    const ids = spyShelves.map((s) => secId(s));
+    const ids = spyIds;
     const spy = () => {
       let best = null;
       const line = pinnedBarH() + jumpBarH() + 40;
@@ -767,7 +722,7 @@ export default function TodayClient({ onSignup = null } = {}) {
     window.addEventListener('scroll', spy, { passive: true });
     window.addEventListener('resize', spy);
     return () => { window.removeEventListener('scroll', spy); window.removeEventListener('resize', spy); };
-  }, [spyShelves]);
+  }, [spyIds]);
 
   const azPanel = () => (
     <>
@@ -896,7 +851,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   // The per-tile crown names who is top of ONE game; this names who is top of
   // the whole CATEGORY today, on the same combined points the standings panel
   // below and the daily board itself run on. Keyed kind+name so the circuits
-  // view gets one too (a circuit is a set of games like any other shelf).
+  // shelf gets one too (a circuit is a set of games like any other shelf).
   const shelfLead = useMemo(() => {
     if (!bgames) return {};
     const out = {};
@@ -906,6 +861,12 @@ export default function TodayClient({ onSignup = null } = {}) {
     }
     return out;
   }, [bgames, shelves, circuitShelves]);
+
+  // The circuits shelf counts CIRCUITS, not games: a circuit is done when every
+  // game on today's card is done, which is exactly what its own progress ring
+  // says. Empty on the server (done starts empty), so hydration agrees.
+  const circTot = circuitShelves.length;
+  const circDone = circuitShelves.filter((c) => c.games.every((g) => done.has(g.key))).length;
 
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
@@ -922,7 +883,7 @@ export default function TodayClient({ onSignup = null } = {}) {
             {jbNav.l ? <button type="button" className="tdy-jbar l" aria-label="Scroll categories left" onClick={() => jbNudge(-1)}>{'\u2039'}</button> : null}
             {jbNav.r ? <button type="button" className="tdy-jbar r" aria-label="Scroll categories right" onClick={() => jbNudge(1)}>{'\u203a'}</button> : null}
             <div className="tdy-jbt" ref={jbtRef}>
-              {view === 'cats' && canPin && pinned.length ? (
+              {canPin && pinned.length ? (
                 <button
                   type="button"
                   className={'tdy-jc mine' + (here === 'tdy-mine' ? ' here' : '')}
@@ -931,6 +892,18 @@ export default function TodayClient({ onSignup = null } = {}) {
                 >
                   <span className="nm">{'\u2605 My games'}</span>
                   <span className="ct">{`${mineDone}/${pinned.length}`}</span>
+                </button>
+              ) : null}
+              {circTot ? (
+                <button
+                  type="button"
+                  className={'tdy-jc' + (circDone >= circTot ? ' full' : '') + (here === 'tdy-circuits' ? ' here' : '')}
+                  style={{ '--cc': '#233a63', '--pc': `${Math.round((100 * circDone) / circTot)}%` }}
+                  onClick={(e) => jumpTo(e, 'tdy-circuits')}
+                >
+                  <span className="dot" aria-hidden="true" />
+                  <span className="nm">Circuits</span>
+                  <span className="ct">{`${circDone}/${circTot}`}</span>
                 </button>
               ) : null}
               {spyShelves.map((s) => {
@@ -954,24 +927,18 @@ export default function TodayClient({ onSignup = null } = {}) {
             </div>
             </div>
             <div className="tdy-jbc">
-              <div className="tdy-view" role="tablist" aria-label="Group the slate by">
-                <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
-                <button type="button" role="tab" aria-selected={view === 'circuits'} className={'tdy-viewbtn' + (view === 'circuits' ? ' on' : '')} onClick={() => setView('circuits')}>Circuits</button>
-              </div>
               <button
                 type="button"
                 className={'tdy-jb2' + (sheet === 'az' ? ' on' : '')}
                 aria-expanded={sheet === 'az'}
                 onClick={() => setSheet(sheet === 'az' ? null : 'az')}
               >A to Z</button>
-              {view === 'cats' ? (
-                <button
-                  type="button"
-                  className={'tdy-jb2' + (sheet === 'order' ? ' on' : '')}
-                  aria-expanded={sheet === 'order'}
-                  onClick={() => setSheet(sheet === 'order' ? null : 'order')}
-                >Reorder</button>
-              ) : null}
+              <button
+                type="button"
+                className={'tdy-jb2' + (sheet === 'order' ? ' on' : '')}
+                aria-expanded={sheet === 'order'}
+                onClick={() => setSheet(sheet === 'order' ? null : 'order')}
+              >Reorder</button>
             </div>
           </div>
           {sheet ? (
@@ -981,12 +948,7 @@ export default function TodayClient({ onSignup = null } = {}) {
           ) : null}
         </div>
 
-        {/* CIRCUITS TAKE THE WHOLE SLATE (owner, 2026-08-25): picking Circuits
-            drops My games and Continue, so the circuits start at the top of the
-            page rather than two shelves down. Both are category-slate furniture
-            (a pinned set and a next-up pick, neither of which is a circuit), and
-            the reader who asked for circuits asked for circuits. */}
-        {view === 'cats' && canPin && pinned.length ? (
+        {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
             <div className="tdy-shc" style={{ '--cc': '#2b3241' }}>
               <div className="tdy-hd">
@@ -1029,41 +991,59 @@ export default function TodayClient({ onSignup = null } = {}) {
           </section>
         ) : null}
 
-        {view === 'cats' && forYou.length ? (
-          <section className="tdy-shc foryou" style={{ '--cc': '#233a63' }}>
-            <div className="tdy-hd">
-              <div>
-                <div className="eb">For you</div>
-                <div className="tdy-hnm"><h2>Continue</h2></div>
+        {/* THE CIRCUITS SHELF (owner, 2026-08-26). It sits where the Continue row
+            sat and is built like a category: eyebrow, filled header band, jump-bar
+            chip, one scrolling row. The tiles carry no art, because a circuit is
+            not one game and borrowing one member's picture says the wrong thing;
+            they carry the circuit's name and the games in it, at a size down from
+            a game tile, which is also what lets sixteen of them read as a row
+            rather than a wall. */}
+        {circTot ? (
+          <section className="tdy-row" id="tdy-circuits" style={{ scrollMarginTop: 112 }}>
+            <div className="tdy-shc circuits" style={{ '--cc': '#233a63' }}>
+              <div className="tdy-hd">
+                <div>
+                  <div className="eb">{`Sets \u00b7 ${circTot} circuits`}</div>
+                  <div className="tdy-hnm">
+                    <h2>Circuits</h2>
+                    <span className={'tdy-prg' + (circDone >= circTot ? ' full' : '')}>
+                      <b>{`${circDone} of ${circTot}`}</b>
+                      <span className="pb" aria-hidden="true"><span style={{ width: `${Math.round((100 * circDone) / circTot)}%` }} /></span>
+                    </span>
+                  </div>
+                </div>
+                <a className="tdy-cta" href={CIRCUIT_BASE}>All circuits</a>
               </div>
-              {continueGame ? (
-                <a className={continueGame.resume ? 'tdy-cta resume' : 'tdy-cta'} href={continueGame.g.href}>
-                  {`${continueGame.resume ? 'Resume' : 'Play'} · ${continueGame.g.name}`}
-                </a>
-              ) : (
-                <a className="tdy-cta" style={{ background: '#2563eb', borderColor: '#2563eb' }} href="/daily-five">All done today</a>
-              )}
+              <TilesRow>
+                {circuitShelves.map((c) => {
+                  const dn = c.games.filter((g) => done.has(g.key)).length;
+                  const tot = c.games.length;
+                  return (
+                    <a
+                      key={c.id}
+                      className={'tdy-ct' + (tot > 0 && dn >= tot ? ' done' : '')}
+                      href={circuitPageHref(c.id)}
+                      style={{ '--cc': c.color }}
+                    >
+                      <b>{c.name}</b>
+                      <span className="tdy-cgs">{c.games.map((g) => g.name).join(' \u00b7 ')}</span>
+                      <span className="tdy-cpr">{dn >= tot ? `\u2713 All ${tot} done` : `${dn}/${tot} done`}</span>
+                    </a>
+                  );
+                })}
+              </TilesRow>
             </div>
-            <TilesRow>
-              {forYou.map(({ g, why, cls, href }) => (
-                <a key={g.key} className={'tdy-t fy' + (cls === 'g' ? ' paused' : '')} href={href}>
-                  <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                  <b>{g.name}</b>
-                  <span className={`tdy-why ${cls}`}>{why}</span>
-                </a>
-              ))}
-            </TilesRow>
           </section>
         ) : null}
 
-        {view === 'cats' && canPin && !pinned.length ? (
+        {canPin && !pinned.length ? (
           <div className="tdy-teaser">
             <span className="ti">{'\u2605 My games'}</span>
             <span className="ts">Star any game and it sits right here, above every category.</span>
           </div>
         ) : null}
 
-        {view === 'cats' && pinsLoaded && !registered ? (
+        {pinsLoaded && !registered ? (
           <div className="tdy-teaser">
             <span className="ti">{'\u2605 My games'}</span>
             <span className="ts">Pin the handful you actually play and they sit right here, above every category.</span>
@@ -1075,9 +1055,9 @@ export default function TodayClient({ onSignup = null } = {}) {
           const cta = shelfCta(shelf);
           const dn = shelf.games.filter((g) => done.has(g.key)).length;
           const tot = shelf.games.length;
-          const allDone = view === 'cats' && tot > 0 && dn >= tot;
+          const allDone = tot > 0 && dn >= tot;
           const collapsed = allDone && !openDone.has(shelf.name);
-          const rest = view === 'cats' && si === 4 ? (
+          const rest = si === 4 ? (
             <div className="tdy-restband"><h3>The rest of the slate</h3><i>{`${CAT_ORDER.length - 4} more categories`}</i></div>
           ) : null;
           if (collapsed) {
@@ -1370,18 +1350,25 @@ const CSS = `
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#22a35f;box-shadow:0 0 0 0 rgba(34,163,95,.5);animation:tdypul 2s infinite;flex:none;}
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(34,163,95,.5);}70%{box-shadow:0 0 0 7px rgba(34,163,95,0);}100%{box-shadow:0 0 0 0 rgba(34,163,95,0);}}
 
-/* ── the view selector, which lives INSIDE the jump bar (owner, 2026-08-25) ──
-   It was a row of its own under My games and Continue, 42px of chrome on a
-   phone to say a thing the bar it now sits in is already about. */
-.tdy-view{display:flex;gap:6px;flex:none;}
-.tdy-viewbtn{font-family:inherit;background:var(--white);border:1px solid #d7dce6;color:#6b7280;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:6px 14px;cursor:pointer;}
-.tdy-viewbtn:hover{border-color:#a8b6cc;color:var(--ink);}
-.tdy-viewbtn.on{background:#1e3a8a;border-color:#1e3a8a;color:var(--white);}
-
 /* ── shelf cards: white on paper, tinted header strip, 4px category rule ── */
 .tdy-row{display:block;}
 .tdy-shc{background:var(--white);border:1px solid #e7e9ee;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);margin:14px 2px 0;}
-.tdy-shc.foryou{margin-top:16px;}
+.tdy-shc.circuits{margin-top:16px;}
+/* ── the circuit tile: no art, a size down from a game tile ──────────────
+   Text only, left aligned, with the circuit's colour as a rule down its left
+   edge so a row of sixteen still reads by category at a glance. The member
+   list clamps to two lines: it is context, not a menu, and a circuit of five
+   games must not make the row twice as tall as one of three. */
+.tdy-ct{flex:none;width:158px;background:var(--white);border:1px solid #dfe4ec;border-left:4px solid var(--cc,#233a63);border-radius:10px;padding:9px 10px 8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);}
+@media(hover:hover){
+  .tdy-ct{transition:box-shadow .14s,transform .14s;}
+  .tdy-ct:hover{box-shadow:0 2px 4px rgba(16,24,40,.07),0 8px 18px rgba(16,24,40,.09);transform:translateY(-1px);}
+}
+.tdy-ct b{color:var(--ink);font-size:12.5px;font-weight:800;letter-spacing:-.01em;line-height:1.2;}
+.tdy-cgs{font-size:9.5px;font-weight:700;line-height:1.35;color:#7b8494;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tdy-cpr{font-size:9.5px;font-weight:800;color:#6b7280;margin-top:1px;}
+.tdy-ct.done{background:#eef7ef;border-color:#c8e2ce;border-left-color:#4f9e69;}
+.tdy-ct.done .tdy-cpr{color:#2f7a4c;}
 /* THE HEADER IS A FILLED BAND (owner, 2026-08-25). It was a 9% tint of the
    category colour with a 4px rule; the whole strip now takes the colour solid
    and everything on it inverts to white. The rail is gone: a 4px rule on a
@@ -1470,11 +1457,6 @@ const CSS = `
 .tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tdy-t.done{background:#eef7ef;border-color:#c8e2ce;}
 .tdy-t.paused{background:#fff7e0;border-color:#e6c97e;}
-.tdy-t.fy{width:144px;}
-.tdy-why{font-size:9.5px;font-weight:800;border-radius:999px;padding:3px 9px;white-space:nowrap;}
-.tdy-why.g{background:#fdf3d7;color:#8a6d1a;}
-.tdy-why.b{background:#e7eeff;color:#1d4ed8;}
-.tdy-why.s{background:#e9edf5;color:#233a63;}
 
 /* ── a finished category collapses to a band ── */
 .tdy-catdone{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--success-deep);border-radius:14px;padding:12px 16px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
@@ -1606,14 +1588,14 @@ const CSS = `
      single flex line, name + count on the left and the CTA on the right. The
      CATEGORY shelves keep the grid, so they keep one uniform shape whether or
      not that category has a leader today. */
-  #tdy-mine .tdy-hd,.tdy-shc.foryou .tdy-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;}
-  #tdy-mine .tdy-hd > div,.tdy-shc.foryou .tdy-hd > div,
-  #tdy-mine .tdy-hnm,.tdy-shc.foryou .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
-  #tdy-mine .tdy-cta,.tdy-shc.foryou .tdy-cta{margin-left:auto;max-width:58%;overflow:hidden;text-overflow:ellipsis;padding:7px 13px;}
-  #tdy-mine .tdy-tiles,.tdy-shc.foryou .tdy-tiles{padding-top:9px;padding-bottom:10px;}
+  #tdy-mine .tdy-hd,.tdy-shc.circuits .tdy-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;}
+  #tdy-mine .tdy-hd > div,.tdy-shc.circuits .tdy-hd > div,
+  #tdy-mine .tdy-hnm,.tdy-shc.circuits .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
+  #tdy-mine .tdy-cta,.tdy-shc.circuits .tdy-cta{margin-left:auto;max-width:58%;overflow:hidden;text-overflow:ellipsis;padding:7px 13px;}
+  #tdy-mine .tdy-tiles,.tdy-shc.circuits .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
-  .tdy-t.fy{width:136px;}
+  .tdy-ct{width:150px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
   .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
@@ -1742,8 +1724,7 @@ const CSS = `
   .tdy-jbtw{width:100%;}
   .tdy-jbt{margin:0 -14px;padding:1px 14px;}
   .tdy-jbc{overflow:visible;gap:6px;}
-  .tdy-view{flex:2 1 0;min-width:0;gap:6px;}
-  .tdy-viewbtn,.tdy-jb2{flex:1 1 0;min-width:0;font-size:10px;padding:5px 4px;text-align:center;}
+  .tdy-jb2{flex:1 1 0;min-width:0;font-size:10px;padding:5px 4px;text-align:center;}
   .tdy-jc{padding:4px 10px 4px 8px;}
   .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}
