@@ -6,10 +6,12 @@
 // rather than three shades of the same white: the navy site header
 // stays untouched above this component; the component itself flips to the light
 // paper theme the game pages use. Top to bottom:
-//   - a WELCOME band in the scheme blues: time-of-day greeting + the day meter
-//     (played / pts / rank + progress bar), with Leaderboards and Live feed
-//     chips on its right edge. The greeting and the clock are read in EFFECTS,
-//     never during render, so SSR and the client agree.
+//   - NO welcome band. It carried a greeting, the day meter (played / IQ
+//     gained / progress) and two jump chips until 2026-08-25, when the owner
+//     moved every figure on it up into the navy header (which already named the
+//     player, their rank and their IQ total, so the band was restating the same
+//     person one card lower) and the Leaderboards jump with them. The Live feed
+//     chip was not kept: the feed sits beside the boards it pointed at.
 //   - a FOR YOU row (blue chrome): paused games, the Daily Five's next game,
 //     the next unplayed game, and a date-rotated spotlight pick. Every Resume
 //     control is GOLD (owner rule); gold otherwise marks only paused tiles.
@@ -49,8 +51,7 @@ import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { fiveFor } from '@/lib/daily-five';
 import { catBlue } from '@/lib/home-blues';
-import savedIdentity from '@/lib/saved-identity';
-import useDayStats, { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
+import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
 // /api/quiz/favorites, same account column, same two-tier promotion. Nothing
 // new is stored for My games.
@@ -315,20 +316,9 @@ export default function TodayClient({ onSignup = null } = {}) {
 
   // ── the day, read in an effect so SSR and the client never disagree ──
   const [today, setToday] = useState(null);
-  const [dateLabel, setDateLabel] = useState('');
-  const [greet, setGreet] = useState('Welcome back');
-  const [who, setWho] = useState('');
   useEffect(() => {
     const iso = etToday();
     setToday(iso);
-    try {
-      setDateLabel(new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).replace(',', ' ·'));
-    } catch (e) { setDateLabel(iso); }
-    try {
-      const h = new Date().getHours();
-      setGreet(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening');
-    } catch (e) {}
-    setWho(savedIdentity().username || '');
   }, []);
   // NOTE: every sudoku grid publishes a puzzle every day. The circuit's 5-of-8
   // rotating window (circuitKeysFor) only decides which five count toward the
@@ -472,8 +462,10 @@ export default function TodayClient({ onSignup = null } = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board]);
 
-  // ── header figures + feed data ──
-  const day = useDayStats();
+  // ── feed data ──
+  // The day's own figures (played, IQ gained, daily rank, rank movement) are
+  // the HEADER's line now, and it reads them from the same memoized
+  // fetchDayStatus, so nothing here has to carry them a second time.
   const [totals, setTotals] = useState(null);
   const [recent, setRecent] = useState(null);
   // Plays SO FAR TODAY per quiz id, so each feed row can say how busy that
@@ -881,50 +873,12 @@ export default function TodayClient({ onSignup = null } = {}) {
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
-  // THE HERO OWNS TODAY, THE NAVY STRIP OWNS ALL TIME (owner, 2026-08-25).
-  // The daily RANK left this line: it was printing here, in the strip above,
-  // and on the Leaderboards chip six inches to the right, and the chip is the
-  // one a reader who cares about it is going to tap anyway. So rank now lives
-  // in exactly one place on the page.
-  //
-  // ONE CURRENCY HERE, SPELLED OUT (owner, 2026-08-25). The combined-board
-  // `pts` figure came off the line as well: two unlabelled numbers side by
-  // side ("134 pts · 224 IQ today") read as one fact stated twice, and pts
-  // is placement, which the Leaderboards chip and the boards below already own.
-  // What is left is how much of the day you have played and what it banked,
-  // named in full so neither number needs the reader to know the jargon.
-  const heroSub = (() => {
-    const parts = [];
-    if (day.ready || day.done) parts.push(`${day.done} of ${day.total} played`);
-    if (day.todayXp) parts.push(`${day.todayXp.toLocaleString()} IQ points gained today`);
-    return parts.join(' · ');
-  })();
-  const heroPct = day.total ? Math.round((100 * day.done) / day.total) : 0;
 
   return (
     <div className="tdy">
       <style>{CSS}</style>
 
       <div className="tdy-wrap">
-        <div className="tdy-hero">
-          <div className="hl">
-            <div className="hi">{dateLabel || ' '}</div>
-            <h1>{who ? `${greet}, ${who}` : greet}</h1>
-            <div className="sub">{heroSub || 'The day’s puzzles, by category'}</div>
-            <div className="bar" aria-hidden="true"><span style={{ width: `${heroPct}%` }} /></div>
-          </div>
-          <div className="hr">
-            <a className="tdy-mini" href="#tdy-boards" onClick={(e) => jumpTo(e, 'tdy-boards')}>
-              <span className="ic">{TROPHY}</span>
-              <span><span className="k">Leaderboards</span><span className="v">{day.dayRank ? `You're #${day.dayRank.toLocaleString()} today` : "Today's standings"}</span></span>
-            </a>
-            <a className="tdy-mini" href="#tdy-feed" onClick={(e) => jumpTo(e, 'tdy-feed')}>
-              <span className="ic"><span className="tdy-pulse" /></span>
-              <span><span className="k">Live feed</span><span className="v">{totals ? `${totals.today.toLocaleString()} plays today` : 'Across the Loft'}</span></span>
-            </a>
-          </div>
-        </div>
-
         <div className="tdy-jb" style={{ top: barTop }}>
           <div className="tdy-jbin">
             <div className="tdy-jbt">
@@ -1365,19 +1319,6 @@ const CSS = `
    phone treatment still reaches the screen edges. */
 .dhx-marquee .tdy-wrap{max-width:none;padding-left:0;padding-right:0;}
 
-/* ── the welcome band: Dawn's greeting in the scheme blues ── */
-.tdy-hero{background:linear-gradient(115deg,#dbeafe 0%,#e8effe 55%,#f2f6ff 100%);border-radius:18px;padding:20px 24px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:18px 2px 0;}
-.tdy-hero .hi{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:#1d4ed8;min-height:13px;}
-.tdy-hero h1{font-size:clamp(21px,2.3vw,26px);font-weight:800;letter-spacing:-.02em;color:#16255f;margin:4px 0 0;}
-.tdy-hero .sub{font-size:13px;font-weight:700;color:#5a6a8a;margin-top:6px;font-variant-numeric:tabular-nums;}
-.tdy-hero .bar{width:170px;height:7px;border-radius:99px;background:rgba(255,255,255,.6);overflow:hidden;margin-top:9px;}
-.tdy-hero .bar span{display:block;height:100%;background:#2563eb;border-radius:99px;transition:width .3s;}
-.tdy-hero .hr{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap;}
-.tdy-mini{display:flex;align-items:center;gap:10px;background:var(--white);border-radius:12px;padding:8px 14px 8px 10px;text-decoration:none;box-shadow:0 8px 20px rgba(30,58,138,.12);}
-.tdy-mini:hover{background:#fbfcff;}
-.tdy-mini .ic{width:26px;height:26px;border-radius:8px;background:#eef3ff;display:flex;align-items:center;justify-content:center;flex:none;}
-.tdy-mini .k{display:block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#1d4ed8;font-weight:800;line-height:1;}
-.tdy-mini .v{display:block;font-size:12.5px;font-weight:800;color:var(--ink);line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#22a35f;box-shadow:0 0 0 0 rgba(34,163,95,.5);animation:tdypul 2s infinite;flex:none;}
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(34,163,95,.5);}70%{box-shadow:0 0 0 7px rgba(34,163,95,0);}100%{box-shadow:0 0 0 0 rgba(34,163,95,0);}}
 
@@ -1561,10 +1502,6 @@ const CSS = `
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
-  .tdy-hero{margin:0;border-radius:0;padding:18px 16px;}
-  .tdy-hero .hr{flex:1 1 100%;margin-left:0;}
-  .tdy-hero .hr .tdy-mini{flex:1 1 auto;}
-  .tdy-hero .bar{width:100%;}
   .tdy-view{padding-left:16px;}
   .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
   /* ONE HEADER SHAPE AT PHONE WIDTH (owner, 2026-08-25). It was a plain

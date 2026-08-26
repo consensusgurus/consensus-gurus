@@ -108,6 +108,38 @@ export function jumpToQuizzes() {
   } catch (e) {}
 }
 
+// THE LEADERBOARDS JUMP LIVES IN THE BAR NOW (owner, 2026-08-25). The welcome
+// band under this header carried two jump chips; the band is gone and its
+// figures moved up here, so the one jump worth keeping came with them (the Live
+// feed chip did not: the feed is beside the boards it links to). Offsetting is
+// TodayClient's own recipe, because a bare hash lands the heading UNDER the
+// pinned masthead: take the tallest bar whose COMPUTED position is sticky or
+// fixed, then add the category jump bar that sticks beneath it.
+export function jumpToBoards(e) {
+  try {
+    const el = document.getElementById('tdy-boards');
+    if (!el) return;
+    if (e) e.preventDefault();
+    let h = 0;
+    for (const sel of ['.qch-bar', '.qchm-r1', '.qchm']) {
+      const b = document.querySelector(sel);
+      if (!b) continue;
+      let pos = '';
+      try { pos = getComputedStyle(b).position; } catch (x) {}
+      if (pos !== 'sticky' && pos !== 'fixed') continue;
+      h = Math.max(h, b.getBoundingClientRect().height);
+    }
+    const jb = document.querySelector('.tdy-jb');
+    if (jb) {
+      try { if (getComputedStyle(jb).position === 'sticky') h += jb.getBoundingClientRect().height; } catch (x) {}
+    }
+    const y = el.getBoundingClientRect().top + window.scrollY - (h + 14);
+    const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({ top: Math.min(max, Math.max(0, y)), behavior: 'smooth' });
+    try { window.history.replaceState(null, '', '#tdy-boards'); } catch (x) {}
+  } catch (x) {}
+}
+
 export default function QuizCommandHeader({ me, onSignup, ticker = [], variant = 'default', onCredit }) {
   const found = !!(me && me.found);
   // A signed-out visitor still gets a name: the same stable Guest-XXXX handle
@@ -220,28 +252,30 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     // from `home`, both below: it sits in normal flow rather than sticking, and
     // its nav links out instead of scrolling the page it is on.
     const inner = variant === 'inner';
-    // ONE TIMEFRAME PER SURFACE (owner, 2026-08-25). Counted on the live home:
-    // the daily rank printed THREE times inside 200px (this strip, the hero's
-    // sub-line, the Leaderboards chip), games-played three times, and the day's
-    // IQ gain twice inside this strip alone. So the surfaces were split by
-    // timeframe rather than de-duplicated one at a time:
+    // THE HEADER CARRIES THE WHOLE PLAYER LINE AGAIN (owner, 2026-08-25).
+    // For two days the home stripped Played and Daily rank out of this strip
+    // because a welcome band 60px below said both, bigger and warmer. The band
+    // is gone now and its figures came up here, so the home renders the same
+    // five cells every other surface (`inner`: quiz boards, Stat Hub, Duel,
+    // profiles) always has: Player, Rank, IQ points, Played, Daily rank.
     //
-    //   this strip  -> WHO YOU ARE, ALL TIME: Player, Rank, IQ points.
-    //   the hero    -> TODAY: played, points, IQ gained.
-    //   the chips   -> navigation, plus the one fact they navigate to.
-    //
-    // So Played and Daily rank leave the strip ON THE HOME ONLY, where a hero
-    // sits 60px below saying both, bigger and warmer. Every other surface
-    // (`inner`: quiz boards, Stat Hub, Duel, profiles) has no hero, so it keeps
-    // the full five cells and is untouched by this.
+    // `home` still means something: only the homepage has boards further down
+    // the page, so only the homepage turns the Daily rank cell into a jump and
+    // adds the Leaderboards chip to the actions.
     const home = !inner;
-    const stat = (label, value, sub, subCls, cellCls) => (
-      <div className={`qchm-cell${cellCls ? ` ${cellCls}` : ''}`}>
-        <div className="qchm-k">{label}</div>
-        <div className="qchm-v">{value}</div>
-        <div className={`qchm-ch${subCls ? ` ${subCls}` : ''}`}>{sub}</div>
-      </div>
-    );
+    const stat = (label, value, sub, subCls, cellCls, jump) => {
+      const body = (
+        <>
+          <div className="qchm-k">{label}</div>
+          <div className="qchm-v">{value}</div>
+          <div className={`qchm-ch${subCls ? ` ${subCls}` : ''}`}>{sub}</div>
+        </>
+      );
+      const cls = `qchm-cell${cellCls ? ` ${cellCls}` : ''}${jump ? ' qchm-jump' : ''}`;
+      return jump
+        ? <a className={cls} href="#tdy-boards" onClick={jumpToBoards}>{body}</a>
+        : <div className={cls}>{body}</div>;
+    };
     return (
       <div className={inner ? 'qchm qchm-inner' : 'qchm'}>
         <style>{`
@@ -281,11 +315,22 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-r2{background:#101d44;color:var(--white);border-bottom:3px solid var(--blue);}
           .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #192b59;white-space:nowrap;}
           .qchm-cell:first-child{padding-left:0;}
-          .qchm-cell:last-of-type{border-right:none;}
+          /* :nth-last-child(2) rather than :last-of-type: the actions block is
+             always the last child, so the cell before it is the last cell. A
+             jump cell renders as an <a> and every other as a <div>, and
+             :last-of-type counts per element type, so it would have stranded a
+             divider on the last <div> in the row. */
+          .qchm-cell:nth-last-child(2){border-right:none;}
+          .qchm-jump{text-decoration:none;color:inherit;cursor:pointer;display:block;}
+          .qchm-jump:hover .qchm-v{color:var(--blue-200);}
           .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9fb8ee;font-weight:800;}
           .qchm-v{font-size:18px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
           .qchm-v i{font-style:normal;font-size:11.5px;font-weight:600;color:#9fb8ee;}
-          .qchm-ch{display:none;font-size:10px;font-weight:700;color:#9fb8ee;margin-top:1px;}
+          /* THE CHANGE LINE IS WHERE A GAIN OR A LOSS IS COLOURED, so it
+             renders at every width (owner, 2026-08-25). It was phone-only,
+             which left a desktop reader with no green or red anywhere: the
+             rank movement and the day's IQ gain were simply not on the page. */
+          .qchm-ch{display:block;font-size:10px;font-weight:700;color:#9fb8ee;margin-top:1px;}
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
           .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
@@ -316,7 +361,6 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             .qchm-k{display:none;}
             .qchm-v{font-size:17px;}
             .qchm-v .qchm-day{display:none;}
-            .qchm-ch{display:block;}
             .qchm-acts{display:none;}
           }
           @media(max-width:560px){.qchm-r1{padding-top:env(safe-area-inset-top);}}
@@ -388,9 +432,15 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                   gain left to the small change sub-line the way the Rank cell
                   leaves its movement there. On `inner` the inline +N stays,
                   since nothing else on those pages reports the day. */}
-              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i><i className="qchm-day">{!home && dayXp ? ` +${dayXp.toLocaleString()}` : ''}</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
-              {home ? null : stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
-              {home ? null : stat(
+              {/* The big value is the LIFETIME total; the day's gain is the
+                  small change line under it, coloured, the way the Rank cell
+                  leaves its movement there. It used to also print inline beside
+                  the total on the inner surfaces, back when the change line was
+                  a phone-only thing. The line renders at every width now, so
+                  the inline copy was the same number twice. */}
+              {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
+              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
+              {stat(
                 'Daily rank',
                 dayRank
                   ? <>{`#${fmtK(dayRank)}`}{dayField ? <i className="qchm-day">{` of ${dayField.toLocaleString()}`}</i> : null}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
@@ -401,7 +451,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                 dayRank
                   ? (dayField ? `daily rank of ${dayField.toLocaleString()}` : 'daily rank today')
                   : 'play to rank today',
-                dayRank ? 'qchm-up' : '',
+                // NEUTRAL, not green. Green and red on this row mean a gain or a
+                // loss; a standing is neither, and colouring it read as a climb.
+                '',
+                '',
+                home,
               )}
             </>
           ) : (
@@ -411,6 +465,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             </>
           )}
           <div className="qchm-acts">
+            {/* Homepage only: it scrolls to today's boards, which exist on no
+                other surface. */}
+            {home ? <a className="qchm-bt" href="#tdy-boards" onClick={jumpToBoards}>{TICO.champ}Leaderboards</a> : null}
             <Link href="/quizzes/hub" className="qchm-bt">Stat Hub</Link>
             {/* The figure comes from CONTEST, never a literal: the prize is a
                 one-file edit and this button has to follow it. */}
