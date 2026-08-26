@@ -1402,16 +1402,20 @@ const CSS = `
    min-height makes the circuits shelf match the categories by construction
    rather than by a number typed in twice.
 
-   MEASURED, NEVER GUESSED (owner, 2026-08-26). It sat at 147px, which was the
-   height of the CARD tile that used to reserve three label rows whether it had
-   anything to put in them or not. The plate tile renders a row only when it has
-   something for it, so on a quiet morning 147 was a floor taller than anything
-   standing on it and every shelf carried about 19px of dead air. 128px is what a
-   tile actually stands at, read off the live page with the floor removed. It is
-   a FLOOR, not a height: a tile that has both a score and a leader grows past it
-   and takes its row with it, which is the point. Measure the same way after any
-   change here: set .tdy-t/.tdy-ct min-height:0 and take the tallest tile. */
---tile-h:128px;--tile-w:96px;}
+   MEASURED, NEVER GUESSED (owner, 2026-08-26). It sat at 147px, the height of
+   the CARD tile that reserved three label rows whether it had anything to put
+   in them or not, and every shelf carried the difference as dead air. The plate
+   tile renders a row only when it HAS one, so the floor is now the bare tile:
+   109px, a plate and a name and nothing else, read off the live page with the
+   floor removed. One line takes it to about 127 and two to 145, and the floor
+   lets them: it is a FLOOR, not a height.
+
+   So a shelf grows as its games fill up over the day rather than reserving the
+   room at midnight, which does mean a quiet shelf is shorter than a busy one.
+   That is the trade the owner asked for, twice, against a page that was mostly
+   empty rows. Re-measure the same way after any change to the tile's stack: set
+   .tdy-t/.tdy-ct min-height:0 and take the tallest bare tile. */
+--tile-h:109px;--tile-w:96px;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
