@@ -1479,10 +1479,16 @@ const CSS = `
 
    Gold is not gone from the surface, it still marks the leader chips and the My
    games star, which is where it reads properly. */
-.tdy-cta{margin-left:auto;border:1.5px solid rgba(255,255,255,.75);background:transparent;color:var(--white);font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;border-radius:999px;padding:6px 13px;white-space:nowrap;flex:none;text-decoration:none;}
-.tdy-cta:hover{filter:none;background:rgba(255,255,255,.16);border-color:var(--white);}
-.tdy-cta.resume{background:var(--white);border-color:var(--white);color:var(--cc,#2563eb);}
-.tdy-cta.resume:hover{filter:none;background:#eef2f8;border-color:#eef2f8;}
+/* Owner, 2026-08-26: the outlined uppercase pill became type with an arrow.
+   On a filled band a ghost pill was a second rectangle inside a rectangle, and
+   it was the weakest thing on the row while looking like the strongest. */
+.tdy-cta{margin-left:auto;border:none;background:none;color:var(--white);font-size:12px;font-weight:800;letter-spacing:normal;text-transform:none;border-radius:999px;padding:6px 2px;white-space:nowrap;flex:none;text-decoration:none;transition:opacity .14s;}
+.tdy-cta:not(.resume)::after{content:' →';font-weight:700;}
+.tdy-cta:hover{filter:none;background:none;opacity:.78;}
+/* RESUME KEEPS THE SOLID WHITE PILL. It is the one thing on a band a reader is
+   meant to press, so it stays the one thing on a band shaped like a button. */
+.tdy-cta.resume{background:var(--white);border:none;color:var(--cc,#2563eb);border-radius:999px;padding:7px 15px;}
+.tdy-cta.resume:hover{filter:none;background:#eef2f8;opacity:1;}
 
 /* ── tile tracks ── */
 .tdy-tw{position:relative;}
@@ -1735,24 +1741,46 @@ const CSS = `
 /* The chip's own tint fill IS its progress meter, which is what keeps ten
    categories and both buttons on one line at desktop widths. A separate
    meter element cost ~32px a chip and pushed the last category off the bar. */
-.tdy-jc{position:relative;overflow:hidden;flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid #dfe4ec;border-radius:999px;padding:5px 12px 5px 9px;cursor:pointer;font-family:inherit;color:var(--ink);-webkit-tap-highlight-color:transparent;}
-.tdy-jc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--pc,0%);background:color-mix(in srgb,var(--cc,#2563eb) 16%,#fff);transition:width .25s;}
+/* A CHIP IS A TINTED FILL, NOT AN OUTLINE (owner, 2026-08-26). Ten white
+   pills behind ten grey 1px borders read as a form control from 2012, and the
+   border was doing the same job the category's own colour can do for free. The
+   chip's ground is now that colour at 9%, and its ::before meter, which is
+   still the progress bar and still the reason there is no separate meter
+   element, deepens to 24% of the same hue. ORDER IS LOAD-BEARING below: a chip
+   can carry .mine AND .here at once (My games is a jump target like any other),
+   so .here is declared LAST and wins. */
+.tdy-jc{position:relative;overflow:hidden;flex:none;display:inline-flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--cc,#2563eb) 9%,#fff);border:1px solid transparent;border-radius:10px;padding:6px 13px 6px 10px;cursor:pointer;font-family:inherit;color:var(--ink);-webkit-tap-highlight-color:transparent;transition:background .14s;}
+.tdy-jc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:var(--pc,0%);background:color-mix(in srgb,var(--cc,#2563eb) 24%,#fff);transition:width .25s;}
 .tdy-jc>*{position:relative;}
-.tdy-jc:hover{border-color:#b6c2d6;}
+.tdy-jc:hover{background:color-mix(in srgb,var(--cc,#2563eb) 17%,#fff);}
 .tdy-jc .dot{width:7px;height:7px;border-radius:50%;background:var(--cc);flex:none;}
 .tdy-jc .nm{font-size:12px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
-.tdy-jc .ct{font-size:10.5px;font-weight:800;color:#9aa0ab;font-variant-numeric:tabular-nums;white-space:nowrap;}
-.tdy-jc.full{border-color:#cfe6d4;}
-.tdy-jc.full::before{background:#e6f6e9;}
+.tdy-jc .ct{font-size:10.5px;font-weight:700;color:#7b8494;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.tdy-jc.full{background:#e6f6e9;}
+.tdy-jc.full::before{background:#d5efdb;}
+.tdy-jc.full:hover{background:#dcf0e1;}
 .tdy-jc.full .ct{color:var(--success-deep);}
-.tdy-jc.here{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.16);}
-.tdy-jc.mine{border-color:#eeda9e;}
-.tdy-jc.mine::before{background:#fdf3d7;}
+.tdy-jc.mine{background:#fbf0d2;}
+.tdy-jc.mine::before{background:#f6e3ac;}
+.tdy-jc.mine:hover{background:#f8e9c2;}
 .tdy-jc.mine .nm{color:#8a6d1a;}
 .tdy-jc.mine .ct{color:var(--gold-ink);}
-.tdy-jb2{flex:none;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--blue-deep);background:var(--accent-soft);border:1.5px solid var(--accent-border);border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;}
-.tdy-jb2:hover{background:#e2ecff;}
-.tdy-jb2.on{background:var(--accent);border-color:var(--accent);color:var(--white);}
+/* THE CATEGORY YOU ARE IN IS FILLED, NOT RINGED. A 2px blue halo around a
+   white pill was the browser's own focus ring by another name, and it said
+   "blue" on a bar where every other chip speaks its own category's colour.
+   Every category hue is a dark saturated step (the lightest, umber #92400e, is
+   6.9:1), so white type carries on all of them. */
+.tdy-jc.here{background:var(--cc,#2563eb);}
+.tdy-jc.here::before{background:rgba(255,255,255,.2);}
+.tdy-jc.here:hover{background:var(--cc,#2563eb);filter:brightness(1.1);}
+.tdy-jc.here .nm{color:var(--white);}
+.tdy-jc.here .ct{color:rgba(255,255,255,.74);}
+.tdy-jc.here .dot{background:var(--white);}
+/* A to Z and Reorder open a drawer, they do not act, so they read as type with
+   a hover ground rather than as two more filled pills beside ten chips. */
+.tdy-jb2{flex:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:normal;text-transform:none;color:var(--slate);background:none;border:none;border-radius:8px;padding:7px 9px;cursor:pointer;white-space:nowrap;transition:color .14s,background .14s;}
+.tdy-jb2:hover{background:rgba(15,23,42,.055);color:var(--ink);}
+.tdy-jb2.on{background:none;color:var(--blue-deep);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;}
 /* A sticky element is a positioned element, so the dropdown anchors to the
    bar rather than to the page. */
 .tdy-jbsh{position:absolute;left:0;right:0;top:100%;background:var(--white);border-bottom:1px solid #e3e7ee;box-shadow:0 14px 28px rgba(16,24,40,.10);max-height:62vh;overflow:auto;}
@@ -1830,7 +1858,11 @@ const CSS = `
   .tdy-jbtw{width:100%;}
   .tdy-jbt{margin:0 -14px;padding:1px 14px;}
   .tdy-jbc{overflow:visible;gap:6px;}
-  .tdy-jb2{flex:1 1 0;min-width:0;font-size:10px;padding:5px 4px;text-align:center;}
+  /* On a phone these two are full-width targets rather than two words at
+     the end of a row, so they take a surface back: a hover ground is no
+     affordance at all on touch. */
+  .tdy-jb2{flex:1 1 0;min-width:0;font-size:11.5px;padding:6px 4px;text-align:center;background:var(--white);border-radius:9px;box-shadow:0 1px 2px rgba(16,24,40,.09);}
+  .tdy-jb2.on{background:var(--accent-soft);}
   .tdy-jc{padding:4px 10px 4px 8px;}
   .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}

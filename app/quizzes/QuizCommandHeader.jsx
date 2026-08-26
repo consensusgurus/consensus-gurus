@@ -308,10 +308,19 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-wm{font-size:18px;font-weight:800;letter-spacing:-.025em;color:var(--white);line-height:1;white-space:nowrap;}
           .qchm-wm em{font-style:normal;color:var(--blue-400);}
           .qchm-tag{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-200);border-left:1px solid #1e2e5a;padding-left:13px;font-weight:800;white-space:nowrap;}
-          .qchm-nav{margin-left:auto;display:flex;gap:8px;align-items:center;}
-          .qchm-nav a,.qchm-nav button{color:var(--white);background:#2f4d85;border:1px solid #4f74cc;text-decoration:none;font-family:inherit;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:7px 13px;border-radius:7px;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;}
-          .qchm-nav a:hover,.qchm-nav button:hover{background:#3a5c9c;border-color:#7a99e0;}
-          .qchm-nav a.on{background:var(--white);border-color:var(--white);color:var(--accent);}
+          .qchm-nav{margin-left:auto;display:flex;gap:20px;align-items:center;}
+          /* THE TOP ROW CARRIES NO BOXES (owner, 2026-08-26). Three
+             outlined #2f4d85 rectangles at 7px radius were the oldest-looking
+             object on the site, and they competed with the gold CTA one row
+             below for the same attention while pointing at pages rather than
+             actions. The nav is TYPE now: the section you are in is white with
+             a 2px gold rule under it, and the other two are the same type at
+             74% white, which is 6.8:1 on the accent ground. Nothing about the
+             row's height, order or hit area moves. */
+          .qchm-nav a,.qchm-nav button{position:relative;color:rgba(255,255,255,.74);background:none;border:none;text-decoration:none;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:normal;text-transform:none;padding:7px 1px;border-radius:0;display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:color .14s;}
+          .qchm-nav a:hover,.qchm-nav button:hover{background:none;color:var(--white);}
+          .qchm-nav a.on{background:none;color:var(--white);font-weight:800;}
+          .qchm-nav a.on::after{content:'';position:absolute;left:0;right:0;bottom:1px;height:2px;border-radius:2px;background:var(--gold);}
           .qchm-user{display:none;margin-left:auto;align-items:center;gap:8px;}
           /* THE NAME, AND ONLY THE NAME (owner). A loft page hides the stat row
              below, so the header is where a signed-in player is named; the rank
@@ -361,16 +370,21 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-ch.qchm-mob{visibility:hidden;}
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
-          .qchm-acts{flex:none;margin-left:auto;display:flex;gap:8px;padding-left:16px;}
-          .qchm-bt{border:1px solid #5b7fd4;background:#162b5d;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
-          .qchm-bt:hover{background:#223872;border-color:#8aa8e8;color:var(--white);}
+          .qchm-acts{flex:none;margin-left:auto;display:flex;align-items:center;gap:18px;padding-left:20px;}
+          /* ONE BUTTON IN THIS GROUP IS ASKING FOR SOMETHING, so exactly one of
+             them is SHAPED like a button. Leaderboards and Stat Hub are places
+             you go, so they read as type; the gold CTA and Sign Up keep a
+             filled pill and are the only things in the whole stack that look
+             pressable, which is what makes them read as the actions. */
+          .qchm-bt{border:none;background:none;color:rgba(255,255,255,.82);border-radius:0;padding:7px 1px;font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:normal;text-transform:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;text-decoration:none;transition:color .14s;}
+          .qchm-bt:hover{background:none;border:none;color:var(--white);}
           /* The share CTA is the one button in this row that is asking for
              something, so it leaves the blue set and takes the contest's gold
              (owner, 2026-08-08). Dark ink, because gold cannot carry white. */
-          .qchm-bt.qchm-gold{background:var(--gold);border-color:#f0c860;color:#2a1f04;}
-          .qchm-bt.qchm-gold:hover{background:#f2c451;border-color:var(--white);color:#2a1f04;}
-          .qchm-signup{background:var(--blue);border-color:#7ea6ff;}
-          .qchm-signup:hover{background:#3b7bf5;}
+          .qchm-bt.qchm-gold{background:var(--gold);border:none;color:#3b2a04;font-weight:800;border-radius:999px;padding:8px 16px;box-shadow:0 1px 2px rgba(4,9,22,.32);}
+          .qchm-bt.qchm-gold:hover{background:#f2c451;border:none;color:#3b2a04;}
+          .qchm-signup{background:var(--blue);border:none;color:var(--white);font-weight:800;border-radius:999px;padding:8px 16px;box-shadow:0 1px 2px rgba(4,9,22,.32);}
+          .qchm-signup:hover{background:#3b7bf5;color:var(--white);}
           /* SIX EQUAL CELLS NEED THE ROOM (owner, 2026-08-25). With the actions
              block holding its natural width, a 1000px window left each cell
              about 90px, which is narrower than "13,628 IQ pts". Community rank
@@ -429,12 +443,15 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             .qchm-brand svg{width:24px;height:24px;}
             .qchm-wm{font-size:16px;}
             .qchm-pic{width:25px;height:25px;font-size:11px;}
-            .qchm-nav a,.qchm-nav button{padding:5px 11px;font-size:10.5px;}
+            .qchm-nav{gap:15px;}
+            .qchm-nav a,.qchm-nav button{padding:5px 1px;font-size:12px;}
             .qchm-k{font-size:8px;}
             .qchm-v{font-size:15px;}
             .qchm-v i{font-size:10px;}
             .qchm-ch{font-size:9px;margin-top:0;}
-            .qchm-bt{padding:5px 10px;font-size:10px;}
+            .qchm-acts{gap:14px;padding-left:14px;}
+            .qchm-bt{padding:5px 1px;font-size:11.5px;}
+            .qchm-bt.qchm-gold,.qchm-signup{padding:6px 13px;}
             .qchm-r2{border-bottom-width:2px;}
           }
         `}</style>
