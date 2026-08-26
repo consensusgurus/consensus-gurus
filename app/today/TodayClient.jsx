@@ -231,6 +231,23 @@ export default function TodayClient({ onSignup = null } = {}) {
   // shelf, and the personal layer lands a moment later from its effects.
   const { favorites, canPin, registered, loaded: pinsLoaded, max: pinMax, toggleFavorite } = useMyGames();
 
+  // A REJECTED PIN MUST SAY SO (owner report, 2026-08-26). toggleFavorite is
+  // optimistic and settles against the server, so a rejection un-fills the star
+  // and drops the tile back out of My games. Discarding its result, which this
+  // page did, makes that read as the star mechanism being broken: the reported
+  // symptom was "i star them and they unstar and remove themselves". The cap
+  // that caused it is gone, but every other rejection (signed out, write failed,
+  // offline) rolls back exactly the same way, so the note is the real fix and
+  // the cap removal is the specific one. The old DailyStrip console got this
+  // right by disabling the star and explaining; this is the same duty on a page
+  // whose star is never disabled.
+  const [pinErr, setPinErr] = useState(null);
+  useEffect(() => {
+    if (!pinErr) return undefined;
+    const t = setTimeout(() => setPinErr(null), 6000);
+    return () => clearTimeout(t);
+  }, [pinErr]);
+
   // Per-game archive counts ride along on the SAME fetchDayStatus payload the
   // day state already reads (pass 2 below): archive[key].played is how many of
   // that game's days this player has played. No extra request, which is what
@@ -682,7 +699,20 @@ export default function TodayClient({ onSignup = null } = {}) {
           e.preventDefault();
           e.stopPropagation();
           try { e.currentTarget.blur(); } catch (x) {}
-          toggleFavorite(key);
+          setPinErr(null);
+          Promise.resolve(toggleFavorite(key)).then((r) => {
+            if (r && r.ok) return;
+            const code = (r && r.error) || 'failed';
+            if (code === 'limit') {
+              setPinErr(`You have ${pinMax || favorites.length} games pinned. Unpin one first.`);
+            } else if (code === 'not_registered') {
+              setPinErr('Sign in to pin games to My games.');
+            } else if (code === 'network') {
+              setPinErr('No connection, so that pin was not saved. Try again.');
+            } else {
+              setPinErr('That pin could not be saved. Try again in a moment.');
+            }
+          });
         }}
       >
         {on ? '\u2605' : '\u2606'}
@@ -969,6 +999,13 @@ export default function TodayClient({ onSignup = null } = {}) {
             </div>
           ) : null}
         </div>
+
+        {pinErr ? (
+          <div className="tdy-teaser tdy-pinerr" role="status">
+            <span className="ti">{'\u2605 My games'}</span>
+            <span className="ts">{pinErr}</span>
+          </div>
+        ) : null}
 
         {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
@@ -1843,6 +1880,7 @@ const CSS = `
 
 /* The guest teaser: pins live on the account, so a signed-out reader is shown
    what the row is for rather than an empty shelf. */
+.tdy-pinerr{border-left-color:#c0392b;}
 .tdy-teaser{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--gold);border-radius:14px;padding:13px 18px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
 .tdy-teaser .ti{font-size:14.5px;font-weight:800;color:var(--ink);}
 .tdy-teaser .ts{font-size:12.5px;font-weight:700;color:var(--slate);}

@@ -29,7 +29,11 @@ import { dailyMeIdentity } from './dailyMeClient';
 // effect on the next load. `canPin` is false when the quiz_users.favorites
 // column is missing, which hides the control rather than offering a button that
 // cannot write.
-const EMPTY = { registered: false, canPin: false, favorites: [], orderFavorites: [], max: 12, loaded: false };
+// `max` is the server's cap and NULL MEANS UNLIMITED (owner ruling, 2026-08-26,
+// which set the route's FAV_MAX to null). Never default it to a number: a `|| 12`
+// here would reinstate the retired cap on the client while the server happily
+// stored more, which is a worse bug than the one it replaced.
+const EMPTY = { registered: false, canPin: false, favorites: [], orderFavorites: [], max: null, loaded: false };
 
 // One fetch and one truth per page, shared by every component that asks. The
 // board and the expanded tile panel both need this, and a pin toggled in the
@@ -66,7 +70,7 @@ function load() {
         canPin: !!(d && d.canPin),
         favorites: favs,
         orderFavorites: favs,
-        max: (d && d.max) || 12,
+        max: d && typeof d.max === 'number' ? d.max : null,
         loaded: true,
       });
       return shared;

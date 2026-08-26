@@ -636,7 +636,9 @@ export default function DailyStrip({ board = null, layout = 'tiles', quizCats = 
   // global order and shows no control.
   const myGamesOn = canPin;
   const favSet = new Set(favorites);
-  const favFull = favorites.length >= (favMax || 12);
+  // No cap unless the server sends one (owner, 2026-08-26). The `|| 12` this
+  // replaced kept disabling the star at twelve pins after the cap was removed.
+  const favFull = typeof favMax === 'number' && favMax > 0 && favorites.length >= favMax;
   const games = (() => {
     const base = sortByDailyOrder(GAMES, dailyOrder);
     let out = base;

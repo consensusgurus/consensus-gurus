@@ -30,9 +30,21 @@ import { DAILY_KEYS } from '@/lib/daily-games';
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
-// A board of 43 tiles stops being personalized somewhere around a dozen pins,
-// so the cap is a usability guard, not a storage one.
-const FAV_MAX = 12;
+// THERE IS NO CAP (owner ruling, 2026-08-26). It was 12, set when the board was
+// 43 tiles in ONE list and a pin was a promotion inside that list, so a dozen
+// pins was the point where promoting more stopped meaning anything. My games is
+// its own shelf now and the roster is ~70 games, and the cap had become a trap:
+// a player at 12 still saw the star on every tile, the star still filled on the
+// click, and the rejection then rolled it back with nothing said. It reads as
+// the star mechanism being broken rather than as a limit being reached, which is
+// exactly how it was reported. cleanKeys already filters to the live roster and
+// de-duplicates, so the stored list can never exceed the roster's own length.
+//
+// Set this to a number to reintroduce a cap; every consumer reads `max` off the
+// response and null means unlimited, so nothing else needs to change. If you do,
+// make the CONTROL say so at the cap (disable it and explain, the way the old
+// DailyStrip console did) rather than letting a click fail silently.
+const FAV_MAX = null;
 const KEY_SET = new Set(DAILY_KEYS);
 
 function identOf(searchParams) {
@@ -42,15 +54,15 @@ function identOf(searchParams) {
   };
 }
 
-// Keep only keys still on the roster, de-duplicated, capped. A game retired
-// after a player pinned it simply drops out here.
+// Keep only keys still on the roster, de-duplicated, and capped when a cap
+// exists. A game retired after a player pinned it simply drops out here.
 function cleanKeys(arr) {
   if (!Array.isArray(arr)) return [];
   const out = [];
   for (const k of arr) {
     const key = typeof k === 'string' ? k.trim() : '';
     if (KEY_SET.has(key) && !out.includes(key)) out.push(key);
-    if (out.length >= FAV_MAX) break;
+    if (FAV_MAX && out.length >= FAV_MAX) break;
   }
   return out;
 }
@@ -126,7 +138,7 @@ export async function POST(request) {
       return NextResponse.json({ ok: false, error: 'no_column', registered: true, canPin: false, favorites: [] });
     }
     const without = current.filter((k) => k !== key);
-    if (on && !current.includes(key) && current.length >= FAV_MAX) {
+    if (FAV_MAX && on && !current.includes(key) && current.length >= FAV_MAX) {
       return NextResponse.json({ ok: false, error: 'limit', registered: true, canPin: true, favorites: current, max: FAV_MAX });
     }
     const next = on ? [...without, key] : without;
