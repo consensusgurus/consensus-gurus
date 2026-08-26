@@ -652,25 +652,21 @@ export default function TodayClient({ onSignup = null } = {}) {
 
   const statusLine = (shelf, g) => {
     if (done.has(g.key)) {
+      // NO SECOND TICK (owner, 2026-08-26). The plate already carries a tick
+      // badge on a solved tile, so the line under the name is the score and
+      // nothing else.
       const r = myRow(g.key);
       const sc = r && r.score != null && r.total ? `${r.score}/${r.total}` : 'Done';
-      return { cls: 'tk', text: `✓ ${sc}` };
+      return { cls: 'tk', text: sc };
     }
     if (inprog.has(g.key)) return { cls: 'tp', text: 'Resume' };
-    // ONE LINE, AND ONLY WHEN THERE IS ONE TO GIVE (owner, 2026-08-26).
-    // The tile used to stack two: a status line that read "0 playing" on
-    // sixty-five tiles, and a leader chip under it. That is two rows of grey
-    // text per tile on a page whose subject is the games. It is one row now,
-    // carrying the most useful thing the tile knows, in this order: how you
-    // did, then whether you are mid-game, then who leads it today, then how
-    // many people are in there. A tile that knows none of those says nothing
-    // at all, which is what makes the ones that do speak visible.
-    //
-    // The crowd figure needs a real crowd behind it (owner, 2026-08-26): under
-    // six players it is not a signal, it is a number that makes a game look
-    // empty, so it is shown from 6 up and the tile stays quiet below that.
-    const ld = leaderOf(g.key);
-    if (ld) return { cls: 'ld', text: ld, crown: true };
+    // NOTHING RATHER THAN NOTHING-TO-SAY (owner, 2026-08-26). This line used
+    // to read "0 playing" on sixty-five tiles, which is sixty-five pieces of
+    // grey text saying a game is empty. The crowd figure needs a real crowd
+    // behind it, so it shows from six players up and the line is simply not
+    // rendered below that. The leader is its own line, beside this one, and
+    // both are conditional: a tile that has nothing to report carries no rows
+    // at all, which is what stops the shelf reserving space for them.
     const n = playsOf(g.key);
     return { cls: '', text: n > 5 ? `${n.toLocaleString()} playing` : '' };
   };
@@ -1007,6 +1003,7 @@ export default function TodayClient({ onSignup = null } = {}) {
               <TilesRow>
                 {pinned.map((g) => {
                   const st = statusLine(null, g);
+                  const leader = leaderOf(g.key);
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
                   else if (inprog.has(g.key)) cls.push('paused');
@@ -1020,10 +1017,9 @@ export default function TodayClient({ onSignup = null } = {}) {
                       </span>
                       <b>{g.name}</b>
                       {st.text ? (
-                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>
-                          {st.crown ? CROWN : null}<i>{st.text}</i>
-                        </span>
+                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}><i>{st.text}</i></span>
                       ) : null}
+                      {leader ? <span className="tdy-ld">{CROWN}<i>{leader}</i></span> : null}
                     </a>
                   );
                 })}
@@ -1078,7 +1074,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                       </span>
                       <b>{c.name}</b>
                       <span className={'tdy-st' + (all ? ' tk' : '')}>
-                        <i>{all ? `\u2713 All ${tot}` : `${dn}/${tot} done`}</i>
+                        <i>{all ? `All ${tot}` : `${dn}/${tot} done`}</i>
                       </span>
                     </a>
                   );
@@ -1168,6 +1164,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
                     const st = statusLine(shelf, g);
+                    const leader = leaderOf(g.key);
                     const cls = ['tdy-t'];
                     if (done.has(g.key)) cls.push('done');
                     else if (inprog.has(g.key)) cls.push('paused');
@@ -1181,10 +1178,9 @@ export default function TodayClient({ onSignup = null } = {}) {
                         </span>
                         <b>{g.name}</b>
                         {st.text ? (
-                          <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>
-                            {st.crown ? CROWN : null}<i>{st.text}</i>
-                          </span>
+                          <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}><i>{st.text}</i></span>
                         ) : null}
+                        {leader ? <span className="tdy-ld">{CROWN}<i>{leader}</i></span> : null}
                       </a>
                     );
                   })}
@@ -1401,12 +1397,21 @@ const CSS = `
 /* EVERY SHELF ON THE PAGE IS THE SAME HEIGHT (owner, 2026-08-26), and this is
    the one knob that keeps them so. The header band is identical on all of them,
    so the shelf's height is its tile's height, and the game tile's is intrinsic
-   (a 66px plate, the name, and at most one line under it, which is shorter
-   than this floor and so takes it). Pinning BOTH tile types to the same
+   (a 66px plate, the name, and up to two conditional lines under it: the
+   score or Resume, and today's leader). Pinning BOTH tile types to the same
    min-height makes the circuits shelf match the categories by construction
-   rather than by a number typed in twice. Re-measure and update this if the
-   game tile's art or label stack ever changes. */
---tile-h:147px;--tile-w:96px;}
+   rather than by a number typed in twice.
+
+   MEASURED, NEVER GUESSED (owner, 2026-08-26). It sat at 147px, which was the
+   height of the CARD tile that used to reserve three label rows whether it had
+   anything to put in them or not. The plate tile renders a row only when it has
+   something for it, so on a quiet morning 147 was a floor taller than anything
+   standing on it and every shelf carried about 19px of dead air. 128px is what a
+   tile actually stands at, read off the live page with the floor removed. It is
+   a FLOOR, not a height: a tile that has both a score and a leader grows past it
+   and takes its row with it, which is the point. Measure the same way after any
+   change here: set .tdy-t/.tdy-ct min-height:0 and take the tallest tile. */
+--tile-h:128px;--tile-w:96px;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
@@ -1566,7 +1571,8 @@ const CSS = `
 .tdy-st i{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;}
 .tdy-st.tk{color:var(--success-deep);}
 .tdy-st.tp{color:#a16207;}
-.tdy-st.ld{font-size:9.5px;font-weight:700;color:#9aa0ab;letter-spacing:0;}
+.tdy-ld{display:flex;align-items:center;justify-content:center;gap:3px;max-width:92px;margin-top:-4px;overflow:hidden;}
+.tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 /* ── a finished category collapses to a band ── */
 .tdy-catdone{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--success-deep);border-radius:14px;padding:12px 16px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
