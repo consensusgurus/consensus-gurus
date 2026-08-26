@@ -520,7 +520,23 @@ export default function TodayClient({ onSignup = null } = {}) {
     let ro = null;
     try { ro = new ResizeObserver(apply); ro.observe(el); } catch (e) { ro = null; }
     window.addEventListener('resize', apply);
-    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', apply); };
+    // A HIDDEN TAB DELIVERS NO RESIZE OBSERVATIONS. They are dispatched in the
+    // rendering steps, which a background tab does not run, so a page opened in
+    // one measures the board at its loading height, never hears it grow, and
+    // carries an uncapped feed for as long as the reader stays away. Measured on
+    // the live page with visibilityState 'hidden': the observer never fired once,
+    // and a dispatched resize sized the column correctly on the spot. So the
+    // visibility flip re-measures, and two late timers cover the ordinary case
+    // where the board's own fetch lands after this effect has run.
+    document.addEventListener('visibilitychange', apply);
+    const t1 = setTimeout(apply, 1200);
+    const t2 = setTimeout(apply, 4000);
+    return () => {
+      if (ro) ro.disconnect();
+      clearTimeout(t1); clearTimeout(t2);
+      window.removeEventListener('resize', apply);
+      document.removeEventListener('visibilitychange', apply);
+    };
   }, []);
 
   // ── the foot leaderboards: Overall / By game / By category / Circuits ──
