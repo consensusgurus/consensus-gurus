@@ -354,6 +354,15 @@ export default function TodayClient({ onSignup = null } = {}) {
   // own sitting where the Continue row used to, treated like any other category
   // (its own jump-bar chip, its own header band, its own tiles row). A game can
   // sit in several circuits, which is the nature of circuits, not a bug.
+  // MEASURE ON MUTATION, NOT ON RESIZE (fixed 2026-08-26). The overflow that
+  // decides whether the scroll arrows render is a property of the track's
+  // CONTENT, but the only things re-measuring it were scroll, window resize,
+  // and a ResizeObserver on the track itself, whose width never changes: it is
+  // flex:1 1 auto inside a fixed bar. So chips that arrive AFTER first paint,
+  // which is all of them that depend on the player (My games) or on the day
+  // (Circuits), pushed the track into overflow with nothing left to notice, and
+  // the right arrow simply never appeared. The MutationObserver on the track's
+  // subtree is the fix; the RO stays for the width case.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = jbtRef.current;
@@ -362,10 +371,13 @@ export default function TodayClient({ onSignup = null } = {}) {
     el.addEventListener('scroll', readJbNav, { passive: true });
     const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(readJbNav) : null;
     if (ro) ro.observe(el);
+    const mo = typeof MutationObserver !== 'undefined' ? new MutationObserver(readJbNav) : null;
+    if (mo) mo.observe(el, { childList: true, subtree: true, characterData: true });
     window.addEventListener('resize', readJbNav);
     return () => {
       el.removeEventListener('scroll', readJbNav);
       if (ro) ro.disconnect();
+      if (mo) mo.disconnect();
       window.removeEventListener('resize', readJbNav);
     };
   }, []);
@@ -879,7 +891,7 @@ export default function TodayClient({ onSignup = null } = {}) {
       <div className="tdy-wrap">
         <div className="tdy-jb" style={{ top: barTop }}>
           <div className="tdy-jbin">
-            <div className="tdy-jbtw">
+            <div className={'tdy-jbtw' + (jbNav.l ? ' fl' : '') + (jbNav.r ? ' fr' : '')}>
             {jbNav.l ? <button type="button" className="tdy-jbar l" aria-label="Scroll categories left" onClick={() => jbNudge(-1)}>{'\u2039'}</button> : null}
             {jbNav.r ? <button type="button" className="tdy-jbar r" aria-label="Scroll categories right" onClick={() => jbNudge(1)}>{'\u203a'}</button> : null}
             <div className="tdy-jbt" ref={jbtRef}>
@@ -1339,7 +1351,15 @@ export default function TodayClient({ onSignup = null } = {}) {
 }
 
 const CSS = `
-.tdy{background:transparent;font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;}
+.tdy{background:transparent;font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
+/* EVERY SHELF ON THE PAGE IS THE SAME HEIGHT (owner, 2026-08-26), and this is
+   the one knob that keeps them so. The header band is identical on all of them,
+   so the shelf's height is its tile's height, and the game tile's is intrinsic
+   (58px of art plus its three label lines). Pinning BOTH tile types to the same
+   min-height makes the circuits shelf match the categories by construction
+   rather than by a number typed in twice. Re-measure and update this if the
+   game tile's art or label stack ever changes. */
+--tile-h:147px;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
@@ -1354,21 +1374,31 @@ const CSS = `
 
 /* ── shelf cards: white on paper, tinted header strip, 4px category rule ── */
 .tdy-row{display:block;}
-.tdy-shc{background:var(--white);border:1px solid #e7e9ee;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04);margin:14px 2px 0;}
+/* NO CARD RECTANGLE (owner, 2026-08-26). The shelf was a white card with a
+   hairline border and a shadow, sitting on the paper ground, so every category
+   carried a rectangle drawn around it in a colour the page does not otherwise
+   use. The card is transparent now and the tiles sit straight on the ground;
+   what a shelf still IS on the page is its filled header band and its row of
+   tiles, both of which already read as objects. The radius and the overflow
+   clip stay, because they are what round the header band's top corners. */
+.tdy-shc{background:transparent;border:0;border-radius:14px;overflow:hidden;box-shadow:none;margin:14px 2px 0;}
 .tdy-shc.circuits{margin-top:16px;}
 /* ── the circuit tile: no art, a size down from a game tile ──────────────
    Text only, left aligned, with the circuit's colour as a rule down its left
    edge so a row of sixteen still reads by category at a glance. The member
    list clamps to two lines: it is context, not a menu, and a circuit of five
    games must not make the row twice as tall as one of three. */
-.tdy-ct{flex:none;width:158px;background:var(--white);border:1px solid #dfe4ec;border-left:4px solid var(--cc,#233a63);border-radius:10px;padding:9px 10px 8px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);}
+.tdy-ct{flex:none;width:172px;min-height:var(--tile-h);background:var(--white);border:1px solid #dfe4ec;border-left:4px solid var(--cc,#233a63);border-radius:10px;padding:12px 12px 11px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);}
 @media(hover:hover){
   .tdy-ct{transition:box-shadow .14s,transform .14s;}
   .tdy-ct:hover{box-shadow:0 2px 4px rgba(16,24,40,.07),0 8px 18px rgba(16,24,40,.09);transform:translateY(-1px);}
 }
-.tdy-ct b{color:var(--ink);font-size:12.5px;font-weight:800;letter-spacing:-.01em;line-height:1.2;}
-.tdy-cgs{font-size:9.5px;font-weight:700;line-height:1.35;color:#7b8494;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.tdy-cpr{font-size:9.5px;font-weight:800;color:#6b7280;margin-top:1px;}
+.tdy-ct b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.2;}
+/* The member list takes the slack the tile grew into: it is the one thing on a
+   circuit tile a reader is actually deciding on, and at four lines every
+   circuit on the slate lists in full rather than trailing off in an ellipsis. */
+.tdy-cgs{flex:1 1 auto;font-size:10.5px;font-weight:700;line-height:1.4;color:#7b8494;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
+.tdy-cpr{font-size:10px;font-weight:800;color:#6b7280;}
 .tdy-ct.done{background:#eef7ef;border-color:#c8e2ce;border-left-color:#4f9e69;}
 .tdy-ct.done .tdy-cpr{color:#2f7a4c;}
 /* THE HEADER IS A FILLED BAND (owner, 2026-08-25). It was a 9% tint of the
@@ -1432,7 +1462,7 @@ const CSS = `
    foot leaderboard's game and category pickers) keep the plain white card
    behind them, which is why the tint is scoped away from them. */
 .tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:12px 14px 12px;scrollbar-width:none;}
-.tdy-tw:not(.light) .tdy-tiles{background:color-mix(in srgb,var(--cc,#2563eb) 5%,#fff);}
+.tdy-tw:not(.light) .tdy-tiles{background:transparent;}
 .tdy-tiles::-webkit-scrollbar{display:none;}
 .tdy-fade{position:absolute;top:0;bottom:0;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
 .tdy-fade.l{left:0;background:linear-gradient(90deg,color-mix(in srgb,var(--cc,#2563eb) 5%,#fff),rgba(255,255,255,0));}
@@ -1442,7 +1472,7 @@ const CSS = `
 .tdy-nud:hover{border-color:#a8b6cc;color:var(--ink);}
 .tdy-nud.l{left:4px;}
 .tdy-nud.r{right:4px;}
-.tdy-t{flex:none;width:130px;background:var(--white);border:1px solid #dfe4ec;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05),0 3px 8px rgba(16,24,40,.05);}
+.tdy-t{flex:none;width:130px;min-height:var(--tile-h);background:var(--white);border:1px solid #dfe4ec;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05),0 3px 8px rgba(16,24,40,.05);}
 /* Behind hover:hover with the pin star, and for the same reason: a tap applies
    :hover on a phone and the browser keeps painting it until you tap elsewhere,
    so a tile would sit lifted after you came back from playing it. */
@@ -1581,7 +1611,7 @@ const CSS = `
   #tdy-mine .tdy-tiles,.tdy-shc.circuits .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
-  .tdy-ct{width:150px;}
+  .tdy-ct{width:166px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
   .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
@@ -1600,7 +1630,7 @@ const CSS = `
    measurement of whatever masthead this page carries, since the desktop and
    phone mastheads are different elements. */
 .tdy-jb{position:sticky;z-index:40;background:rgba(231,236,243,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
-.tdy-jbin{display:flex;align-items:center;gap:8px;padding:8px 2px;}
+.tdy-jbin{display:flex;align-items:center;gap:12px;padding:8px 2px;}
 .tdy-jbtw{position:relative;flex:1 1 auto;min-width:0;display:flex;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
 /* Only on a fine pointer: a touch device scrolls the track by dragging it, and
@@ -1613,6 +1643,16 @@ const CSS = `
   .tdy-jbar.r{right:-3px;}
 }
 .tdy-jbt::-webkit-scrollbar{display:none;}
+/* CHIPS FADE OUT, THEY DO NOT RUN UNDER THE BUTTONS (owner, 2026-08-26). The
+   track's right edge sits 12px from A to Z, so a chip scrolled half out of it
+   was cut off mid-word right beside a button and read as sliding behind it.
+   The gradient matches the bar's own ground, and the arrow (z-index 2) rides
+   above it. */
+.tdy-jbtw::before,.tdy-jbtw::after{content:'';position:absolute;top:0;bottom:0;width:36px;pointer-events:none;z-index:1;opacity:0;transition:opacity .16s;}
+.tdy-jbtw::before{left:0;background:linear-gradient(to left,rgba(231,236,243,0),rgba(231,236,243,.97));}
+.tdy-jbtw::after{right:0;background:linear-gradient(to right,rgba(231,236,243,0),rgba(231,236,243,.97));}
+.tdy-jbtw.fl::before{opacity:1;}
+.tdy-jbtw.fr::after{opacity:1;}
 .tdy-jbc{display:flex;align-items:center;gap:8px;flex:none;}
 /* The chip's own tint fill IS its progress meter, which is what keeps ten
    categories and both buttons on one line at desktop widths. A separate
