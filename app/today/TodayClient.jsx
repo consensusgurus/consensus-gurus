@@ -48,7 +48,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
+import { CIRCUITS, ALL_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
 import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
@@ -381,14 +381,23 @@ export default function TodayClient({ onSignup = null } = {}) {
       window.removeEventListener('resize', readJbNav);
     };
   }, []);
+  // ALL_CIRCUITS, NOT CIRCUITS (owner, 2026-08-26, asking where the Daily Five
+  // had gone). The family's head is the marquee, and lib/circuits already puts
+  // it first for exactly this reason; the shelf was missing it only because the
+  // map ran over the skill circuits alone. `circuitKeysFor` delegates the
+  // marquee to lib/daily-five, so its roster is the day's real run rather than
+  // a fixed array, and it takes GOLD rather than its first game's category
+  // colour: the roster changes at midnight, so no one category owns it.
   const circuitShelves = useMemo(() => {
     if (!today) return [];
-    return CIRCUITS.map((c) => {
+    return ALL_CIRCUITS.map((c) => {
       let keys;
       try { keys = circuitKeysFor(c.id, today) || []; } catch (e) { keys = []; }
       const games = keys.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
       if (!games.length) return null;
-      const color = c.id === 'sudoku' ? catBlue('sudoku') : catColor(games[0].cat);
+      let color = catColor(games[0].cat);
+      if (c.marquee) color = '#e8b43a';
+      else if (c.id === 'sudoku') color = catBlue('sudoku');
       return { kind: 'circuit', id: c.id, name: c.name, blurb: c.blurb || '', color, games };
     }).filter(Boolean);
   }, [today]);
@@ -1050,16 +1059,27 @@ export default function TodayClient({ onSignup = null } = {}) {
                 {circuitShelves.map((c) => {
                   const dn = c.games.filter((g) => done.has(g.key)).length;
                   const tot = c.games.length;
+                  const all = tot > 0 && dn >= tot;
                   return (
                     <a
                       key={c.id}
-                      className={'tdy-ct' + (tot > 0 && dn >= tot ? ' done' : '')}
+                      className={'tdy-ct' + (all ? ' done' : '')}
                       href={circuitPageHref(c.id)}
                       style={{ '--cc': c.color }}
+                      title={`${c.name}: ${c.games.map((g) => g.name).join(', ')}`}
                     >
+                      <span className="tdy-pl">
+                        <span className="tdy-cgrid">
+                          {c.games.map((g) => (
+                            <img key={g.key} src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                          ))}
+                        </span>
+                        {all ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span> : null}
+                      </span>
                       <b>{c.name}</b>
-                      <span className="tdy-cgs">{c.games.map((g) => g.name).join(' \u00b7 ')}</span>
-                      <span className="tdy-cpr">{dn >= tot ? `\u2713 All ${tot} done` : `${dn}/${tot} done`}</span>
+                      <span className={'tdy-st' + (all ? ' tk' : '')}>
+                        <i>{all ? `\u2713 All ${tot}` : `${dn}/${tot} done`}</i>
+                      </span>
                     </a>
                   );
                 })}
@@ -1386,7 +1406,7 @@ const CSS = `
    min-height makes the circuits shelf match the categories by construction
    rather than by a number typed in twice. Re-measure and update this if the
    game tile's art or label stack ever changes. */
---tile-h:147px;}
+--tile-h:147px;--tile-w:96px;}
 .tdy-wrap{max-width:1560px;margin:0 auto;padding:0 clamp(16px,1.7vw,24px) 24px;}
 /* On the homepage the marquee lives inside .qzh (maxWidth 1560 with its own
    side padding), so the wrap sheds its own width cap and padding there to line
@@ -1410,24 +1430,19 @@ const CSS = `
    clip stay, because they are what round the header band's top corners. */
 .tdy-shc{background:transparent;border:0;border-radius:14px;overflow:hidden;box-shadow:none;margin:14px 2px 0;}
 .tdy-shc.circuits{margin-top:16px;}
-/* ── the circuit tile: no art, a size down from a game tile ──────────────
-   Text only, left aligned, with the circuit's colour as a rule down its left
-   edge so a row of sixteen still reads by category at a glance. The member
-   list clamps to two lines: it is context, not a menu, and a circuit of five
-   games must not make the row twice as tall as one of three. */
-.tdy-ct{flex:none;width:172px;min-height:var(--tile-h);background:var(--white);border:1px solid #dfe4ec;border-left:4px solid var(--cc,#233a63);border-radius:10px;padding:12px 12px 11px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);}
-@media(hover:hover){
-  .tdy-ct{transition:box-shadow .14s,transform .14s;}
-  .tdy-ct:hover{box-shadow:0 2px 4px rgba(16,24,40,.07),0 8px 18px rgba(16,24,40,.09);transform:translateY(-1px);}
-}
-.tdy-ct b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.2;}
-/* The member list takes the slack the tile grew into: it is the one thing on a
-   circuit tile a reader is actually deciding on, and at four lines every
-   circuit on the slate lists in full rather than trailing off in an ellipsis. */
-.tdy-cgs{flex:1 1 auto;font-size:10.5px;font-weight:700;line-height:1.4;color:#7b8494;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;}
-.tdy-cpr{font-size:10px;font-weight:800;color:#6b7280;}
-.tdy-ct.done{background:#eef7ef;border-color:#c8e2ce;border-left-color:#4f9e69;}
-.tdy-ct.done .tdy-cpr{color:#2f7a4c;}
+/* ── the circuit tile: THE SAME BOX AS A GAME TILE (owner, 2026-08-26) ──────
+   Same width and same height off the same two variables, and the same plate,
+   name and status line, so the circuits row lines up column for column with
+   every category row under it rather than running a grid of its own. It cannot
+   carry its members as TEXT at this width, so it carries them as ART: where a
+   game plate holds one 50px icon, a circuit plate holds its members' icons in
+   a small grid, which is the one thing that says "these five games" in 96px.
+   The names are on the anchor's title, and the plate takes a wash of the
+   circuit's colour so the row still reads by circuit at a glance. */
+.tdy-ct{flex:none;width:var(--tile-w);min-height:var(--tile-h);background:none;border:0;border-radius:0;padding:11px 3px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;box-shadow:none;}
+.tdy-ct .tdy-pl{background:color-mix(in srgb,var(--cc,#233a63) 14%,#fff);}
+.tdy-cgrid{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:2.5px;width:50px;height:50px;}
+.tdy-cgrid img{width:15px;height:15px;border-radius:4px;display:block;flex:none;}
 /* THE HEADER IS A FILLED BAND (owner, 2026-08-25). It was a 9% tint of the
    category colour with a 4px rule; the whole strip now takes the colour solid
    and everything on it inverts to white. The rail is gone: a 4px rule on a
@@ -1529,10 +1544,10 @@ const CSS = `
        state is legible at a glance without reading the line under the name.
 
    96px wide instead of 130, which is nine across where six used to fit. */
-.tdy-t{flex:none;width:96px;min-height:var(--tile-h);background:none;border:0;border-radius:0;padding:11px 3px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;box-shadow:none;}
+.tdy-t{flex:none;width:var(--tile-w);min-height:var(--tile-h);background:none;border:0;border-radius:0;padding:11px 3px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;box-shadow:none;}
 .tdy-pl{position:relative;width:66px;height:66px;flex:none;border-radius:19px;background:var(--white);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(16,24,40,.08),0 10px 22px rgba(16,24,40,.10);}
 .tdy-pl::before{content:"";position:absolute;inset:-4px;border-radius:23px;border:2px solid transparent;pointer-events:none;}
-.tdy-t.done .tdy-pl::before{border-color:var(--success-deep);}
+.tdy-t.done .tdy-pl::before,.tdy-ct.done .tdy-pl::before{border-color:var(--success-deep);}
 .tdy-t.paused .tdy-pl::before{border-color:var(--gold);}
 /* Behind hover:hover with the pin star, and for the same reason: a tap applies
    :hover on a phone and the browser keeps painting it until you tap elsewhere,
@@ -1540,13 +1555,13 @@ const CSS = `
    on the PLATE now, since the tile is no longer a thing that can lift. */
 @media(hover:hover){
   .tdy-pl{transition:box-shadow .14s,transform .14s;}
-  .tdy-t:hover .tdy-pl{box-shadow:0 3px 6px rgba(16,24,40,.10),0 14px 28px rgba(16,24,40,.17);transform:translateY(-2px);}
+  .tdy-t:hover .tdy-pl,.tdy-ct:hover .tdy-pl{box-shadow:0 3px 6px rgba(16,24,40,.10),0 14px 28px rgba(16,24,40,.17);transform:translateY(-2px);}
 }
 .tdy-t img{width:50px;height:50px;border-radius:12px;display:block;flex:none;}
 .tdy-bdg{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;line-height:1;color:var(--white);box-shadow:0 2px 6px rgba(16,24,40,.25);}
-.tdy-t.done .tdy-bdg{background:var(--success-deep);}
+.tdy-t.done .tdy-bdg,.tdy-ct.done .tdy-bdg{background:var(--success-deep);}
 .tdy-t.paused .tdy-bdg{background:var(--gold);color:#3b2c05;}
-.tdy-t b{color:var(--ink);font-size:12.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.15;}
+.tdy-t b,.tdy-ct b{color:var(--ink);font-size:12.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.15;}
 .tdy-st{font-style:normal;display:flex;align-items:center;justify-content:center;gap:3px;max-width:92px;margin-top:-3px;font-size:10px;font-weight:800;letter-spacing:.02em;color:#8a919e;white-space:nowrap;overflow:hidden;}
 .tdy-st i{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;}
 .tdy-st.tk{color:var(--success-deep);}
@@ -1673,8 +1688,7 @@ const CSS = `
   #tdy-mine .tdy-cta,.tdy-shc.circuits .tdy-cta{display:block;flex:none;margin-left:auto;max-width:58%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:7px 13px;}
   #tdy-mine .tdy-tiles,.tdy-shc.circuits .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
-  .tdy-t{width:88px;}
-  .tdy-ct{width:166px;}
+  .tdy{--tile-w:88px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
   .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
