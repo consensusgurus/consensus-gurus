@@ -1364,7 +1364,8 @@ const CSS = `
    up exactly with the quiz browse sections below. The phone negative margins
    mirror .qzh's side padding (16px to 900px, 14px under 560) so the full-bleed
    phone treatment still reaches the screen edges. */
-.dhx-marquee .tdy-wrap{max-width:none;padding-left:0;padding-right:0;}
+.dhx-marquee .tdy-wrap{max-width:none;padding-left:0;padding-right:0;padding-bottom:0;}
+@media(min-width:901px){.dhx-marquee .tdy-jb{margin-top:0;}}
 
 .tdy-pulse{width:6px;height:6px;border-radius:50%;background:#22a35f;box-shadow:0 0 0 0 rgba(34,163,95,.5);animation:tdypul 2s infinite;flex:none;}
 @keyframes tdypul{0%{box-shadow:0 0 0 0 rgba(34,163,95,.5);}70%{box-shadow:0 0 0 7px rgba(34,163,95,0);}100%{box-shadow:0 0 0 0 rgba(34,163,95,0);}}
@@ -1550,7 +1551,7 @@ const CSS = `
 .tdy-fstats b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink);}
 .tdy-fstats span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9aa0ab;font-weight:800;}
 .tdy-empty{padding:14px 10px;font-size:12.5px;font-weight:600;color:var(--slate);}
-.tdy-foot{padding:40px 2px 40px;color:#9aa0ab;font-size:11px;font-weight:600;letter-spacing:.04em;}
+.tdy-foot{padding:24px 2px 10px;color:#9aa0ab;font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
@@ -1740,9 +1741,9 @@ const CSS = `
   .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:6px;padding:6px 14px 7px;}
   .tdy-jbtw{width:100%;}
   .tdy-jbt{margin:0 -14px;padding:1px 14px;}
-  .tdy-jbc{overflow-x:auto;scrollbar-width:none;}
-  .tdy-jbc::-webkit-scrollbar{display:none;}
-  .tdy-viewbtn,.tdy-jb2{font-size:10px;padding:5px 10px;}
+  .tdy-jbc{overflow:visible;gap:6px;}
+  .tdy-view{flex:2 1 0;min-width:0;gap:6px;}
+  .tdy-viewbtn,.tdy-jb2{flex:1 1 0;min-width:0;font-size:10px;padding:5px 4px;text-align:center;}
   .tdy-jc{padding:4px 10px 4px 8px;}
   .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}
