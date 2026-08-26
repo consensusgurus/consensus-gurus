@@ -652,9 +652,9 @@ export default function LoftCap({
 .loft-res.loft-res-won b,.loft-res.loft-res-won s,
 .loft-res.loft-res-part b,.loft-res.loft-res-part s,
 .loft-res.loft-res-lost b,.loft-res.loft-res-lost s{color:var(--white)}
-.lr-dot{display:inline-block;width:11px;height:11px;border-radius:50%;
-  margin:0 12px 0 3px;vertical-align:middle;position:relative;top:-1px;
-  box-shadow:0 0 0 2.5px rgba(255,255,255,0.94)}
+.lr-dot{display:inline-block;width:12px;height:12px;border-radius:50%;
+  margin:0 13px 0 3px;vertical-align:middle;position:relative;top:-1px;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.94)}
 .loft-res-won .lr-dot{background:#22c55e}
 .loft-res-part .lr-dot{background:#fbbf24}
 .loft-res-lost .lr-dot{background:#f43f5e}
