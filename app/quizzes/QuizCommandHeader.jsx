@@ -178,6 +178,15 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
   // months, this one is the day's race, and it is the reason to come back tonight.
   const dayRank = (typeof day.dayRank === 'number' && day.dayRank > 0) ? day.dayRank : null;
   const dayField = (typeof day.dayField === 'number' && day.dayField > 0) ? day.dayField : null;
+  // COMMUNITY RANK (owner, 2026-08-25): the player's place on the 90-day
+  // community board at /quizzes/community, out of every REGISTERED user. That
+  // board ranks by referrals, so most of the roster has brought nobody in and
+  // the whole zero tail SHARES one rank rather than being ordered arbitrarily
+  // (see the server note in api/quiz/daily-status). The cell links to the board
+  // it reports, which is the one thing a reader wants next from a standing.
+  const commRank = (typeof day.communityRank === 'number' && day.communityRank > 0) ? day.communityRank : null;
+  const commTotal = (typeof day.communityTotal === 'number' && day.communityTotal > 0) ? day.communityTotal : null;
+  const commCredits = (typeof day.communityCredits === 'number' && day.communityCredits >= 0) ? day.communityCredits : null;
   // Lifetime "N completed / X% of the catalogue" was dropped on 2026-08-03: it
   // measures the QUIZ catalogue, which is not what this bar is about now that
   // the day figures live here. The third column counts today's dailies instead.
@@ -263,7 +272,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
     // the page, so only the homepage turns the Daily rank cell into a jump and
     // adds the Leaderboards chip to the actions.
     const home = !inner;
-    const stat = (label, value, sub, subCls, cellCls, jump) => {
+    // `jump` scrolls this page to the boards below; `href` navigates to another
+    // page. Both render the cell as a link and share .qchm-jump's affordance.
+    const stat = (label, value, sub, subCls, cellCls, jump, href) => {
       const body = (
         <>
           <div className="qchm-k">{label}</div>
@@ -271,7 +282,8 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           <div className={`qchm-ch${subCls ? ` ${subCls}` : ''}`}>{sub}</div>
         </>
       );
-      const cls = `qchm-cell${cellCls ? ` ${cellCls}` : ''}${jump ? ' qchm-jump' : ''}`;
+      const cls = `qchm-cell${cellCls ? ` ${cellCls}` : ''}${(jump || href) ? ' qchm-jump' : ''}`;
+      if (href) return <Link className={cls} href={href}>{body}</Link>;
       return jump
         ? <a className={cls} href="#tdy-boards" onClick={jumpToBoards}>{body}</a>
         : <div className={cls}>{body}</div>;
@@ -313,8 +325,17 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-user .nm{font-size:13.5px;font-weight:800;color:var(--white);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:44vw;}
           .qchm-pic{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none;}
           .qchm-r2{background:#101d44;color:var(--white);border-bottom:3px solid var(--blue);}
-          .qchm-cell{padding:0 clamp(12px,1.6vw,20px);border-right:1px solid #192b59;white-space:nowrap;}
-          .qchm-cell:first-child{padding-left:0;}
+          /* ONE SHAPE FOR EVERY CELL (owner, 2026-08-25). The row used to size
+             each box to its own contents and set them flush left, so the column
+             starts were ragged and a wide value (the IQ total) crowded its
+             neighbours. Every cell is now an equal share of the row with its
+             label, value and sub-line centred, which is what the phone has
+             always done, so the two widths finally read as the same object.
+             The gap goes to 0 on this row: with equal cells the 1px dividers
+             ARE the spacing, and a 16px gap on top of the cell padding pushed
+             each divider off the true midpoint between two values. */
+          .qchm-r2 .qchm-in{gap:0;}
+          .qchm-cell{flex:1;min-width:0;text-align:center;padding:0 clamp(8px,1.2vw,16px);border-right:1px solid #192b59;white-space:nowrap;}
           /* :nth-last-child(2) rather than :last-of-type: the actions block is
              always the last child, so the cell before it is the last cell. A
              jump cell renders as an <a> and every other as a <div>, and
@@ -323,6 +344,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-cell:nth-last-child(2){border-right:none;}
           .qchm-jump{text-decoration:none;color:inherit;cursor:pointer;display:block;}
           .qchm-jump:hover .qchm-v{color:var(--blue-200);}
+          .qchm-k,.qchm-v,.qchm-ch{overflow:hidden;text-overflow:ellipsis;}
           .qchm-k{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:#9fb8ee;font-weight:800;}
           .qchm-v{font-size:18px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
           .qchm-v i{font-style:normal;font-size:11.5px;font-weight:600;color:#9fb8ee;}
@@ -339,7 +361,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-ch.qchm-mob{visibility:hidden;}
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
-          .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
+          .qchm-acts{flex:none;margin-left:auto;display:flex;gap:8px;padding-left:16px;}
           .qchm-bt{border:1px solid #5b7fd4;background:#162b5d;color:var(--white);border-radius:7px;padding:7px 12px;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;}
           .qchm-bt:hover{background:#223872;border-color:#8aa8e8;color:var(--white);}
           /* The share CTA is the one button in this row that is asking for
@@ -349,6 +371,20 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
           .qchm-bt.qchm-gold:hover{background:#f2c451;border-color:var(--white);color:#2a1f04;}
           .qchm-signup{background:var(--blue);border-color:#7ea6ff;}
           .qchm-signup:hover{background:#3b7bf5;}
+          /* SIX EQUAL CELLS NEED THE ROOM (owner, 2026-08-25). With the actions
+             block holding its natural width, a 1000px window left each cell
+             about 90px, which is narrower than "13,628 IQ pts". Community rank
+             is the slowest-moving of the six and has a page of its own, so it
+             is the first to go. Its divider rule has to move with it: Community
+             rank is LAST in the DOM, so once it hides the final visible cell is
+             Daily rank, which loses its divider here and keeps it above. That
+             is a CLASS rather than :nth-last-child(3), because the signed-out
+             branch renders only two cells and a positional rule would have
+             stripped the divider between them instead. */
+          @media(max-width:1240px){
+            .qchm-hidel{display:none;}
+            .qchm-lastl{border-right:none;}
+          }
           @media(max-width:1100px){.qchm-tag{display:none;}}
           @media(max-width:860px){
             .qchm-in{padding:11px 14px;gap:10px;}
@@ -433,7 +469,12 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
         <div className="qchm-r2"><div className="qchm-in">
           {found ? (
             <>
-              <div className="qchm-cell qchm-hidem"><div className="qchm-k">Player</div><div className="qchm-v">{me.name}</div></div>
+              {/* Through stat() like every other cell, with an invisible
+                  sub-line (.qchm-mob hides on desktop, and the cell itself is
+                  hidden on a phone), so this box is the same three lines tall
+                  as its neighbours. Two lines against three centred differently
+                  and knocked the label off the row's top line. */}
+              {stat('Player', me.name, 'player', 'qchm-mob', 'qchm-hidem')}
               {rank ? stat('Rank', <>{`#${fmtK(rank)}`}{totalPlayers ? <i>{` of ${totalPlayers.toLocaleString()}`}</i> : null}</>, moveTxt, moved ? (day.rankChange > 0 ? 'qchm-up' : 'qchm-down') : '') : null}
               {/* The big value is the LIFETIME total on the home, with the day's
                   gain left to the small change sub-line the way the Rank cell
@@ -463,8 +504,27 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                 // qchm-mob: it is the phone's label, so it hides on desktop,
                 // where the cell's own label is right above it.
                 'qchm-mob',
-                '',
+                // .qchm-lastl: below 1240px Community rank is hidden and this
+                // becomes the last visible cell, so its divider comes off.
+                'qchm-lastl',
                 home,
+              )}
+              {/* Desktop only, like Played: a phone has three boxes and this is
+                  the slowest-moving figure of the six. The sub-line names the
+                  window and the credits behind the standing, since "#62 of
+                  1,204" on its own says nothing about what earns a place. */}
+              {stat(
+                'Community rank',
+                commRank
+                  ? <>{`#${fmtK(commRank)}`}{commTotal ? <i>{` of ${commTotal.toLocaleString()}`}</i> : null}</>
+                  : <>{'\u2014'}</>,
+                commRank
+                  ? `${(commCredits || 0).toLocaleString()} referral${commCredits === 1 ? '' : 's'} \u00b7 90 days`
+                  : 'community board',
+                '',
+                'qchm-hided qchm-hidel',
+                false,
+                '/quizzes/community',
               )}
             </>
           ) : (

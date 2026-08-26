@@ -254,6 +254,58 @@ export async function GET(request) {
         }
       }
     } catch (e) { console.error('daily-status todayXp', e); }
+
+    // COMMUNITY RANK (owner, 2026-08-25): where this player sits on the 90-day
+    // community board at /quizzes/community, out of every REGISTERED user.
+    //
+    // That board ranks by referral credits in a rolling window, and most of the
+    // roster has brought nobody in, so the zero tail is enormous. Ordering it by
+    // anything else (join date, IQ) would invent a ranking the board itself does
+    // not have, so EVERY player on the same credit count shares one rank:
+    //   rank = 1 + the number of users with STRICTLY more credits in the window.
+    // A player on zero therefore reads "#62 of 1,204" alongside everyone else on
+    // zero, which is honest about what the figure measures.
+    //
+    // Only a registered account has a place here (the denominator is
+    // quiz_users), which is also the only case the header renders the cell in.
+    // Wrapped like every other extra on this route: a missing quiz_referrals
+    // table or a failed read reports null and the cell simply hides.
+    let communityRank = null;
+    let communityTotal = null;
+    let communityCredits = null;
+    try {
+      if (who.userId) {
+        const since = new Date(Date.now() - 90 * 86400000).toISOString();
+        const [refRes, userRes] = await Promise.all([
+          supabaseAdmin
+            .from('quiz_referrals')
+            .select('referrer_user_id')
+            .gte('created_at', since)
+            .limit(20000),
+          supabaseAdmin
+            .from('quiz_users')
+            .select('id', { count: 'exact', head: true }),
+        ]);
+        // An error here must NOT fall through to an empty tally: that would
+        // count zero players ahead and report every reader as #1.
+        if (refRes.error) throw refRes.error;
+        if (userRes.error) throw userRes.error;
+        const tally = new Map();
+        for (const r of refRes.data || []) {
+          if (!r || !r.referrer_user_id) continue;
+          tally.set(r.referrer_user_id, (tally.get(r.referrer_user_id) || 0) + 1);
+        }
+        const mine = tally.get(who.userId) || 0;
+        let ahead = 0;
+        for (const n of tally.values()) if (n > mine) ahead += 1;
+        communityCredits = mine;
+        communityRank = ahead + 1;
+        communityTotal = (typeof userRes.count === 'number' && userRes.count > 0) ? userRes.count : null;
+      }
+    } catch (e) {
+      const missing = e && (e.code === '42P01' || e.code === '42703' || /does not exist|schema cache/i.test(e.message || ''));
+      if (!missing) console.error('daily-status community', e);
+    }
     // Self-healing merge (2026-08-09). Rows this account owns by anon but that
     // were never attributed (played as a guest on a device that never joined)
     // stay invisible to every derivation keyed on u:<id>: IQ Points, trophies,
@@ -272,7 +324,7 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, streak, streakGame, streakGameDays, playedToday, todayXp, rankChange, dayRank, dayField, archive }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, streak, streakGame, streakGameDays, playedToday, todayXp, rankChange, dayRank, dayField, communityRank, communityTotal, communityCredits, archive }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] });

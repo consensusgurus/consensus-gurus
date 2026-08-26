@@ -59,7 +59,7 @@ function localDone(today) {
 }
 
 export default function useDayStats() {
-  const [s, setS] = useState({ todayXp: null, rankChange: null, dayRank: null, dayField: null, done: 0, total: DAY_ROSTER.length, ready: false });
+  const [s, setS] = useState({ todayXp: null, rankChange: null, dayRank: null, dayField: null, communityRank: null, communityTotal: null, communityCredits: null, done: 0, total: DAY_ROSTER.length, ready: false });
   useEffect(() => {
     let alive = true;
     const today = etToday();
@@ -96,6 +96,12 @@ export default function useDayStats() {
         rankChange: typeof data.rankChange === 'number' ? data.rankChange : null,
         dayRank: typeof data.dayRank === 'number' ? data.dayRank : null,
         dayField: typeof data.dayField === 'number' ? data.dayField : null,
+        // The 90-day community board's standing. Not a day figure, but it is
+        // per-player and this is the one per-player request the header already
+        // makes, so it rides along rather than costing a second round trip.
+        communityRank: typeof data.communityRank === 'number' ? data.communityRank : null,
+        communityTotal: typeof data.communityTotal === 'number' ? data.communityTotal : null,
+        communityCredits: typeof data.communityCredits === 'number' ? data.communityCredits : null,
         done: done.size,
         total: DAY_ROSTER.length,
         ready: true,
