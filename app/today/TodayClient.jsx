@@ -1778,7 +1778,7 @@ const CSS = `
 .tdy-jc.here .dot{background:var(--white);}
 /* A to Z and Reorder open a drawer, they do not act, so they read as type with
    a hover ground rather than as two more filled pills beside ten chips. */
-.tdy-jb2{flex:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:normal;text-transform:none;color:var(--slate);background:none;border:none;border-radius:8px;padding:7px 9px;cursor:pointer;white-space:nowrap;transition:color .14s,background .14s;}
+.tdy-jb2{flex:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:normal;text-transform:none;color:var(--muted);background:none;border:none;border-radius:8px;padding:7px 9px;cursor:pointer;white-space:nowrap;transition:color .14s,background .14s;}
 .tdy-jb2:hover{background:rgba(15,23,42,.055);color:var(--ink);}
 .tdy-jb2.on{background:none;color:var(--blue-deep);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px;}
 /* A sticky element is a positioned element, so the dropdown anchors to the
