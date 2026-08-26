@@ -331,6 +331,12 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
              which left a desktop reader with no green or red anywhere: the
              rank movement and the day's IQ gain were simply not on the page. */
           .qchm-ch{display:block;font-size:10px;font-weight:700;color:#9fb8ee;margin-top:1px;}
+          /* A sub-line that is the PHONE'S LABEL rather than a delta (Played,
+             Daily rank: the phone hides .qchm-k). On desktop the label is right
+             above it, so printing it again read as the same fact stated twice.
+             visibility rather than display, so the cell keeps its height and the
+             values stay on one line across the row. */
+          .qchm-ch.qchm-mob{visibility:hidden;}
           .qchm-up{color:#6ee7b7;}
           .qchm-down{color:#fca5a5;}
           .qchm-acts{margin-left:auto;display:flex;gap:8px;padding-left:16px;}
@@ -361,6 +367,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             .qchm-k{display:none;}
             .qchm-v{font-size:17px;}
             .qchm-v .qchm-day{display:none;}
+            .qchm-ch.qchm-mob{visibility:visible;}
             .qchm-acts{display:none;}
           }
           @media(max-width:560px){.qchm-r1{padding-top:env(safe-area-inset-top);}}
@@ -439,11 +446,11 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                   a phone-only thing. The line renders at every width now, so
                   the inline copy was the same number twice. */}
               {xp != null ? stat('IQ points', <>{xp.toLocaleString()}<i> IQ pts</i></>, dayXp ? `+${dayXp.toLocaleString()} today` : '+0 today', dayXp ? 'qchm-up' : '') : null}
-              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', '', 'qchm-hided')}
+              {stat('Played', <>{day.done}<i>{`/${day.total}`}</i></>, 'played today', 'qchm-mob', 'qchm-hided')}
               {stat(
                 'Daily rank',
                 dayRank
-                  ? <>{`#${fmtK(dayRank)}`}{dayField ? <i className="qchm-day">{` of ${dayField.toLocaleString()}`}</i> : null}{dayXp ? <i>{` \u00b7 ${dayXp.toLocaleString()} IQ`}</i> : null}</>
+                  ? <>{`#${fmtK(dayRank)}`}{dayField ? <i className="qchm-day">{` of ${dayField.toLocaleString()}`}</i> : null}</>
                   : <>{'\u2014'}</>,
                 // The phone hides the little cell LABELS (.qchm-k), so without the
                 // word here this column is a bare "#32" sitting two boxes from the
@@ -453,7 +460,9 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
                   : 'play to rank today',
                 // NEUTRAL, not green. Green and red on this row mean a gain or a
                 // loss; a standing is neither, and colouring it read as a climb.
-                '',
+                // qchm-mob: it is the phone's label, so it hides on desktop,
+                // where the cell's own label is right above it.
+                'qchm-mob',
                 '',
                 home,
               )}
