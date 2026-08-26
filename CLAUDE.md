@@ -5997,3 +5997,38 @@ a row; the USA's 1950 win over England was not its first World Cup), one wrong s
 born in Mozambique, beat Weah to the first African-born Ballon d'Or by thirty years), and three
 questions whose stem referred to "that championship" with no antecedent. None of those is visible
 without checking each figure, so budget for the pass rather than trusting the authoring.
+
+## The daily cap WEARS ITS CATEGORY, and no ink on it may use opacity (owner, 2026-08-26)
+
+`LoftCap` no longer paints `#2b4676`. The band takes the game's category hue from
+`lib/home-blues` (`--cc`, set inline so it lands on the first frame), and the play stage
+washes itself with the same hue (`--cat-hue` on `document.documentElement`, because
+`.loft-stage` is a sibling subtree the cap's own variable cannot reach; removed on unmount).
+A daily page now names its category the way the home shelf does, which is the whole point:
+you tap Crux under the blue Word band and land on a blue page.
+
+- **The hue is resolved from the ROUTE** (`loftKey(pathname)`), never a new prop, so none of
+  the 70 game clients needed an edit and it cannot go stale, exactly like the URL line.
+- **The eight sudoku grids come off the sudoku CIRCUIT POOL**, not their registry `cat`. The
+  home page pulls them out of Numbers into a Sudoku shelf, so keying off `cat` would paint
+  Suds orange here and violet there. Mirror `circuitById('sudoku').keys`, never a hand list.
+- **NO OPACITY ON WHITE, anywhere in the cap.** The ten hues clear 4.5:1 against *pure* white
+  with no headroom (Word 5.17, Numbers 5.18), so white at .78 lands at 4.0 and fails.
+  Hierarchy comes from size and weight. Same ruling as the home category bands.
+- **Anything that has to RECEDE darkens the ground instead.** An inset black wash can only
+  ADD contrast for white ink, so one value (`rgba(6,10,20,.24)`) is safe on all ten grounds
+  (7.4 to 10.4:1). That is the help control and every A-Z chip.
+- **Progress is WHITE, not gold.** Gold runs 2.71:1 on Word and 2.72 on Numbers against these
+  hues. Gold keeps the Sunday chip, the leader chips and the Resume pill, where it works.
+- **The A-Z roster's states are told apart by FILL, never by a second colour.** Green played /
+  amber open / red missed was right on one navy ground and wrong on ten coloured ones, and the
+  plain white-alpha chip dropped white text to 3.76:1 on Word. Played and missed sink to a
+  `.34` black wash at 66% white, unplayed sits at `.20`, and the single game in progress is a
+  solid white pill carrying the band's own hue as its ink. Worst case across all ten grounds is
+  4.75:1. This is the same ruling that retired gold Resume on the home bands.
+- Deliberately unchanged: the masthead above the cap (it is what separates the two bands) and
+  the Start / Resume CTA, which is still `--cta` blue on every hue.
+
+Shipped `a13491ef6`, one file. Verified live on crux (blue), suds (violet, which is the circuit
+override doing its job) and sweep (umber). Mockup of the four directions considered:
+https://claude.ai/code/artifact/005b28bd-6a0a-4e8b-973b-77bdd623cdda
