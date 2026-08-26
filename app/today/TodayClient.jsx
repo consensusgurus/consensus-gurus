@@ -1051,19 +1051,22 @@ export default function TodayClient({ onSignup = null } = {}) {
           </div>
         ) : null}
 
-        {spyShelves.map((shelf, si) => {
+        {/* EVERY CATEGORY BREAK IS THE SAME BREAK (owner, 2026-08-26). The
+            shelves used to be split four-and-the-rest by a "The rest of the
+            slate" band, which read as a demotion of everything under it and
+            put one gap on the page bigger than all the others. The band is
+            gone: the shelves are one uniform run, each spaced by the shelf
+            card's own 14px top margin. Do not reintroduce a divider between
+            shelves. */}
+        {spyShelves.map((shelf) => {
           const cta = shelfCta(shelf);
           const dn = shelf.games.filter((g) => done.has(g.key)).length;
           const tot = shelf.games.length;
           const allDone = tot > 0 && dn >= tot;
           const collapsed = allDone && !openDone.has(shelf.name);
-          const rest = si === 4 ? (
-            <div className="tdy-restband"><h3>The rest of the slate</h3><i>{`${CAT_ORDER.length - 4} more categories`}</i></div>
-          ) : null;
           if (collapsed) {
             return (
               <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
-                {rest}
                 <div className="tdy-catdone">
                   <b className="nm">{shelf.name}</b>
                   <span className="ck">{`All ${tot} done`}</span>
@@ -1084,7 +1087,6 @@ export default function TodayClient({ onSignup = null } = {}) {
           }
           return (
             <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
-              {rest}
               <div className="tdy-shc" style={{ '--cc': shelf.color }}>
                 <div className="tdy-hd">
                   <div>
