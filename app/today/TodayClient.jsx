@@ -648,8 +648,22 @@ export default function TodayClient({ onSignup = null } = {}) {
       return { cls: 'tk', text: `✓ ${sc}` };
     }
     if (inprog.has(g.key)) return { cls: 'tp', text: 'Resume' };
+    // ONE LINE, AND ONLY WHEN THERE IS ONE TO GIVE (owner, 2026-08-26).
+    // The tile used to stack two: a status line that read "0 playing" on
+    // sixty-five tiles, and a leader chip under it. That is two rows of grey
+    // text per tile on a page whose subject is the games. It is one row now,
+    // carrying the most useful thing the tile knows, in this order: how you
+    // did, then whether you are mid-game, then who leads it today, then how
+    // many people are in there. A tile that knows none of those says nothing
+    // at all, which is what makes the ones that do speak visible.
+    //
+    // The crowd figure needs a real crowd behind it (owner, 2026-08-26): under
+    // six players it is not a signal, it is a number that makes a game look
+    // empty, so it is shown from 6 up and the tile stays quiet below that.
+    const ld = leaderOf(g.key);
+    if (ld) return { cls: 'ld', text: ld, crown: true };
     const n = playsOf(g.key);
-    return { cls: '', text: n != null ? `${n.toLocaleString()} playing` : ' ' };
+    return { cls: '', text: n > 5 ? `${n.toLocaleString()} playing` : '' };
   };
 
   // ── the pin star ────────────────────────────────────────────────────
@@ -984,17 +998,23 @@ export default function TodayClient({ onSignup = null } = {}) {
               <TilesRow>
                 {pinned.map((g) => {
                   const st = statusLine(null, g);
-                  const leader = leaderOf(g.key);
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
                   else if (inprog.has(g.key)) cls.push('paused');
                   return (
                     <a key={g.key} className={cls.join(' ')} href={g.href}>
-                      {pinBtn(g.key)}
-                      <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                      <span className="tdy-pl">
+                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                        {done.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span>
+                          : inprog.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u25B6'}</span> : null}
+                        {pinBtn(g.key)}
+                      </span>
                       <b>{g.name}</b>
-                      <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
-                      <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
+                      {st.text ? (
+                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>
+                          {st.crown ? CROWN : null}<i>{st.text}</i>
+                        </span>
+                      ) : null}
                     </a>
                   );
                 })}
@@ -1128,17 +1148,23 @@ export default function TodayClient({ onSignup = null } = {}) {
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
                     const st = statusLine(shelf, g);
-                    const leader = leaderOf(g.key);
                     const cls = ['tdy-t'];
                     if (done.has(g.key)) cls.push('done');
                     else if (inprog.has(g.key)) cls.push('paused');
                     return (
                       <a key={g.key} className={cls.join(' ')} href={g.href}>
-                        {pinBtn(g.key)}
-                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                        <span className="tdy-pl">
+                          <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                          {done.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span>
+                            : inprog.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u25B6'}</span> : null}
+                          {pinBtn(g.key)}
+                        </span>
                         <b>{g.name}</b>
-                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>{st.text}</span>
-                        <span className="tdy-ld">{leader ? <>{CROWN}<i>{leader}</i></> : null}</span>
+                        {st.text ? (
+                          <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}>
+                            {st.crown ? CROWN : null}<i>{st.text}</i>
+                          </span>
+                        ) : null}
                       </a>
                     );
                   })}
@@ -1355,7 +1381,8 @@ const CSS = `
 /* EVERY SHELF ON THE PAGE IS THE SAME HEIGHT (owner, 2026-08-26), and this is
    the one knob that keeps them so. The header band is identical on all of them,
    so the shelf's height is its tile's height, and the game tile's is intrinsic
-   (58px of art plus its three label lines). Pinning BOTH tile types to the same
+   (a 66px plate, the name, and at most one line under it, which is shorter
+   than this floor and so takes it). Pinning BOTH tile types to the same
    min-height makes the circuits shelf match the categories by construction
    rather than by a number typed in twice. Re-measure and update this if the
    game tile's art or label stack ever changes. */
@@ -1462,7 +1489,18 @@ const CSS = `
    foot leaderboard's game and category pickers) keep the plain white card
    behind them, which is why the tint is scoped away from them. */
 .tdy-tiles{display:flex;gap:9px;overflow-x:auto;padding:12px 14px 12px;scrollbar-width:none;}
-.tdy-tw:not(.light) .tdy-tiles{background:transparent;}
+/* THE TRAY CARRIES THE CATEGORY COLOUR (owner, 2026-08-26, "direction C").
+   This is NOT a revert of the same day's "no card rectangle" ruling, which
+   took away a WHITE card with a hairline border and a shadow: a rectangle
+   drawn around a category in a colour the page does not otherwise use. What
+   is here instead is a 5% wash of the category's OWN colour, no border and no
+   shadow, running edge to edge directly under that category's filled header
+   band and clipped to the same corner radius. It reads as the band's body
+   rather than as a box around the shelf, and it is the ground the tiles need
+   now that the tile itself is no longer a card (see .tdy-t below). It is also
+   what the .tdy-fade gradients on either end of the track have always faded
+   to, so the track's edges match their surface again. */
+.tdy-tw:not(.light) .tdy-tiles{background:color-mix(in srgb,var(--cc,#2563eb) 5%,#fff);}
 .tdy-tiles::-webkit-scrollbar{display:none;}
 .tdy-fade{position:absolute;top:0;bottom:0;width:46px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:3;}
 .tdy-fade.l{left:0;background:linear-gradient(90deg,color-mix(in srgb,var(--cc,#2563eb) 5%,#fff),rgba(255,255,255,0));}
@@ -1472,23 +1510,48 @@ const CSS = `
 .tdy-nud:hover{border-color:#a8b6cc;color:var(--ink);}
 .tdy-nud.l{left:4px;}
 .tdy-nud.r{right:4px;}
-.tdy-t{flex:none;width:130px;min-height:var(--tile-h);background:var(--white);border:1px solid #dfe4ec;border-radius:12px;padding:12px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05),0 3px 8px rgba(16,24,40,.05);}
+/* ── THE TILE IS A PLATE, NOT A CARD (owner, 2026-08-26) ──────────────────
+   The tile was a white card with a hairline and two shadows holding a 58px
+   icon in the middle of a 130x147 box, which is sixty-five borders and
+   sixty-five shadows down a page whose entire subject is the icons. The card
+   is gone. What is left is the art on a white plate, the name under it, and
+   one line of status only when there is status (see statusLine above).
+
+   Three things carry the work the card used to do, and each of them is doing
+   it better than a tinted rectangle did:
+     - the TRAY. .tdy-tiles takes a 5% wash of the category colour (above),
+       and it is now the only ground the tiles sit on, so a shelf reads as one
+       object rather than as six cards floating on a tint.
+     - the RING. State is a 2px ring on its own box at inset -4px, never a
+       border on the plate: a border would eat into the art and, worse, would
+       move every other tile in the row by 2px the moment a game was solved.
+     - the BADGE. A tick or a play mark on the plate's bottom-right corner, so
+       state is legible at a glance without reading the line under the name.
+
+   96px wide instead of 130, which is nine across where six used to fit. */
+.tdy-t{flex:none;width:96px;min-height:var(--tile-h);background:none;border:0;border-radius:0;padding:11px 3px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;box-shadow:none;}
+.tdy-pl{position:relative;width:66px;height:66px;flex:none;border-radius:19px;background:var(--white);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(16,24,40,.08),0 10px 22px rgba(16,24,40,.10);}
+.tdy-pl::before{content:"";position:absolute;inset:-4px;border-radius:23px;border:2px solid transparent;pointer-events:none;}
+.tdy-t.done .tdy-pl::before{border-color:var(--success-deep);}
+.tdy-t.paused .tdy-pl::before{border-color:var(--gold);}
 /* Behind hover:hover with the pin star, and for the same reason: a tap applies
    :hover on a phone and the browser keeps painting it until you tap elsewhere,
-   so a tile would sit lifted after you came back from playing it. */
+   so a tile would sit lifted after you came back from playing it. The lift is
+   on the PLATE now, since the tile is no longer a thing that can lift. */
 @media(hover:hover){
-  .tdy-t{transition:box-shadow .14s,transform .14s;}
-  .tdy-t:hover{box-shadow:0 2px 4px rgba(16,24,40,.07),0 9px 20px rgba(16,24,40,.10);transform:translateY(-1px);}
+  .tdy-pl{transition:box-shadow .14s,transform .14s;}
+  .tdy-t:hover .tdy-pl{box-shadow:0 3px 6px rgba(16,24,40,.10),0 14px 28px rgba(16,24,40,.17);transform:translateY(-2px);}
 }
-.tdy-t img{width:58px;height:58px;border-radius:11px;display:block;flex:none;}
-.tdy-t b{color:var(--ink);font-size:13.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.1;}
-.tdy-st{font-style:normal;font-size:10.5px;font-weight:700;color:#6b7280;white-space:nowrap;padding:2px 7px;border-radius:999px;min-height:17px;}
-.tdy-st.tk{color:var(--success-deep);font-weight:800;}
-.tdy-st.tp{color:#a16207;font-weight:800;}
-.tdy-ld{display:flex;align-items:center;gap:4px;min-height:12px;max-width:112px;overflow:hidden;}
-.tdy-ld i{font-style:normal;font-size:9.5px;font-weight:700;color:#9aa0ab;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-t.done{background:#eef7ef;border-color:#c8e2ce;}
-.tdy-t.paused{background:#fff7e0;border-color:#e6c97e;}
+.tdy-t img{width:50px;height:50px;border-radius:12px;display:block;flex:none;}
+.tdy-bdg{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:800;line-height:1;color:var(--white);box-shadow:0 2px 6px rgba(16,24,40,.25);}
+.tdy-t.done .tdy-bdg{background:var(--success-deep);}
+.tdy-t.paused .tdy-bdg{background:var(--gold);color:#3b2c05;}
+.tdy-t b{color:var(--ink);font-size:12.5px;font-weight:800;letter-spacing:-.01em;text-align:center;line-height:1.15;}
+.tdy-st{font-style:normal;display:flex;align-items:center;justify-content:center;gap:3px;max-width:92px;margin-top:-3px;font-size:10px;font-weight:800;letter-spacing:.02em;color:#8a919e;white-space:nowrap;overflow:hidden;}
+.tdy-st i{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.tdy-st.tk{color:var(--success-deep);}
+.tdy-st.tp{color:#a16207;}
+.tdy-st.ld{font-size:9.5px;font-weight:700;color:#9aa0ab;letter-spacing:0;}
 
 /* ── a finished category collapses to a band ── */
 .tdy-catdone{display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid #e7e9ee;border-left:4px solid var(--success-deep);border-radius:14px;padding:12px 16px;margin:14px 2px 0;flex-wrap:wrap;box-shadow:0 1px 2px rgba(16,24,40,.04);}
@@ -1610,7 +1673,7 @@ const CSS = `
   #tdy-mine .tdy-cta,.tdy-shc.circuits .tdy-cta{display:block;flex:none;margin-left:auto;max-width:58%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:7px 13px;}
   #tdy-mine .tdy-tiles,.tdy-shc.circuits .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
-  .tdy-t{width:124px;}
+  .tdy-t{width:88px;}
   .tdy-ct{width:166px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
@@ -1710,14 +1773,16 @@ const CSS = `
 
 /* The pin star. Every hover rule sits behind @media(hover:hover): on a phone a
    tap applies :hover and the browser keeps painting it until you tap
-   elsewhere, which left a block behind the star on the old console. */
+   elsewhere, which left a block behind the star on the old console. It hangs
+   off the PLATE's top-left corner rather than the tile's bottom-left, which
+   with the card gone would have sat on top of the game's name. */
 .tdy-t{position:relative;}
-.tdy-pinb{position:absolute;left:5px;bottom:5px;width:22px;height:22px;border-radius:6px;border:0;background:transparent;color:#c3c9d4;cursor:pointer;font-size:14px;line-height:1;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;}
+.tdy-pinb{position:absolute;left:-5px;top:-5px;width:21px;height:21px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#c3c9d4;cursor:pointer;font-size:12px;line-height:1;padding:0;font-family:inherit;-webkit-tap-highlight-color:transparent;box-shadow:0 1px 4px rgba(16,24,40,.18);display:flex;align-items:center;justify-content:center;}
 .tdy-pinb.on{color:var(--gold);}
 @media(hover:hover){
   .tdy-pinb{opacity:0;transition:opacity .12s;}
   .tdy-t:hover .tdy-pinb,.tdy-pinb:focus-visible,.tdy-pinb.on{opacity:1;}
-  .tdy-pinb:hover{background:rgba(16,24,40,.06);}
+  .tdy-pinb:hover{background:var(--white);color:#8a919e;}
 }
 
 /* The guest teaser: pins live on the account, so a signed-out reader is shown
