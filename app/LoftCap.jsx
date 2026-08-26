@@ -20,6 +20,15 @@ import { usePathname } from 'next/navigation';
 import { DAILY_GAMES, isRetiredDaily } from '@/lib/daily-games';
 import { SHARE_HOST } from '@/lib/site';
 import useDailyRoster from './useDailyRoster';
+import { catBlue } from '@/lib/home-blues';
+import { circuitById } from '@/lib/circuits';
+import { loftKey } from '@/lib/loft';
+
+// The home page pulls the sudoku grids OUT of Numbers into a Sudoku shelf of
+// their own, and that shelf is the sudoku circuit's pool. Mirror it from the
+// same source rather than restating the list, or Suds wears orange here and
+// violet there.
+const SUDOKU = new Set(((circuitById('sudoku') || {}).keys) || []);
 
 // Alphabetical, retired games dropped, computed once at module load: it is the
 // same list on every page and never changes within a session.
@@ -58,6 +67,23 @@ export default function LoftCap({
   const url = pathname && pathname !== '/'
     ? `${SHARE_HOST}${pathname.replace(/\/+$/, '')}`
     : null;
+
+  // THE CATEGORY HUE. Resolved from the route rather than a new prop, for the
+  // same reason the URL above is: it cannot go stale, and it costs no edit to
+  // any of the 70 game clients.
+  const key = loftKey(String(pathname || '').replace(/^\/+/, ''));
+  const hue = SUDOKU.has(key) ? catBlue('sudoku') : (cat ? catBlue(cat) : null);
+  // The band takes it inline (so it paints on the first frame, with no flash of
+  // the old navy), and the document takes it so the play STAGE can wash itself
+  // with the same hue: the stage is a sibling subtree, out of reach of a
+  // variable set on the cap. Removed on unmount so a page that carries no cap
+  // never inherits the last game's colour.
+  useEffect(() => {
+    if (!hue || typeof document === 'undefined') return undefined;
+    const el = document.documentElement;
+    el.style.setProperty('--cat-hue', hue);
+    return () => { el.style.removeProperty('--cat-hue'); };
+  }, [hue]);
 
   // Only asks the network once the game is over, which is the only time the
   // strip is shown.
@@ -141,10 +167,21 @@ export default function LoftCap({
   const eyebrow = [cat, num != null ? `No. ${num}` : null, dateLabel]
     .filter(Boolean).join(' · ');
   return (
-    <div className={`lcap${outcome ? ` lcap-done lcap-${outcome}` : ''}${strip && strip.length ? ' lcap-az' : ''}`}>
+    <div className={`lcap${outcome ? ` lcap-done lcap-${outcome}` : ''}${strip && strip.length ? ' lcap-az' : ''}`}
+      style={hue ? { '--cc': hue } : undefined}>
       <div className="lcap-col">
       <style>{`
-.lcap{background:#2b4676;border-top:1px solid rgba(255,255,255,0.13);position:relative;font-family:${SANS};z-index:4}
+.lcap{background:var(--cc,#2b4676);border-top:1px solid rgba(255,255,255,0.16);position:relative;font-family:${SANS};z-index:4}
+/* THE BAND WEARS THE GAME'S CATEGORY (owner, 2026-08-26). --cc is the shelf hue
+   from lib/home-blues, set inline below, so tapping Crux under the blue Word
+   band on the home page lands on a blue page and the two surfaces name the same
+   thing the same way. #2b4676 stays as the fallback for a game with no category.
+   THE RULE THAT GOVERNS EVERY INK IN THIS FILE FROM HERE ON: no opacity on
+   white. The ten hues clear 4.5:1 against PURE white with no headroom (Word is
+   5.17, Numbers 5.18), so white at .78 lands at 4.0 and fails. Hierarchy comes
+   from size and weight, exactly as on the home category bands. Where something
+   has to RECEDE, darken the ground instead: an inset black wash can only add
+   contrast for white ink, so one value is safe on all ten (7.4 to 10.4:1). */
 /* THE CAP IS A FULL-WIDTH BAND WHOSE CONTENT SITS OVER THE BOARD.
    The band runs edge to edge like the chrome above it, but everything in it is
    centred on the game's own column, so the name and the figures line up with
@@ -239,21 +276,29 @@ export default function LoftCap({
   align-items:center;justify-content:center;cursor:pointer;
   border:0;padding:0;font-family:inherit;font-size:21px;font-weight:800;line-height:1;
   color:var(--white)}
-.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,#2b4676 45%,rgba(43,70,118,0) 100%)}
-.lcap-azbtn.next{right:0;background:linear-gradient(270deg,#2b4676 45%,rgba(43,70,118,0) 100%)}
+.lcap-azbtn.prev{left:0;background:linear-gradient(90deg,var(--cc,#2b4676) 45%,transparent 100%)}
+.lcap-azbtn.next{right:0;background:linear-gradient(270deg,var(--cc,#2b4676) 45%,transparent 100%)}
 .lcap-azwrap.at-start .lcap-azbtn.prev,.lcap-azwrap.at-end .lcap-azbtn.next{display:none}
 .lcap-tiles.az a{display:block;flex:0 0 auto;min-width:0;white-space:nowrap;
-  background:rgba(255,255,255,0.14);color:var(--white);border-radius:7px;
+  background:rgba(6,10,20,0.20);color:var(--white);border-radius:7px;
   padding:6px 10px;font-weight:800;font-size:12.5px;line-height:1.1;gap:0}
-.lcap-tiles.az a:hover{background:rgba(255,255,255,0.30)}
-/* Green finished, amber still open, red missed. Declared AFTER the plain chip
-   so they win, and they change only colour, never a dimension. */
-.lcap-tiles.az a.done{background:rgba(52,211,153,0.30);color:#c9f8de}
-.lcap-tiles.az a.done:hover{background:rgba(52,211,153,0.46)}
-.lcap-tiles.az a.open{background:rgba(240,198,116,0.34);color:#ffeec6}
-.lcap-tiles.az a.open:hover{background:rgba(240,198,116,0.50)}
-.lcap-tiles.az a.fail{background:rgba(248,113,113,0.32);color:#ffdada}
-.lcap-tiles.az a.fail:hover{background:rgba(248,113,113,0.48)}
+.lcap-tiles.az a:hover{background:rgba(6,10,20,0.32)}
+/* TOLD APART BY FILL, NEVER BY A SECOND COLOUR (owner, 2026-08-26). These were
+   green finished, amber open, red missed, which was right on one navy ground and
+   wrong on ten coloured ones: green on crimson and red on umber fight the band
+   they sit on, and the plain white-alpha chip drops white text to 3.76:1 on Word
+   and 3.84 on Logic, under the floor. So the states are now depths of the SAME
+   ground. Played and missed sink into a black wash, everything unplayed sits one
+   step above it, and the single game you have in progress is a solid white pill
+   carrying the band's own hue as its ink (5.17:1 at worst, since that is just
+   the hue on white). Reads identically on all ten, needs no per-category tuning.
+   This is the same ruling that retired gold Resume on the home bands. */
+.lcap-tiles.az a.done{background:rgba(6,10,20,0.34);color:rgba(255,255,255,0.66)}
+.lcap-tiles.az a.done:hover{background:rgba(6,10,20,0.44);color:var(--white)}
+.lcap-tiles.az a.open{background:var(--white);color:var(--cc,#2b4676)}
+.lcap-tiles.az a.open:hover{background:#eef2f8}
+.lcap-tiles.az a.fail{background:rgba(6,10,20,0.34);color:rgba(255,255,255,0.66)}
+.lcap-tiles.az a.fail:hover{background:rgba(6,10,20,0.44);color:var(--white)}
 /* THE ARROWS COULD NEVER SHOW: their display:flex sat in the desktop block
    ABOVE this base rule, and a media query adds no specificity, so the later
    display:none simply won. The override belongs after the thing it overrides. */
@@ -263,8 +308,9 @@ export default function LoftCap({
 }
 .lcap-tiles.az::-webkit-scrollbar{display:none}
 /* Finished today: still there, still reachable, just not competing with the
-   ones you have not played. */
-.lcap-tiles.az a.done{opacity:.5}
+   ones you have not played. The DEPTH of its wash carries that now; the old
+   opacity:.5 would have dimmed the ink as well, which is the one thing a
+   saturated ground has no headroom for. */
 /* PHONE: a snapping slider. Three tiles across a 390px row leaves each about
    118px, which truncates most taglines, so the row scrolls instead and shows
    about two and a half. The scrollbar is hidden because the partial tile at
@@ -282,8 +328,8 @@ export default function LoftCap({
   .lcap-tiles{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .lcap-tiles::-webkit-scrollbar{display:none}
   .lcap-tiles a{flex:0 0 44%;scroll-snap-align:start}}
-.lcap-eb{display:block;font-weight:800;font-size:11.5px;line-height:1;letter-spacing:.13em;
-  text-transform:uppercase;color:var(--blue-200);margin-bottom:4px}
+.lcap-eb{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--white);margin-bottom:4px}
 .lcap-nm{display:block;font-weight:800;font-size:22px;line-height:1;letter-spacing:-.022em;color:var(--white)}
 .lcap-sun{display:inline-block;margin-left:8px;font-weight:800;font-size:9px;line-height:1;
   letter-spacing:.11em;text-transform:uppercase;color:var(--gold-ink);background:var(--gold);
@@ -296,25 +342,29 @@ export default function LoftCap({
    min-width:fit-content rule below would then honour on all 65 games.
    On a finish the eyebrow goes and the A-Z roster takes the width, so the URL
    steps aside rather than squeezing it. */
-.lcap-url{display:inline-block;margin-left:10px;font-weight:700;font-size:11.5px;
-  line-height:1;letter-spacing:0;color:var(--blue-200);vertical-align:middle;
+.lcap-url{display:inline-block;margin-left:10px;font-weight:600;font-size:11.5px;
+  line-height:1;letter-spacing:0;color:var(--white);vertical-align:middle;
   white-space:nowrap}
 .lcap-done .lcap-url{display:none}
 /* The shared masthead sits inside the page column, so the cap has to break out
    of it to run edge to edge the way the bands above it do. */
 .lcap-bleed{margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);margin-bottom:14px}
-.lcap-help{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.18);
+.lcap-help{width:30px;height:30px;border-radius:8px;background:rgba(6,10,20,0.24);
   display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--white);
   border:0;cursor:pointer;margin-right:12px;flex:none;font-family:inherit}
-.lcap-figs{display:flex;border-top:1px solid rgba(255,255,255,0.22);flex:0 0 100%}
+.lcap-figs{display:flex;border-top:1px solid rgba(255,255,255,0.30);flex:0 0 100%}
 .lcap-figs>div{flex:1;padding:6px 6px 8px;text-align:center;white-space:nowrap;
-  border-right:1px solid rgba(255,255,255,0.22)}
+  border-right:1px solid rgba(255,255,255,0.30)}
 .lcap-figs>div:last-child{border-right:0}
 .lcap-v{display:block;font-weight:800;font-size:15px;line-height:1;color:var(--white)}
-.lcap-k{display:block;font-weight:700;font-size:8.5px;line-height:1;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--blue-200);margin-top:4px}
-.lcap-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,0.18)}
-.lcap-bar i{display:block;height:100%;background:var(--gold);transition:width .2s}
+.lcap-k{display:block;font-weight:800;font-size:8.5px;line-height:1;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--white);margin-top:4px}
+.lcap-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(6,10,20,0.24)}
+.lcap-bar i{display:block;height:100%;background:var(--white);transition:width .2s}
+/* PROGRESS IS WHITE, NOT GOLD, on a category ground. Gold runs 2.71:1 on Word
+   and 2.72 on Numbers against these hues, so the one thing on the band that has
+   to be read at a glance would be the least visible thing on it. Gold keeps the
+   Sunday chip, the leader chips and the Resume pill, where it still works. */
 @media(min-width:900px){
   /* THE HELP BUTTON NEVER WRAPS. The column is the board's width, but the cap
      must fit a name, up to four figures and the control on one line, and on a
@@ -325,7 +375,7 @@ export default function LoftCap({
   .lcap-col{width:var(--loft-col,640px);min-width:fit-content;max-width:100%}
   .lcap-id{flex:0 1 auto}
   .lcap-figs{flex:0 0 auto;order:3;border-top:0;margin-left:auto;
-    border-left:1px solid rgba(255,255,255,0.22)}
+    border-left:1px solid rgba(255,255,255,0.30)}
   .lcap-figs>div{flex:0 0 124px}
   .lcap-help{order:4}
 }
@@ -333,7 +383,11 @@ export default function LoftCap({
 /* The play stage: the Loft ground, full bleed, with the board card as the one light
    object on it. Sits inside the centered page column, so the negative margin
    pulls it out to the viewport and the padding puts its content back. */
-.loft-stage{background:var(--ground);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
+.loft-stage{background:linear-gradient(180deg,
+    color-mix(in srgb,var(--cat-hue,var(--ground)) 15%,var(--ground)) 0,
+    color-mix(in srgb,var(--cat-hue,var(--ground)) 6%,var(--ground)) 120px,
+    var(--ground) 260px);
+  margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);
   padding:14px calc(50vw - 50%) 22px;
   /* Fill the first screen. Without this the navy stops at the card and the
      page shows a band of light under it, which reads as an unfinished edge
