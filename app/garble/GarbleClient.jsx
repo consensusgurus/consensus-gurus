@@ -152,6 +152,19 @@ function freshState(puzzle) {
   return { v: 1, solved: {}, misses: 0, finalSolved: false, status: 'playing', t0: null, tEnd: null };
 }
 
+// Where the cursor goes after a word is untangled: the next unsolved row BELOW
+// the one just solved, wrapping round to the top of the board. It used to be a
+// findIndex from row 0, so skipping a clue and then solving a later one sent the
+// cursor BACKWARDS to the skipped row (owner report, 2026-08-26). The finale is
+// only selected once every word is done.
+function nextOpen(solved, from, n) {
+  for (let k = 1; k <= n; k++) {
+    const i = (from + k) % n;
+    if (!solved[i]) return i;
+  }
+  return 'final';
+}
+
 export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_garble_${PUZZLE.num}`;
@@ -211,7 +224,12 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       const raw = localStorage.getItem(STORE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        if (saved && saved.v === 1) setG({ ...freshState(PUZZLE), ...saved });
+        if (saved && saved.v === 1) {
+          setG({ ...freshState(PUZZLE), ...saved });
+          // Resuming must land on an OPEN row: sel seeds at 0, which is a solved
+          // row whenever the player left after untangling the first word.
+          setSel(nextOpen(saved.solved || {}, -1, PUZZLE.words.length));
+        }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
     } catch (e) {}
@@ -370,8 +388,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     if (typed === w.answer) {
       g2.solved = { ...g.solved, [sel]: true };
       setTyped('');
-      const next = PUZZLE.words.findIndex((_, i) => !g2.solved[i]);
-      setSel(next === -1 ? 'final' : next);
+      setSel(nextOpen(g2.solved, sel, PUZZLE.words.length));
       say(`${w.answer} — untangled`);
     } else {
       g2.misses = g.misses + 1;
