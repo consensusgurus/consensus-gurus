@@ -4469,6 +4469,25 @@ What to know before touching one of these:
   (1.Qg2+ Kxf5 2.Rf2#, so Black plays Kh5 and leaves the knight). Deterministic either way,
   which is what keeps the leaderboard comparing like with like. The values live INSIDE
   `stubbornestDefence` because the verifier lifts that one function out by brace-matching.
+- **The same tie-break bug lived in CHECK, and the same fix applies (2026-08-26).** Player
+  feedback read "it seems the AI prioritizes capturing pieces over sensible movement", which
+  is half a rules misunderstanding and half a real defect, and it is worth knowing which
+  half is which. Captures are COMPULSORY in English draughts, so black cannot prefer a jump
+  over a quiet move: across all 429 positions reachable after any red first move on the
+  62-board bank, black was never once offered that choice, and the forced jump is the very
+  mechanism the puzzle rests on (every key is a sacrifice). But `blackReply` maximized the
+  clear distance and then fell through to the puzzle's hash order, and that primary term
+  ties on 780 of the 1,270 black replies in a full playout, so black slid a man into a free
+  capture 257 times, 168 of them avoidable at the identical score. Tied replies now sort on
+  net material, then crowning and how far up the board the piece lands, then the hash.
+  Hangs fell to 80 (the rest are positions where every tied move hangs something) and black
+  went from giving away a net 24 pieces to winning 213. Same reasoning as the Mate rule
+  above: sense settles a tie and NEVER outranks the primary term, so `clearIn` is a maximin
+  and the value of every position is untouched. Verified by replaying all 62 boards against
+  the new defence, every key still sweeps in its stated number of moves and no non-key first
+  move wins, plus `scripts/verify-check.mjs` clean. Note the consequence: 35% of black's
+  replies change, so an archived board replayed now meets a different defence than the
+  person who played it live. Scores, keys and clear distances are unaffected.
 - **A HARNESS THAT SKIPS THE TREE CERTIFIES A DECISION ORDER THE GAME DOES NOT USE.**
   `verify-endgame-playout.mjs` called `stubbornestDefence` directly for every off-key run,
   so it proved the defence the client MEANT to play and reported clean through all 324
