@@ -190,7 +190,7 @@ function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vi
 
 const eKey = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
 function freshState(count) {
-  return { v: 1, e: Array(count).fill(0), hintUsed: false, status: 'playing', t0: null, tEnd: null };
+  return { v: 1, e: Array(count).fill(0), mine: null, hintUsed: false, status: 'playing', t0: null, tEnd: null };
 }
 
 export default function PathsClient({ puzzles = [], forceNum = null }) {
@@ -281,6 +281,24 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const LOFT = isLoft('paths');
+
+  // What the reveal marks. `mine` is only set when a reveal overwrote the
+  // board, so MINE is the player's own track on a given-up board and their
+  // finished board on a solved one, and the three sets below are always
+  // disjoint: laid and used, laid and not used, used and never laid.
+  const MINE = g.mine || E;
+  const SOL_SET = useMemo(() => new Set(SOL), [SOL]);
+  const REVIEW = useMemo(() => {
+    if (!showPar) return null;
+    const right = [], wrong = [], missed = [];
+    LANES.forEach((l) => {
+      const laid = !!MINE[l.i], used = SOL_SET.has(l.i);
+      if (laid && used) right.push(l);
+      else if (laid) wrong.push(l);
+      else if (used) missed.push(l);
+    });
+    return { right, wrong, missed };
+  }, [showPar, MINE, SOL_SET, LANES]);
 
   useEffect(() => { gRef.current = g; }, [g]);
   useEffect(() => {
@@ -412,6 +430,10 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   const linked = TOWNS.filter((t) => reached.has(t)).length;
   const allLinked = linked === TOWNS.length;
   const over = Math.max(0, cost - perfect);
+  // A player whose own network already costs `perfect` has found a cheapest
+  // network of their own, just not this one, so their red lanes are a tie
+  // rather than a mistake and the caption says so instead of accusing them.
+  const tiedPerfect = won && cost === perfect;
   const liveScore = allLinked ? scoreFor(cost, perfect) : 0;
   const finalScore = g.status === 'won' ? scoreFor(cost, perfect) : 0;
 
@@ -544,11 +566,16 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
     say('Hint laid: one lane of a cheapest network.');
   }
 
+  // Giving up lays a cheapest network on the board, but the POINT of a reveal
+  // is the comparison, so the track the player actually laid is kept in `mine`
+  // and marked back over the top (owner, 2026-08-26). Without it every lane on
+  // a given-up board is the solution's, so every lane reads as one they got
+  // right and nothing tells them where they went wrong.
   function revealEnd() {
     const cur = gRef.current;
     const e = Array(LANES.length).fill(0);
     SOL.forEach((i) => { e[i] = 1; });
-    const g2 = { ...cur, e, status: 'revealed', tEnd: Date.now() };
+    const g2 = { ...cur, e, mine: cur.e, status: 'revealed', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
     postResult(g2, 0, perfect);
     commit(g2);
@@ -824,17 +851,38 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                     stroke={COLORS.rail} strokeWidth={2.4} strokeDasharray="3 4" strokeLinecap="round" />
                 </g>
               ))}
-              {/* a cheapest network, shown only after the round ends */}
-              {showPar && SOL.map((i) => {
-                const l = LANES[i];
-                return <line key={`p${i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
-                  stroke="#e8b43a" strokeWidth={4.5} strokeLinecap="round" strokeDasharray="2 7" style={{ pointerEvents: 'none' }} />;
-              })}
-              {/* laid track */}
-              {LANES.map((l) => (E[l.i] ? (
-                <line key={`t${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
-                  stroke={COLORS.track} strokeWidth={6} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
-              ) : null))}
+              {/* The reveal is a MARKING, not just an answer key. A lane you
+                  laid that a cheapest network also uses goes green, a lane you
+                  laid that it does not use goes red, and a lane it uses that
+                  you never laid stays gold, so the whole network is still on
+                  the board AND every one of your own choices is answered.
+                  The red lane carries a white dash on top of the fill, so it
+                  reads apart from the green without relying on hue. */}
+              {REVIEW ? (
+                <g style={{ pointerEvents: 'none' }}>
+                  {REVIEW.missed.map((l) => (
+                    <line key={`m${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                      stroke="#e8b43a" strokeWidth={4.5} strokeLinecap="round" strokeDasharray="2 7" />
+                  ))}
+                  {REVIEW.wrong.map((l) => (
+                    <g key={`w${l.i}`}>
+                      <line x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                        stroke={COLORS.rust} strokeWidth={6} strokeLinecap="round" opacity={0.9} />
+                      <line x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                        stroke={T.white} strokeWidth={2.2} strokeDasharray="1.5 4.5" />
+                    </g>
+                  ))}
+                  {REVIEW.right.map((l) => (
+                    <line key={`k${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                      stroke={COLORS.green} strokeWidth={6} strokeLinecap="round" />
+                  ))}
+                </g>
+              ) : (
+                LANES.map((l) => (E[l.i] ? (
+                  <line key={`t${l.i}`} x1={X(l.a)} y1={Y(l.a)} x2={X(l.b)} y2={Y(l.b)}
+                    stroke={COLORS.track} strokeWidth={6} strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+                ) : null))
+              )}
               {/* what a crossing charges. The ridge says 2 with its shading */}
               {LANES.filter((l) => l.cost === 3 && !l.blocked).map((l) => (
                 <text key={`c${l.i}`} x={(X(l.a) + X(l.b)) / 2 + (l.horiz ? 0 : TOLL)} y={(Y(l.a) + Y(l.b)) / 2 - (l.horiz ? TOLL : 0)}
@@ -892,6 +940,15 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             )}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink }} /> depot</span>
           </div>
+          {/* The marking's own key, printed only while the marking is up, so
+              a red lane is never left for the reader to guess at. */}
+          {REVIEW && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', marginTop: 8, flexWrap: 'wrap', fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 16, height: 5, borderRadius: 3, background: COLORS.green }} /> yours, and in the network</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 16, height: 5, borderRadius: 3, background: COLORS.rust, borderTop: `2px dashed ${T.white}` }} /> yours, not in it</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 16, height: 4, borderRadius: 3, background: 'repeating-linear-gradient(90deg, #e8b43a 0 2px, transparent 2px 6px)' }} /> in it, not yours</span>
+            </div>
+          )}
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
               <button className="pt-tool" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" style={{ opacity: canUndo ? 1 : 0.4, cursor: canUndo ? 'pointer' : 'default' }}>
@@ -942,7 +999,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 {showPar ? 'Hide the cheapest network' : 'Show a cheapest network'}
               </button>
               <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '8px 0 0' }}>
-                Shown in gold, one network that costs {perfect}. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one, but every ridge lane and crossing in it is forced.{HAS_RAILS ? ' Notice where it runs along the old track.' : ''}
+                One network that costs {perfect}, marked against your own track: <b style={{ color: COLORS.green }}>green</b> is a lane you laid that it also uses, <b style={{ color: COLORS.rust }}>red</b> is a lane you laid that it does not, and <b style={{ color: '#a97c12' }}>gold</b> is a lane it uses that you never laid. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one{tiedPerfect ? ', and because your own network costs the same, a red lane of yours is an equal-cost alternative rather than a mistake' : ''}, but every ridge lane and crossing in it is forced.{HAS_RAILS ? ' Notice where it runs along the old track.' : ''}
               </div>
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; a bigger {n}&times;{n} board with {TOWNS.length} towns and every element at once.</div>
