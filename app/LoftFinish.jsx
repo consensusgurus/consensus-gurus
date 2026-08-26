@@ -655,7 +655,7 @@ export default function LoftFinish({
             .d5f-again:hover{background:#eef1f6;}
             .d5f-again i{font-style:normal;font-weight:700;color:#8a92a6;}
           `}</style>
-          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
+          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{outcome ? <i className="lr-dot" /> : null}{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
           <div className={`d5f-run${runMarq ? '' : ' circ'}${runComplete ? ' done' : ''}`}>
             <span className="d5f-eye">{runName} {'\u00b7'} {runN} of {runMembers.length}</span>
@@ -817,7 +817,7 @@ export default function LoftFinish({
               .lfr-chip{padding:10px 12px;font-size:12.5px;}
             }
           `}</style>
-          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
+          <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{outcome ? <i className="lr-dot" /> : null}{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
           <button type="button" className="lfr-go" onClick={fire(replayOpt)}>
             <span className="lfr-t">
@@ -844,8 +844,13 @@ export default function LoftFinish({
     <div className="loft-back">
       <div className="loft-backin">
       {/* THE VERDICT LIVES HERE NOW, not on the page cap (owner, 2026-08-14).
-          Colouring both said it twice, and this is where the result is. */}
-      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
+          Colouring both said it twice, and this is where the result is.
+          The BAND wears the category hue and the DOT carries the outcome
+          (owner, 2026-08-26): green solved, amber partial, red not. The dot
+          only renders once there IS an outcome, because the archive header
+          reuses .loft-res with none and must stay a plain hairline row.
+          Styles for both live in LoftCap.jsx beside the rest of .loft-res. */}
+      <div className={outcome ? `loft-res loft-res-${outcome}` : 'loft-res'}><b>{outcome ? <i className="lr-dot" /> : null}{name ? `${name} ${title.charAt(0).toLowerCase()}${title.slice(1)}` : title}</b><s>{detail}</s></div>
 
       {/* Up next. Sits between the verdict and the IQ bar so the result is
           still read first and the handoff is the second thing on the card. */}

@@ -634,16 +634,30 @@ export default function LoftCap({
 .loft-res{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;
   padding-bottom:9px;border-bottom:1px solid var(--border)}
 .loft-res b{font-weight:800;font-size:17px;line-height:1}
-/* The verdict, moved off the cap. A full-bleed tinted header with a solid left
-   rule in the same colour, so the result is the first thing on the card. */
+/* The verdict, moved off the cap. A full-bleed header that wears the GAME'S
+   CATEGORY HUE (owner, 2026-08-26), the same --cat-hue the cap band and the
+   stage wash already carry, so the card reads as part of the game it belongs to
+   rather than as a traffic light bolted onto it. THE OUTCOME IS THE DOT: green
+   solved, amber partial, red not. Two rules hold it together.
+   1. Ink is white on all three, and is NEVER dimmed with opacity. Every
+      CAT_BLUE value clears 4.5:1 against pure white and has no headroom past
+      it, so a faded label fails at small sizes (see lib/home-blues).
+   2. The dot wears a white ring rather than sitting bare on the band. Two of
+      the eleven hues are in the same family as a dot they may have to carry
+      (green Trivia, crimson End Game), and without the ring the indicator
+      dissolves into its own ground on exactly those games. */
 .loft-res-won,.loft-res-part,.loft-res-lost{margin:-12px -12px 10px;padding:12px;
-  border-bottom:0;border-radius:14px 14px 0 0}
-.loft-res-won{background:var(--success-deep);border-left:6px solid var(--success-deep)}
-.loft-res.loft-res-won b,.loft-res.loft-res-won s{color:var(--white)}
-.loft-res-part{background:var(--gold);border-left:6px solid var(--gold)}
-.loft-res.loft-res-part b,.loft-res.loft-res-part s{color:#2a1f04}
-.loft-res-lost{background:var(--danger);border-left:6px solid var(--danger)}
+  border-bottom:0;border-radius:14px 14px 0 0;
+  background:var(--cat-hue,var(--accent));border-left:6px solid var(--cat-hue,var(--accent))}
+.loft-res.loft-res-won b,.loft-res.loft-res-won s,
+.loft-res.loft-res-part b,.loft-res.loft-res-part s,
 .loft-res.loft-res-lost b,.loft-res.loft-res-lost s{color:var(--white)}
+.lr-dot{display:inline-block;width:11px;height:11px;border-radius:50%;
+  margin:0 12px 0 3px;vertical-align:middle;position:relative;top:-1px;
+  box-shadow:0 0 0 2.5px rgba(255,255,255,0.94)}
+.loft-res-won .lr-dot{background:#22c55e}
+.loft-res-part .lr-dot{background:#fbbf24}
+.loft-res-lost .lr-dot{background:#f43f5e}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
 
 /* UP NEXT, under the verdict (owner, 2026-08-17). The 'similar' option was a
