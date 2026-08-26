@@ -1540,60 +1540,44 @@ const CSS = `
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
   .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
-  /* ONE HEADER SHAPE AT PHONE WIDTH (owner, 2026-08-25), in TWO rows since
-     2026-08-25 (the eyebrow row went, see below). It was a plain flex-wrap, so
-     whether the CTA dropped to its own row depended on how long that shelf's
-     leader name and CTA label happened to be: some headers came out two rows
-     and some three, at three different heights, and a long category name broke
-     across lines while a short one did not. Every category shelf is now the
-     same shape whatever the content:
+  /* ONE LINE, THREE THINGS (owner, 2026-08-26). The two-row grid this replaces
+     was still taller than what it had to say, and it fell apart on any shelf
+     with no leader yet: row two then held a lone CTA against an empty half, so
+     the same header came out at two different heights depending on whether
+     anybody had played that category today. Every band is one line now:
 
-       row 1   name ................................. N of M
-       row 2   leader chip .......................... the CTA
+       name .......................... N of M   leader chip
 
-     Three things make it deterministic. Explicit grid placement, so nothing
-     drifts with content. The name never wraps, it ellipsises. And the progress
-     BAR is dropped, because the "N of M" beside it already says the same thing
-     and its 44px was the difference between "Crowd Psychology" fitting and
-     being cut off at 392px.
+     THE CTA IS GONE from the category bands, and that is what buys the line. It
+     read "Next \u00b7 <game>" and pointed at a tile sitting directly underneath it,
+     so it was the one element on the band that said nothing the reader could
+     not already see. It stays on the two shelves where it is the point rather
+     than a duplicate: My games and Circuits, whose CTA is the resume action or
+     the way out to the circuit index, and neither of which carries a leader
+     chip, so both still fit their name, count and CTA on the one line.
 
-     Putting the leader chip on the CTA's row rather than the name's is what
-     stops handles ellipsising to "badgerbea...", and it is not arbitrary. Grid
-     column tracks are SHARED down the whole grid, so a 165px chip in column 2
-     was setting that column's width for every row and squeezing the name above
-     it. Column 2 is sized by the CTA and the "N of M", which are both narrow,
-     and the name gets everything else. It also makes the chip and the CTA
-     visual peers on one line, which was the other half of what was wrong.
+     The leader chip drops its POINTS at this width. The handle is the half a
+     reader recognises, and carrying "48 pts" as well costs about 45px, which is
+     the difference between "Crowd Psychology" fitting the line and ellipsising,
+     and between a long handle showing whole and reading "badgerbea...". The
+     figure is still in the chip's title attribute and on the leaderboard.
 
-     THE EYEBROW ROW WENT on 2026-08-25 (owner): "Category · 9 games" was a
-     whole row saying what the big name says and counting what the "N of M" on
-     the right already counts.
-
-     Needs display:contents on both wrappers to promote .eb, h2, .tdy-prg and
-     .tdy-hld into the same grid, the pattern already used for .dtp-grid and
-     .tdy-idt. */
-  .tdy-hd{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;row-gap:7px;align-items:center;padding:10px 16px;}
+     The rest is as before: the name ellipsises rather than wraps, the progress
+     BAR is dropped because the "N of M" beside it says the same thing, and
+     display:contents on both wrappers promotes .eb, h2, .tdy-prg and .tdy-hld
+     into the one flex line. */
+  .tdy-hd{display:flex;flex-wrap:wrap;align-items:center;gap:9px;padding:9px 14px 9px 16px;}
   .tdy-hd > div{display:contents;}
   .tdy-hnm{display:contents;}
   .tdy-hd .eb{display:none;}
-  .tdy-hd h2{grid-row:1;grid-column:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
-  .tdy-prg{grid-row:1;grid-column:2;justify-self:end;}
+  .tdy-hd h2{flex:1 1 auto;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tdy-prg{flex:none;margin-top:0;}
   .tdy-prg .pb{display:none;}
-  .tdy-hld{grid-row:2;grid-column:1;justify-self:start;max-width:100%;margin-left:0;padding:2px 9px;}
-  .tdy-cta{grid-row:2;grid-column:2;justify-self:stretch;text-align:center;margin-left:0;padding:8px 14px;}
-  .tdy-hd .nt{grid-row:3;grid-column:1/-1;}
-  /* MY GAMES AND CONTINUE ARE ONE ROW (owner, 2026-08-25). Neither shelf has a
-     leader chip, so with the eyebrow gone the whole left half of row two was
-     empty and the CTA sat alone against it: on the two shelves a phone reader
-     meets first, the header was taller than it had any content for. Both names
-     are short and neither carries a chip, so they go back to the desktop's
-     single flex line, name + count on the left and the CTA on the right. The
-     CATEGORY shelves keep the grid, so they keep one uniform shape whether or
-     not that category has a leader today. */
-  #tdy-mine .tdy-hd,.tdy-shc.circuits .tdy-hd{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 16px;}
-  #tdy-mine .tdy-hd > div,.tdy-shc.circuits .tdy-hd > div,
-  #tdy-mine .tdy-hnm,.tdy-shc.circuits .tdy-hnm{display:flex;align-items:center;gap:10px;min-width:0;}
-  #tdy-mine .tdy-cta,.tdy-shc.circuits .tdy-cta{margin-left:auto;max-width:58%;overflow:hidden;text-overflow:ellipsis;padding:7px 13px;}
+  .tdy-hld{flex:none;max-width:136px;margin-left:0;padding:2px 8px;}
+  .tdy-hld b{display:none;}
+  .tdy-cta{display:none;}
+  .tdy-hd .nt{flex:1 0 100%;margin-top:0;}
+  #tdy-mine .tdy-cta,.tdy-shc.circuits .tdy-cta{display:block;flex:none;margin-left:auto;max-width:58%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:7px 13px;}
   #tdy-mine .tdy-tiles,.tdy-shc.circuits .tdy-tiles{padding-top:9px;padding-bottom:10px;}
   .tdy-tiles{padding-left:14px;padding-right:14px;}
   .tdy-t{width:124px;}
