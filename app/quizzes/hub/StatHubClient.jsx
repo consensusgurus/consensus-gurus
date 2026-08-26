@@ -2,11 +2,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, RefreshCw, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays, Award,} from 'lucide-react';
+  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays, Award,} from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { DAILY_GAMES, DAILY_DATED_RE, dailyLabel, dailyDept } from '@/lib/daily-games';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
-import { CHALLENGES, getChallenge, DEFAULT_CHALLENGE_ID, challengeQuizIds, challengeColumns, dailyChallengeId, challengeMenu } from '@/lib/challenges';
 import QuizNavHeader from '../QuizNavHeader';
 import DailyCombinedLeaderboard from '../../quiz/[id]/DailyCombinedLeaderboard';
 import Grain from '../../Grain';
@@ -67,7 +66,6 @@ const TABS = [
   { t: 'player', label: 'Player', Icon: User },
   { t: 'daily', label: 'Daily Puzzles', Icon: CalendarDays },
   { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
-  { t: 'challenges', label: 'Challenges', Icon: Flame },
   { t: 'duels', label: 'Duels', Icon: Swords },];
 
 // Share Stats: a shareable player card (overall rank, level + tier + IQ Points,
@@ -854,11 +852,6 @@ export default function StatHubClient() {
                   <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? T.white : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
                   <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
                 </button>
-                <button className={`tile${on('challenges') ? ' on' : ''}`} onClick={() => setTab('challenges')}>
-                  <span style={lblSt('challenges')}><Flame size={15} /> Challenges</span>
-                  <span style={bigSt('challenges')}>Daily</span>
-                  <span style={subSt('challenges')}>today{"'"}s board is live</span>
-                </button>
                 <button className={`tile${on('quizzes') ? ' on' : ''}`} onClick={() => setTab('quizzes')}>
                   <span style={lblSt('quizzes')}><ListChecks size={15} /> Quizzes</span>
                   <span style={bigSt('quizzes')}>{meFound ? (me.activity.played || 0).toLocaleString() : '0'} <span style={smSt('quizzes')}>played</span></span>
@@ -872,7 +865,6 @@ export default function StatHubClient() {
         {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={openPlayer} />}
         {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={openPlayer} />}
         {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={openPlayer} />}
-        {tab === 'challenges' && <ChallengesPanel me={profile} />}
         {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={openPlayer} />}      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
@@ -1309,259 +1301,21 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
   );
 }
 
-// ─── Challenges tab ─────────────────────────────────────────────────────────
-const CH_MEDAL = { 1: T.gold, 2: '#b8bcc4', 3: '#c8814b' };
-const CH_TINT = { 1: 'rgba(232,180,58,0.12)', 2: 'rgba(184,188,196,0.16)', 3: 'rgba(200,129,75,0.12)' };
-function chMmss(s) { const n = Math.max(0, Math.round(Number(s) || 0)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
-function chUpdated(iso) { if (!iso) return ''; try { return new Date(iso).toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET'; } catch (e) { return ''; } }
-
-// Winners' Circle: the #1 finisher of every challenge, dailies and events
-// together, from /api/quiz/challenge-winners. Tapping a row opens that
-// challenge's full leaderboard in place.
-function WinnersCircle({ winners, loaded, onOpen }) {
-  if (!loaded && !winners) return <div className="card" style={{ padding: '16px 18px', fontSize: 13, color: C.soft }}>Rounding up the winners…</div>;
-  const list = winners || [];
-  if (!list.length) return <div className="card" style={{ padding: '16px 18px', fontSize: 13, color: C.soft }}>No challenge results yet.</div>;
-  const dailies = list.filter((w) => w.daily);
-  const events = list.filter((w) => !w.daily);
-  const hd = { fontSize: 11, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase', color: C.soft, margin: '14px 0 2px' };
-  const Row = ({ w }) => (
-    <button onClick={() => onOpen && onOpen(w.id)} title="Open the full board" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: 'left', border: 'none', background: 'transparent', padding: '9px 0', borderBottom: `1px solid ${C.line}`, cursor: 'pointer', fontFamily: FONT }}>
-      <span style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: w.winner ? '#fbf2dc' : '#eef0f2', color: w.winner ? T.gold : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trophy size={13} /></span>
-      <span style={{ flex: '0 0 auto', width: 132, fontSize: 12, fontWeight: 700, color: C.muted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.label}</span>
-      <span style={{ flex: 1, minWidth: 60, fontSize: 13.5, fontWeight: 800, color: w.winner ? C.accent : C.soft, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.winner ? w.winner.username : (w.closed ? 'No finishers' : 'No entries yet')}</span>
-      {w.winner ? <span className="wc-score" style={{ flex: 'none', fontSize: 11.5, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{w.winner.totalCorrect} correct · {chMmss(w.winner.totalTime)}</span> : null}
-      {!w.closed ? <span style={{ flex: 'none', fontSize: 9.5, fontWeight: 800, letterSpacing: '.04em', background: '#e6f7f0', color: '#0b7a55', borderRadius: 999, padding: '2px 7px' }}>LIVE</span> : null}
-    </button>
-  );
-  return (
-    <div className="card" style={{ padding: '16px 18px' }}>
-      <style>{`@media(max-width:560px){.qzhub .wc-score{display:none;}}`}</style>
-      <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.01em' }}>Winners{"'"} Circle</div>
-      <div style={{ fontSize: 12.5, color: C.muted, marginTop: 3, maxWidth: 700 }}>The top finisher of every challenge, dailies and events together. LIVE means the window is still open and the leader can still be caught. Tap a row for the full board.</div>
-      <div style={hd}>Daily Challenges</div>
-      {dailies.map((w) => <Row key={w.id} w={w} />)}
-      {events.length > 0 ? (<>
-        <div style={{ ...hd, marginTop: 16 }}>Events</div>
-        {events.map((w) => <Row key={w.id} w={w} />)}
-      </>) : null}
-    </div>
-  );
-}
-
-// Full challenge standings grid (mirrors the standalone leaderboard page),
-// restyled to the Stat Hub theme. Self-fetches per selected challenge so the
-// selector + refresh work in place; highlights the current player's row.
-function ChallengesPanel({ me }) {
-  const [chId, setChId] = useState(() => {
-    if (typeof window !== 'undefined') {
-      try { const c = new URLSearchParams(window.location.search).get('ch'); if (c) return c; } catch (e) {}
-    }
-    return dailyChallengeId();
-  });
-  const menu = useMemo(() => challengeMenu(), []);
-  const [data, setData] = useState(null);
-  const [loaded, setLoaded] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [shared, setShared] = useState(false);
-  // Leaderboard vs Winners' Circle view; winners load once, on first open.
-  const [view, setView] = useState('board');
-  const [winners, setWinners] = useState(null);
-  const [winLoaded, setWinLoaded] = useState(false);
-  useEffect(() => {
-    if (view !== 'winners' || winners) return;
-    fetch('/api/quiz/challenge-winners').then((r) => r.json()).then((d) => { if (d && Array.isArray(d.winners)) setWinners(d.winners); }).catch(() => {}).finally(() => setWinLoaded(true));
-  }, [view, winners]);
-
-  const ch = getChallenge(chId) || CHALLENGES[0];
-  const cols = challengeColumns(ch);
-  const colLabel = (col) => { if (col.label) return col.label; const q = getQuiz(col.quizId); return (q && (q.navTitle || cleanTitle(q.title))) || col.quizId; };
-  const colTotal = {};
-  for (const c of cols) { const q = getQuiz(c.quizId); colTotal[c.quizId] = q && Array.isArray(q.answers) ? q.answers.length : 0; }
-  const totalPossible = Object.values(colTotal).reduce((a, b) => a + b, 0);
-  const pctOf = (n, d) => (d > 0 ? Math.round((Number(n) || 0) / d * 100) : 0);
-
-  const load = (showSpin) => {
-    if (showSpin) setRefreshing(true);
-    fetch(`/api/quiz/challenge-leaderboard?id=${encodeURIComponent(ch.id)}`)
-      .then((r) => r.json()).then((d) => { if (d && !d.error) setData(d); })
-      .catch(() => {}).finally(() => { setLoaded(true); setRefreshing(false); });
-  };
-  useEffect(() => { setLoaded(false); setData(null); load(false); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [chId]);
-
-  const doShare = () => {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mindloftdaily.com';
-    const url = withRef(`${base}/quizzes/hub?tab=challenges&ch=${encodeURIComponent(ch.id)}`);
-    const text = 'Can you beat my score?';
-    if (typeof navigator !== 'undefined' && navigator.share) navigator.share({ title: ch.title, text, url }).catch(() => {});
-    else if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(`${text} ${url}`).then(() => { setShared(true); setTimeout(() => setShared(false), 1800); }).catch(() => {});
-  };
-
-  const users = (data && data.users) || [];
-  const myName = me && me.found ? (me.name || '').toLowerCase() : null;
-
-  return (
-    <div>
-      <style>{`
-        .chg-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;font-size:12px;color:${C.muted};margin-top:14px;}
-        .chg-meta b{color:${C.ink};font-weight:700;}
-        .chg-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--white);border:1px solid ${C.line};border-radius:8px;font:inherit;font-family:${FONT};font-size:12px;font-weight:600;color:${C.ink};cursor:pointer;}
-        .chg-btn:hover{background:${C.bg};}
-        .chg-btn:disabled{opacity:0.55;cursor:default;}
-        @keyframes chgspin{to{transform:rotate(360deg);}}
-        .chg-scroll{overflow-x:auto;border:1px solid ${C.line};border-radius:12px;background:${C.surface};margin-top:14px;}
-        .chg-table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums;font-size:10px;}
-        .chg-table th,.chg-table td{white-space:nowrap;}
-        .chg-table th.chg-sub{white-space:normal;vertical-align:middle;min-width:86px;line-height:1.35;word-break:normal;}
-        .chg-grp{padding:6px 3px 4px;text-align:center;border-bottom:2px solid var(--ac);border-left:1px solid ${C.line};background:${C.bg};}
-        .chg-grp-ico{font-size:13px;display:block;line-height:1;margin-bottom:2px;}
-        .chg-grp-nm{font-weight:700;font-size:9.5px;color:${C.ink};}
-        .chg-sub{padding:3px 3px 4px;text-align:center;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:var(--ac);font-weight:700;border-bottom:1px solid ${C.line};border-left:1px solid rgba(20,22,28,0.04);background:${C.bg};}
-        .chg-sub a:hover{text-decoration:underline !important;}
-        .chg-corner{position:sticky;left:0;z-index:2;background:${C.bg};text-align:left;padding:6px 10px;font-weight:700;font-size:10px;color:${C.ink};border-bottom:2px solid ${C.accent};border-right:2px solid ${C.line};}
-        .chg-thc{padding:5px 5px;font-size:8px;letter-spacing:.02em;text-transform:uppercase;color:${C.muted};border-bottom:1px solid ${C.line};text-align:center;vertical-align:bottom;background:${C.bg};font-weight:700;}
-        .chg-thc.chg-first{border-left:2px solid ${C.line};}
-        .chg-player{position:sticky;left:0;z-index:1;background:${C.surface};text-align:left;padding:5px 10px;border-right:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
-        .chg-rk{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid ${C.line};font-size:9.5px;font-weight:700;margin-right:6px;vertical-align:middle;color:${C.ink};}
-        .chg-nm{font-weight:700;font-size:11px;vertical-align:middle;}
-        .chg-pl{font-size:8.5px;color:${C.soft};margin-left:6px;vertical-align:middle;}
-        .chg-sc{text-align:center;padding:4px 3px;border-bottom:1px solid rgba(20,22,28,0.06);border-left:1px solid rgba(20,22,28,0.04);}
-        .chg-v{font-weight:800;font-size:10.5px;color:var(--ac);}
-        .chg-empty{color:${C.soft};font-size:11px;}
-        .chg-zero .chg-v{color:${C.soft};font-weight:600;}
-        .chg-totc{text-align:center;padding:4px 7px;border-left:2px solid ${C.line};border-bottom:1px solid rgba(20,22,28,0.06);}
-        .chg-totc span{font-weight:800;font-size:11.5px;color:${C.accent};}
-        .chg-tott{text-align:center;padding:4px 8px;font-size:9.5px;font-weight:600;color:${C.ink};border-bottom:1px solid rgba(20,22,28,0.06);}
-        .chg-table tbody tr:hover td,.chg-table tbody tr:hover th.chg-player{background:${C.accsoft};}
-        .chg-legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:14px 0 4px;font-size:11.5px;color:${C.muted};}
-        .chg-chip{display:inline-flex;align-items:center;gap:6px;}
-        .chg-sw{width:10px;height:10px;border-radius:3px;display:inline-block;}
-        .chg-foot{font-size:11.5px;line-height:1.7;color:${C.soft};max-width:880px;margin-top:12px;}
-        .chg-foot b{color:${C.muted};font-weight:700;}
-        .chg-prize{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 13px;background:${C.accent};color:var(--white);font-size:12px;font-weight:700;border-radius:8px;}
-        .chg-play{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
-        .chg-playchip{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:${C.accent};color:var(--white);padding:8px 14px;border-radius:8px;font-family:${FONT};font-size:12px;font-weight:700;text-decoration:none;text-align:center;}
-        @media(max-width:600px){.chg-play{display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:1fr;}.chg-play:has(> :nth-child(4):last-child),.chg-play:has(> :nth-child(-n+3):last-child){grid-template-columns:1fr;}.chg-playchip{width:100%;box-sizing:border-box;}}
-      `}</style>
-
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-        <button className={`pill${view === 'board' ? ' on' : ''}`} onClick={() => setView('board')}><ListChecks size={14} /> Leaderboard</button>
-        <button className={`pill${view === 'winners' ? ' on' : ''}`} onClick={() => setView('winners')}><Trophy size={14} /> Winners{"'"} Circle</button>
-      </div>
-      {view === 'winners' ? (
-        <WinnersCircle winners={winners} loaded={winLoaded} onOpen={(id) => { setChId(id); setView('board'); }} />
-      ) : (
-      <div className="card" style={{ padding: '16px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ background: C.accsoft, color: C.accent, fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 6 }}>{ch.kicker || 'Challenge'}</span>
-          {(ch.until && Date.parse(ch.until) <= Date.now())
-            ? <span style={{ fontSize: 11.5, color: C.danger, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closedLabel || (ch.daily ? 'This day is over, results frozen' : 'Closed, results frozen')}</span>
-            : ch.closesLabel
-              ? <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.closesLabel}</span>
-              : <span style={{ fontSize: 11.5, color: C.muted, display: 'inline-flex', alignItems: 'center', gap: 5 }}><Clock size={12} /> {ch.daily ? 'Resets daily at midnight ET' : `opens ${ch.sinceLabel}`}</span>}
-        </div>
-        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.02em', marginTop: 8 }}>{ch.title}</div>
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 3, maxWidth: 760 }}>{ch.blurb}</div>
-        {ch.prize ? (<div className="chg-prize"><Trophy size={13} strokeWidth={2.4} /> {ch.prize}</div>) : null}
-
-        {cols.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>{ch.daily ? 'Play today' : 'Play the quizzes'}</span>
-            <div className="chg-play">
-              {cols.map((col) => (
-                <Link key={col.quizId} href={`/quiz/${col.quizId}`} className="chg-playchip">{colLabel(col)} <ArrowLeft size={13} style={{ transform: 'rotate(180deg)', flex: 'none' }} /></Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: C.soft }}>Challenge</span>
-          <select value={ch.id} onChange={(e) => setChId(e.target.value)} style={{ padding: '8px 12px', border: `1px solid ${C.line}`, borderRadius: 8, fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.ink, background: T.white, cursor: 'pointer', maxWidth: 280 }}>
-            <optgroup label="Daily Challenge">
-              {menu.filter((it) => it.daily).map((it) => (
-                <option key={it.id} value={it.id}>{it.label}</option>
-              ))}
-            </optgroup>
-            {menu.some((it) => !it.daily) && (
-              <optgroup label="Events">
-                {menu.filter((it) => !it.daily).map((it) => (
-                  <option key={it.id} value={it.id}>{it.label}{it.closed ? ' (closed)' : ''}</option>
-                ))}
-              </optgroup>
-            )}
-          </select>
-        </div>
-
-        <div className="chg-meta">
-          <span><b>{data ? data.totalRegisteredPlayers : '\u2014'}</b> registered players</span>
-          <span>{ch.firstAttemptOnly ? 'First attempt only' : 'Best attempt per quiz'}</span>
-          {data && data.generatedAt ? <span>Updated <b>{chUpdated(data.generatedAt)}</b></span> : null}
-          <button className="chg-btn" onClick={() => load(true)} disabled={refreshing}><RefreshCw size={12} strokeWidth={2.4} style={{ animation: refreshing ? 'chgspin 0.8s linear infinite' : 'none' }} /> Refresh</button>
-          <button className="chg-btn" onClick={doShare}><Share2 size={12} strokeWidth={2.4} /> {shared ? 'Copied!' : 'Share'}</button>
-        </div>
-
-        {!loaded ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>Loading the standings…</div>
-        ) : users.length === 0 ? (
-          <div style={{ fontSize: 13, color: C.soft, padding: '24px 0' }}>No registered players have played yet. Sign Up before a quiz to put your name in the running.</div>
-        ) : (
-          <div className="chg-scroll">
-            <table className="chg-table">
-              <thead>
-                <tr>
-                  <th className="chg-corner" rowSpan={2}>Player</th>
-                  {ch.groups.map((g) => (
-                    <th key={g.key} className="chg-grp" colSpan={g.columns.length} style={{ '--ac': g.color }}>
-                      <span className="chg-grp-ico">{g.emoji}</span><span className="chg-grp-nm">{g.label}</span>
-                    </th>
-                  ))}
-                  <th className="chg-thc chg-first" rowSpan={2}>Percent<br />Complete</th>
-                  <th className="chg-thc" rowSpan={2}>Total<br />Time</th>
-                </tr>
-                <tr>
-                  {ch.groups.map((g) => g.columns.map((col) => (
-                    <th key={col.quizId} className="chg-sub" style={{ '--ac': g.color }}><Link href={`/quiz/${col.quizId}`} style={{ color: 'inherit', textDecoration: 'none' }}>{col.icon} {col.label || colLabel(col)}</Link></th>
-                  )))}
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u, i) => {
-                  const rank = i + 1; const medal = CH_MEDAL[rank]; const tint = CH_TINT[rank] || 'transparent';
-                  const mine = myName && (u.username || '').toLowerCase() === myName;
-                  return (
-                    <tr key={u.username + i} style={{ background: mine ? C.accsoft : tint }}>
-                      <th className="chg-player" style={mine ? { background: C.accsoft } : undefined}>
-                        <span className="chg-rk" style={medal ? { background: medal, borderColor: medal, color: T.ink } : undefined}>{rank}</span>
-                        <span className="chg-nm">{u.username}{mine ? <span style={{ color: C.accent, fontWeight: 700, marginLeft: 6, fontSize: 11 }}>you</span> : null}</span>
-                        <span className="chg-pl">{u.quizzesPlayed}/{cols.length}</span>
-                      </th>
-                      {cols.map((col) => {
-                        const sc = u.scores ? u.scores[col.quizId] : undefined;
-                        if (sc === undefined || sc === null) return <td key={col.quizId} className="chg-sc chg-empty">·</td>;
-                        const tm = u.times ? u.times[col.quizId] : null;
-                        const tot = colTotal[col.quizId] || 0;
-                        return <td key={col.quizId} className={`chg-sc${sc === 0 ? ' chg-zero' : ''}`} title={`${sc}/${tot} correct${tm != null ? ` · ${chMmss(tm)}` : ''} · ${ch.firstAttemptOnly ? 'first attempt' : 'best attempt'}`}><span className="chg-v" style={{ '--ac': col.group.color }}>{pctOf(sc, tot)}%</span></td>;
-                      })}
-                      <td className="chg-totc"><span>{pctOf(u.totalCorrect, totalPossible)}%</span></td>
-                      <td className="chg-tott">{chMmss(u.totalTime)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <div className="chg-legend">
-          {ch.groups.map((g) => (<span key={g.key} className="chg-chip"><span className="chg-sw" style={{ background: g.color }} />{g.label} {g.emoji}</span>))}
-        </div>
-        <p className="chg-foot">Cells show how much of each quiz a player has completed (correct ÷ quiz total) on their {ch.firstAttemptOnly ? 'first attempt' : 'best attempt'} since the window opened; hover a cell for the raw count and time, a dot (·) means they haven{"'"}t taken that quiz yet. Ranking is by <b>total correct</b> across every quiz, ties broken by <b>least total time</b>. Only signed-up players appear. Hit Refresh for the latest.</p>
-      </div>
-      )}
-    </div>
-  );
-}
+// ─── Challenges tab: REMOVED (owner, 2026-08-25) ─────────────────────
+// The Stat Hub no longer carries a Challenges tab. What stood here was the tab
+// tile, the challenge picker and standings grid (ChallengesPanel), and the
+// Winners' Circle record of every challenge's top finisher. All of it is gone
+// from this page. An old ?tab=challenges link now falls through to Player,
+// because the tab test above only accepts a tab that is in TABS.
+//
+// THE WIRING UNDER IT IS DELIBERATELY LEFT INTACT (owner: "keep the wiring, but
+// delete"). lib/challenges.js, DAILY_CHALLENGE_ON, the /api/quiz/challenge-*
+// routes, /challenge/[id] and the quiz home's challenge chip and dropdown are
+// all untouched, so this comes back by restoring a panel rather than by
+// rebuilding a feature. Anything still linking to /quizzes/hub?tab=challenges
+// (the quiz home chip and dropdown, the challenge page's full-standings button,
+// and the /quizzes/leaderboard redirect) lands on the hub's Player tab until it
+// is repointed.
 // ─── IQ Points tab ────────────────────────────────────────────────────────────────
 // IQ & Level view: the level, progress to the next level, and the cumulative
 // IQ Points trend chart lead; the formula explainer collapses behind a "How this
