@@ -18,6 +18,14 @@ import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 export default function useDailyRoster({ active = false }) {
   const [played, setPlayed] = useState({});
   const live = useMemo(() => DAILY_GAMES.filter((g) => !isRetiredDaily(g.key)), []);
+  // BUILD READS ITS ARGUMENT, never the closed-over map (fixed 2026-08-25). It
+  // took `marks` and then indexed `played`, the state it is memoized ACROSS: the
+  // deps are [live], so the function is built once, on the first render, where
+  // `played` is the empty object it starts as. Every game therefore read as
+  // unplayed for the whole page, at every call site, which is why the end card's
+  // More-in-this-category row offered games the player had already finished
+  // today and the browse panel's Played marks never appeared. The fetch below
+  // was landing correctly the entire time; nothing was reading it.
   const build = useMemo(() => (marks) => {
       const order = [];
       const byCat = new Map();
@@ -28,7 +36,7 @@ export default function useDailyRoster({ active = false }) {
           key: g.key, name: g.name, tag: g.tag, cat: c,
           href: g.href || `/${g.key}`,
           img: `/games/btn-${g.key}.png`,
-          played: !!played[g.key],
+          played: !!marks[g.key],
         });
       }
       return order.map((c) => ({ cat: c, games: byCat.get(c) }));

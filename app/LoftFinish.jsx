@@ -161,14 +161,21 @@ export default function LoftFinish({
   // The bar itself carries the why. Ready means the gain AND the day figures
   // are in, because the bar prints all three on one nowrap row.
   const iqReady = !!(iq && iq.gained != null) && !!(day && day.ready);
+  // THE CEILING IS ANCHORED TO THE MOUNT, not to iqReady (2026-08-25). It used
+  // to start only while the IQ read was outstanding and to clear the moment that
+  // one landed, which was right while the IQ bar was the only thing waiting. The
+  // block below waits on the RANK TILES too, and those come off three other
+  // reads: if the IQ lands at three seconds and a tile read never does, a ceiling
+  // that has already been cleared can never fire and the card says Calculating
+  // for good. One timer from the finish covers every figure on the card.
+  //
+  // useIqStanding is five attempts over ~10s and then stops for good, which is
+  // what sets the length.
   const [iqStalled, setIqStalled] = useState(false);
   useEffect(() => {
-    if (iqReady) return undefined;
-    // useIqStanding is five attempts over ~10s and then stops for good, so
-    // without a ceiling a read that never lands says Calculating forever.
     const t = setTimeout(() => setIqStalled(true), 11000);
     return () => clearTimeout(t);
-  }, [iqReady]);
+  }, []);
   const iqShow = iqReady || iqStalled;
   // ALWAYS ON since 2026-08-23, where it used to wait for the browse toggle:
   // the category row under the handoff needs the same roster, and it renders
@@ -378,6 +385,29 @@ export default function LoftFinish({
     ? board.myRank
     : (myIdx >= 0 ? myIdx + 1 : null);
   const field = board && board.field != null ? board.field : null;
+  // ONE CALCULATING BLOCK OVER BOTH FIGURES (owner, 2026-08-25). The IQ bar
+  // carried its own single loading line and each of the four tiles below carried
+  // its own placeholder, so a finish opened on a bar reading Calculating above a
+  // row of four tiles each reading Calculating, five copies of one sentence,
+  // resolving one at a time as four separate reads came back. They are one
+  // statement of one fact, so while ANY of them is outstanding the card says it
+  // once, in a block the size of the two it stands in for, and swaps to every
+  // figure together.
+  //
+  // A TILE IS READY WHEN ITS READ HAS ANSWERED, which is not the same as its
+  // having a number. A player placed outside the board, a game with no all-time
+  // standing yet and a category read that resolves to null are all settled
+  // answers, and each prints a dash. Waiting for a VALUE would hold the block
+  // open for the whole ceiling on a legitimate blank.
+  //
+  // A QUIZ passes dayTiles, whose values are computed by its own caller and
+  // carry no readiness, so that card waits on the IQ bar alone exactly as before.
+  const tilesReady = dayTiles
+    ? true
+    : (!!(board && (myRank != null || board.settled))
+      && !!(gameRank && gameRank.value != null)
+      && !!(catRank && catRank.ready));
+  const figuresShow = (iqReady && tilesReady) || iqStalled;
   // Pin the player's own row under the top three when it is not already up
   // there, whether it came out of the ten or off the server.
   const inShown = myIdx >= 0 && (showAll || myIdx < 3);
@@ -863,6 +893,16 @@ export default function LoftFinish({
           they are ALL in. Past the ceiling it lays out normally and prints a
           dash for whatever is missing, which is why no <Calculating /> is left
           inside it. */}
+      {!figuresShow ? (
+        <div className="loft-calcall">
+          <Brain className="bi" size={30} strokeWidth={2.2} aria-hidden="true" />
+          <span className="t">
+            <span className="h">Calculating your IQ<i>.</i><i>.</i><i>.</i></span>
+            <span className="s">and measuring it against our other users</span>
+          </span>
+        </div>
+      ) : (
+      <>
       {!iqShow ? (
         <div className="loft-fiq calc1">
           <Brain className="bi" size={26} strokeWidth={2.2} aria-hidden="true" />
@@ -935,6 +975,8 @@ export default function LoftFinish({
             : 'category today'}</span>
         <span className="d4"><b>{streak != null && streak >= 1 ? streak : '\u2014'}</b>day streak</span>
       </div>
+      )}
+      </>
       )}
 
       {/* `wait` reserves the block's height only until the rows land, so a

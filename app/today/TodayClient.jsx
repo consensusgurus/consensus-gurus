@@ -495,6 +495,34 @@ export default function TodayClient({ onSignup = null } = {}) {
     return () => { alive = false; };
   }, []);
 
+  // THE LIVE FEED IS CAPPED TO THE LEADERBOARD BESIDE IT (owner, 2026-08-25).
+  // The two are columns of one grid row with align-items:start, so each takes
+  // its own content height: eighteen feed rows came out at 841px against the
+  // board's 594px, and the page ran on under a column of white. Measured rather
+  // than picked, because the board's height moves with its tab (the game,
+  // category and circuit views each carry a picker row above the standings).
+  //
+  // Observing the BOARD and sizing the FEED cannot loop: the feed's height
+  // feeds the grid ROW, never the board column's own content height. Under the
+  // 900px breakpoint the grid is a single column, so the cap comes off and the
+  // feed runs at its natural length.
+  const lbColRef = useRef(null);
+  const [feedH, setFeedH] = useState(null);
+  useEffect(() => {
+    const el = lbColRef.current;
+    if (!el || typeof window === 'undefined') return undefined;
+    const apply = () => {
+      if (window.innerWidth <= 900) { setFeedH(null); return; }
+      const h = Math.round(el.getBoundingClientRect().height);
+      setFeedH(h > 260 ? h : null);
+    };
+    apply();
+    let ro = null;
+    try { ro = new ResizeObserver(apply); ro.observe(el); } catch (e) { ro = null; }
+    window.addEventListener('resize', apply);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener('resize', apply); };
+  }, []);
+
   // ── the foot leaderboards: Overall / By game / By category / Circuits ──
   const [mode, setMode] = useState('overall');
   const [pickGame, setPickGame] = useState('crux');
@@ -750,6 +778,18 @@ export default function TodayClient({ onSignup = null } = {}) {
     </>
   );
 
+  // WHICH PUZZLE, not just which game (owner, 2026-08-25). A daily quiz id
+  // carries its own date as an M-D-YY suffix, and the feed shows archive plays
+  // alongside today's, so a row reading "Paths" alone cannot tell the two apart.
+  // Read off the ID and never off playedAt, which is when the ROW was written
+  // and would stamp today's date on a July board played this afternoon.
+  const feedDate = (quizId) => {
+    const m = /-(\d{1,2})-(\d{1,2})-(\d{2})$/.exec(quizId || '');
+    if (!m) return '';
+    const d = new Date(2000 + Number(m[3]), Number(m[1]) - 1, Number(m[2]));
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
   const feedGame = (quizId) => {
     const m = /^([a-z]+)-\d/.exec(quizId || '');
     return m && DAILY_GAME_MAP[m[1]] ? DAILY_GAME_MAP[m[1]] : null;
@@ -1080,7 +1120,7 @@ export default function TodayClient({ onSignup = null } = {}) {
         })}
 
         <div className="tdy-two" id="tdy-boards">
-          <div>
+          <div ref={lbColRef}>
             <div className="tdy-restband" style={{ paddingTop: 38 }}>
               <h3>{TROPHY}<span style={{ marginLeft: 8 }}>Today&rsquo;s leaderboards</span></h3>
               <i>Resets at midnight Eastern</i>
@@ -1235,7 +1275,7 @@ export default function TodayClient({ onSignup = null } = {}) {
             </div>
           </div>
 
-          <div id="tdy-feed">
+          <div id="tdy-feed" className={feedH ? 'tdy-feedcol fit' : 'tdy-feedcol'} style={feedH ? { height: feedH } : undefined}>
             <div className="tdy-restband" style={{ paddingTop: 38 }}>
               <h3><span className="tdy-pulse" style={{ display: 'inline-block' }} /><span style={{ marginLeft: 8 }}>Live feed</span></h3>
               <i>Results as they land, anonymous by design</i>
@@ -1246,6 +1286,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 <div><b>{totals ? totals.todayPlayers.toLocaleString() : '—'}</b><span>Players</span></div>
                 <div><b>{totals ? fmtDur(totals.todayTime) : '—'}</b><span>Time played</span></div>
               </div>
+              <div className="tdy-flist">
               {recent && recent.length ? recent.map((p, i) => {
                 const g = feedGame(p.quizId);
                 // This row's OWN play number for the day, not the day total
@@ -1259,6 +1300,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                     {g ? <img className="fic" src={g.img} alt="" aria-hidden="true" loading="lazy" /> : <span className="fdot" aria-hidden="true" />}
                     <span className="nm">
                       <i className="fnm">{g ? g.name : (p.quizId || 'Quiz')}</i>
+                      {feedDate(p.quizId) ? <i className="fdt">{feedDate(p.quizId)}</i> : null}
                       {n > 0 ? <i className="fx" title={tot > 0 ? `Play ${n.toLocaleString()} of ${tot.toLocaleString()} today` : `Play ${n.toLocaleString()} today`}>{`play #${n.toLocaleString()}`}</i> : null}
                     </span>
                     {p && p.total > 0 ? <span className="gm">{`${p.score}/${p.total}`}</span> : <span className="gm" />}
@@ -1268,6 +1310,7 @@ export default function TodayClient({ onSignup = null } = {}) {
               }) : (
                 <div className="tdy-empty">Recent results land here.</div>
               )}
+              </div>
             </div>
           </div>
         </div>
@@ -1421,6 +1464,13 @@ const CSS = `
 /* ── the foot boards + live feed ── */
 .tdy-two{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
 .tdy-two>div{min-width:0;}
+/* The feed column, capped to the board beside it. See the measure in the
+   component: .fit is only ever set when a height was actually taken, so the
+   phone (one column, no height) keeps a plain, unclipped, natural-length feed
+   and the scroller never appears where it would trap a flick. */
+.tdy-feedcol.fit{display:flex;flex-direction:column;min-height:0;}
+.tdy-feedcol.fit>.tdy-card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
+.tdy-feedcol.fit .tdy-flist{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;}
 .tdy-card{background:var(--white);border:1px solid #e7e9ee;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:10px 12px;margin:10px 2px 0;}
 .tdy-cols{display:flex;align-items:center;gap:9px;padding:4px 10px 8px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:#9aa0ab;font-weight:800;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .tdy-cols b{width:18px;flex:none;font-weight:800;}
@@ -1443,6 +1493,7 @@ const CSS = `
 .tdy-lr.feed .nm{overflow:visible;}
 .tdy-lr.feed .fnm{font-style:normal;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tdy-lr.feed .fx{font-style:normal;flex:none;font-size:10.5px;font-weight:800;color:#9aa0ab;letter-spacing:.01em;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.tdy-lr.feed .fdt{font-style:normal;flex:none;font-size:10.5px;font-weight:700;color:#b3b9c4;white-space:nowrap;font-variant-numeric:tabular-nums;}
 /* Backstop for a native hash jump (no JS, or a /#tdy-feed link followed cold):
    jumpTo does the real offsetting, this keeps the heading off the masthead. */
 #tdy-boards,#tdy-feed{scroll-margin-top:112px;}

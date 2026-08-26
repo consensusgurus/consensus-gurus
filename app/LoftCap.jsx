@@ -782,6 +782,29 @@ export default function LoftCap({
 .loft-fiq .cc i{font-style:normal;animation:loftdot 1.4s infinite}
 .loft-fiq .cc i:nth-child(2){animation-delay:.2s}
 .loft-fiq .cc i:nth-child(3){animation-delay:.4s}
+/* ONE BLOCK OVER THE IQ BAR AND THE RANK TILES (owner, 2026-08-25). It stands
+   in for both, so it is sized to both: 64px of bar plus the 8px gap plus 52px
+   of tiles is 124, and holding that height means the leaderboard and the
+   options below it do not jump when the figures land. Same ground and the same
+   gold rule as the bar it opens into, so the swap reads as the block filling in
+   rather than as a different object arriving. */
+.loft-calcall{min-height:124px;box-sizing:border-box;display:flex;align-items:center;gap:14px;
+  margin-top:11px;padding:14px 16px;
+  background:var(--blue);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
+.loft-calcall .bi{flex:none;color:var(--white)}
+.loft-calcall .t{min-width:0}
+.loft-calcall .h{display:block;font-weight:800;font-size:18px;line-height:1.15;
+  letter-spacing:-.01em;color:var(--white)}
+.loft-calcall .s{display:block;font-weight:700;font-size:12.5px;line-height:1.35;
+  color:#cfe0ff;margin-top:6px}
+.loft-calcall .h i{font-style:normal;animation:loftdot 1.4s infinite}
+.loft-calcall .h i:nth-child(2){animation-delay:.2s}
+.loft-calcall .h i:nth-child(3){animation-delay:.4s}
+@media(max-width:560px){
+  .loft-calcall{min-height:112px;padding:12px;gap:11px}
+  .loft-calcall .h{font-size:16px}
+  .loft-calcall .s{font-size:11.5px}
+}
 @keyframes loftdot{0%,60%,100%{opacity:.25}30%{opacity:1}}
 
 /* The archive, opened IN the card. */
