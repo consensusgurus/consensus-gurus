@@ -519,6 +519,23 @@ export default function TodayClient({ onSignup = null } = {}) {
     apply();
     let ro = null;
     try { ro = new ResizeObserver(apply); ro.observe(el); } catch (e) { ro = null; }
+    // THE MUTATION OBSERVER IS THE ONE THAT ACTUALLY CARRIES THIS, and the two
+    // above it are the backstops. A resize observation is delivered in the
+    // rendering steps, so a hidden tab never gets one, and the board's own rows
+    // land whenever its fetch does, which on a cold read is past any timer worth
+    // setting (measured: two timers at 1.2s and 4s both fired while the column
+    // was still the short loading state, and the column was 594px by 6.5s). A
+    // mutation callback is a microtask and fires on the DOM change itself, tab
+    // visible or not, so the cap lands the moment the standings render.
+    //
+    // It cannot loop: apply only ever sets the FEED column's height, which is a
+    // different subtree, and setting the same number again is a no-op React
+    // bails out of.
+    let mo = null;
+    try {
+      mo = new MutationObserver(apply);
+      mo.observe(el, { childList: true, subtree: true });
+    } catch (e) { mo = null; }
     window.addEventListener('resize', apply);
     // A HIDDEN TAB DELIVERS NO RESIZE OBSERVATIONS. They are dispatched in the
     // rendering steps, which a background tab does not run, so a page opened in
@@ -533,6 +550,7 @@ export default function TodayClient({ onSignup = null } = {}) {
     const t2 = setTimeout(apply, 4000);
     return () => {
       if (ro) ro.disconnect();
+      if (mo) mo.disconnect();
       clearTimeout(t1); clearTimeout(t2);
       window.removeEventListener('resize', apply);
       document.removeEventListener('visibilitychange', apply);
