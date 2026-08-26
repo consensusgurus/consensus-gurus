@@ -1460,9 +1460,22 @@ const CSS = `
    clashes or, on Trivia, disappears into it */
 .tdy-prg.full b{color:var(--white);}
 .tdy-prg.full .pb span{background:var(--white);}
-.tdy-hld{display:inline-flex;align-items:center;gap:5px;flex:none;max-width:190px;border-radius:999px;padding:2px 9px 2px 8px;background:#fdf3d7;border:1px solid #eeda9e;}
-.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:#836617;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tdy-hld b{font-size:10px;font-weight:800;color:#8a6309;font-variant-numeric:tabular-nums;flex:none;}
+/* THE LEADER IS INSET INTO THE BAND, NOT STUCK ON TOP OF IT (owner,
+   2026-08-26). A cream capsule behind a tan outline was the last sticker on
+   the page: it read as something pasted onto the band rather than as part of
+   it, and it was the one warm rectangle on ten differently-coloured bands.
+
+   THE GROUND IS A BLACK WASH, and that is the whole trick. The note above
+   rules out a WHITE wash because the hues clear 4.5:1 on pure white with no
+   headroom, so a white veil eats the margin. Darkening the hue can only ADD
+   contrast for white type, so one rule works on all ten categories: measured,
+   white lands between 7.45 (Word) and 14.7 (My games), the points line at 82%
+   between 5.6 and 10.3, and the gold crown at 3.9 and up, which clears the 3:1
+   bar for a graphic. The crown keeps its gold and is the only warm thing left
+   on the band, which is where gold reads properly. */
+.tdy-hld{display:inline-flex;align-items:center;gap:6px;flex:none;max-width:190px;border-radius:8px;padding:3px 9px 3px 8px;background:rgba(6,10,20,.24);border:none;}
+.tdy-hld i{font-style:normal;font-size:11px;font-weight:800;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tdy-hld b{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.82);font-variant-numeric:tabular-nums;flex:none;}
 /* the CTA inverts with the band. It used to carry an inline background too,
    which would have won over this rule, so that was removed at the call site. */
 /* TWO NEUTRAL PILLS, NOT TWO COLOURS (owner, 2026-08-25). Resume was gold and
@@ -1688,7 +1701,7 @@ const CSS = `
   .tdy-hd h2{flex:1 1 auto;min-width:0;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .tdy-prg{flex:none;margin-top:0;}
   .tdy-prg .pb{display:none;}
-  .tdy-hld{flex:none;max-width:136px;margin-left:0;padding:2px 8px;}
+  .tdy-hld{flex:none;max-width:136px;margin-left:0;padding:3px 8px;}
   .tdy-hld b{display:none;}
   .tdy-cta{display:none;}
   .tdy-hd .nt{flex:1 0 100%;margin-top:0;}
