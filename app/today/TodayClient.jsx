@@ -1570,8 +1570,16 @@ const CSS = `
 .tdy-catdone .show:hover{background:#e2ecff;}
 
 .tdy-restband{display:flex;align-items:baseline;gap:12px;padding:26px 2px 0;flex-wrap:wrap;}
-.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:#9aa0ab;margin:0;display:inline-flex;align-items:center;}
-.tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:#b3b9c4;}
+/* LEGIBLE ON THE PAPER GROUND (owner, 2026-08-26). These two titles sat at
+   #9aa0ab over the #e7ecf3 ground, which measures 2.19:1, and the line beside
+   them at #b3b9c4 measured 1.64:1. At 12px that is barely a title at all, and
+   the owner reported it on a phone, where these bands are the only thing
+   introducing the boards and the feed. They now take the palette's own
+   secondary and tertiary text tokens, 7.8:1 and 4.4:1 on the same ground, so
+   the heading leads and the caption still steps back from it. Measure any
+   replacement against #e7ecf3 rather than against white. */
+.tdy-restband h3{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:var(--muted);margin:0;display:inline-flex;align-items:center;}
+.tdy-restband i{font-style:normal;font-size:12px;font-weight:600;color:var(--slate);}
 
 /* ── the foot boards + live feed ── */
 .tdy-two{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;align-items:start;}
@@ -1635,7 +1643,8 @@ const CSS = `
 .tdy-fstats b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;font-variant-numeric:tabular-nums;color:var(--ink);}
 .tdy-fstats span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#9aa0ab;font-weight:800;}
 .tdy-empty{padding:14px 10px;font-size:12.5px;font-weight:600;color:var(--slate);}
-.tdy-foot{padding:24px 2px 10px;color:#9aa0ab;font-size:11px;font-weight:600;letter-spacing:.04em;}
+/* Same ground, same 2.19:1, same fix as the rest bands above. */
+.tdy-foot{padding:24px 2px 10px;color:var(--slate);font-size:11px;font-weight:600;letter-spacing:.04em;}
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
