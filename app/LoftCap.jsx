@@ -637,27 +637,30 @@ export default function LoftCap({
 /* The verdict, moved off the cap. A full-bleed header that wears the GAME'S
    CATEGORY HUE (owner, 2026-08-26), the same --cat-hue the cap band and the
    stage wash already carry, so the card reads as part of the game it belongs to
-   rather than as a traffic light bolted onto it. THE OUTCOME IS THE DOT: green
-   solved, amber partial, red not. Two rules hold it together.
-   1. Ink is white on all three, and is NEVER dimmed with opacity. Every
-      CAT_BLUE value clears 4.5:1 against pure white and has no headroom past
-      it, so a faded label fails at small sizes (see lib/home-blues).
-   2. The dot wears a white ring rather than sitting bare on the band. Two of
-      the eleven hues are in the same family as a dot they may have to carry
-      (green Trivia, crimson End Game), and without the ring the indicator
-      dissolves into its own ground on exactly those games. */
+   rather than as a traffic light bolted onto it. THE OUTCOME IS THE PILL THE
+   TITLE SITS IN: green solved, amber partial, red not. (It shipped that morning
+   as a DOT beside the title and the owner called it back the same day: a word
+   in a coloured pill is the thing being read, where a dot is a second object to
+   notice first.)
+   THE PILL IS A PALE TINT WITH DARK INK, and that is structural, not taste. A
+   SATURATED pill cannot work here. Every CAT_BLUE value is dark enough to clear
+   4.5:1 against pure white (see lib/home-blues), so a deep green pill sits at
+   roughly the weight of its own band and all but disappears on green Trivia,
+   and the red one does the same on crimson End Game. A near-white tint inherits
+   that guarantee in reverse and therefore separates from EVERY hue on the
+   wheel, while still reading green, yellow or red at a glance. Verified on the
+   two worst cases before shipping.
+   The detail beside it stays PURE white and is never dimmed with opacity, for
+   the same contrast reason. */
 .loft-res-won,.loft-res-part,.loft-res-lost{margin:-12px -12px 10px;padding:12px;
   border-bottom:0;border-radius:14px 14px 0 0;
   background:var(--cat-hue,var(--accent));border-left:6px solid var(--cat-hue,var(--accent))}
-.loft-res.loft-res-won b,.loft-res.loft-res-won s,
-.loft-res.loft-res-part b,.loft-res.loft-res-part s,
-.loft-res.loft-res-lost b,.loft-res.loft-res-lost s{color:var(--white)}
-.lr-dot{display:inline-block;width:12px;height:12px;border-radius:50%;
-  margin:0 13px 0 3px;vertical-align:middle;position:relative;top:-1px;
-  box-shadow:0 0 0 3px rgba(255,255,255,0.94)}
-.loft-res-won .lr-dot{background:#22c55e}
-.loft-res-part .lr-dot{background:#fbbf24}
-.loft-res-lost .lr-dot{background:#f43f5e}
+.loft-res.loft-res-won s,.loft-res.loft-res-part s,.loft-res.loft-res-lost s{color:var(--white)}
+.loft-res.loft-res-won b,.loft-res.loft-res-part b,.loft-res.loft-res-lost b{
+  padding:7px 13px;border-radius:999px;line-height:1}
+.loft-res.loft-res-won b{background:#bbf7d0;color:#14532d}
+.loft-res.loft-res-part b{background:#fde68a;color:#713f12}
+.loft-res.loft-res-lost b{background:#fecdd3;color:#881337}
 .loft-res s{text-decoration:none;font-weight:700;font-size:11px;color:var(--slate)}
 
 /* UP NEXT, under the verdict (owner, 2026-08-17). The 'similar' option was a
@@ -724,21 +727,31 @@ export default function LoftCap({
 
 /* IQ earned, ON the card. It used to sit below the stage in .loft-iq, styled
    white-on-navy; the end card is the place a player looks for it, so it moves
-   inside and takes light-card ink. Same gold rule, same figure. */
+   inside and takes light-card ink. Same gold rule, same figure.
+   IT WEARS THE CATEGORY HUE (owner, 2026-08-26), matching the verdict band
+   above it, so the card is one colour rather than a game-coloured header over a
+   blue block. --blue is only the fallback for a surface that mounts this
+   without a cap to set the hue.
+   THE SECONDARY INK WENT PURE WHITE IN THE SAME PASS, and it had to. It was
+   #cfe0ff, a pale BLUE that was picked to sit on the blue ground and reads as a
+   stain on teal, crimson or umber. There is no tint that replaces it either:
+   every CAT_BLUE clears 4.5:1 against pure white with no headroom past it, so
+   ANY tint drops small text under AA on the darkest hues. Hierarchy here comes
+   from size and weight, which is lib/home-blues rule 1. */
 .loft-fiq{min-height:64px;box-sizing:border-box;
   display:flex;align-items:center;gap:13px;margin-top:11px;padding:11px 14px;
-  background:var(--blue);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
+  background:var(--cat-hue,var(--blue));border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
 .loft-fiq .n{font-weight:800;font-size:29px;line-height:1;color:var(--white);letter-spacing:-.02em}
 .loft-fiq .t{min-width:0}
 .loft-fiq .l{display:block;font-weight:800;font-size:9.5px;line-height:1;letter-spacing:.11em;
   text-transform:uppercase;color:var(--white);margin-bottom:5px}
-.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:#cfe0ff}
+.loft-fiq .m{display:block;font-weight:700;font-size:11.5px;line-height:1.3;color:var(--white)}
 .loft-fiq .today,.loft-fiq .today *{color:var(--white)}
-.loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:#cfe0ff}
+.loft-fiq .today s,.loft-fiq .today em,.loft-fiq .today i{color:var(--white)}
 .loft-fiq .today{flex:none;margin-left:auto;padding-left:12px;text-align:right}
 .loft-fiq .today b{display:block;font-weight:800;font-size:18px;line-height:1;color:var(--white)}
 .loft-fiq .today i{display:block;font-style:normal;font-weight:700;font-size:9px;line-height:1;
-  letter-spacing:.09em;text-transform:uppercase;color:#cfe0ff;margin-top:4px}
+  letter-spacing:.09em;text-transform:uppercase;color:var(--white);margin-top:4px}
 /* The day's IQ RANK, second of the two right-hand figures. .today carries
    margin-left:auto to push itself to the right edge; a SECOND auto margin would
    split the free space between the two and park them apart, so this one takes a
@@ -858,13 +871,13 @@ export default function LoftCap({
    rather than as a different object arriving. */
 .loft-calcall{min-height:124px;box-sizing:border-box;display:flex;align-items:center;gap:14px;
   margin-top:11px;padding:14px 16px;
-  background:var(--blue);border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
+  background:var(--cat-hue,var(--blue));border-left:4px solid var(--gold);border-radius:0 10px 10px 0}
 .loft-calcall .bi{flex:none;color:var(--white)}
 .loft-calcall .t{min-width:0}
 .loft-calcall .h{display:block;font-weight:800;font-size:18px;line-height:1.15;
   letter-spacing:-.01em;color:var(--white)}
 .loft-calcall .s{display:block;font-weight:700;font-size:12.5px;line-height:1.35;
-  color:#cfe0ff;margin-top:6px}
+  color:var(--white);margin-top:6px}
 .loft-calcall .h i{font-style:normal;animation:loftdot 1.4s infinite}
 .loft-calcall .h i:nth-child(2){animation-delay:.2s}
 .loft-calcall .h i:nth-child(3){animation-delay:.4s}
