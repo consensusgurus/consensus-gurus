@@ -426,6 +426,53 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
     return out;
   }, [START, moves]);
 
+  // WHY YOUR MOVE DID NOT COUNT.
+  //
+  // A player reported "there appears to be multiple mates, but it only accepts
+  // 1" (2026-08-26, board 28). Nothing was wrong with the board: an exhaustive
+  // sweep of the bank says every position has exactly ONE first move that forces
+  // mate in the stated number, and the client refuses nothing, it plays every
+  // legal move out to the end. What that player had found is a move that DOES
+  // force mate, one move slower than the puzzle asks, which is true of about
+  // HALF the legal first moves on a weekday board (768 of 1,671, measured).
+  // Losing to one of those with no explanation reads as the game turning down a
+  // real mate, so a finished loss now says which it was.
+  //
+  // Only the FIRST move is diagnosed, and only when it was not the key. Silence
+  // therefore covers both "you played the key and lost the finish" and "your
+  // move forces nothing", so it never tells a replaying player which of the two
+  // they did, and the winning line is still never shown (revealEnd's rule: the
+  // key is for solvers).
+  //
+  // Deferred to a timeout so the search never delays the move that ended the
+  // round. The cap is mateIn + 1, one move past the ask: 3ms typical and 17ms
+  // worst on a weekday board, 83ms / 300ms on a Sunday. One move deeper is
+  // minutes rather than milliseconds, so it is not on offer.
+  const [slowMate, setSlowMate] = useState(null);
+  useEffect(() => {
+    const over = g.status === 'lost' || g.status === 'revealed';
+    const first = moves[0];
+    const key = PUZZLE.solution ? PUZZLE.solution.key : null;
+    if (!over || !first || first === key) { setSlowMate(null); return undefined; }
+    let dead = false;
+    const id = setTimeout(() => {
+      let found = null;
+      try {
+        const { from, to } = parseUci(first);
+        const after = applyMove(START.board, from, to);
+        const search = makeMateSearch();
+        for (let n = 1; n <= PUZZLE.mateIn; n++) {
+          if (search.forcesMateWithin(after, 'w', n)) {
+            found = { san: toSan(START.board, from, to), depth: n + 1 };
+            break;
+          }
+        }
+      } catch (e) { found = null; }
+      if (!dead && found && found.depth > PUZZLE.mateIn) setSlowMate(found);
+    }, 0);
+    return () => { dead = true; clearTimeout(id); };
+  }, [g.status, moves, PUZZLE, START]);
+
   useEffect(() => { gRef.current = g; }, [g]);
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -1027,6 +1074,14 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
               </span>
             )}
           </div>
+
+          {slowMate && (
+            <div style={{ marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.45 }}>
+              <b style={{ color: COLORS.ink, fontWeight: 800 }}>{slowMate.san}</b>{' '}
+              forces mate too, but in {slowMate.depth}, not {PUZZLE.mateIn}. Only a mate in
+              exactly {PUZZLE.mateIn} counts here.
+            </div>
+          )}
 
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
