@@ -243,6 +243,28 @@ export default function TodayClient({ onSignup = null } = {}) {
   const [catOrder, setCatOrder] = useState(null);
   // 'az' | 'order' | null, the bar's two dropdowns.
   const [sheet, setSheet] = useState(null);
+  // The chip track scrolls, and until 2026-08-25 the only ways to scroll it
+  // were a touch drag and a trackpad swipe: on a desktop mouse the categories
+  // past the right edge were unreachable (owner). Two arrows, rendered only
+  // when there is something that way to reach, and never on a touch pointer
+  // where the drag already works.
+  const jbtRef = useRef(null);
+  const [jbNav, setJbNav] = useState({ l: false, r: false });
+  const readJbNav = () => {
+    const el = jbtRef.current;
+    if (!el) return;
+    const over = el.scrollWidth > el.clientWidth + 4;
+    setJbNav((cur) => {
+      const l = over && el.scrollLeft > 4;
+      const r = over && el.scrollLeft < el.scrollWidth - el.clientWidth - 4;
+      return (cur.l === l && cur.r === r) ? cur : { l, r };
+    });
+  };
+  const jbNudge = (dir) => {
+    const el = jbtRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(180, Math.round(el.clientWidth * 0.7)), behavior: 'smooth' });
+  };
   // Which chip is ringed. Set from a scroll listener, so it bails out when the
   // answer has not changed.
   const [here, setHere] = useState(null);
@@ -332,6 +354,21 @@ export default function TodayClient({ onSignup = null } = {}) {
   // members (circuitKeysFor) and a Play-the-circuit control. A game can sit in
   // several circuits, which is the nature of circuits, not a bug.
   const [view, setView] = useState('cats');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const el = jbtRef.current;
+    if (!el) return undefined;
+    readJbNav();
+    el.addEventListener('scroll', readJbNav, { passive: true });
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(readJbNav) : null;
+    if (ro) ro.observe(el);
+    window.addEventListener('resize', readJbNav);
+    return () => {
+      el.removeEventListener('scroll', readJbNav);
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', readJbNav);
+    };
+  }, [view]);
   const circuitShelves = useMemo(() => {
     if (!today) return [];
     return CIRCUITS.map((c) => {
@@ -881,8 +918,11 @@ export default function TodayClient({ onSignup = null } = {}) {
       <div className="tdy-wrap">
         <div className="tdy-jb" style={{ top: barTop }}>
           <div className="tdy-jbin">
-            <div className="tdy-jbt">
-              {canPin && pinned.length ? (
+            <div className="tdy-jbtw">
+            {jbNav.l ? <button type="button" className="tdy-jbar l" aria-label="Scroll categories left" onClick={() => jbNudge(-1)}>{'\u2039'}</button> : null}
+            {jbNav.r ? <button type="button" className="tdy-jbar r" aria-label="Scroll categories right" onClick={() => jbNudge(1)}>{'\u203a'}</button> : null}
+            <div className="tdy-jbt" ref={jbtRef}>
+              {view === 'cats' && canPin && pinned.length ? (
                 <button
                   type="button"
                   className={'tdy-jc mine' + (here === 'tdy-mine' ? ' here' : '')}
@@ -912,6 +952,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 );
               })}
             </div>
+            </div>
             <div className="tdy-jbc">
               <div className="tdy-view" role="tablist" aria-label="Group the slate by">
                 <button type="button" role="tab" aria-selected={view === 'cats'} className={'tdy-viewbtn' + (view === 'cats' ? ' on' : '')} onClick={() => setView('cats')}>Categories</button>
@@ -940,7 +981,12 @@ export default function TodayClient({ onSignup = null } = {}) {
           ) : null}
         </div>
 
-        {canPin && pinned.length ? (
+        {/* CIRCUITS TAKE THE WHOLE SLATE (owner, 2026-08-25): picking Circuits
+            drops My games and Continue, so the circuits start at the top of the
+            page rather than two shelves down. Both are category-slate furniture
+            (a pinned set and a next-up pick, neither of which is a circuit), and
+            the reader who asked for circuits asked for circuits. */}
+        {view === 'cats' && canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
             <div className="tdy-shc" style={{ '--cc': '#2b3241' }}>
               <div className="tdy-hd">
@@ -983,7 +1029,7 @@ export default function TodayClient({ onSignup = null } = {}) {
           </section>
         ) : null}
 
-        {forYou.length ? (
+        {view === 'cats' && forYou.length ? (
           <section className="tdy-shc foryou" style={{ '--cc': '#233a63' }}>
             <div className="tdy-hd">
               <div>
@@ -1010,14 +1056,14 @@ export default function TodayClient({ onSignup = null } = {}) {
           </section>
         ) : null}
 
-        {canPin && !pinned.length ? (
+        {view === 'cats' && canPin && !pinned.length ? (
           <div className="tdy-teaser">
             <span className="ti">{'\u2605 My games'}</span>
             <span className="ts">Star any game and it sits right here, above every category.</span>
           </div>
         ) : null}
 
-        {pinsLoaded && !registered ? (
+        {view === 'cats' && pinsLoaded && !registered ? (
           <div className="tdy-teaser">
             <span className="ti">{'\u2605 My games'}</span>
             <span className="ts">Pin the handful you actually play and they sit right here, above every category.</span>
@@ -1551,25 +1597,6 @@ const CSS = `
   .tdy-hld{grid-row:2;grid-column:1;justify-self:start;max-width:100%;margin-left:0;padding:2px 9px;}
   .tdy-cta{grid-row:2;grid-column:2;justify-self:stretch;text-align:center;margin-left:0;padding:8px 14px;}
   .tdy-hd .nt{grid-row:3;grid-column:1/-1;}
-  /* THE BAR IS TWO ROWS ON A PHONE (owner, 2026-08-25): the controls up top,
-     the categories on a scrolling row of their own underneath, where they get
-     the full width instead of whatever is left after four buttons.
-     column-reverse rather than a DOM change, so the desktop bar keeps its one
-     row and its source order. The chip track bleeds back out to the screen
-     edges (negative margin + matching padding) so a scrolled chip runs off the
-     side of the screen rather than stopping short of it. */
-     Both rows stick, and everything in them is a size down: two rows of the
-     desktop's sizes measured 98px of permanently locked screen against the old
-     bar's 48, and locking a quarter of a phone is not a trade worth making for
-     a row of chips. At these sizes it is 73px, and the row it replaced below
-     the shelves was 42 of them. */
-  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:6px;padding:6px 14px 7px;}
-  .tdy-jbt{margin:0 -14px;padding:1px 14px;}
-  .tdy-jbc{overflow-x:auto;scrollbar-width:none;}
-  .tdy-jbc::-webkit-scrollbar{display:none;}
-  .tdy-viewbtn,.tdy-jb2{font-size:10px;padding:5px 10px;}
-  .tdy-jc{padding:4px 10px 4px 8px;}
-  .tdy-jc .nm{font-size:11.5px;}
   /* MY GAMES AND CONTINUE ARE ONE ROW (owner, 2026-08-25). Neither shelf has a
      leader chip, so with the eyebrow gone the whole left half of row two was
      empty and the CTA sat alone against it: on the two shelves a phone reader
@@ -1605,7 +1632,17 @@ const CSS = `
    phone mastheads are different elements. */
 .tdy-jb{position:sticky;z-index:40;background:rgba(231,236,243,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
 .tdy-jbin{display:flex;align-items:center;gap:8px;padding:8px 2px;}
+.tdy-jbtw{position:relative;flex:1 1 auto;min-width:0;display:flex;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
+/* Only on a fine pointer: a touch device scrolls the track by dragging it, and
+   a floating arrow over the first chip would just be a thing to mis-tap. */
+.tdy-jbar{display:none;}
+@media(hover:hover) and (pointer:fine){
+  .tdy-jbar{position:absolute;top:50%;transform:translateY(-50%);z-index:2;display:flex;align-items:center;justify-content:center;width:25px;height:25px;padding:0 0 2px;border-radius:50%;background:var(--white);border:1px solid #d7dce6;box-shadow:0 2px 7px rgba(16,24,40,.16);font-family:inherit;font-size:16px;font-weight:800;line-height:1;color:var(--blue-deep);cursor:pointer;}
+  .tdy-jbar:hover{background:#f2f6ff;border-color:#a8b6cc;}
+  .tdy-jbar.l{left:-3px;}
+  .tdy-jbar.r{right:-3px;}
+}
 .tdy-jbt::-webkit-scrollbar{display:none;}
 .tdy-jbc{display:flex;align-items:center;gap:8px;flex:none;}
 /* The chip's own tint fill IS its progress meter, which is what keeps ten
@@ -1683,7 +1720,31 @@ const CSS = `
 .tdy-teaser .tb:hover{background:#2d4a7d;}
 
 @media(max-width:900px){
-  .tdy-jbin{padding:8px 14px;}
+  /* THE BAR IS TWO ROWS ON A PHONE (owner, 2026-08-25): the controls up top,
+     the categories on a scrolling row of their own underneath, where they get
+     the full width instead of whatever is left after four buttons.
+     column-reverse rather than a DOM change, so the desktop bar keeps its one
+     row and its source order. The chip track bleeds back out to the screen
+     edges (negative margin + matching padding) so a scrolled chip runs off the
+     side of the screen rather than stopping short of it.
+
+     Both rows stick, and everything in them is a size down: two rows at the
+     desktop's sizes measured 98px of permanently locked screen against the old
+     bar's 48, and locking a quarter of a phone is not a trade worth making for
+     a row of chips. At these sizes it is ~73px, and the selector row it
+     replaced below the shelves was 42 of them.
+
+     THESE RULES LIVE IN THIS BLOCK, not the big phone block above, and that is
+     load-bearing: the jump bar's own rules are declared AFTER that block, so at
+     equal specificity they win. A copy up there is a copy that does nothing. */
+  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:6px;padding:6px 14px 7px;}
+  .tdy-jbtw{width:100%;}
+  .tdy-jbt{margin:0 -14px;padding:1px 14px;}
+  .tdy-jbc{overflow-x:auto;scrollbar-width:none;}
+  .tdy-jbc::-webkit-scrollbar{display:none;}
+  .tdy-viewbtn,.tdy-jb2{font-size:10px;padding:5px 10px;}
+  .tdy-jc{padding:4px 10px 4px 8px;}
+  .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}
   .tdy-reor{width:100%;}
   .tdy-azw{max-width:none;}
