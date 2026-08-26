@@ -6,7 +6,7 @@ import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
-import { isEndGameQuizId, endGamePlan, arcadeRanksForQuizId } from '@/lib/daily-games';
+import { attemptsModeForQuizId, attemptsPlan, arcadeRanksForQuizId } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 import { fiveForSuffix, FIVE_SIZE } from '@/lib/daily-five';
 import { circuitKeysFor, circuitById, isMarquee } from '@/lib/circuits';
@@ -192,8 +192,9 @@ function chooseGuestRow(rows, anonId, quizId) {
   // is what the board ranks, so the same plan the scoring uses picks it here
   // rather than a second copy of the rule. Attempt numbers are per player, so
   // running the plan over the guest's own rows is the whole computation.
-  if (isEndGameQuizId(quizId)) {
-    const plan = endGamePlan(mine);
+  const attemptsMode_ = attemptsModeForQuizId(quizId);
+  if (attemptsMode_) {
+    const plan = attemptsPlan(mine, attemptsMode_);
     for (const r of mine) if (plan.chosen.has(r)) return { row: r, eg: plan.info.get(r) || null };
     return null;
   }

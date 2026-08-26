@@ -65,7 +65,7 @@ import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
-import { DAILY_GAMES, DAILY_GAME_MAP, isEndGame, isArcade, wantsFastRetry, dailyAttemptRule } from '@/lib/daily-games';
+import { DAILY_GAMES, DAILY_GAME_MAP, attemptsMode, isArcade, wantsFastRetry, dailyAttemptRule } from '@/lib/daily-games';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -521,8 +521,8 @@ export default function LoftFinish({
   // here that the full card would not offer.
   const boardOpt = optsRaw.find((o) => (o.tone === 'reveal' || o.tone === 'board') && typeof o.onClick === 'function') || null;
   const runSolved = outcome === 'won';
-  const runRetry = runActive && !!replayOpt && !runSolved && (isEndGame(runSelf) || isArcade(runSelf));
-  const runUnsolvedEG = runActive && isEndGame(runSelf) && !runSolved;
+  const runRetry = runActive && !!replayOpt && !runSolved && (!!attemptsMode(runSelf) || isArcade(runSelf));
+  const runUnsolvedEG = runActive && !!attemptsMode(runSelf) && !runSolved;
   const runGate = runUnsolvedEG && !!replayOpt && !!runNextKey;
   // THE FULL CARD IS THE WRONG ANSWER TO AN UNSOLVED POSITION (owner,
   // 2026-08-19). On the eight games where a replay genuinely counts -- the six

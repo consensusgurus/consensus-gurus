@@ -93,7 +93,7 @@ import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
 import { notifyTrophies } from './TrophyPop';
 import { fetchDailyMe, dailyMeQuery, invalidateDailyMe } from './dailyMeClient';
-import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule, isEndGame, isArcade } from '@/lib/daily-games';
+import { isRetiredDaily, DAILY_GAME_MAP, dailyAttemptRule, attemptsMode, isArcade } from '@/lib/daily-games';
 import { circuitKeysFor, circuitHref, circuitName, readRunParam, runSummaryHref, isMarquee } from '@/lib/circuits';
 import { T } from '@/lib/theme';
 import { CONTEST, COPY, contestIsLive } from '@/lib/contest';
@@ -751,8 +751,8 @@ export default function DailyEndCard({
   const runSummary = runSummaryHref(inRun);
   // REPLAY UNTIL VICTORY, the mirror of the rule in LoftFinish.jsx — read the
   // block there for why the gate exists and why Arcade is exempt from it.
-  const runRetry = !!onReplay && !won && (isEndGame(self) || isArcade(self));
-  const runUnsolvedEG = !!onReplay && !won && isEndGame(self);
+  const runRetry = !!onReplay && !won && (!!attemptsMode(self) || isArcade(self));
+  const runUnsolvedEG = !!onReplay && !won && !!attemptsMode(self);
   // A stale or hand-typed flag must not put a game inside a run that does not
   // contain it.
   const runActive = runMembers.length >= 2 && runMembers.includes(self);

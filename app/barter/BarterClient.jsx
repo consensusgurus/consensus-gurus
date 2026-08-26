@@ -8,7 +8,10 @@
 // that letter belongs somewhere else in one of the words crossing that square;
 // grey = it belongs to a different word entirely. The budget is the proven
 // minimum number of trades (par) plus five; solve at par for a perfect 10, and
-// every extra trade costs two points. Run out of trades and the board reveals.
+// every extra trade costs two points. Run out of trades and the run is over
+// with the board as you left it: Barter keeps its answer (see KEEPS_ANSWER in
+// lib/daily-games), because its board ranks on attempts and a bust that handed
+// over the target would let anyone re-execute it for a perfect 10.
 //
 // Same daily plumbing as Etch/Suds: banked boards gated by Eastern date on the
 // server (app/barter/page.js), per-puzzle localStorage saves, /barter?p=N
@@ -433,9 +436,10 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
       postResult(g2, Math.max(1, Math.min(10, 10 - 2 * over)));
     } else {
       vibrate(HAPT.wrong);
-      // reveal the answer: Barter is not an End Game title, so a finished board
-      // always shows its solution.
-      g2.cells = TARGET.slice();
+      // The board is LEFT AS THE PLAYER LEFT IT (owner, 2026-08-26). It used to
+      // fill in with TARGET here, which is the one thing a game ranked on
+      // attempts cannot do. Reveal is still available, as the explicit give-up
+      // it always was.
       postResult(g2, 0);
     }
     commit(g2);
@@ -577,7 +581,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
         <>One free <b>hint</b>, on your first ever play, makes a correct trade at no cost.</>,
       ]}
       knack="Do not spend a trade to test a theory the colors can settle. Read the yellows across BOTH words at a crossing before you move anything, and hunt for trades that home two tiles at once — par is built entirely out of those."
-      note={<>Run out of trades and the board reveals itself. The answer is one arrangement, and the colors always point at it.</>}
+      note={<>Run out of trades and the run ends with the board where you left it, so come back at it. The answer is one arrangement, and the colors always point at it.</>}
       footer="Solve at par for a perfect 10; every extra trade costs 2 points. Ties break on fewest trades over par, then fastest time. Sundays are a bigger 7×7 Edition."
     />
   );
@@ -802,7 +806,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
                 : null}
               day={dayStats}
               streak={isTodays ? myStats.cur : null}
-              missLabel="Over"
+              missLabel="Tries"
               archive={puzzles
                 .filter((p) => p.live <= etToday() && p.num !== PUZZLE.num)
                 .sort((x, y) => y.num - x.num)
@@ -816,8 +820,8 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
                 }))}
               options={[
                 { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },
-                { tone: won ? 'board' : 'reveal', label: won ? 'Return to board' : 'Reveal answer',
-                  sub: won ? 'Your finished board' : 'Show what you missed', onClick: () => setRevealed(true) },
+                { tone: 'board', label: 'Return to board',
+                  sub: 'Your board, as you left it', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Barter', sub: `No. ${prevPuzzle.num}, yesterday\u2019s puzzle`, href: `/barter?p=${prevPuzzle.num}` },
                 nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} \u00b7 ${nextUp.tag}`, href: nextUp.href },
                 { tone: 'replay', label: 'Replay', sub: 'This puzzle again, unscored', onClick: resetGame },

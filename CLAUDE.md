@@ -4876,6 +4876,125 @@ One knock-on worth knowing: `dailyDept` maps `Word -> 'word'`, so Babel's plays 
 **word** department in the IQ category breakdown instead of `entertainment`. That is the category
 move doing what it says, not a bug, but it does move historical rows between category buckets.
 
+## THE ATTEMPTS RULE IS A STRUCTURE, NOT A CATEGORY (owner, 2026-08-26)
+
+"Rank on how many runs it took" was written for End Game and gated on the End Game
+CATEGORY, which is the same mistake `wantsFastRetry` made and had to undo: the category
+was where the structure happened to live, not what the structure IS. Three properties make
+a board rankable on attempts, and none of them is a category:
+
+1. **The game never hands over its answer** (`KEEPS_ANSWER`), so a replay is not a
+   re-execution of something the board just showed you.
+2. **A replay of the SAME board is the design**, not a loophole.
+3. **There is one honest verdict per run** to rank.
+
+Five games pass all three and are not End Game titles: **Barter, Chomp, Parker, Rung and
+Taire**. Every one of them prints a proven minimum you are being invited to walk back
+toward. So `isEndGame` stopped being the test and `attemptsMode(key)` became it, returning
+one of two modes:
+
+| Mode | Games | Order |
+|---|---|---|
+| `'binary'` | the seven End Game titles | tier (solved / drawn / unfinished), then attempts, then depth, then the clock. **Unchanged, byte for byte.** |
+| `'graded'` | barter, chomp, park, rung, taire | **score**, then attempts, then depth, then the clock |
+
+**Score leads on graded and that is the whole difference.** A graded game's score is a
+SCALE, not a verdict: Barter is 10 at par down to 1, and the `lib/par.js` family is 10 at
+perfect, 8 at par, floor 1. The binary comparator deliberately REPLACES the score term with
+the tier, which is right when the tier carries the score (10 / 4 / 0) and catastrophic when
+it does not, since a graded tier can only say finished-or-not and would flatten a 9 onto a 2.
+
+**The attempts term was DEAD on four of the five, which is the argument for the change.** A
+graded board's second term was `guesses_used`, and on Barter, Parker, Rung and Taire that
+figure is a pure function of the score (Barter's score IS `10 - 2 x trades over par`), so it
+could never break a tie it was asked to break and the board fell straight through to the
+clock. Attempts fill a term that was doing nothing. Chomp is the exception, where moves are
+independent of the score, so there it displaces a live tiebreak down one place rather than
+replacing a dead one.
+
+**Nobody who scored zero is ranked on attempts.** Same reason binary exempts its tier 2:
+fewest-first would put the player who gave up once above the one who fought through five.
+They fall to the depth term every other board uses.
+
+**A graded player is represented by their BEST run**, not their first and not the one they
+won on, since every finish is a win of some size. A dead heat keeps the EARLIER run, so
+replaying to the same result gains nothing.
+
+### It is DATE-GATED, and End Game deliberately is not
+
+`ATTEMPTS_CUTOVER = { y: 2026, m: 8, d: 26 }` in `lib/daily-games.js`. Turning the rule on
+re-ranks days already played: an unscored replay somebody took last week would suddenly
+count, and a crown is decided once. `attemptsModeForQuizId` applies the gate; `attemptsMode`
+(by KEY) does not, which is correct for reader-facing copy, since that describes the run a
+player is about to take rather than an archived day. Same shape as `bestNForSuffix` and
+`usesLadder`, but kept in `daily-games.js` because `daily-combined` imports it and the other
+direction would be circular.
+
+**End Game is NOT gated.** Its rule went live 2026-08-12 and every End Game day since has
+been scored under it, so gating it now would BE the retroactive change the constant exists
+to prevent.
+
+### One comparator, not two mirrors
+
+The standing rule that `scoreGame` (`lib/daily-combined.js`) and `buildLeaderboard`
+(`lib/quiz-anon.js`) must stay byte-identical was kept until now by two hand-maintained
+copies of the same twelve lines. Both now BUILD the comparator from **`attemptsRanker(plan,
+mode, depth)`** in `lib/daily-games.js`, beside `attemptsPlan` and for the same reason: a
+shared factory cannot drift. `depth` is passed in rather than reimplemented, because each
+caller already owns its own and it folds in the tally rule, which is a property of the board
+and not of this rule.
+
+`endGamePlan(rows)` survives as `attemptsPlan(rows, 'binary')` for every caller and checker
+written against it.
+
+**The places that had to move with it**, and the list to re-check if the rule changes again:
+
+- `scoreGame` and `buildLeaderboard`: the mode, the plan, and the built comparator.
+- `guestGameResult` (`lib/daily-combined.js`), which holds a hand-rolled copy of the order
+  because it only ever sees ONE row. Its `eg` verdict now carries `graded`, and the graded
+  branch tests score first. A copy of a comparator is exactly what the verifier's guest
+  section exists to police.
+- `chooseGuestRow` in `app/api/quiz/daily-combined/route.js`.
+- `wantsFastRetry`, so a graded game gets the retry panel, and `dailyAttemptRule`, so its
+  replay control says **Replays count** rather than Practice run.
+- The `runRetry` / `runUnsolvedEG` gates in `app/LoftFinish.jsx` AND `app/DailyEndCard.jsx`.
+  LoftFinish is the live one (see the fifth-mirror note); DailyEndCard keeps its copy.
+
+### The miss column becomes Tries on all five
+
+The board renders `r.tries` whenever `egTier` is present, so the five registry rows moved to
+`miss: 'Tries'` and their clients' `missLabel` props with them. On four of them nothing is
+lost, since the old figure was redundant with the score. **Chomp is the one real cost**: its
+Moves is independent of its score and is still a live tiebreak, it just no longer has the
+column. It stays on the end card, the share and the local stats.
+
+### Barter had to stop revealing its answer first
+
+`BarterClient` `finish()` used to do `g2.cells = TARGET.slice()` the moment the trade budget
+ran out, with a comment saying Barter is not an End Game title so a finished board always
+shows its solution. That is the one thing a board ranked on attempts cannot do: a busted
+player would be handed the target and could re-execute it for a perfect 10, which makes the
+board a test of who busted first. The auto-fill is gone, Barter joined `KEEPS_ANSWER`, and
+the end card's tile is now always **Return to board** rather than Reveal answer. The explicit
+Reveal control in the play area is untouched: it always was the give-up.
+
+**Any future game added to the graded mode needs the same audit.** Paths and Span are the
+next two candidates by structure (both grade you against a proven optimum) and both fail
+property 1 today, because each shows the optimal route on give-up. Fix that first or the rule
+is dishonest on them.
+
+### Verifier
+
+`node scripts/verify-endgame-board.mjs` covers both modes. It IMPORTS the real modules
+rather than restating them, so it cannot drift from what it certifies (it needs
+`scripts/alias-loader.mjs`, and `node_modules` on the path). The load-bearing checks: the
+graded order is score-then-attempts; the best run represents the player and a dead heat keeps
+the earlier; the zero-score cohort is not ranked on attempts; the date gate leaves a
+pre-cutover day alone; **400 random non-attempts fields sort byte-identically to the old
+engine**; and the guest's hand-rolled copy agrees with the board it is quoting. Confirmed to
+FAIL on each of: attempts before score, ranking the zero cohort on attempts, dropping the
+cutover, and letting a tie keep the later run.
+
 ## The Loft: live feed + daily category leaders, and where mastery went (owner, 2026-08-12)
 
 The right rail's Loft (`app/HomeRails.jsx`) has TWO faces, and the second one sub-rotates.

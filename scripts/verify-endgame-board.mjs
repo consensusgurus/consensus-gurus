@@ -1,18 +1,23 @@
 #!/usr/bin/env node
-// verify-endgame-board — the End Game attempts-to-solve ranking (owner, 2026-08-12).
+// verify-endgame-board — the attempts-to-solve ranking (owner, 2026-08-12, plus
+// the graded mode of 2026-08-26).
 //
 // The six End Game titles rank on how many RUNS a puzzle took, not on the first
 // attempt every other daily keeps. That order lives in one shared function
 // (endGamePlan in lib/daily-games) read by both scoring mirrors, and this checks
 // the whole path end to end:
 //
-//   1. the roster is the six titles, and Babel is not one of them
+//   1. the roster is the End Game titles, and Babel is not one of them
 //   2. tiers: any solver beats any drawer beats anyone who never finished
 //   3. among solvers, fewer attempts wins, and the SOLVING run's clock breaks ties
 //   4. the unsolved rank on depth, never on how few times they tried
 //   5. every other game sorts byte-identically to the pre-change engine
 //   6. the change is ORDER ONLY: a late solve is worth the same completion, and
 //      so the same IQ Points, as a first-try one
+//   7. GRADED mode: the five efficiency games (Barter, Chomp, Parker, Rung,
+//      Taire) rank on score first and attempts second, the zero-score cohort is
+//      not ranked on attempts, the date gate leaves every pre-cutover day alone,
+//      and the binary mode is unchanged by any of it
 //
 // It IMPORTS the real modules rather than restating their logic, so it cannot
 // drift from what it certifies. That needs the '@/' alias and extensionless
@@ -30,7 +35,7 @@ const fail = (m) => { console.log('  FAIL ' + m); BAD++; };
 const ok = (m) => console.log('  ok   ' + m);
 
 // ---- 1. the roster is what we think it is -----------------------------------
-const EG = ['mate', 'four', 'check', 'chain', 'turn', 'defend'];
+const EG = ['mate', 'four', 'check', 'chain', 'turn', 'defend', 'queen'];
 console.log('roster');
 for (const k of EG) if (!isEndGame(k)) fail(`${k} is not End Game`);
 if (isEndGame('babel')) fail('babel is still End Game'); else ok('babel is out of End Game');
@@ -175,5 +180,155 @@ console.log('\nplan');
   else ok('info covers every row, so the all-attempts view still sorts');
 }
 
-console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nEnd Game board verified.');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GRADED ATTEMPTS (owner, 2026-08-26). Five games with the End Game structure
+// and no End Game category: Barter, Chomp, Parker, Rung and Taire. Their score
+// is a SCALE rather than a verdict, so score leads and attempts are the tiebreak
+// that used to be dead. Everything below proves the graded mode on top of the
+// binary one, and proves the binary one did not move.
+// ═══════════════════════════════════════════════════════════════════════════
+const { attemptsMode, attemptsModeForQuizId, attemptsPlan, attemptsRanker, dailyAttemptRule, wantsFastRetry } =
+  await import('../lib/daily-games.js');
+const { guestGameResult } = await import('../lib/daily-combined.js');
+
+const GRADED = ['barter', 'chomp', 'park', 'rung', 'taire'];
+
+console.log('\ngraded roster');
+for (const k of EG) if (attemptsMode(k) !== 'binary') fail(`${k} is not binary`);
+ok('every End Game title reports mode binary');
+for (const k of GRADED) if (attemptsMode(k) !== 'graded') fail(`${k} is not graded`);
+ok('the five graded games report mode graded');
+for (const k of ['crux', 'suds', 'lode', 'blocks', 'babel']) if (attemptsMode(k)) fail(`${k} ranks on attempts`);
+ok('no other game ranks on attempts (babel and the arcade pair included)');
+for (const k of GRADED) if (!wantsFastRetry(k)) fail(`${k} does not offer the fast retry`);
+ok('a graded game offers the fast-retry panel, because a replay there counts');
+for (const k of GRADED) if (dailyAttemptRule(k).chip !== 'Replays count') fail(`${k} copy still says ${dailyAttemptRule(k).chip}`);
+ok('the replay control on a graded game says replays count');
+
+console.log('\nthe date gate');
+if (attemptsModeForQuizId('barter-8-26-26') !== 'graded') fail('barter on the cutover is not graded');
+else ok('a graded day on the cutover uses the new rule');
+if (attemptsModeForQuizId('barter-9-2-26') !== 'graded') fail('barter after the cutover is not graded');
+if (attemptsModeForQuizId('barter-8-25-26') !== null) fail('a pre-cutover barter day was re-ranked');
+else ok('a graded day BEFORE the cutover keeps its first-attempt order and its crown');
+if (attemptsModeForQuizId('rung-7-1-26') !== null) fail('a pre-cutover rung day was re-ranked');
+if (attemptsModeForQuizId('mate-1-2-26') !== 'binary') fail('End Game was gated by the graded cutover');
+else ok('End Game is NOT gated: its rule went live 2026-08-12 and every day since ran under it');
+if (attemptsModeForQuizId('crux-9-9-26')) fail('crux picked up a mode');
+
+// ---- graded ordering ---------------------------------------------------------
+// The graded board deliberately has NO progress values: only End Game posts that
+// field, so a graded zero falls to guesses and then the clock, exactly as it did
+// before this rule existed.
+const grow = (quiz, user, score, { t = 30, g = 0, ab = false } = {}) =>
+  ({ id: ++ID, quiz_id: quiz, user_id: user, username: 'P' + user, anon_id: null,
+     score, total: 10, correct_count: score > 0 ? 1 : 0, time_elapsed: t,
+     guesses_used: g, progress: null, abandoned: ab, created_at: '2026-08-26T12:00:00Z' });
+
+console.log('\ngraded ordering');
+{
+  const Q = 'barter-8-26-26';
+  const rows = [
+    grow(Q, 'A', 10, { t: 300 }),                            // perfect, try 1, slow
+    grow(Q, 'B', 6, { t: 20 }), grow(Q, 'B', 10, { t: 20 }), // perfect, try 2, fast
+    grow(Q, 'C', 8, { t: 10 }),                              // par+1, try 1, fastest
+  ];
+  const order = orderOf(rows);
+  if (order.join() !== 'PA,PB,PC') fail(`graded order came out ${order.join()}`);
+  else ok('score leads, then attempts, then the clock: a slow first-try perfect beats a fast second-try one');
+  if (orderOfScore(rows).join() !== order.join()) fail('the two mirrors disagree on a graded board');
+  else ok('scoreGame and buildLeaderboard agree on the graded order');
+}
+{
+  const Q = 'rung-8-27-26';
+  // The best run represents the player, whatever attempt it landed on, and a
+  // dead heat keeps the EARLIER one so replaying to the same result gains
+  // nothing.
+  const rows = [grow(Q, 'A', 8, { t: 40 }), grow(Q, 'A', 10, { t: 90 }), grow(Q, 'A', 10, { t: 5 })];
+  const plan = attemptsPlan(rows, 'graded');
+  const chosen = rows.filter((r) => plan.chosen.has(r));
+  if (chosen.length !== 1) fail(`chosen ${chosen.length} rows for one player`);
+  else if (chosen[0] !== rows[1]) fail('the chosen run is not the first of the two best');
+  else if (plan.info.get(chosen[0]).tries !== 2) fail(`tries read ${plan.info.get(chosen[0]).tries}`);
+  else ok('the best run represents the player, and a dead heat keeps the earlier one');
+  if (plan.info.size !== rows.length) fail('graded info does not cover every row');
+  else ok('graded info covers every row, so the all-attempts view still sorts');
+  for (const r of rows) if (plan.info.get(r).graded !== true) fail('a graded row is not flagged graded');
+  ok('every graded verdict carries the flag the guest path branches on');
+}
+{
+  // NOBODY WHO SCORED ZERO IS RANKED ON ATTEMPTS. Fewest-first there would put
+  // the player who gave up once above the one who fought through five, which is
+  // the same reason End Game exempts its tier 2.
+  const Q = 'taire-8-27-26';
+  const quit = [grow(Q, 'Q', 0, { t: 8, g: 40 })];
+  const fought = [1, 2, 3, 4, 5].map(() => grow(Q, 'F', 0, { t: 60, g: 12 }));
+  const order = orderOf([...quit, ...fought]);
+  if (order[0] !== 'PF') fail(`a one-run quitter (${order.join()}) outranked a five-run fighter`);
+  else ok('the zero-score cohort ranks on depth, never on how few times they tried');
+}
+{
+  // A graded tier only says finished-or-not, so it must never be allowed to
+  // flatten the scale the way the binary tier legitimately does.
+  const Q = 'chomp-8-27-26';
+  const rows = [grow(Q, 'A', 2, { t: 10 }), grow(Q, 'B', 9, { t: 10 }), grow(Q, 'B', 9, { t: 10 })];
+  const order = orderOf(rows);
+  if (order[0] !== 'PB') fail(`a 2/10 on try 1 outranked a 9/10 on try 2: ${order.join()}`);
+  else ok('score beats attempts: a better run on try 2 outranks a worse one on try 1');
+}
+
+// ---- the binary rule did not move -------------------------------------------
+console.log('\nbinary is unchanged');
+{
+  const Q = 'mate-8-26-26';
+  const rows = [row(Q, 'A', 10, { t: 90 }),                                    // solved try 1
+                row(Q, 'B', 0, { t: 5, prog: 3 }), row(Q, 'B', 10, { t: 5 }),  // solved try 2
+                row(Q, 'C', 0, { t: 5, prog: 9 }),                             // deep loss
+                row(Q, 'D', 0, { t: 2, prog: 0 })];                            // fast shallow loss
+  const order = orderOf(rows);
+  if (order.join() !== 'PA,PB,PC,PD') fail(`binary order came out ${order.join()}`);
+  else ok('solver by attempts, then the unsolved by depth, exactly as before');
+  const plan = attemptsPlan(rows, 'binary');
+  const eg = rows.filter((r) => plan.chosen.has(r));
+  if (eg.length !== 4) fail(`binary plan chose ${eg.length} rows for 4 players`);
+  else ok('the binary plan still picks one run per player');
+}
+{
+  // Every ordinary game sorts byte-identically to a plain score/guesses/clock
+  // reference, which is what "no other board is reordered" means.
+  const Q = 'crux-8-26-26';
+  const rows = [];
+  for (let i = 0; i < 40; i++) rows.push(grow(Q, String.fromCharCode(97 + i), (i * 7) % 11, { t: (i * 13) % 97, g: (i * 5) % 9 }));
+  const ref = rows.slice().sort((a, b) => (b.score - a.score) || (a.guesses_used - b.guesses_used)
+    || (a.time_elapsed - b.time_elapsed) || String(a.username).localeCompare(String(b.username)))
+    .map((r) => r.username);
+  if (orderOf(rows).join() !== ref.join()) fail('an ordinary board was reordered');
+  else ok('an ordinary board sorts byte-identically to the pre-change engine');
+}
+
+// ---- the guest is placed by the same rule ------------------------------------
+console.log('\nthe guest path');
+{
+  // guestGameResult holds a hand-rolled copy of the comparator (it sees one row,
+  // not a field), so it has to be checked against the board it is quoting.
+  const Q = 'barter-8-26-26';
+  const regs = [
+    { username: 'P1', total: 10, score: 10, timeElapsed: 50, guessesUsed: 0, progress: null, egTier: 0, tries: 1 },
+    { username: 'P2', total: 10, score: 10, timeElapsed: 20, guessesUsed: 0, progress: null, egTier: 0, tries: 3 },
+    { username: 'P3', total: 10, score: 6, timeElapsed: 10, guessesUsed: 2, progress: null, egTier: 0, tries: 1 },
+  ];
+  const game = { quizId: Q, field: regs.length, players: new Map(regs.map((p, i) => [i, p])) };
+  const at = (score, tries) => guestGameResult(
+    { score, total: 10, time_elapsed: 30, guesses_used: 0, progress: null },
+    game, { tier: score > 0 ? 0 : 2, tries, graded: true }).rank;
+  if (at(10, 2) !== 2) fail(`a 10 on try 2 was placed #${at(10, 2)}, expected #2`);
+  else ok('a graded guest is placed by score first, then attempts');
+  if (at(8, 1) !== 3) fail(`an 8 on try 1 was placed #${at(8, 1)}, expected #3`);
+  else ok('a graded guest never jumps a better score by having fewer attempts');
+  if (at(10, 1) !== 1) fail(`a 10 on try 1 was placed #${at(10, 1)}`);
+  else ok('a first-try perfect tops the graded field');
+}
+
+console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAttempts boards verified (binary + graded).');
 process.exit(BAD ? 1 : 0);
