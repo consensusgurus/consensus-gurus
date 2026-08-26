@@ -477,14 +477,6 @@ export default function TodayClient({ onSignup = null } = {}) {
     const top = b && Array.isArray(b.board) && b.board[0] ? b.board[0] : null;
     return top && top.username ? top.username : null;
   };
-  const myRow = (key) => {
-    const bg = bgFor(key);
-    const onBoard = bg && Array.isArray(bg.board) && meKey ? bg.board.find((r) => r && r.userKey === meKey) || null : null;
-    if (onBoard) return onBoard;
-    const pg = board && board.me && board.me.perGame ? board.me.perGame[key] : null;
-    if (!pg) return null;
-    return { userKey: meKey, username: (board.me && board.me.username) || 'You', ...pg };
-  };
 
   // (3) per-puzzle saves for today, keyed by the payload's puzzle nums
   useEffect(() => {
@@ -650,25 +642,24 @@ export default function TodayClient({ onSignup = null } = {}) {
     return { label: 'All done today', href: shelf.games[0].href, gold: false };
   };
 
-  const statusLine = (shelf, g) => {
-    if (done.has(g.key)) {
-      // NO SECOND TICK (owner, 2026-08-26). The plate already carries a tick
-      // badge on a solved tile, so the line under the name is the score and
-      // nothing else.
-      const r = myRow(g.key);
-      const sc = r && r.score != null && r.total ? `${r.score}/${r.total}` : 'Done';
-      return { cls: 'tk', text: sc };
-    }
-    if (inprog.has(g.key)) return { cls: 'tp', text: 'Resume' };
-    // NOTHING RATHER THAN NOTHING-TO-SAY (owner, 2026-08-26). This line used
-    // to read "0 playing" on sixty-five tiles, which is sixty-five pieces of
-    // grey text saying a game is empty. The crowd figure needs a real crowd
-    // behind it, so it shows from six players up and the line is simply not
-    // rendered below that. The leader is its own line, beside this one, and
-    // both are conditional: a tile that has nothing to report carries no rows
-    // at all, which is what stops the shelf reserving space for them.
+  // THE TILE REPORTS THE CROWD, NOT THE READER (owner, 2026-08-26). Two rules,
+  // and both are absolute:
+  //
+  //   NEVER the reader's own score. A line reading "0/10" under a game they
+  //   played is the one number on this page that can only make them feel worse,
+  //   it is the same figure on every one of their tiles by the end of the day,
+  //   and it is already on the end card and in their record. That a game is
+  //   PLAYED is still on the tile, carried by the plate's tick badge and ring,
+  //   which is the part a reader actually scans for.
+  //
+  //   ALWAYS both crowd facts, even at zero. The count and the leader are the
+  //   two things a tile knows that the reader does not, so they render on every
+  //   tile whatever their value: "0 playing" is information (nobody is on this
+  //   one yet), and a leader line that appears and disappears made the shelf
+  //   jump as the day filled in. A game with no leader yet says so.
+  const playsLine = (g) => {
     const n = playsOf(g.key);
-    return { cls: '', text: n > 5 ? `${n.toLocaleString()} playing` : '' };
+    return `${(typeof n === 'number' ? n : 0).toLocaleString()} playing`;
   };
 
   // ── the pin star ────────────────────────────────────────────────────
@@ -1002,7 +993,6 @@ export default function TodayClient({ onSignup = null } = {}) {
               </div>
               <TilesRow>
                 {pinned.map((g) => {
-                  const st = statusLine(null, g);
                   const leader = leaderOf(g.key);
                   const cls = ['tdy-t'];
                   if (done.has(g.key)) cls.push('done');
@@ -1016,10 +1006,8 @@ export default function TodayClient({ onSignup = null } = {}) {
                         {pinBtn(g.key)}
                       </span>
                       <b>{g.name}</b>
-                      {st.text ? (
-                        <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}><i>{st.text}</i></span>
-                      ) : null}
-                      {leader ? <span className="tdy-ld">{CROWN}<i>{leader}</i></span> : null}
+                      <span className="tdy-st"><i>{playsLine(g)}</i></span>
+                      <span className="tdy-ld">{CROWN}<i>{leader || 'Nobody yet'}</i></span>
                     </a>
                   );
                 })}
@@ -1118,16 +1106,12 @@ export default function TodayClient({ onSignup = null } = {}) {
                 <div className="tdy-catdone">
                   <b className="nm">{shelf.name}</b>
                   <span className="ck">{`All ${tot} done`}</span>
-                  {shelf.games.map((g) => {
-                    const r = myRow(g.key);
-                    const sc = r && r.score != null && r.total ? `${r.score}/${r.total}` : '✓';
-                    return (
-                      <a key={g.key} className="it" href={g.href}>
-                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                        <span>{`${g.name} ✓ ${sc}`}</span>
-                      </a>
-                    );
-                  })}
+                  {shelf.games.map((g) => (
+                    <a key={g.key} className="it" href={g.href}>
+                      <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                      <span>{`${g.name} ✓`}</span>
+                    </a>
+                  ))}
                   <button type="button" className="show" onClick={() => setOpenDone((cur) => new Set([...cur, shelf.name]))}>Show tiles</button>
                 </div>
               </section>
@@ -1163,7 +1147,6 @@ export default function TodayClient({ onSignup = null } = {}) {
                 </div>
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
-                    const st = statusLine(shelf, g);
                     const leader = leaderOf(g.key);
                     const cls = ['tdy-t'];
                     if (done.has(g.key)) cls.push('done');
@@ -1177,10 +1160,8 @@ export default function TodayClient({ onSignup = null } = {}) {
                           {pinBtn(g.key)}
                         </span>
                         <b>{g.name}</b>
-                        {st.text ? (
-                          <span className={'tdy-st' + (st.cls ? ` ${st.cls}` : '')}><i>{st.text}</i></span>
-                        ) : null}
-                        {leader ? <span className="tdy-ld">{CROWN}<i>{leader}</i></span> : null}
+                        <span className="tdy-st"><i>{playsLine(g)}</i></span>
+                        <span className="tdy-ld">{CROWN}<i>{leader || 'Nobody yet'}</i></span>
                       </a>
                     );
                   })}
@@ -1539,7 +1520,8 @@ const CSS = `
    icon in the middle of a 130x147 box, which is sixty-five borders and
    sixty-five shadows down a page whose entire subject is the icons. The card
    is gone. What is left is the art on a white plate, the name under it, and
-   one line of status only when there is status (see statusLine above).
+   two lines of CROWD underneath: how many are playing it today and who leads
+   it (see playsLine above). Never the reader's own score.
 
    Three things carry the work the card used to do, and each of them is doing
    it better than a tinted rectangle did:
