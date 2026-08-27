@@ -6213,3 +6213,69 @@ you tap Crux under the blue Word band and land on a blue page.
 Shipped `a13491ef6`, one file. Verified live on crux (blue), suds (violet, which is the circuit
 override doing its job) and sweep (umber). Mockup of the four directions considered:
 https://claude.ai/code/artifact/005b28bd-6a0a-4e8b-973b-77bdd623cdda
+
+## Biz (`/biz`) — the daily business gauntlet (launched 2026-08-27)
+
+The fourth game on Streak's shape, after Deep, Atlas and Sport, and the eleventh Trivia daily.
+Twenty-five business questions a day in **five tiers of five**, one life, twenty seconds a question,
+score = questions cleared. Key `biz`, route `/biz`, category **Trivia**, accent `#0f5132` (ledger
+green), navy `#4fbf8b`. Bank: **30 days, 2026-08-27 to 2026-09-25**, 750 questions.
+
+**The five lanes, cycled in this order inside every tier block:** Brands & Products, Markets &
+Money, Founders & Bosses, Deals & Disasters, Business History. The lane set is the owner's
+("all of the above" across three proposed sets, 2026-08-27), folded into the five slots the shape
+allows: advertising and logos sit in Brands, Wall Street and economics in Markets, tech founders in
+Founders, antitrust and frauds in Deals, and industry, labor and trade in History.
+
+**No Sunday Edition** (matching Streak, Deep, Atlas and Sport), and `scripts/verify-biz.mjs` FAILS
+any day flagged `sunday`. It is deliberately absent from `lib/sunday-editions.js`.
+
+**THE RULE THIS BANK LIVES BY: EVERY FACT IS FROZEN, and business needs it more than any other
+category**, because the answer keeps moving in more ways than one. Banned at authoring: who
+currently runs or owns anything, current prices, revenues, market caps, rankings or store counts,
+any present-tense superlative, any pending deal, any case still on appeal, and any index membership.
+A superlative worth asking gets pinned in the stem instead ("what was then the second largest",
+"the best selling model of the 1990s"). Nothing later than the 2024 calendar year.
+
+**The authoring pipeline is Atlas's and Sport's**, and it is worth repeating exactly:
+
+1. **Five subagents, one per LANE** (150 questions each, 30 per tier), never one per day, so no lane
+   can duplicate itself. They return `{tier, q, answer, wrong[3]}` with the answer kept SEPARATE
+   from the distractors, so the build assigns positions and no authoring bias reaches the columns.
+2. **A mechanical audit before assembly.** The leak check that matters is not "is an answer word in
+   the stem" but "is an answer word in the stem AND not shared by all three distractors": the first
+   flags every legitimate "what kind of X" question, the second flags only real giveaways. That
+   distinction cut 36 flags to about 20 real ones. Also dedupe answers, and separate a same-ANSWER
+   pair (fine, Apple is the fair answer to five different questions) from a same-FACT pair (a defect:
+   two questions both saying Disney bought Pixar).
+3. **Day assignment is free**, so a local search permutes it until no day carries the same answer
+   twice and no day carries one question's answer inside another's stem. Cost 572 to 76, zero hard
+   collisions, without rewriting a question.
+4. **Correct positions from a per-day balanced no-3-run sequence** (7/6/6/6 over the four columns),
+   never independent shuffles.
+5. **Two fact-check subagents over halves of the bank.** They found **24 real problems in 750**, and
+   the KINDS are the lesson: nine plausible-looking wrong facts (Tab Clear 1992 not 1993, KKR won
+   RJR Nabisco in 1988 not 1989, Knight Capital lost 440 not 460 million, Goizueta 1981 not 1980,
+   Bradham was a North Carolina pharmacist not a Virginia one), four ownership claims that had
+   quietly rotted (Toblerone is Mondelez not Cadbury, and the December 2025 Unilever ice cream
+   demerger took Ben and Jerry's and Magnum out of Unilever), three questions with a second
+   defensible answer, and one stem that answered itself. None is visible without checking each
+   figure. **Always budget for the pass.**
+
+`scripts/verify-biz.mjs` is Sport's verifier retargeted, and it gates the same things: unique ids,
+four distinct choices, no stem containing every distinctive word of its answer, the tier ramp, the
+lane cycle, contiguous dates, the quizId matching its live date, the column spread and no 3-run, and
+no day carrying the same answer twice. It WARNS on any two questions sharing an answer and a
+distinctive word, which on this bank is 17 pairs, all read and all genuinely different facts.
+
+Wiring ran as `scripts/wire-biz.mjs` (34 anchored edits across 21 files) off a same-step
+`git archive FETCH_HEAD` export, copied from `wire-encore.mjs` with the corrected idempotency
+helper. Beyond the standard registries it also needs the two SCORING ones that the gauntlet shape
+implies, which are easy to miss: `XP_LINEAR_DAILIES` in `lib/quiz-xp.js` and the `dailyAnswered`
+branch in `lib/quiz-scoring.js` (`asked = key === 'streak' ? 40 : 25`).
+
+**Not in a circuit.** Gauntlet is the circuit Biz belongs to by shape and it is AT ITS CAP of five
+(deep, atlas, sport, blitz, streak) on a fixed roster, so a sixth cannot join without converting it
+to a rotating pool. Its copy does not claim to be exhaustive, so nothing goes stale. Whether Biz
+should take a slot is an owner call. Also NOT in `lib/daily-five.js`, whose hand-picked bank ran out
+on 2026-09-13.

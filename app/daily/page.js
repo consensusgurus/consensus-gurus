@@ -85,6 +85,7 @@ import { PUZZLES as ATLAS_FULL } from '../atlas/puzzles';
 import { PUZZLES as SPORT_FULL } from '../sport/puzzles';
 import { PUZZLES as CALC_FULL } from '../calc/puzzles';
 import { PUZZLES as ENCORE_FULL } from '../encore/puzzles';
+import { PUZZLES as BIZ_FULL } from '../biz/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
@@ -147,6 +148,7 @@ const ATLAS = ATLAS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ nu
 const SPORT = SPORT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CALC = CALC_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const ENCORE = ENCORE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const BIZ = BIZ_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
 // The daily-games hub + archive. One page listing every daily puzzle, each with
@@ -267,6 +269,7 @@ const GAMES = [
   { key: 'sport', name: 'Sport', path: '/sport', tag: 'Every sport, one life', accent: '#7c2d12', bg: '#fbeee6', border: 'rgba(124,45,18,0.4)', src: SPORT },
   { key: 'calc', name: 'Calc', path: '/calc', tag: 'Walk the calculator', accent: '#be123c', bg: '#fff1f4', border: 'rgba(190,18,60,0.4)', src: CALC },
   { key: 'encore', name: 'Encore', path: '/encore', tag: 'The daily crossword', accent: '#1d4ed8', bg: '#eff6ff', border: 'rgba(29,78,216,0.4)', src: ENCORE },
+  { key: 'biz', name: 'Biz', path: '/biz', tag: 'Business, one life', accent: '#0f5132', bg: '#e9f5ee', border: 'rgba(15,81,50,0.4)', src: BIZ },
 ];
 
 const breadcrumbJsonLd = {
