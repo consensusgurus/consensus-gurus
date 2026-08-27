@@ -45,3 +45,6 @@ _to_delete*/
 _reconcile/
 lib/_to_delete_claude/
 .icon-proof/
+
+# generated locally by scripts/build-encore-bank.mjs, never committed
+scripts/.encore-progress.jsonl

@@ -83,6 +83,7 @@ export const DAILY_GAMES = [
   { key: 'queen', href: '/queen', name: 'Queen', tag: 'white to play and promote', store: 'sot_queen_day', accent: '#a16207', bg: '#faf3e3', border: 'rgba(161,98,7,0.4)' },
   { key: 'sport', href: '/sport', name: 'Sport', tag: 'every sport, one life', store: 'sot_sport_day', accent: '#7c2d12', bg: '#fbeee6', border: 'rgba(124,45,18,0.4)' },
   { key: 'calc', href: '/calc', name: 'Calc', tag: 'walk the calculator', store: 'sot_calc_day', accent: '#be123c', bg: '#fff1f4', border: 'rgba(190,18,60,0.4)' },
+  { key: 'encore', href: '/encore', name: 'Encore', tag: 'the daily crossword', store: 'sot_encore_day', accent: '#1d4ed8', bg: '#eff6ff', border: 'rgba(29,78,216,0.4)' },
   { key: 'atlas', href: '/atlas', name: 'Atlas', tag: 'twenty-five questions, one life', store: 'sot_atlas_day', accent: '#047857', bg: '#e7f4ee', border: 'rgba(4,120,87,0.4)' },
   { key: 'niche', href: '/niche', name: 'Niche', tag: 'one answer, two categories', store: 'sot_niche_day', accent: '#115e59', bg: '#ecfdf8', border: 'rgba(17,94,89,0.4)' },
   { key: 'sixes', href: '/sixes', name: 'Sixes', tag: 'the daily mini sudoku', store: 'sot_sixes_day', accent: '#1d4ed8', bg: '#eef3ff', border: 'rgba(29,78,216,0.4)' },

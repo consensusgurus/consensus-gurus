@@ -87,7 +87,7 @@ import {
   FlaskConical, Ear, CircleDot, Disc, Car, Swords, Calculator, MoveUp, Table2, Trophy as TrophyFin, Image as ImageIcon, Route,
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
-  ArrowLeftRight, Gem, Map as MapIcon, Divide,
+  ArrowLeftRight, Gem, Map as MapIcon, Divide, TableProperties,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -114,7 +114,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -195,6 +195,7 @@ export const GAME_META = {
   atlas: { accent: '#047857', badgeBg: '#047857', badgeInk: T.white, Fin: MapIcon },
   sport: { accent: '#7c2d12', badgeBg: '#7c2d12', badgeInk: T.white, Fin: Trophy },
   calc: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: Divide },
+  encore: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: TableProperties },
   race:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: FlagTriangleRight },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
@@ -241,6 +242,7 @@ const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'ca
 // rework 2026-08-01: those two cards sell the game, not the numbers).
 const ALL_DAILY_GAMES = [
   { key: 'crux',   cat: 'word',      name: 'Crux',   tag: 'A clueless crossword',      blurb: 'A full crossword grid with no clues at all. Solve it from the crossings alone.', href: '/crux' },
+  { key: 'encore', cat: 'word',      name: 'Encore', tag: 'The daily crossword',            blurb: 'The big grid: nine by nine on weekdays and around twenty-six answers, so it wants a few minutes rather than a few seconds. Sundays go to eleven by eleven.', href: '/encore' },
   { key: 'emcee',  cat: 'word',      name: 'Emcee',  tag: 'The daily mini crossword',  blurb: 'A quick mini crossword with sharp clues, built to be finished in a couple of minutes.', href: '/emcee' },
   { key: 'shards', cat: 'word',      name: 'Shards', tag: 'Reassemble the crossword',   blurb: 'A finished crossword cut into pieces. Slot every shard back where it belongs.', href: '/shards' },
   { key: 'links',  cat: 'word',      name: 'Links',  tag: 'Four hidden threads',       blurb: 'Sixteen words hide four secret connections. Find all four groups before your mistakes run out.', href: '/links' },

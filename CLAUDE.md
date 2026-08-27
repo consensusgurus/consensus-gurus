@@ -3760,6 +3760,7 @@ archive and hub chips use the short form `Sun`.
 |---|---|
 | Crux | 12 hidden words instead of 8 (27 guesses) |
 | Emcee | 7×7 grid instead of the weekday mini |
+| Encore | 11x11 grid instead of the weekday 9x9, around 44 answers against 26 |
 | Span | a via/avoid rule constrains the route |
 | Tally | 6×6 board instead of 5×5 |
 | Suds | harder grid, fewer givens |
@@ -4141,6 +4142,67 @@ filling. A clue of 0 says the crusts are adjacent; 35 says they sit at the two e
   reader-facing string that mentions 0 says "the sandwich is empty" rather than leaving
   the reader to work out how a total can be nothing. 35 gets the same treatment from the
   other end: the two at opposite ends with everything else inside.
+
+## Encore is the BIG crossword, and its entries stop at 7 letters (launched 2026-08-27)
+
+Emcee is the 5x5 mini you finish in a minute. Encore is the one you sit down with: a
+**9x9 on weekdays** (24 to 30 answers) and an **11x11 Sunday Edition** (around 44).
+Same engine and same scoring as Emcee, so what follows is only what differs.
+
+**It inherits Emcee's hard rule: THE CLUE COMES FIRST.** A word can only enter a grid
+if a hand-written crossword clue for it already exists in a bank file, and there is no
+code path that invents one. Two banks are read, `scripts/emcee-wordbank.txt` (3, 4, 5
+and 7 letters, shared with Emcee) and `scripts/encore-wordbank.txt` (the lengths the
+mini never needed), for a union of about 9,970 clued answers.
+
+**NO ENTRY IS LONGER THAN 7 LETTERS, and that is a measured decision rather than a
+shortfall.** A fully checked 9x9 is legal far more often than it is fillable from a
+bank this size, and the binding constraint is the longest entry: shapes whose longest
+answer is 7 fill 9 times in 10, shapes carrying a 9-letter spanner fill 0 times in 10.
+A nine-letter answer crosses nine downs, and ten thousand words is an order of
+magnitude thinner than the lists commercial fill software runs on. Seven is where this
+bank is deepest (3,193 answers, more than any other length). The 8 and 9 letter entries
+are authored and sitting in the bank for a future, deeper version; do not raise the
+ceiling without widening the pool first, and re-screen the shapes if you do.
+
+**Shapes are SCREENED, and the screen is the expensive half of the build.**
+`scripts/screen-encore-shapes.mjs` enumerates every symmetric, fully checked, connected
+shape in range and then tries to FILL each one, keeping only those that come out inside
+a small budget; the survivors live in `scripts/encore-shapes.json`. Screening does not
+depend on the calendar, so it is done once and kept, and `build-encore-bank.mjs` only
+ever fills shapes already known to be fillable. Roughly half the legal shapes are worth
+keeping, so widen the pool by re-running the screener, never by loosening the geometry
+checks.
+
+**The build is RESUMABLE** (`scripts/.encore-progress.jsonl`, gitignored), because
+filling sixty boards is minutes of work and it gets harder as it goes: answers reach
+their use cap and drop out of the pool. Re-running picks up where it stopped.
+
+**The filler is bitset constraint propagation with arc consistency, and both halves are
+load-bearing.** Intersecting only the slots that directly cross the word just placed is
+nowhere near enough on a 9x9, the pressure has to travel: whenever a slot's candidate
+set shrinks, the letters still possible at each of its squares are recomputed and
+pushed out to everything crossing them. Without that the search does not finish a
+single 9x9 in two hundred thousand nodes; with it most boards fall in a few thousand.
+Two traps worth knowing, both of which cost real time here. A `Uint32Array` element is
+an unsigned NUMBER, so the standard popcount needs `| 0` first or every word with bit
+31 set returns nonsense and the search reports every slot dead at depth zero. And
+truncating a candidate list makes the search INCOMPLETE, so a truncated branch that
+dies is not evidence the shape is unfillable, which is how a perfectly good shape pool
+came to look like a dead one.
+
+**Verify with `node scripts/verify-encore.mjs`**, which imports nothing from the
+generator on purpose. It re-derives the geometry, the numbering, the slot list and
+every answer from the raw grid rows with its own code, then checks: symmetry, full
+checking (every run 3 to 7 in both directions), connectivity, that each stored clue is
+the bank's clue FOR ITS OWN ANSWER, no answer twice in a grid, the use cap, the
+shared-answer ceiling between boards, no shape repeat inside a week, and that the
+quizId, dateLabel, size and sunday flag all agree with the live date.
+
+**Not in a circuit.** `lib/circuits.js` caps the Crosswords circuit at five games and
+it is already full, so Encore sits outside it; its blurb was changed at launch from
+"every crossword on the site" to "five crosswords", because the claim stopped being
+true. Whether Encore should take a slot there is an owner call.
 
 ## Cages is the KILLER SUDOKU, and its clue set is arithmetic only (launched 2026-08-12)
 
