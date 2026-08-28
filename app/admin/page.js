@@ -902,8 +902,11 @@ export default async function AdminPage() {
   }
   const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
   // Non-quiz pages whose page views are tracked through the quiz-view system so
-  // they surface in this analytics panel (the Kids zone hub and games).
-  const KIDS_PAGES = {
+  // they surface in this analytics panel. Adding an entry is COSMETIC: a tracked
+  // id shows up here on its own, this map only gives the row a real title and a
+  // working link instead of the raw id and a dead /quiz/<id>. Every id below is
+  // RESERVED; never create a real quiz with one.
+  const TRACKED_PAGES = {
     kids: { title: 'Kids Corner (hub)', href: '/kids' },
     'kids-memory-match': { title: 'Kids · Treats Match', href: '/kids/memory-match' },
     'kids-pizza-match': { title: 'Kids · Pizza Match', href: '/kids/pizza-match' },
@@ -914,8 +917,10 @@ export default async function AdminPage() {
     'kids-fantasy-match': { title: 'Kids · Fantasy Match', href: '/kids/fantasy-match' },
     'kids-word-match': { title: 'Kids · Word Match', href: '/kids/word-match' },
     'kids-number-match': { title: 'Kids · Number Match', href: '/kids/number-match' },
+    'cfb-rankings': { title: 'Sports · College Football Rankings', href: '/collegefootballrankings' },
+    'nfl-rankings': { title: 'Sports · NFL Power Rankings', href: '/nflrankings' },
   };
-  for (const [id, m] of Object.entries(KIDS_PAGES)) quizTitles.set(id, m.title);
+  for (const [id, m] of Object.entries(TRACKED_PAGES)) quizTitles.set(id, m.title);
   // Per-signup play history: every completed game attributed to each user
   // (quiz_results.user_id -> quiz_users.id), newest first, with the quiz title
   // resolved. Lets the Quiz Signups panel show which quizzes a person played
@@ -1003,7 +1008,7 @@ export default async function AdminPage() {
       return {
         quizId,
         title: quizTitles.get(quizId) || quizId,
-        href: KIDS_PAGES[quizId] ? KIDS_PAGES[quizId].href : `/quiz/${encodeURIComponent(quizId)}`,
+        href: TRACKED_PAGES[quizId] ? TRACKED_PAGES[quizId].href : `/quiz/${encodeURIComponent(quizId)}`,
         views24h: quizViews24Map.get(quizId) || 0,
         viewsTotal: quizTotalViewsMap.get(quizId) || 0,
         plays,

@@ -7,6 +7,7 @@
 import SotHeader from '@/app/SotHeader';
 import Footer from '@/app/Footer';
 import GridironTable from '@/app/GridironTable';
+import PageViewBeacon from '@/app/PageViewBeacon';
 import { GRIDIRON } from '@/lib/gridiron-data';
 import { computeComposite } from '@/lib/gridiron';
 import { SOT_URL } from '@/lib/site';
@@ -73,6 +74,7 @@ export default function NflRankingsPage() {
     <div style={{ minHeight: '100vh', background: T.white, color: T.ink, fontFamily: FONT }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      <PageViewBeacon id="nfl-rankings" />
       <SotHeader active="nfl" />
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 20px 40px' }}>
         <div style={{ paddingBottom: 13, marginBottom: 14, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
