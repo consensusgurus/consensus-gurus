@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#fbfbfd">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<!--
+  ONE SURFACE - a look at direction B for the daily gameplay page.
+
+  ON THE LIVE SITE BUT OFF THE MAP, the same arrangement as
+  app/new-daily-preview: noindex, absent from lib/sitemap-entries.js, and
+  reachable only if you know the path. Delete this file to retire it.
+
+  It is a STATIC page under public/, deliberately: it is not compiled, it does
+  not import from the app, and it cannot affect any live daily. The board is a
+  real 8-word Crux (four categories, two each, every crossing consistent) but
+  it is a mock-up, not today's puzzle, and it records nothing.
+
+  The keyboard is carried over from app/crux/CruxClient.jsx unchanged: the same
+  three rows, 44px keys, 6px radius, weight 800, gap 4, row margin 5, 470px cap,
+  and the three letter states exactly as `kbColors` defines them.
+-->
+<title>One Surface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   ONE SURFACE — direction B for the daily gameplay page, now
+   carrying Crux's own on-screen keyboard.
+   Deliberately a LIGHT surface at every viewer theme: the whole
+   proposal is that the play page stops being a white card on
+   near-black, so a dark variant would answer a different question.
+   Every colour is painted explicitly for that reason.
+   Keyboard values are lifted from app/crux/CruxClient.jsx and are
+   NOT re-styled: 44px keys, 6px radius, weight 800, gap 4, row
+   margin 5, 470px cap, and the three letter states exactly as
+   `kbColors` defines them.
+   ============================================================ */
+:root{
+  --sans:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --h:#2563eb;              /* the game's category hue (Word) */
+  --ground:#fbfbfd;
+  --ink:#0b0d12;            /* T.ink */
+  --mid:#3f4757;            /* T.muted */
+  --faint:#94a3b8;
+  --line:#e2e8f0;
+  --paper:#f4f6f9;          /* T.paper */
+  --enter:#233a63;          /* T.accent, what CruxClient calls COLORS.ember */
+  --kg:#0b0d12; --kgf:#ffffff;   /* placed  */
+  --ky:#e6b93f; --kyf:#5c4a06;   /* present */
+  --kx:#c9cdd4; --kxf:#3f4757;   /* absent  */
+  --word:#2563eb; --trivia:#14713a; --numbers:#c2410c; --cards:#a21caf;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+
+.pg{min-height:100svh;display:flex;flex-direction:column;background:var(--ground)}
+
+.top{height:42px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;border-bottom:1px solid var(--line)}
+.top .bk{font-size:12px;font-weight:700;color:var(--mid);text-decoration:none}
+.top .wm{font-size:13px;font-weight:800;letter-spacing:-.01em}
+.top .wm i{color:var(--h);font-style:normal}
+.top .av{width:26px;height:26px;border-radius:999px;background:var(--h);color:#fff;
+  font-size:11px;font-weight:800;display:grid;place-items:center}
+
+.col{flex:1;display:flex;flex-direction:column;padding:10px 14px 0;width:100%;min-height:0}
+
+.id{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+  border-left:4px solid var(--h);padding-left:11px;flex:none}
+.id .m{font-size:8.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap}
+.id .n{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.figs{display:flex;gap:18px;align-items:flex-end;flex:none}
+.figs div{text-align:right}
+.figs .v{font-size:17px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.figs .l{font-size:7.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--faint);margin-top:3px}
+.qm{width:26px;height:26px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  font-family:inherit;font-size:12px;font-weight:800;color:var(--mid);cursor:pointer;
+  display:grid;place-items:center;flex:none}
+
+.prog{height:2px;background:var(--line);border-radius:2px;margin-top:10px;flex:none}
+.prog i{display:block;height:2px;width:0;background:var(--h);border-radius:2px;transition:width .3s}
+
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 2px;flex:none}
+.cats span{flex:1 1 calc(50% - 3px);display:flex;align-items:center;justify-content:space-between;
+  font-size:9px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#fff;
+  border-radius:6px;padding:7px 9px}
+.cats span b{font-weight:700;opacity:.8;letter-spacing:.08em}
+
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 0 2px;min-height:0}
+.xw{display:grid;gap:2px}
+.cell{background:#fff;border:1.4px solid #cbd5e1;border-radius:3px;position:relative;
+  display:grid;place-items:center;font-size:calc(var(--cell) * .5);font-weight:800;
+  color:var(--ink);cursor:pointer;user-select:none;touch-action:manipulation}
+.cell.inslot{background:#eff4ff}
+.cell.on{background:#dbeafe;border-color:var(--h);box-shadow:inset 0 0 0 1px var(--h)}
+.cell.green{background:var(--kg);border-color:var(--kg);color:var(--kgf)}
+.cell em{position:absolute;top:0;left:2px;font-size:calc(var(--cell) * .27);font-style:normal;
+  color:var(--faint);font-weight:700;line-height:1.15}
+.cell.green em{color:rgba(255,255,255,.5)}
+.cell.pend{color:var(--h)}
+.xw.bad{animation:sh .32s ease}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* previous guesses, in the same three colours as the keys */
+.tries{flex:none;display:flex;flex-direction:column;gap:3px;align-items:center;
+  margin:2px 0 6px;max-height:52px;overflow:hidden}
+.try{display:flex;gap:3px}
+.try i{width:19px;height:19px;border-radius:4px;display:grid;place-items:center;
+  font-style:normal;font-size:10px;font-weight:800}
+
+/* one control bar */
+.bar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-top:1px solid var(--line);padding:9px 0}
+.nav{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;min-width:0}
+.nav button{width:32px;height:32px;flex:none;border:1px solid var(--line);border-radius:8px;
+  background:#fff;color:var(--mid);font-size:15px;font-family:inherit;line-height:1;cursor:pointer}
+.nav .slot{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav .slot em{font-style:normal;font-weight:500;color:var(--mid)}
+.act{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;
+  font-size:11px;font-weight:700;color:var(--ink);font-family:inherit;cursor:pointer;
+  display:flex;align-items:baseline;gap:5px;flex:none}
+.act u{text-decoration:none;color:var(--faint);font-weight:600;font-size:10px}
+.act:disabled{opacity:.4}
+
+/* ---------- the keyboard, carried over from CruxClient ---------- */
+.kbwrap{flex:none;max-width:470px;margin:0 auto;width:100%;
+  padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+.kbrow{display:flex;gap:4px;margin-bottom:5px;justify-content:center}
+.key{border:none;font-family:var(--sans);font-weight:800;cursor:pointer;border-radius:6px;
+  padding:0;touch-action:manipulation;height:44px;flex:1 0 0;font-size:15px;
+  background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1.5px rgba(20,22,28,0.15)}
+.key:active{transform:scale(0.94)}
+.key.g{background:var(--kg);color:var(--kgf);box-shadow:none}
+.key.y{background:var(--ky);color:var(--kyf);box-shadow:none}
+.key.x{background:var(--kx);color:var(--kxf);box-shadow:none}
+.key.wide{flex:1.6 0 0;box-shadow:none}
+.key.enter{background:var(--enter);color:#fff;font-size:11.5px}
+.key.back{background:var(--paper);color:var(--ink);font-size:16px}
+.kbtog{display:none}
+
+/* the note sheet */
+.veil{position:fixed;inset:0;background:rgba(15,23,42,.35);opacity:0;pointer-events:none;
+  transition:opacity .2s;z-index:9}
+.veil.up{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;
+  border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(15,23,42,.18);
+  padding:10px 18px calc(22px + env(safe-area-inset-bottom,0px));
+  transform:translateY(102%);transition:transform .26s cubic-bezier(.22,1,.36,1);
+  max-height:84svh;overflow:auto}
+.sheet.up{transform:none}
+.grab{width:34px;height:4px;border-radius:3px;background:#cbd5e1;margin:0 auto 12px}
+.sheet h3{font-size:17px;font-weight:800;margin:0 0 3px}
+.sheet .sub{font-size:12px;color:var(--mid);margin:0 0 13px;line-height:1.5}
+.sheet ul{margin:0;padding-left:17px}
+.sheet li{font-size:12.5px;line-height:1.55;color:#334155;margin:0 0 9px}
+.sheet li b{color:var(--ink)}
+.sheet code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;
+  background:#f1f5f9;padding:1px 4px;border-radius:4px}
+.swatch{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:4px;
+  font-size:9.5px;font-weight:800;vertical-align:-4px;margin:0 1px}
+.sheet .close{width:100%;margin-top:6px;border:0;background:var(--h);color:#fff;border-radius:10px;
+  padding:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+
+.toast{position:fixed;left:50%;transform:translate(-50%,14px);bottom:calc(100svh - 190px);
+  background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:8px 14px;
+  border-radius:8px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:8}
+.toast.up{opacity:1;transform:translate(-50%,0)}
+
+@media(min-width:900px){
+  .top{height:46px;padding:0 22px}
+  .col{width:660px;margin:0 auto;padding:16px 0 0}
+  .id .n{font-size:27px}
+  .figs{gap:22px}
+  .cats{flex-wrap:nowrap;gap:7px}
+  .cats span{flex:1}
+  .bar{padding:11px 0}
+  .kbwrap{padding-bottom:18px}
+  .kbtog{display:block;margin:0 auto 7px;background:none;border:1.5px solid rgba(28,30,36,0.22);
+    border-radius:8px;padding:6px 13px;cursor:pointer;font-family:var(--sans);font-weight:700;
+    font-size:12px;color:var(--mid)}
+  .kbwrap.shut .kbrow{display:none}
+  .sheet{left:50%;right:auto;transform:translate(-50%,calc(100% + 40px));width:540px;
+    border-radius:16px;bottom:26px}
+  .sheet.up{transform:translate(-50%,0)}
+  .tries{max-height:70px}
+}
+</style>
+
+</head>
+<body>
+<div class="pg">
+  <div class="top">
+    <a class="bk" href="#" onclick="return false">&lsaquo;&nbsp; Today</a>
+    <span class="wm">Mind <i>Loft</i></span>
+    <span class="av">G</span>
+  </div>
+
+  <div class="col">
+    <div class="id">
+      <div>
+        <div class="m">Word &middot; No. 53 &middot; August 27</div>
+        <div class="n">Crux</div>
+      </div>
+      <div class="figs">
+        <div><div class="v" id="fWords">0/8</div><div class="l">Words</div></div>
+        <div><div class="v" id="fGuess">18</div><div class="l">Left</div></div>
+        <div><div class="v" id="fTime">0:00</div><div class="l">Time</div></div>
+        <button class="qm" id="qm" aria-label="What changed">?</button>
+      </div>
+    </div>
+
+    <div class="prog"><i id="progBar"></i></div>
+    <div class="cats" id="cats"></div>
+    <div class="stage"><div class="xw" id="xw"></div></div>
+    <div class="tries" id="tries"></div>
+
+    <div class="bar">
+      <div class="nav">
+        <button id="prev" aria-label="Previous word">&lsaquo;</button>
+        <span class="slot"><b id="slotName">1-Across</b> <em id="slotMeta">6 letters</em></span>
+        <button id="next" aria-label="Next word">&rsaquo;</button>
+      </div>
+      <button class="act" id="hint">Hint<u>&minus;1 pt</u></button>
+    </div>
+
+    <div class="kbwrap" id="kbwrap">
+      <button class="kbtog" id="kbtog">Hide keyboard</button>
+      <div id="kb"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="veil" id="veil"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="What changed">
+  <div class="grab"></div>
+  <h3>One Surface, with Crux's keyboard</h3>
+  <p class="sub">Direction B for the daily gameplay page. It is a real board: eight words, four categories,
+  two apiece. Type a word into the highlighted slot and press ENTER to guess it.</p>
+  <ul>
+    <li><b>The keyboard is carried over unchanged.</b> Same three rows, same 44px keys, same 6px radius,
+    and the same three letter states from <code>kbColors</code>:
+    <span class="swatch" style="background:#0b0d12;color:#fff">A</span> right letter, right place;
+    <span class="swatch" style="background:#e6b93f;color:#5c4a06">B</span> in the word, wrong place;
+    <span class="swatch" style="background:#c9cdd4;color:#3f4757">C</span> not in it. State is per word, so it
+    resets as you move between slots.</li>
+    <li><b>The keyboard is a readout, not just an input.</b> That is the argument for showing it on desktop
+    by default rather than behind <em>Show keyboard</em>: physical typing makes the keys redundant as an
+    input, but the colours are the only place that word's history is visible. The toggle is still here,
+    it just starts open.</li>
+    <li><b>Check is gone from the control bar.</b> ENTER submits the guess, so a second commit button was
+    two ways to do one thing. The bar is now word navigation and the hint.</li>
+    <li><b>One ground, no card.</b> The navy masthead and the saturated slab are gone and the board sits on
+    the page. That is about 140px of chrome recovered on a phone, which is roughly what the keyboard needs.</li>
+    <li><b>The hue reaches the board</b> as the 4px rule, the focus ring, the progress hairline and the
+    avatar, while the keyboard keeps its own ink / amber / grey so game state never competes with brand
+    colour. ENTER stays <code>#233a63</code>, the accent it already uses.</li>
+  </ul>
+  <button class="close" id="close">Back to the board</button>
+</div>
+
+<script>
+/* ============================================================
+   A REAL board. Eight words, four categories, two each, every
+   crossing consistent. Two deliberate traps, which is the Crux
+   design: ROOK reads as a chess piece and files under corvids,
+   BISHOP reads as a church role and files under chess.
+   ============================================================ */
+var SLOTS = [
+  {id:'1-Across', word:'MALLET',  cat:3, r:1,  c:2,  dir:'a'},
+  {id:'1-Down',   word:'MAGPIE',  cat:2, r:1,  c:2,  dir:'d'},
+  {id:'2-Across', word:'BISHOP',  cat:1, r:5,  c:1,  dir:'a'},
+  {id:'2-Down',   word:'PRELATE', cat:0, r:5,  c:6,  dir:'d'},
+  {id:'3-Across', word:'ROOK',    cat:2, r:6,  c:8,  dir:'a'},
+  {id:'3-Down',   word:'KING',    cat:1, r:6,  c:11, dir:'d'},
+  {id:'4-Across', word:'CURATE',  cat:0, r:9,  c:3,  dir:'a'},
+  {id:'5-Across', word:'REAMER',  cat:3, r:11, c:5,  dir:'a'}
+];
+var CATS = [
+  ['Church roles','var(--word)'],
+  ['Chess pieces','var(--trivia)'],
+  ['Corvids','var(--numbers)'],
+  ['Hand tools','var(--cards)']
+];
+
+SLOTS.forEach(function(s){
+  s.cells = [];
+  for (var i = 0; i < s.word.length; i++){
+    s.cells.push(s.dir === 'a' ? (s.r + ',' + (s.c + i)) : ((s.r + i) + ',' + s.c));
+  }
+});
+var COLS = 11;
+var answer = {};                                   /* "r,c" -> letter */
+SLOTS.forEach(function(s){
+  s.cells.forEach(function(k, i){ answer[k] = s.word[i]; });
+});
+/* every crossing agrees, asserted rather than assumed */
+(function(){
+  var bad = [];
+  SLOTS.forEach(function(s){
+    s.cells.forEach(function(k, i){ if (answer[k] !== s.word[i]) bad.push(s.id + ' ' + k); });
+  });
+  if (bad.length) console.error('crossing mismatch', bad);
+})();
+
+var NUMS = {};
+SLOTS.forEach(function(s){
+  var k = s.r + ',' + s.c;
+  if (!NUMS[k]) NUMS[k] = parseInt(s.id, 10);
+});
+
+document.getElementById('cats').innerHTML = CATS.map(function(c){
+  return '<span style="background:' + c[1] + '">' + c[0] + '<b>? ?</b></span>';
+}).join('');
+
+/* ---------- state ---------- */
+var green   = {};    /* "r,c" -> letter, locked by a correct placement */
+var buf     = {};    /* slot id -> array of typed letters */
+var keySt   = {};    /* slot id -> { letter: 'g'|'y'|'x' } */
+var log     = {};    /* slot id -> [ [ {ch,st} ] ] */
+var solved  = {};
+var slotIx  = 0;
+var guesses = 18;
+var t0 = null;
+
+SLOTS.forEach(function(s){ buf[s.id] = []; keySt[s.id] = {}; log[s.id] = []; });
+
+function slot(){ return SLOTS[slotIx]; }
+function open(){ return slot().cells.filter(function(k){ return !green[k]; }); }
+
+/* ---------- grid ---------- */
+var xw = document.getElementById('xw'), stage = document.querySelector('.stage');
+var cellOf = {};
+Object.keys(answer).forEach(function(k){
+  var p = k.split(',');
+  var d = document.createElement('div');
+  d.className = 'cell';
+  d.style.gridRow = p[0];
+  d.style.gridColumn = p[1];
+  d.dataset.k = k;
+  xw.appendChild(d);
+  cellOf[k] = d;
+});
+function sizeBoard(){
+  var wide = window.innerWidth >= 900;
+  var availW = Math.min(window.innerWidth - (wide ? 0 : 28), 660);
+  var availH = Math.max(150, stage.clientHeight - 10);
+  var byW = Math.floor((availW - (COLS - 1) * 2) / COLS);
+  var byH = Math.floor((availH - (COLS - 1) * 2) / COLS);
+  var cell = Math.max(17, Math.min(byW, byH, 40));
+  xw.style.setProperty('--cell', cell + 'px');
+  xw.style.gridTemplateColumns = 'repeat(' + COLS + ',' + cell + 'px)';
+  xw.style.gridAutoRows = cell + 'px';
+}
+window.addEventListener('resize', sizeBoard);
+
+/* ---------- keyboard, values lifted from CruxClient ---------- */
+var KB = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+var kb = document.getElementById('kb');
+KB.forEach(function(row, ri){
+  var d = document.createElement('div');
+  d.className = 'kbrow';
+  if (ri === 2){
+    var e = document.createElement('button');
+    e.className = 'key wide enter'; e.textContent = 'ENTER'; e.dataset.k = 'ENTER';
+    d.appendChild(e);
+  }
+  row.split('').forEach(function(ch){
+    var b = document.createElement('button');
+    b.className = 'key'; b.textContent = ch; b.dataset.k = ch;
+    d.appendChild(b);
+  });
+  if (ri === 2){
+    var bk = document.createElement('button');
+    bk.className = 'key wide back'; bk.innerHTML = '&#9003;';
+    bk.setAttribute('aria-label', 'Delete'); bk.dataset.k = 'BACK';
+    d.appendChild(bk);
+  }
+  kb.appendChild(d);
+});
+kb.addEventListener('click', function(e){
+  var b = e.target.closest('.key');
+  if (b) onKey(b.dataset.k);
+});
+
+/* ---------- render ---------- */
+function paint(){
+  var s = slot(), inSlot = {}, b = buf[s.id];
+  var slotOpen = open();
+  s.cells.forEach(function(k){ inSlot[k] = true; });
+
+  /* where the next typed letter lands: the first open square not yet typed */
+  var nextK = slotOpen[b.length] || null;
+
+  Object.keys(cellOf).forEach(function(k){
+    var d = cellOf[k], ch = '', cls = 'cell';
+    if (green[k]) { ch = green[k]; cls += ' green'; }
+    else if (inSlot[k]) {
+      var oi = slotOpen.indexOf(k);
+      if (oi > -1 && oi < b.length) { ch = b[oi]; cls += ' pend'; }
+      cls += (k === nextK) ? ' on' : ' inslot';
+    }
+    var num = NUMS[k] ? '<em>' + NUMS[k] + '</em>' : '';
+    if (d.dataset.ch !== ch || d.className !== cls){
+      d.className = cls; d.innerHTML = num + ch; d.dataset.ch = ch;
+    }
+  });
+
+  /* keys wear the state of the SELECTED word only */
+  var st = keySt[s.id];
+  [].forEach.call(kb.querySelectorAll('.key'), function(bt){
+    var k = bt.dataset.k;
+    if (k === 'ENTER' || k === 'BACK') return;
+    bt.className = 'key' + (st[k] ? ' ' + st[k] : '');
+  });
+
+  /* the tries list, same three colours */
+  document.getElementById('tries').innerHTML = log[s.id].slice(-2).map(function(row){
+    return '<div class="try">' + row.map(function(m){
+      var bg = m.st === 'g' ? 'var(--kg)' : m.st === 'y' ? 'var(--ky)' : 'var(--kx)';
+      var fg = m.st === 'g' ? 'var(--kgf)' : m.st === 'y' ? 'var(--kyf)' : '#40434b';
+      return '<i style="background:' + bg + ';color:' + fg + '">' + m.ch + '</i>';
+    }).join('') + '</div>';
+  }).join('');
+
+  document.getElementById('slotName').textContent = s.id;
+  document.getElementById('slotMeta').textContent =
+    solved[s.id] ? 'solved' : s.word.length + ' letters';
+  var n = SLOTS.filter(function(x){ return solved[x.id]; }).length;
+  document.getElementById('fWords').textContent = n + '/8';
+  document.getElementById('fGuess').textContent = guesses;
+  document.getElementById('progBar').style.width =
+    Math.round(Object.keys(green).length / Object.keys(answer).length * 100) + '%';
+
+  var done = n === SLOTS.length || guesses <= 0;
+  document.getElementById('kbwrap').style.display = done ? 'none' : '';
+  document.getElementById('hint').disabled = done || !open().length;
+  sizeBoard();
+}
+
+var toastT = null;
+function toast(msg){
+  var el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('up');
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ el.classList.remove('up'); }, 1500);
+}
+function clock(){
+  if (t0) return;
+  t0 = Date.now();
+  setInterval(function(){
+    var s = Math.floor((Date.now() - t0) / 1000);
+    document.getElementById('fTime').textContent =
+      Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }, 500);
+}
+
+/* ---------- the guess loop ---------- */
+function onKey(k){
+  if (guesses <= 0) return;
+  clock();
+  var s = slot();
+  if (solved[s.id]) { if (k === 'ENTER') step(1); return; }
+  var b = buf[s.id], need = open().length;
+  if (k === 'BACK') { b.pop(); paint(); return; }
+  if (k === 'ENTER') { submit(); return; }
+  if (b.length >= need) return;
+  b.push(k);
+  paint();
+}
+
+function submit(){
+  var s = slot(), b = buf[s.id], slotOpen = open();
+  if (b.length < slotOpen.length){ toast('Not enough letters'); shake(); return; }
+
+  /* the full candidate word: locked greens plus what was typed */
+  var guess = s.cells.map(function(k){
+    if (green[k]) return green[k];
+    return b[slotOpen.indexOf(k)];
+  });
+
+  /* standard two-pass scoring against this slot's answer */
+  var ans = s.word.split(''), marks = new Array(guess.length), pool = {};
+  guess.forEach(function(ch, i){
+    if (ch === ans[i]) marks[i] = 'g';
+    else pool[ans[i]] = (pool[ans[i]] || 0) + 1;
+  });
+  guess.forEach(function(ch, i){
+    if (marks[i]) return;
+    if (pool[ch]) { marks[i] = 'y'; pool[ch]--; } else { marks[i] = 'x'; }
+  });
+
+  guesses--;
+  log[s.id].push(guess.map(function(ch, i){ return { ch: ch, st: marks[i] }; }));
+  var st = keySt[s.id], rank = { x: 0, y: 1, g: 2 };
+  guess.forEach(function(ch, i){
+    if (!st[ch] || rank[marks[i]] > rank[st[ch]]) st[ch] = marks[i];
+  });
+  /* greens lock into the board */
+  guess.forEach(function(ch, i){ if (marks[i] === 'g') green[s.cells[i]] = ch; });
+  buf[s.id] = [];
+
+  if (marks.every(function(m){ return m === 'g'; })){
+    solved[s.id] = true;
+    toast(s.word + ' — ' + CATS[s.cat][0].toLowerCase());
+    paint();
+    var nxt = SLOTS.findIndex(function(x){ return !solved[x.id]; });
+    if (nxt > -1) setTimeout(function(){ slotIx = nxt; paint(); }, 700);
+    return;
+  }
+  if (guesses <= 0) toast('Out of guesses');
+  shake();
+  paint();
+}
+function shake(){
+  xw.classList.add('bad');
+  setTimeout(function(){ xw.classList.remove('bad'); }, 340);
+}
+
+function step(d){
+  var n = SLOTS.length;
+  for (var i = 1; i <= n; i++){
+    var j = (slotIx + d * i + n * n) % n;
+    if (!solved[SLOTS[j].id]) { slotIx = j; paint(); return; }
+  }
+  slotIx = (slotIx + d + n) % n;
+  paint();
+}
+document.getElementById('prev').onclick = function(){ step(-1); };
+document.getElementById('next').onclick = function(){ step(1); };
+
+xw.addEventListener('click', function(e){
+  var d = e.target.closest('.cell');
+  if (!d) return;
+  var k = d.dataset.k;
+  var here = [];
+  SLOTS.forEach(function(s, i){ if (s.cells.indexOf(k) > -1) here.push(i); });
+  if (!here.length) return;
+  var at = here.indexOf(slotIx);
+  slotIx = at > -1 ? here[(at + 1) % here.length] : here[0];
+  clock();
+  paint();
+});
+
+document.getElementById('hint').onclick = function(){
+  if (guesses <= 0) return;
+  clock();
+  var s = slot(), o = open();
+  if (!o.length) return;
+  var k = o[0], i = s.cells.indexOf(k);
+  green[k] = s.word[i];
+  keySt[s.id][s.word[i]] = 'g';
+  guesses--;
+  buf[s.id] = [];
+  if (!open().length) { solved[s.id] = true; }
+  paint();
+};
+
+/* physical typing, so a desktop keyboard drives the same loop */
+document.addEventListener('keydown', function(e){
+  if (document.getElementById('sheet').classList.contains('up')) return;
+  if (/^[a-zA-Z]$/.test(e.key)) onKey(e.key.toUpperCase());
+  else if (e.key === 'Backspace') { e.preventDefault(); onKey('BACK'); }
+  else if (e.key === 'Enter') { e.preventDefault(); onKey('ENTER'); }
+  else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); step(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+});
+
+/* desktop toggle. Kept, but open by default: the keys are a readout. */
+var kbwrap = document.getElementById('kbwrap'), kbtog = document.getElementById('kbtog');
+kbtog.onclick = function(){
+  var shut = kbwrap.classList.toggle('shut');
+  kbtog.textContent = shut ? 'Show keyboard' : 'Hide keyboard';
+};
+
+var sheet = document.getElementById('sheet'), veil = document.getElementById('veil');
+document.getElementById('qm').onclick = function(){ sheet.classList.add('up'); veil.classList.add('up'); };
+document.getElementById('close').onclick = function(){ sheet.classList.remove('up'); veil.classList.remove('up'); };
+veil.onclick = function(){ sheet.classList.remove('up'); veil.classList.remove('up'); };
+
+paint();
+setTimeout(sizeBoard, 60);
+</script>
+
+</body>
+</html>
