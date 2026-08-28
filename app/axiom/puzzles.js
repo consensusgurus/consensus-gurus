@@ -514,7 +514,7 @@ export const PUZZLES = [
       { w: 'EXECUTES', t: 1 }, { w: 'SCORING', t: 0 }, { w: 'EDUCATES', t: 1, g: 1 }, { w: 'BONES', t: 0 },
       { w: 'POINTED', t: 0 }, { w: 'JOKES', t: 1 }, { w: 'VISITING', t: 0, g: 1 }, { w: 'LITERATE', t: 1, g: 1 },
       { w: 'NODES', t: 0 }, { w: 'OPERATED', t: 1, g: 1 }, { w: 'MUNDANE', t: 0 }, { w: 'VISITED', t: 1 },
-      { w: 'COPES', t: 1 }, { w: 'CHESTNUT', t: 0 }, { w: 'GUIDING', t: 0 }, { w: 'DETERMINE', t: 0, g: 1 },
+      { w: 'COPES', t: 1 }, { w: 'CHESTNUT', t: 0 }, { w: 'GUIDING', t: 0 }, { w: 'ABANDONED', t: 0, g: 1 },
     ],
   },
   {
@@ -566,7 +566,7 @@ export const PUZZLES = [
       { w: 'FILTHY', t: 1 }, { w: 'HAST', t: 1 }, { w: 'STUMPS', t: 0 }, { w: 'WRIT', t: 1 },
       { w: 'KILO', t: 1 }, { w: 'SECT', t: 1 }, { w: 'SLAPS', t: 0 }, { w: 'EARNEST', t: 0, g: 1 },
       { w: 'DEED', t: 0 }, { w: 'FINISHED', t: 0, g: 1 }, { w: 'NAVY', t: 1 }, { w: 'UTTER', t: 0 },
-      { w: 'GUMS', t: 1, g: 1 }, { w: 'SKIN', t: 1, g: 1 }, { w: 'BITE', t: 1 }, { w: 'WHIP', t: 1, g: 1 },
+      { w: 'GUMS', t: 1, g: 1 }, { w: 'RIBS', t: 1, g: 1 }, { w: 'BITE', t: 1 }, { w: 'WHIP', t: 1, g: 1 },
       { w: 'RATTLED', t: 0 }, { w: 'PRINTS', t: 1 }, { w: 'CONSERVE', t: 0 }, { w: 'BELLS', t: 0 },
     ],
   },

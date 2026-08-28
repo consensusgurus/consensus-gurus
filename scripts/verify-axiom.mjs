@@ -20,7 +20,8 @@
 //     thinking player is not hunting one needle in 171
 //   - C10 bank-wide: the answer is spread across the candidate slots, and no
 //     rule kind that appears often is a free cross-out
-//   - C11 no near-miss tiles on a set or hidden-word board (see NEAR below).
+//   - C11 no near-miss tiles on a set or hidden-word board (see NEAR below),
+//     and no tile that IS the hidden word rather than a word hiding one.
 //     The candidates stopped printing their array on 2026-08-08, so a player now
 //     supplies the knowledge themselves. That is only fair while the board never
 //     contains a word whose real-world classification disagrees with the array:
@@ -240,10 +241,41 @@ const NEAR = {
   country: ['TAIWAN','WALES','SCOTLAND','ENGLAND','PALESTINE','KOSOVO','TIBET','GREENLAND','VATICAN','KOREA','CONGO','BRITAIN','ULSTER','MACAU','GIBRALTAR','BERMUDA','ARUBA','PERSIA','BURMA','SIAM','PRUSSIA','HOLLAND','EIRE','SCOTIA','CATALONIA','BAVARIA','QUEBEC','TEXAS'],
   ballsport: ['JAIALAI','CAMOGIE','POLOCROSSE','SEPAKTAKRAW','KABADDI','FRONTENIS'],
 };
-const HIDDEN_NEAR = {
+const HIDDEN_NEAR_CORE = {
   animal: ['ASS','DOE','KID','CUB','PUP','COD','EEL','ROE','TIT','JAY','GNU','YAK','BOA','ASP','FLY','BUG','CRAB','FROG','TOAD','WORM','MOTH','WASP','SEAL','LION','BEAR','WOLF','DEER','GOAT','MULE','FOAL','LAMB','CALF','CROW','DOVE','DUCK','SWAN','HAWK','MOLE','HARE','LYNX','PUMA','GOOSE','SHEEP','HORSE','MOUSE'],
   body: ['NAIL','HAIR','BACK','FACE','CHEEK','PALM','WAIST','BELLY','KIDNEY','MUSCLE'],
   number: ['THREE','SEVEN','EIGHT','ZERO','ELEVEN','TWELVE','TWENTY','HUNDRED','MILLION','BILLION','DOZEN','SCORE','ONCE','TWICE'],
+};
+// The 4+ letter animal tail is DERIVED, never typed. ERMINE inside DETERMINE
+// reached a LIVE board (#36, 2026-08-28) purely because this list was written by
+// hand and happened to stop at five letters: a player who knows an ermine is a
+// stoat killed the hidden-word candidate on the givens and finished a perfect-2
+// board on one test. A hand list will always stop somewhere, so the tail now
+// comes off the animal arrays this file already carries and grows whenever they
+// do. Three-letter entries stay curated in CORE above, deliberately: a
+// three-letter substring collides constantly (RAY in BETRAY, ONE in MONEY, ASP
+// in GASP), so a picked few beat a generated many. Anything genuinely absent
+// from the sets goes in EXTRA_ANIMAL, which is for the categories the SETS have
+// no roster for at all: reptiles, amphibians, insects, invertebrates, young,
+// breeds.
+const EXTRA_ANIMAL = [
+  'ERMINE', 'MARTEN', 'POLECAT', 'FISHER', 'CIVET', 'GENET', 'LEMMING', 'JERBOA', 'AARDVARK', 'PANGOLIN', 'ANTEATER',
+  'ADDER', 'VIPER', 'COBRA', 'MAMBA', 'PYTHON', 'GECKO', 'IGUANA', 'LIZARD', 'TURTLE', 'TORTOISE', 'TERRAPIN', 'ALLIGATOR', 'CROCODILE',
+  'NEWT', 'TOAD', 'FROG', 'SALAMANDER', 'TADPOLE',
+  'WASP', 'HORNET', 'BEETLE', 'WEEVIL', 'LOCUST', 'CICADA', 'CRICKET', 'MANTIS', 'APHID', 'MIDGE', 'GNAT', 'MOTH', 'FLEA', 'TICK', 'MITE', 'LOUSE',
+  'SLUG', 'SNAIL', 'WORM', 'LEECH', 'CRAB', 'PRAWN', 'SHRIMP', 'LOBSTER', 'OYSTER', 'MUSSEL', 'CLAM', 'SQUID', 'OCTOPUS', 'URCHIN', 'SPONGE', 'JELLYFISH',
+  'SPIDER', 'SCORPION', 'CENTIPEDE', 'MILLIPEDE',
+  'FOAL', 'COLT', 'CALF', 'LAMB', 'PIGLET', 'KITTEN', 'PUPPY', 'CYGNET', 'JOEY', 'FAWN',
+  'TERRIER', 'POODLE', 'BEAGLE', 'COLLIE', 'SPANIEL', 'MASTIFF', 'DACHSHUND', 'LABRADOR', 'BULLDOG', 'GREYHOUND',
+  'STALLION', 'MARE', 'GELDING', 'HEIFER', 'BULLOCK', 'MONGREL',
+];
+const HIDDEN_NEAR = {
+  ...HIDDEN_NEAR_CORE,
+  animal: [...new Set([
+    ...HIDDEN_NEAR_CORE.animal,
+    ...[...SETS.mammal, ...SETS.bird, ...SETS.fish, ...NEAR.mammal, ...NEAR.bird, ...NEAR.fish, ...EXTRA_ANIMAL]
+      .filter((w) => w.length >= 4),
+  ])],
 };
 PUZZLES.forEach((p) => {
   if (p.live < NEAR_FROM) return;
@@ -256,10 +288,23 @@ PUZZLES.forEach((p) => {
       });
     }
     if (r.k === 'hides') {
+      // The candidate reads "it hides a SMALLER word", but ruleFn matches with a
+      // plain includes(), so a tile that IS the listed word scores true. A player
+      // who takes "smaller" literally reads it false, and on #40 (2026-09-01) that
+      // tile was a given GREEN, so the rule started dead for them and C2 bought
+      // nothing. Ban the tile rather than tightening ruleFn: the evaluator is
+      // shared by every board, several of them already played.
+      p.tiles.forEach((t) => {
+        if (HIDDEN[r.set].includes(t.w))
+          fail(`C11 #${p.num} ${p.live}: tile "${t.w}" IS the ${r.set} word, not a word hiding one, so "hides a smaller word" is a coin flip. Swap the tile.`);
+      });
       const near = (HIDDEN_NEAR[r.set] || []).filter((w) => !HIDDEN[r.set].includes(w));
       p.tiles.forEach((t) => {
         if (HIDDEN[r.set].some((h) => t.w.includes(h))) return;
-        const seems = near.filter((h) => t.w.includes(h));
+        // strictly shorter: a tile that merely equals a near word (TERRIER) hides
+        // nothing smaller, so it is not a near-miss. The line above covers the
+        // in-array case.
+        const seems = near.filter((h) => h.length < t.w.length && t.w.includes(h));
         if (seems.length)
           fail(`C11 #${p.num} ${p.live}: "${t.w}" looks like it hides ${seems.join('/')} (${r.set}) but HIDDEN.${r.set} leaves that out, so the board scores it false. Swap the tile or add the word.`);
       });
