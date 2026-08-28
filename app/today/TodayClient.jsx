@@ -287,6 +287,15 @@ export default function TodayClient({ onSignup = null } = {}) {
   // The bar sticks under whatever masthead this page has, and the two differ
   // by width, so the offset is measured rather than hardcoded.
   const [barTop, setBarTop] = useState(0);
+  // THE BAR HAS NO GROUND UNTIL IT STICKS (owner, 2026-08-28). Painting it the
+  // page colour was not enough: any ground at all is a rectangle the moment the
+  // colour underneath it is not exactly that colour, which is every page whose
+  // ground is not #e7ecf3 and every future move of that literal. At rest the
+  // bar paints NOTHING, so there is nothing to line up and nothing to see. It
+  // takes an opaque ground only while it is pinned, where it needs one to be a
+  // floor for the tiles scrolling under it. Set from the same scroll listener
+  // the chip spy already runs, so it costs no extra listener.
+  const [stuck, setStuck] = useState(false);
   const dragFrom = useRef(null);
 
   useEffect(() => {
@@ -769,6 +778,16 @@ export default function TodayClient({ onSignup = null } = {}) {
         if (el.getBoundingClientRect().top - line <= 0) best = id;
       }
       setHere((cur) => (cur === best ? cur : best));
+      // Pinned when the bar has reached its own sticky offset. Read off the
+      // element rather than a scroll threshold, since the offset is itself a
+      // live measurement of whichever masthead this page carries.
+      try {
+        const bar = document.querySelector('.tdy-jb');
+        if (bar) {
+          const on = bar.getBoundingClientRect().top <= pinnedBarH() + 0.5;
+          setStuck((cur) => (cur === on ? cur : on));
+        }
+      } catch (x) {}
     };
     spy();
     window.addEventListener('scroll', spy, { passive: true });
@@ -929,7 +948,7 @@ export default function TodayClient({ onSignup = null } = {}) {
       <style>{CSS}</style>
 
       <div className="tdy-wrap">
-        <div className="tdy-jb" style={{ top: barTop }}>
+        <div className={'tdy-jb' + (stuck ? ' stuck' : '')} style={{ top: barTop }}>
           <div className="tdy-jbin">
             <div className={'tdy-jbtw' + (jbNav.l ? ' fl' : '') + (jbNav.r ? ' fr' : '')}>
             {jbNav.l ? <button type="button" className="tdy-jbar l" aria-label="Scroll categories left" onClick={() => jbNudge(-1)}>{'\u2039'}</button> : null}
@@ -1785,7 +1804,8 @@ const CSS = `
    colour), with no border and no blur, so it is invisible where it sits and
    simply an opaque floor for the tiles once it sticks. If the page ground ever
    moves, this literal and the two fade stops below move with it. */
-.tdy-jb{position:sticky;z-index:40;background:#e7ecf3;margin:14px 0 0;}
+.tdy-jb{position:sticky;z-index:40;background:transparent;margin:14px 0 0;}
+.tdy-jb.stuck{background:#e7ecf3;}
 .tdy-jbin{display:flex;align-items:center;gap:12px;padding:8px 2px;}
 .tdy-jbtw{position:relative;flex:1 1 auto;min-width:0;display:flex;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
