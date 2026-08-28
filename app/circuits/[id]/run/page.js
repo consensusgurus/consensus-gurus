@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import RunClient from './RunClient';
-import { circuitById, circuitKeysFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
+import { circuitById, circuitGamesFor, circuitKeysFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { SITE_URL } from '@/lib/site';
 
@@ -44,6 +44,15 @@ const BANKS = {
 
 export const dynamic = 'force-dynamic';
 
+// The house voice SPELLS a small count ("Twenty-five questions, one life"), and
+// this is the most visible string on the page, so "Five trivia quizzes" rather
+// than "5". Falls back to the numeral above seven, where spelling stops helping.
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven'];
+const spell = (n, cap = false) => {
+  const w = WORDS[n] || String(n);
+  return cap ? w.charAt(0).toUpperCase() + w.slice(1) : w;
+};
+
 function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -57,18 +66,48 @@ function dayFor(bank, today) {
   return open.length ? open[open.length - 1] : null;
 }
 
+// THE SHARE COPY. This link is meant to be sent to somebody who has never
+// played, so every string here is written for a cold reader rather than for
+// somebody already on the site.
+//
+// STAKES FIRST, and the twitter block is stated in full. A page that names no
+// twitter card inherits the ROOT layout's, which is the site boilerplate about
+// 1,000+ quizzes and 669 experts: true of the site, and nothing at all to do
+// with the thing being shared. That is what this page was doing.
+//
+// NO COMPETITOR MARK. The obvious line here is the name of a certain television
+// quiz show, and it is deliberately not used: the house rule is that a rival
+// game's trademark never appears in user-facing copy or metadata (the same
+// reason nothing on the site names Wordle, Connections or Jumble), and a quiz
+// product is exactly where such a mark gets enforced. "Quiz show practice"
+// carries the same meaning and belongs to us. Do not swap it back.
+//
+// NOTHING HERE CLAIMS A NUMBER WE HAVE NOT MEASURED. No "most players are out
+// by question ten": it reads well and we have not counted it. The stakes are
+// carried by what the game actually does, which is enough.
 export async function generateMetadata({ params }) {
   const c = circuitById(decodeURIComponent(params.id));
   if (!c) return {};
+  const games = circuitGamesFor(c.id, etTodayServer()).filter((g) => RUN_GAMES.includes(g.key));
+  const n = games.length || 5;
+  const url = `${SITE_URL}/circuits/${c.id}/run`;
+  const hook = `${spell(n, true)} trivia quizzes. One life each.`;
   return {
-    title: `${c.name} — Every Quiz In One Run | Mind Loft`,
-    description: `${c.name} played as one long quiz. Every daily trivia gauntlet back to back, one life in each, and one scorecard at the end.`,
+    title: `${c.name} — ${spell(n, true)} Trivia Quizzes, One Long Run | Mind Loft`,
+    description:
+      `Quiz show practice, ${spell(n)} rounds deep. Every daily trivia quiz played back to back as one run: a topic in depth, the whole map, every sport, the business of everything, and forty questions of anything at all. Twenty seconds a question, one life in each quiz, and one wrong answer ends it. Free, no signup, new questions every day.`,
     alternates: { canonical: `/circuits/${c.id}/run` },
     robots: { index: false, follow: true },
     openGraph: {
-      title: `${c.name} — one long quiz`,
-      description: 'Every daily trivia gauntlet back to back, one life in each.',
-      url: `${SITE_URL}/circuits/${c.id}/run`, type: 'website', siteName: 'Mind Loft',
+      title: hook,
+      description:
+        'Quiz show practice with the stakes left in. One wrong answer ends that quiz, the next one starts on its own, and you get one scorecard at the end.',
+      url, type: 'website', siteName: 'Mind Loft',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: hook,
+      description: 'One wrong answer ends the quiz. Then the next one starts. How far do you get?',
     },
   };
 }
