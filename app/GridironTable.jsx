@@ -32,6 +32,14 @@ function fmtDate(s) {
   return m ? `${MON[+m[2] - 1]} ${+m[3]}` : (s || 'undated');
 }
 
+// The methodology note reads "down to 1 for the {depth}th", and the depth is 32
+// for the NFL, so a hardcoded "th" printed "32th" on a live page.
+function ordinal(n) {
+  const t = n % 100;
+  if (t >= 11 && t <= 13) return `${n}th`;
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
+}
+
 export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
   const { ranked, weights, tierShare, depth, status } = computeComposite(data.sources, sport);
 
@@ -261,8 +269,8 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
 
         <div className="gr-notes">
           <b>How the composite is built.</b> Each source is truncated to its top {depth} and scored{' '}
-          {depth} points for first down to 1 for {depth}th; a team a source does not rank earns
-          nothing from it. Every source is then weighted by its tier share, split within the tier.
+          {depth} points for first down to 1 for {ordinal(depth)}; a team a source does not rank
+          earns nothing from it. Every source is then weighted by its tier share, split within the tier.
           Tier shares renormalize over the tiers that published this week, so a tier going dark never
           breaks the ranking, and a tier carrying only one source is capped at 35% because one outlet
           is not a tier. Ties break on how many sources ranked the team, then its single best rank,
