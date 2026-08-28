@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Check, X, Eye, EyeOff, LogOut, Pencil, Trash2, MapPin, ShieldAlert } from 'lucide-react';
@@ -45,14 +45,6 @@ function formatClock(secs) {
 // the simplest robust proxy for "separate sessions" without per-session
 // tracking: two games on the same day count as one session, games on different
 // days count separately.
-function dayKey(iso) {
-  if (!iso) return '';
-  try {
-    return new Date(iso).toDateString();
-  } catch {
-    return String(iso);
-  }
-}
 
 // Short date (no time) for the "last session" column.
 function formatDay(iso) {
@@ -341,6 +333,74 @@ function PlayHistoryTable({ plays, limit = DETAIL_ROWS, emptyNote }) {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ---- Per-play detail, fetched when a row is opened ------------------------
+// The page used to embed every player's whole play history in its own HTML so
+// that expanding a row had the detail ready. Measured on the live site
+// 2026-08-28 that was 72,254 play objects and ~34MB of a 35.7MB response, to
+// serve rows that get opened one at a time. The collapsed tables only ever
+// render each player's precomputed `stats`, which still ships with the page, so
+// the detail now arrives from /api/admin/player-plays on expand.
+//
+// Cached at module scope rather than in component state because the three
+// player tables (Signups, Anonymous, All Players) are separate components
+// showing overlapping people: opening the same player in two of them, or
+// closing and reopening a row, should not re-ask the server.
+const playsCache = new Map(); // playerKey -> plays[]
+
+function usePlayerPlays(playerKey, enabled) {
+  const [state, setState] = useState(() => ({
+    plays: playsCache.get(playerKey) || null,
+    error: null,
+  }));
+
+  useEffect(() => {
+    if (!enabled || !playerKey) return;
+    const hit = playsCache.get(playerKey);
+    if (hit) { setState({ plays: hit, error: null }); return; }
+    // Guards against a stale response landing after the admin has closed this
+    // row and opened another one.
+    let live = true;
+    setState({ plays: null, error: null });
+    fetch(`/api/admin/player-plays?key=${encodeURIComponent(playerKey)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((d) => {
+        const plays = Array.isArray(d.plays) ? d.plays : [];
+        playsCache.set(playerKey, plays);
+        if (live) setState({ plays, error: null });
+      })
+      .catch((e) => { if (live) setState({ plays: null, error: e.message || 'failed' }); });
+    return () => { live = false; };
+  }, [playerKey, enabled]);
+
+  return state;
+}
+
+// The whole expanded body of a player row: the summary (from stats the page
+// already shipped) plus the sessions and games tables (fetched). Replaces three
+// copies of the same three-component block.
+function PlayerDetail({ playerKey, stats, emptyNote }) {
+  const { plays, error } = usePlayerPlays(playerKey, true);
+  return (
+    <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
+      <PlayerSummary stats={stats} />
+      {error ? (
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.ember, margin: '8px 0' }}>
+          Could not load this player&apos;s games ({error}).
+        </p>
+      ) : plays == null ? (
+        <p style={{ fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontStyle: 'italic', fontSize: 10, color: COLORS.faded, margin: '8px 0' }}>
+          Loading games&hellip;
+        </p>
+      ) : (
+        <>
+          <SessionTable plays={plays} />
+          <PlayHistoryTable plays={plays} emptyNote={emptyNote} />
+        </>
+      )}
     </div>
   );
 }
@@ -1247,22 +1307,19 @@ function QuizSignupsPanel({ signups }) {
   const [expandedId, setExpandedId] = useState(null);
   const sort = useSort('recent', 'desc');
 
-  // Enrich each signup with its last-played timestamp and distinct days played
-  // (its "sessions"). Plays arrive newest-first from the server.
+  // Last-played and distinct days played come off the summary the server sends,
+  // not off a play list. They used to be recomputed here from every play row,
+  // which is the only reason those rows had to be in the page at all; stats
+  // already carries both (playerStats records lastSeen and activeDays from the
+  // same rows, server-side).
   const enriched = useMemo(
     () =>
-      (signups || []).map((s) => {
-        const plays = s.plays || [];
-        const playCount = s.playCount != null ? s.playCount : plays.length;
-        const lastPlayedAt = plays.length
-          ? plays.reduce(
-              (max, p) => (String(p.createdAt || '') > max ? String(p.createdAt || '') : max),
-              ''
-            )
-          : '';
-        const daysPlayed = new Set(plays.map((p) => dayKey(p.createdAt)).filter(Boolean)).size;
-        return { ...s, playCount, lastPlayedAt, daysPlayed };
-      }),
+      (signups || []).map((s) => ({
+        ...s,
+        playCount: s.playCount || 0,
+        lastPlayedAt: (s.stats && s.stats.lastSeen) || '',
+        daysPlayed: (s.stats && s.stats.activeDays) || 0,
+      })),
     [signups]
   );
 
@@ -1386,9 +1443,8 @@ function QuizSignupsPanel({ signups }) {
             <SortHead label="Joined" k="joined" sort={sort} flex="0 0 56px" align="right" />
           </div>
           {visible.map((s, i) => {
-            const plays = s.plays || [];
-            const playCount = s.playCount != null ? s.playCount : plays.length;
-            const daysPlayed = s.daysPlayed != null ? s.daysPlayed : new Set(plays.map((p) => dayKey(p.createdAt)).filter(Boolean)).size;
+            const playCount = s.playCount || 0;
+            const daysPlayed = s.daysPlayed || 0;
             const open = expandedId === s.id;
             return (
               <div key={s.id} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
@@ -1423,11 +1479,11 @@ function QuizSignupsPanel({ signups }) {
                   </span>
                 </div>
                 {open && (
-                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
-                    <PlayerSummary stats={s.stats} />
-                    <SessionTable plays={plays} />
-                    <PlayHistoryTable plays={plays} emptyNote="Signed up but hasn&apos;t completed a quiz yet." />
-                  </div>
+                  <PlayerDetail
+                    playerKey={`u:${s.id}`}
+                    stats={s.stats}
+                    emptyNote="Signed up but hasn&apos;t completed a quiz yet."
+                  />
                 )}
               </div>
             );
@@ -1835,7 +1891,6 @@ function AnonPlayersPanel({ players }) {
           </div>
           {visible.map((p, i) => {
             const open = expandedKey === p.key;
-            const history = p.history || [];
             return (
               <div key={p.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
                 <div onClick={() => setExpandedKey(open ? null : p.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
@@ -1851,13 +1906,7 @@ function AnonPlayersPanel({ players }) {
                   <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.stats && p.stats.firstSeen ? fmtShort(p.stats.firstSeen) : '\u2014'}</span>
                   <span style={{ flex: '0 0 118px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{p.lastPlayed ? fmtShortDateTime(p.lastPlayed) : '\u2014'}</span>
                 </div>
-                {open && (
-                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
-                    <PlayerSummary stats={p.stats} />
-                    <SessionTable plays={history} />
-                    <PlayHistoryTable plays={history} />
-                  </div>
-                )}
+                {open && <PlayerDetail playerKey={p.key} stats={p.stats} />}
               </div>
             );
           })}
@@ -1878,25 +1927,23 @@ function AllPlayersPanel({ signups, anonPlayers }) {
   const sort = useSort('last', 'desc');
 
   const rows = useMemo(() => {
-    const reg = (signups || []).map((s) => {
-      const plays = s.plays || [];
-      return {
-        key: `u:${s.id}`,
-        type: 'Registered',
-        name: s.username || '(no name)',
-        email: s.email || null,
-        plays: s.playCount != null ? s.playCount : plays.length,
-        sessions: s.stats ? s.stats.sessions : 0,
-        lastAt: (plays[0] && plays[0].createdAt) || '',
-        accuracy: s.stats ? s.stats.accuracy : null,
-        firstSeen: s.stats ? s.stats.firstSeen : null,
-        devices: s.devices,
-        oses: s.oses,
-        geos: s.geos,
-        stats: s.stats,
-        history: plays,
-      };
-    });
+    const reg = (signups || []).map((s) => ({
+      key: `u:${s.id}`,
+      type: 'Registered',
+      name: s.username || '(no name)',
+      email: s.email || null,
+      plays: s.playCount || 0,
+      sessions: s.stats ? s.stats.sessions : 0,
+      // stats.lastSeen, not plays[0].createdAt: the play list is no longer in
+      // the page, and playerStats derived both from the same rows anyway.
+      lastAt: (s.stats && s.stats.lastSeen) || '',
+      accuracy: s.stats ? s.stats.accuracy : null,
+      firstSeen: s.stats ? s.stats.firstSeen : null,
+      devices: s.devices,
+      oses: s.oses,
+      geos: s.geos,
+      stats: s.stats,
+    }));
     const anon = (anonPlayers || []).map((p) => ({
       key: p.key,
       type: 'Anonymous',
@@ -1911,7 +1958,6 @@ function AllPlayersPanel({ signups, anonPlayers }) {
       oses: p.oses,
       geos: p.geos,
       stats: p.stats,
-      history: p.history || [],
     }));
     return [...reg, ...anon];
   }, [signups, anonPlayers]);
@@ -1977,7 +2023,6 @@ function AllPlayersPanel({ signups, anonPlayers }) {
           {visible.map((r, i) => {
             const open = expandedKey === r.key;
             const reg = r.type === 'Registered';
-            const history = r.history || [];
             return (
               <div key={r.key} style={{ borderBottom: i < visible.length - 1 ? rowBorder : 'none' }}>
                 <div onClick={() => setExpandedKey(open ? null : r.key)} style={{ display: 'flex', gap: 16, alignItems: 'center', fontFamily: 'Manrope, system-ui, -apple-system, sans-serif', fontSize: 10, color: COLORS.ink, padding: '3px 14px', cursor: 'pointer', background: open ? `${COLORS.ink}0a` : 'transparent' }}>
@@ -1998,13 +2043,7 @@ function AllPlayersPanel({ signups, anonPlayers }) {
                   <span style={{ flex: '0 0 60px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.firstSeen ? fmtShort(r.firstSeen) : '—'}</span>
                   <span style={{ flex: '0 0 118px', textAlign: 'right', fontFamily: 'DM Mono, monospace', fontSize: 10, color: COLORS.faded }}>{r.lastAt ? fmtShortDateTime(r.lastAt) : '—'}</span>
                 </div>
-                {open && (
-                  <div style={{ padding: '4px 14px 14px 48px', background: `${COLORS.ink}0a` }}>
-                    <PlayerSummary stats={r.stats} />
-                    <SessionTable plays={history} />
-                    <PlayHistoryTable plays={history} />
-                  </div>
-                )}
+                {open && <PlayerDetail playerKey={r.key} stats={r.stats} />}
               </div>
             );
           })}
@@ -2097,6 +2136,25 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
   const [view, setView] = useState('plays');
   const [playsView, setPlaysView] = useState('all');
   const [pvView, setPvView] = useState('all');
+  const [gamesBusy, setGamesBusy] = useState(false);
+
+  // One row per completed game, so this is the one export that still needs the
+  // per-play detail the page stopped shipping. It is a deliberate whole-table
+  // read behind an explicit click rather than a cost every page load pays.
+  const exportGames = async () => {
+    if (gamesBusy) return;
+    setGamesBusy(true);
+    try {
+      const r = await fetch('/api/admin/player-plays?all=1');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = await r.json();
+      exportGamesCsv(d.players || []);
+    } catch (e) {
+      alert(`Could not build the games CSV: ${e.message || e}`);
+    } finally {
+      setGamesBusy(false);
+    }
+  };
   const regCount = (signups || []).length;
   const anonCount = (anonPlayers || []).length;
   const listCount = (views || []).length;
@@ -2157,6 +2215,9 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
     <div>
       <ActiveUsersStrip data={activeUsers} />
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
+        {/* The games CSV is one row per completed game, so it needs the play
+            detail the page no longer carries. It fetches it on click, which is
+            the right moment to pay for it. */}
         {tabs.map(([key, label, count]) => {
           const on = view === key;
           return (
@@ -2175,11 +2236,12 @@ function AnalyticsPanel({ views, viewsTotal, quizStats, quizPlaysTotal, signups,
             ↓ Users CSV
           </button>
           <button
-            onClick={() => exportGamesCsv(signups, anonPlayers)}
+            onClick={exportGames}
+            disabled={gamesBusy}
             title="One row per completed game with the per-play detail the expanded rows show: quiz, score, correct, time, device, OS, browser, location, timezone, language, referrer"
-            style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: 'pointer' }}
+            style={{ padding: '7px 12px', background: COLORS.ink, border: `1px solid ${COLORS.ink}`, color: COLORS.cream, fontFamily: 'DM Mono, monospace', fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, cursor: gamesBusy ? 'wait' : 'pointer', opacity: gamesBusy ? 0.6 : 1 }}
           >
-            ↓ Games CSV
+            {gamesBusy ? '↓ Building…' : '↓ Games CSV'}
           </button>
         </div>
       </div>

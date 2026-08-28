@@ -1,8 +1,12 @@
 'use client';
-// Shared CSV export helpers for the admin Analytics tabs. Everything runs in
-// the browser from data the admin page already loaded — no extra server or DB
-// work. Files are UTF-8 with a BOM so Excel renders accented values (Málaga,
-// Besançon) correctly.
+// Shared CSV export helpers for the admin Analytics tabs. Files are UTF-8 with
+// a BOM so Excel renders accented values (Málaga, Besançon) correctly.
+//
+// The users export runs entirely in the browser from the per-player summaries
+// the page already carries. The games export is one row per completed game, so
+// since 2026-08-28 it takes rows fetched from /api/admin/player-plays?all=1
+// rather than reading them out of the page: that detail was 72,254 objects and
+// ~34MB of the admin response, and it now loads only when someone asks for it.
 
 function csvEscape(v) {
   const s = v == null ? '' : String(v);
@@ -59,8 +63,10 @@ export function buildUsersCsv(signups, anonPlayers) {
   };
   const rows = [];
   for (const s of signups || []) {
-    const plays = s.plays || [];
-    rows.push(statRow(s.username || '(no name)', 'Registered', s.email, s.createdAt, s.stats, plays[0] && plays[0].createdAt));
+    // Last seen comes from the summary. It used to be read off the newest play
+    // row, which is the same value by construction (playerStats derives
+    // lastSeen from those rows) but required the whole play list to be present.
+    rows.push(statRow(s.username || '(no name)', 'Registered', s.email, s.createdAt, s.stats, s.stats && s.stats.lastSeen));
   }
   for (const p of anonPlayers || []) {
     rows.push(statRow(p.label, 'Anonymous', '', '', p.stats, p.lastPlayed));
@@ -74,8 +80,9 @@ export function exportUsersCsv(signups, anonPlayers) {
 }
 
 // One row per completed game, newest first — the same per-play detail the
-// player tables show when a row is expanded.
-export function buildGamesCsv(signups, anonPlayers) {
+// player tables show when a row is expanded. `players` is the payload of
+// /api/admin/player-plays?all=1: [{ key, type, name, email, plays: [...] }].
+export function buildGamesCsv(players) {
   const head = [
     'Played at', 'Player', 'Type', 'Email', 'Quiz', 'Quiz id',
     'Score', 'Max', 'Correct', 'Time (s)',
@@ -89,17 +96,16 @@ export function buildGamesCsv(signups, anonPlayers) {
     g.timezone || '', g.language || '', g.referrer || '',
   ];
   const rows = [];
-  for (const s of signups || []) {
-    for (const g of s.plays || []) rows.push(playRow(s.username || '(no name)', 'Registered', s.email, g));
-  }
-  for (const p of anonPlayers || []) {
-    for (const g of p.history || []) rows.push(playRow(p.label, 'Anonymous', '', g));
+  for (const p of players || []) {
+    for (const g of p.plays || []) {
+      rows.push(playRow(p.name || '(no name)', p.type || '', p.email, g));
+    }
   }
   rows.sort((a, b) => String(b[0]).localeCompare(String(a[0])));
   return { head, rows };
 }
 
-export function exportGamesCsv(signups, anonPlayers) {
-  const { head, rows } = buildGamesCsv(signups, anonPlayers);
+export function exportGamesCsv(players) {
+  const { head, rows } = buildGamesCsv(players);
   downloadCsvFile('sot-games-detail', head, rows);
 }

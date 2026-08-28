@@ -1,6 +1,9 @@
 import { isAdmin } from '@/lib/admin-auth';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { fetchAllRows } from '@/lib/fetch-all';
+import { loadAdminResultsCached } from '@/lib/admin-results-cache';
+import { playerKey, playMeta, playRow } from '@/lib/admin-plays';
+import { buildQuizTitles, TRACKED_PAGES } from '@/lib/admin-quiz-titles';
 import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 import { LISTS } from '@/lib/data';
@@ -13,47 +16,17 @@ import { HERO_IMAGES } from '@/lib/hero-images';
 
 export const dynamic = 'force-dynamic';
 
-// quiz_results carries optional metadata columns added over several migrations
-// (correct_count -> 24, is_mobile -> 25, country/region/ua_browser/ua_os -> 26,
-// city/timezone/referrer/language -> 27) that may not all be applied yet. Read
-// the richest column set, and on a missing-column error progressively drop the
-// newest columns, so the admin page never hard-fails on a not-yet-migrated DB.
-async function fetchQuizResults() {
-  const order = [['created_at', false], 'id'];
-  const colSets = [
-    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os, city, timezone, referrer, language',
-    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id, is_mobile, country, region, ua_browser, ua_os',
-    'id, quiz_id, user_id, score, total, correct_count, time_elapsed, created_at, anon_id',
-    'id, quiz_id, user_id, score, total, time_elapsed, created_at, anon_id',
-    'id, quiz_id, user_id, score, total, time_elapsed, created_at',
-  ];
-  let last = null;
-  for (const cols of colSets) {
-    last = await fetchAllRows(supabaseAdmin, 'quiz_results', cols, order);
-    if (!last.error) return last;
-    const code = last.error.code;
-    const missing = code === '42703' || code === 'PGRST204' || /column|schema cache/i.test(last.error.message || '');
-    if (!missing) return last; // a real error, not a missing column — surface it
-  }
-  return last;
-}
-
-// Per-play traffic metadata, derived from a quiz_results row. device is
-// Mobile/Desktop from is_mobile (null -> "—"); geo is the finest available
-// "City, Region, Country" (e.g. "Austin, TX, US"); browser/os are the coarse
-// parsed user-agent; timezone/language/referrer come from migration 27.
-function playMeta(r) {
-  const geoParts = [r.city, r.region, r.country].filter(Boolean);
-  return {
-    device: r.is_mobile === true ? 'Mobile' : r.is_mobile === false ? 'Desktop' : null,
-    geo: geoParts.length ? geoParts.join(', ') : null,
-    browser: r.ua_browser || null,
-    os: r.ua_os || null,
-    timezone: r.timezone || null,
-    language: r.language || null,
-    referrer: r.referrer || null,
-  };
-}
+// quiz_results is read through lib/admin-results-cache.js (2026-08-28). It was
+// read here with fetchAllRows on every single load: ~73 sequential 1000-row
+// round trips, no reuse between loads, and a column-tier probe that re-paged the
+// whole table from scratch for each tier it had to drop. Measured on the live
+// site: 34.9s TTFB, identical across three consecutive loads. The cache keeps
+// the rows in-process and refreshes with a count plus a delta, which is what
+// every /api/quiz/* route has done since July.
+//
+// playMeta and the player-key rule now live in lib/admin-plays.js, shared with
+// /api/admin/player-plays so the summary here and the detail behind an expanded
+// row cannot disagree.
 
 // Distinct non-null values of a field across a player's plays, preserving the
 // plays' order (which arrives newest-first), so the admin MultiCell shows the
@@ -169,7 +142,7 @@ function activePlayerCounts(rows) {
     if (Number.isNaN(t)) continue;
     const age = now - t;
     if (age > 30 * DAY) continue;
-    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const key = playerKey(r);
     mau.add(key);
     if (age <= 7 * DAY) wau.add(key);
     if (age <= DAY) dau.add(key);
@@ -195,7 +168,7 @@ function buildDailyRetention(rows) {
     const m = DAILY_PREFIX_RE.exec(qid);
     if (!m) continue;
     const gk = m[1];
-    const pkey = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const pkey = playerKey(r);
     const gmap = perGame.get(gk);
     let set = gmap.get(pkey);
     if (!set) { set = new Set(); gmap.set(pkey, set); }
@@ -247,7 +220,7 @@ function buildNewUsersByDay(results, users) {
     if (!r.created_at) continue;
     const t = new Date(r.created_at).getTime();
     if (Number.isNaN(t)) continue;
-    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const key = playerKey(r);
     const prev = firstMs.get(key);
     if (prev == null || t < prev) firstMs.set(key, t);
   }
@@ -485,7 +458,7 @@ function buildTopPlayersToday(rows, signups, anonBase, quizTitles, limit = 10) {
     if (Number.isNaN(d.getTime())) continue;
     if (etParts(d).day !== today) continue;
 
-    const key = r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const key = playerKey(r);
     let g = byPlayer.get(key);
     if (!g) {
       g = {
@@ -572,7 +545,7 @@ function buildTopPlayersToday(rows, signups, anonBase, quizTitles, limit = 10) {
 // figures for TODAY's puzzle (Eastern date).
 function buildDailyByGame(rows) {
   const today = etParts(new Date()).day; // YYYY-MM-DD in America/New_York
-  const playerKeyOf = (r) => (r.user_id ? `u:${r.user_id}` : r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`);
+  const playerKeyOf = playerKey;
   const stats = new Map(
     DAILY_GAMES.map((g) => [
       g.key,
@@ -678,16 +651,11 @@ export default async function AdminPage() {
     redirect('/admin/login');
   }
 
-  const [submissionsRes, extrasRes, votesRes, complaintsRes, voteEventsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes, quizTrendingRes, quizTotalViewsRes, quizResultsRes, visitorActiveRes] = await Promise.all([
+  const [submissionsRes, extrasRes, votesRes, complaintsRes, alertsRes, trendingRes, totalViewsRes, listCommentsRes, voteCountsRes, editorNotesRes, quizUsersRes, quizTrendingRes, quizTotalViewsRes, quizResultsRes, visitorActiveRes] = await Promise.all([
     fetchAllRows(supabaseAdmin, 'user_lists', '*', [['submitted_at', false], 'id']),
     fetchAllRows(supabaseAdmin, 'extras', 'list_id, item_name, added_at', [['added_at', false], 'list_id', 'item_name']),
     fetchAllRows(supabaseAdmin, 'votes', 'list_id, item_name, score, updated_at', [['updated_at', false], 'list_id', 'item_name']),
     fetchAllRows(supabaseAdmin, 'complaints', '*', [['created_at', false], 'id']),
-    supabaseAdmin
-      .from('vote_events')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200),
     supabaseAdmin
       .from('consensus_alerts')
       .select('id, list_id, item_name, change_type, rank, detected_at')
@@ -696,7 +664,7 @@ export default async function AdminPage() {
     supabaseAdmin.rpc('trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'views', 'list_id, count', ['list_id']),
     fetchAllRows(supabaseAdmin, 'list_comments', 'id, list_id, name, body, created_at, editor_response', [['created_at', false], 'id']),
-    fetchAllRows(supabaseAdmin, 'vote_events', 'list_id, item_name', ['id']),
+    fetchAllRows(supabaseAdmin, 'vote_events', 'id, list_id, item_name, delta, created_at', ['id']),
     fetchAllRows(supabaseAdmin, 'list_editor_notes', 'id, list_id, note, created_at', [['created_at', false], 'id']),
     // Quiz email signups (the /quiz join form). Service-role read; quiz_users
     // has RLS with no policies, so only the admin key can see the emails.
@@ -706,7 +674,7 @@ export default async function AdminPage() {
     // counts + average score per quiz.
     supabaseAdmin.rpc('quiz_trending_views', { p_hours: 24 }),
     fetchAllRows(supabaseAdmin, 'quiz_views', 'quiz_id, count', ['quiz_id']),
-    fetchQuizResults(),
+    loadAdminResultsCached(supabaseAdmin),
     // Site-wide distinct-visitor DAU/WAU/MAU (migration 30). Best-effort:
     // returns an error if the RPC/columns aren't applied yet, handled below.
     supabaseAdmin.rpc('visitor_active_counts'),
@@ -773,8 +741,8 @@ export default async function AdminPage() {
     editorResponse: row.editor_response || null,
   }));
 
-  if (voteEventsRes && voteEventsRes.error) {
-    console.error('admin vote_events fetch error', voteEventsRes.error);
+  if (voteCountsRes && voteCountsRes.error) {
+    console.error('admin vote_events fetch error', voteCountsRes.error);
   }
   const voteCountMap = new Map();
   for (const ev of (voteCountsRes && voteCountsRes.data) || []) {
@@ -796,13 +764,21 @@ export default async function AdminPage() {
     createdAt: row.created_at,
     editorResponse: row.editor_response || null,
   }));
-  const voteEvents = ((voteEventsRes && voteEventsRes.data) || []).map((row) => ({
-    id: row.id,
-    listId: row.list_id,
-    itemName: row.item_name,
-    delta: row.delta,
-    createdAt: row.created_at,
-  }));
+  // vote_events was read TWICE: once as select('*') limited to the newest 200
+  // for display, and again in full for the per-item counts. One read of the
+  // five columns either use serves both. Native voting was removed 2026-06-18,
+  // so this table no longer grows.
+  const voteEvents = ((voteCountsRes && voteCountsRes.data) || [])
+    .slice()
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+    .slice(0, 200)
+    .map((row) => ({
+      id: row.id,
+      listId: row.list_id,
+      itemName: row.item_name,
+      delta: row.delta,
+      createdAt: row.created_at,
+    }));
 
   if (alertsRes && alertsRes.error) {
     console.error('admin consensus_alerts fetch error', alertsRes.error);
@@ -900,27 +876,10 @@ export default async function AdminPage() {
     quizScoreSumMap.set(r.quiz_id, (quizScoreSumMap.get(r.quiz_id) || 0) + (Number(r.score) || 0));
     if (r.is_mobile === true) quizMobileMap.set(r.quiz_id, (quizMobileMap.get(r.quiz_id) || 0) + 1);
   }
-  const quizTitles = new Map((Array.isArray(QUIZZES) ? QUIZZES : []).map((q) => [q.id, q.title]));
-  // Non-quiz pages whose page views are tracked through the quiz-view system so
-  // they surface in this analytics panel. Adding an entry is COSMETIC: a tracked
-  // id shows up here on its own, this map only gives the row a real title and a
-  // working link instead of the raw id and a dead /quiz/<id>. Every id below is
-  // RESERVED; never create a real quiz with one.
-  const TRACKED_PAGES = {
-    kids: { title: 'Kids Corner (hub)', href: '/kids' },
-    'kids-memory-match': { title: 'Kids · Treats Match', href: '/kids/memory-match' },
-    'kids-pizza-match': { title: 'Kids · Pizza Match', href: '/kids/pizza-match' },
-    'kids-dog-match': { title: 'Kids · Dog Match', href: '/kids/dog-match' },
-    'kids-color-match': { title: 'Kids · Color Match', href: '/kids/color-match' },
-    'kids-addition-match': { title: 'Kids · Addition Match', href: '/kids/addition-match' },
-    'kids-letter-match': { title: 'Kids · Letter Match', href: '/kids/letter-match' },
-    'kids-fantasy-match': { title: 'Kids · Fantasy Match', href: '/kids/fantasy-match' },
-    'kids-word-match': { title: 'Kids · Word Match', href: '/kids/word-match' },
-    'kids-number-match': { title: 'Kids · Number Match', href: '/kids/number-match' },
-    'cfb-rankings': { title: 'Sports · College Football Rankings', href: '/collegefootballrankings' },
-    'nfl-rankings': { title: 'Sports · NFL Power Rankings', href: '/nflrankings' },
-  };
-  for (const [id, m] of Object.entries(TRACKED_PAGES)) quizTitles.set(id, m.title);
+  // TRACKED_PAGES and this map moved to lib/admin-quiz-titles.js, shared with
+  // /api/admin/player-plays so a play is titled the same way in the summary
+  // here and in the detail the route serves behind an expanded row.
+  const quizTitles = buildQuizTitles();
   // Per-signup play history: every completed game attributed to each user
   // (quiz_results.user_id -> quiz_users.id), newest first, with the quiz title
   // resolved. Lets the Quiz Signups panel show which quizzes a person played
@@ -929,16 +888,7 @@ export default async function AdminPage() {
   for (const r of (quizResultsRes && quizResultsRes.data) || []) {
     if (!r.user_id) continue;
     if (!playsByUser.has(r.user_id)) playsByUser.set(r.user_id, []);
-    playsByUser.get(r.user_id).push({
-      quizId: r.quiz_id,
-      title: quizTitles.get(r.quiz_id) || r.quiz_id,
-      score: r.score,
-      total: r.total,
-      correct: r.correct_count != null ? r.correct_count : null,
-      timeElapsed: r.time_elapsed,
-      createdAt: r.created_at,
-      ...playMeta(r),
-    });
+    playsByUser.get(r.user_id).push(playRow(r, quizTitles.get(r.quiz_id)));
   }
   // Anonymous players: completed games with no signed-up user_id, batched by
   // browser (anon_id) under a stable random number. Mirrors the signups table.
@@ -950,19 +900,18 @@ export default async function AdminPage() {
   const anonHistoryByKey = new Map();
   for (const r of (quizResultsRes && quizResultsRes.data) || []) {
     if (r.user_id) continue;
-    const key = r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`;
+    const key = playerKey(r);
     if (!anonHistoryByKey.has(key)) anonHistoryByKey.set(key, []);
-    anonHistoryByKey.get(key).push({
-      quizId: r.quiz_id,
-      title: quizTitles.get(r.quiz_id) || r.quiz_id,
-      score: r.score,
-      total: r.total,
-      correct: r.correct_count != null ? r.correct_count : null,
-      timeElapsed: r.time_elapsed,
-      createdAt: r.created_at,
-      ...playMeta(r),
-    });
+    anonHistoryByKey.get(key).push(playRow(r, quizTitles.get(r.quiz_id)));
   }
+  // NOTE the absence of `history` / `plays` in what these two hand back. The
+  // per-play detail used to ship inside this page so an expanded row had it
+  // ready: measured 2026-08-28 that was 72,254 play objects and ~34MB of a
+  // 35.7MB response, to serve rows the admin opens one at a time. The collapsed
+  // tables render `stats` alone, which is a couple of dozen scalars, so the
+  // detail now comes from /api/admin/player-plays on expand. The arrays are
+  // still built here because playerStats is computed from them; they simply
+  // stop at the network boundary.
   const anonPlayers = anonPlayersBase.map((p) => {
     const history = (anonHistoryByKey.get(p.key) || []).sort((a, b) =>
       String(b.createdAt || '').localeCompare(String(a.createdAt || ''))
@@ -970,7 +919,7 @@ export default async function AdminPage() {
     const stats = playerStats(history);
     return {
       ...p,
-      history,
+      playCount: history.length,
       stats,
       devices: stats.devices,
       browsers: stats.browsers,
@@ -986,7 +935,6 @@ export default async function AdminPage() {
     const stats = playerStats(plays);
     return {
       ...s,
-      plays,
       playCount: plays.length,
       stats,
       devices: stats.devices,
