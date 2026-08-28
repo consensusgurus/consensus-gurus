@@ -314,7 +314,26 @@ export default function TodayClient({ onSignup = null } = {}) {
     window.addEventListener('resize', upd);
     // The masthead can settle after its own fonts and chips land.
     const t = setTimeout(upd, 500);
-    return () => { window.removeEventListener('resize', upd); clearTimeout(t); };
+    // AND IT CHANGES HEIGHT LATER, with no resize event to announce it: the
+    // stats row reads differently once the player's own row lands, and a
+    // longer handle can wrap. A one-off measurement plus a 500ms retry then
+    // leaves the bar pinned to a height the masthead no longer has, and the
+    // difference is a strip of page content scrolling through the gap.
+    // Watch the elements themselves; the callback is the same idempotent
+    // setState, so an extra fire costs a comparison.
+    let ro = null;
+    try {
+      ro = new ResizeObserver(upd);
+      for (const sel of ['.qch-bar', '.qchm-r1', '.qchm']) {
+        const el = document.querySelector(sel);
+        if (el) ro.observe(el);
+      }
+    } catch (e) {}
+    return () => {
+      window.removeEventListener('resize', upd);
+      clearTimeout(t);
+      if (ro) ro.disconnect();
+    };
   }, []);
 
   const catPlays = useMemo(() => {
@@ -1957,6 +1976,26 @@ const CSS = `
      load-bearing: the jump bar's own rules are declared AFTER that block, so at
      equal specificity they win. A copy up there is a copy that does nothing. */
   .tdy-jb{margin-top:0;}
+  /* THE SEAM UNDER THE MASTHEAD (owner, 2026-08-28). The masthead and this bar
+     are two separately sticky elements, so they are two compositor layers, and
+     during a phone's momentum scroll one can be repositioned a frame after the
+     other. Sampled mid-scroll on the live site: the masthead's bottom read 1px
+     while the bar was already pinned at 114, which is a 113px window of page
+     content opening between the blue rule and the buttons.
+
+     So the bar paints the masthead's own bottom edge upward into the space the
+     masthead is supposed to occupy: its lower row's navy, its upper row's navy
+     above that, and the 3px blue rule flush against the bar's top. The masthead
+     is z-index 90 to this bar's 40, so it covers all of this whenever it is
+     where it belongs; nothing about the resting page changes. This only decides
+     what a dropped frame shows, and page content is the one answer that reads
+     as a bug.
+
+     Only while pinned. At rest the bar sits in the flow with real content above
+     it, and a navy block there would be a bug rather than a backstop. The
+     stop positions mirror the masthead's two rows and are cosmetic: they are
+     never seen except for a frame, so drift costs nothing. */
+  .tdy-jb.stuck::before{content:'';position:absolute;left:0;right:0;bottom:100%;height:160px;pointer-events:none;background:linear-gradient(to top,#2563eb 0 3px,#101d44 3px 59px,#233a63 59px 100%);}
   /* ONE HEIGHT FOR BOTH ROWS (owner, 2026-08-28), declared once here and taken
      as a min-height by both, rather than left to fall out of two different
      paddings around two different content boxes. A button's box is its own
