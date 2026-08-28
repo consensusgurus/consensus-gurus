@@ -77,6 +77,19 @@
 //    copy the reader sees is British, while the answer the reader TYPES may be
 //    in either dialect. Prefer a neutral word over either flag when one exists,
 //    which is why "pry bar" became "crowbar" rather than "jemmy".
+//    WATCH THE FALSE FRIENDS (2026-08-28, an English player on stet-8-28-26:
+//    "here in England a draft is a first copy of something: draught is a rush of
+//    air"). Item 4 was CLEAN copy reading "a persistent draft under the door",
+//    and the US_ONLY list sailed past it because "draft" is also ordinary
+//    British English in another sense — a first version. A one-way blocklist
+//    cannot catch a word that is only American in ONE of its meanings, so
+//    verify-stet.mjs carries a second list, FALSE_FRIENDS, that fires on the
+//    word plus a context word from the US sense (draft/draught, check/cheque,
+//    fall/autumn, curb/kerb). The cleanNote is the other tell, and it is the
+//    cheaper one: this item's note read "draft is acceptable US style for a
+//    current of air", which is the bank admitting in writing that a British
+//    reader would flag it. A clean item that has to defend itself on dialect
+//    grounds IS the bug, and the checker now fails it.
 //  - AND THE FIX MUST BE FINDABLE (owner ruling 2026-08-15, after a second
 //    complaint of the same shape as the cyclist one: "for #5 there are no
 //    context clues to indicate the cyclist was cautioned rather than fined,
@@ -1458,9 +1471,9 @@ export const PUZZLES = [
         errors: [{ wrong: "seller", fix: "cellar", kind: 'wordchoice', note: "A cellar is an underground room; a seller is someone who sells." }],
       },
       {
-        text: "The tenant complained of a persistent draft under the door.",
+        text: "The tenant complained of a persistent draught under the door.",
         errors: [],
-        cleanNote: "Clean copy: draft is acceptable US style for a current of air.",
+        cleanNote: "Clean copy: a draught is the current of air; a draft is a first version.",
       },
       {
         text: "The society restored the sundial and its knomon.",

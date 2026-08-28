@@ -48,7 +48,33 @@ const US_ONLY = [
   [/\btraveled\b/i, 'travelled'], [/\btraveling\b/i, 'travelling'],
   [/\bcanceled\b/i, 'cancelled'], [/\bjewelry\b/i, 'jewellery'],
   [/\bplowed?\b/i, 'ploughed'], [/\bcatalogs?\b/i, 'catalogue'],
+  [/\bnormalcy\b/i, 'normality'], [/\bmath\b/i, 'maths'],
+  [/\bvacations?\b/i, 'holiday'], [/\bcandy\b/i, 'sweets'],
+  [/\bcookies?\b/i, 'biscuit'], [/\bpopsicles?\b/i, 'ice lolly'],
+  [/\bsneakers?\b/i, 'trainers'], [/\bwindshields?\b/i, 'windscreen'],
+  [/\bdumpsters?\b/i, 'skip'], [/\bcell ?phones?\b/i, 'mobile'],
+  [/\bhardware stores?\b/i, 'ironmonger'], [/\bliquor stores?\b/i, 'off-licence'],
 ];
+// FALSE FRIENDS (owner ruling 2026-08-28, after an English player wrote in about
+// stet-8-28-26: "here in England a draft is a first copy of something: draught is
+// a rush of air"). Item 4 was CLEAN copy — "a persistent draft under the door" —
+// and every entry in US_ONLY above is a word that is American in ALL its senses,
+// so a one-way list can never catch this shape. "Draft" is perfectly good British
+// English for a first version; it is only an Americanism when the sentence means
+// a current of air. So these fire on the word AND a context word from the US
+// sense, which is exactly what keeps the correct British uses already in the bank
+// out of the net: a porter's trunk (#35.3) and the fall of a drain (#44.3) carry
+// no context word and pass, as they must.
+const FALSE_FRIENDS = [
+  [/\bdrafts?\b/i, /\b(air|door|doorway|window|chimney|flue|draughty|beer|ale|cask|hull|keel)\b/i, 'draught'],
+  [/\bchecks?\b/i, /\b(bank|cashed|cheque|payable|signed|account|£)\b/i, 'cheque'],
+  [/\bfall\b/i, /\b(semester|foliage|leaves turned|winter|spring|summer)\b/i, 'autumn'],
+  [/\bcurbs?\b/i, /\b(pavement|kerb|gutter|roadside|parked|wheels?)\b/i, 'kerb'],
+  [/\bfirst floor\b/i, /\b(stairs?|lift|ground floor|storey)\b/i, 'ground floor'],
+];
+// A clean item whose note argues from dialect is the bug stating itself: the
+// whole point of clean copy is that a British reader wants to tap nothing in it.
+const DIALECT_NOTE = /\b(british|american|americani[sz]ed?|US|U\.S\.|UK|transatlantic)\b/;
 const PREFERENCE_NOTE = /\b(british|american)\b|\b(usual|normal|standard|customary|preferred|conventional|accepted|modern)(ly)?\s+(\w+\s+){0,2}(term|word|name|spelling|form|usage)\b|\bplain (term|word)\b|\bmore usual\b|\bin this trade\b|\b(written as |is )?(a )?(one|single) word\b|\bmodern usage\b|\bthe general term\b|\bdialect variant\b/i;
 // ---------------------------------------------------------------------------
 // THE FIX MUST BE FINDABLE (owner ruling 2026-08-15, after a second complaint
@@ -222,6 +248,10 @@ for (const p of PUZZLES) {
         const m = it.text.match(re);
         if (m) err(`#${p.num}.${i + 1}: "${m[0]}" is American. The bank reads British, so it lures a flag onto correct copy — use "${uk}"`);
       }
+      for (const [re, ctx, uk] of FALSE_FRIENDS) {
+        const m = it.text.match(re);
+        if (m && ctx.test(it.text)) err(`#${p.num}.${i + 1}: "${m[0]}" is the American sense here. It is good British English elsewhere, which is why US_ONLY misses it — use "${uk}"`);
+      }
     });
   }
   let dayClean = 0, dayErrors = 0, dayGrammar = 0;
@@ -233,6 +263,10 @@ for (const p of PUZZLES) {
     if (it.errors.length === 0) {
       dayClean++; cleanItems++;
       if (!it.cleanNote || it.cleanNote.length < 15 || it.cleanNote.length > 140) err(`#${p.num}.${i + 1}: clean item needs a cleanNote (15–140 chars)`);
+      if (p.live >= BRITISH_VOICE_FROM) {
+        const d = (it.cleanNote || '').match(DIALECT_NOTE);
+        if (d) err(`#${p.num}.${i + 1}: cleanNote defends the sentence on dialect grounds ("${d[0]}") — clean copy a British reader would flag is not clean, so re-cut the sentence rather than excusing it in the note`);
+      }
       return;
     }
     if (it.errors.length === 2) doubles++;
