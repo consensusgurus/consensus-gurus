@@ -73,28 +73,26 @@ export default function NflRankingsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <SiteHeader active="rankings" />
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 24px 40px' }}>
-        <div style={{ paddingBottom: 20, marginBottom: 22, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 20px 40px' }}>
+        <div style={{ paddingBottom: 13, marginBottom: 14, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 9, color: T.goldInk,
             fontSize: 10.5, fontWeight: 800, letterSpacing: '0.16em',
-            textTransform: 'uppercase', marginBottom: 10,
+            textTransform: 'uppercase', marginBottom: 7,
           }}>
             <span style={{ width: 22, height: 3, borderRadius: 2, background: T.gold, display: 'inline-block' }} />
             The Sports Ranking Source of Truth
           </div>
           <h1 style={{
-            fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(30px, 6vw, 52px)',
-            lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, color: T.ink,
+            fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(25px, 4.6vw, 40px)',
+            lineHeight: 1.03, letterSpacing: '-0.03em', margin: 0, color: T.ink,
           }}>
             NFL <span style={{ color: T.accent }}>consensus power rankings</span>
           </h1>
-          <p style={{ marginTop: 15, maxWidth: 700, fontSize: 16, lineHeight: 1.6, color: T.muted }}>
-            Every ranking scored into one. The NFL has no official poll, so the consensus is built
-            from three independent kinds of signal: analytics models, betting markets, and media
-            power rankings. Each is scored 1 to 32 by position and weighted by tier rather than by
-            outlet, so no single publication can dominate, and a tier carrying only one source is
-            capped. Sources that have stopped updating are excluded but still shown.
+          <p style={{ marginTop: 10, maxWidth: 660, fontSize: 15, lineHeight: 1.55, color: T.muted }}>
+            Every NFL ranking scored into one. Betting markets and analytics models carry the most
+            weight because they carry the least bias: money and math have no attachment to a brand
+            name, while media voters lean on reputation and on last season.
           </p>
         </div>
 

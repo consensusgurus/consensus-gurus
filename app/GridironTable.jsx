@@ -169,6 +169,11 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
   .gr-tk{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
     letter-spacing:.06em;text-transform:uppercase;color:var(--slate);}
   .gr-tk i{width:9px;height:9px;border-radius:3px;display:block;}
+  .gr-chead{padding:10px 13px;}
+  .gr-chead h2{font-size:15px;}
+  .gr-stamp{font-size:10.5px;line-height:1.45;text-align:left;}
+  .gr-warn{margin:8px 13px 0;padding:8px 10px;font-size:11px;line-height:1.45;}
+  .gr-tierkey{padding:8px 13px;gap:7px 12px;}
   .gr-card{padding:11px 14px 12px;border-bottom:1px solid var(--border);}
   .gr-card:last-child{border-bottom:0;}
   .gr-chead2{display:flex;align-items:center;gap:9px;}
@@ -366,9 +371,17 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
           Tier shares renormalize over the tiers that published this week, so a tier going dark never
           breaks the ranking, and a tier carrying only one source is capped at 35% because one outlet
           is not a tier. Ties break on how many sources ranked the team, then its single best rank,
-          then alphabetically. <b>Analytics models are weighted above human polls</b>, because voters
-          anchor on preseason expectation and on brand and are slow to drop a name team, while a
-          model re-derives from results every week with no such memory.
+          then alphabetically.{' '}
+          <b>The tiers are ordered by how little bias they carry, not by how famous they are.</b>{' '}
+          A betting market is the least biased signal available: it is real money, continuously
+          repriced by people who lose that money when they are wrong, and it has no reason to favour
+          a brand, a conference or a television window. An analytics model is next, objective and
+          results-derived, but it is one method with one set of assumptions, and different models
+          genuinely disagree. Human rankings come last because their known failure modes all point
+          the same way: voters anchor on where a team started the season, they reward reputation and
+          blue-blood brands, they are slow to drop a name team that keeps losing, and they see a
+          fraction of the games they rank. That is not a knock on the AP poll, which is a fine
+          measure of what people believe. It is simply the reason it does not lead here.
           {hasPoll && (
             <>
               {' '}<b>RV means receiving votes.</b> The AP and Coaches polls publish 25 ranks plus a
