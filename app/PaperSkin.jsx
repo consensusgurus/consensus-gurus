@@ -67,6 +67,15 @@ html.paper-skin .qchm-k,html.paper-skin .qchm-ch,
 html.paper-skin .qchm-v i{color:var(--slate);}
 /* the gold and blue pills already read on white and are deliberately left */
 
+/* THE MARK. QuizCommandHeader hands MindLoftMark ink="#ffffff", so on a white
+   bar the roofline and the floor line vanish and only the pale brain is left.
+   These are presentation attributes on the SVG, and any CSS rule outranks a
+   presentation attribute, so re-inking is a selector rather than a prop. Matched
+   by structure, not by attribute: the two strokes are the svg's own children and
+   the brain is the one path inside the <g>. */
+html.paper-skin .qchm-brand svg > path{stroke:var(--ink);}
+html.paper-skin .qchm-brand svg g path{fill:var(--blue);}
+
 /* ---------- 3. the circuit header: slab out, identity line in ---------- */
 html.paper-skin .clp-hd{background:transparent;color:var(--ink);border-radius:0;
   padding:2px 0 0 14px;overflow:visible;}
@@ -103,10 +112,27 @@ html.paper-skin .navy-loft footer *{border-top-color:var(--border) !important;}
 `;
 
 // Runs during parse, so the class is on <html> before anything below it paints.
-// Wrapped because a browser with search params disabled must not take the page
-// down with it.
-const SET = "try{if(new URLSearchParams(location.search).get('paper')==='1')"
-  + "document.documentElement.classList.add('paper-skin')}catch(e){}";
+//
+// AND THEN KEEPS IT THERE. Setting it once is not enough and this cost a deploy
+// to find: the class lands correctly, the first paint is right, and then React
+// hydrates and reconciles <html> (app/layout.js renders `<html lang="en">` with
+// no className of its own) and the class is gone. The page was still navy by
+// the time anyone looked at it, with the script sitting in the HTML having
+// genuinely run.
+//
+// The observer re-adds it. It cannot loop: the callback only writes when the
+// class is absent, and the write it makes satisfies that condition, so the
+// record it generates is a no-op. Doing it here rather than in a client
+// component's effect keeps this a server component and keeps the first paint
+// free of a flash.
+//
+// Wrapped in try/catch because a browser without URLSearchParams or
+// MutationObserver must degrade to the unskinned page, not to a broken one.
+const SET = "try{if(new URLSearchParams(location.search).get('paper')!=='1')throw 0;"
+  + "var h=document.documentElement,c='paper-skin',"
+  + "a=function(){if(!h.classList.contains(c))h.classList.add(c)};a();"
+  + "new MutationObserver(a).observe(h,{attributes:true,attributeFilter:['class']})}"
+  + "catch(e){}";
 
 export default function PaperSkin() {
   return (
