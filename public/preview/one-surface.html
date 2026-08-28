@@ -486,10 +486,22 @@ function paint(){
   var done = n === SLOTS.length || guesses <= 0;
   document.getElementById('kbwrap').style.display = done ? 'none' : '';
   document.getElementById('hint').disabled = done || !open().length;
-  /* NEXT frame, not this one: the tries strip and the keyboard's own show/hide
-     change the stage's height, and measuring before that reflow sizes the board
-     against the old height and pushes the page into a scroll. */
+  refit();
+}
+
+/* Refitting is scheduled three ways on purpose, because each one alone has
+   been caught missing: a single rAF measures before the tries strip has laid
+   out, and the ResizeObserver below does not reliably fire for a box coming
+   out of display:none, which is exactly what .tries does on the first guess.
+   sizeBoard only reads and writes the board's own size, so running it twice
+   costs nothing and the last call always wins. */
+var refitT = [];
+function refit(){
+  refitT.forEach(clearTimeout);
+  refitT = [];
   requestAnimationFrame(sizeBoard);
+  refitT.push(setTimeout(sizeBoard, 0));
+  refitT.push(setTimeout(sizeBoard, 150));
 }
 
 var toastT = null;
