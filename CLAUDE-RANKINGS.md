@@ -439,9 +439,21 @@ the Loft surfaces.
 - **Source columns are grouped under their tier**, with the tier's live weight percentage in the
   group header and each source's own weight under its name. The weighting is the methodology, so it
   is on the page rather than buried in a footnote.
-- **Sticky columns.** Desktop pins rank, team and score. Phone (≤760px) pins rank and team only and
-  lets the score scroll: three sticky columns eat the whole viewport, and a pinned score beside
-  unlabelled numbers is worth less than a pinned team name.
+- **Sticky columns (desktop).** Rank, team and score are pinned so the source columns scroll under
+  a labelled row.
+- **PHONE IS NOT THE TABLE. Below 760px the table is replaced by ONE CARD PER TEAM** (owner rule,
+  2026-08-28). A ten-column table behind a horizontal scrollbar is not a mobile layout: comparing
+  sources is the entire point of this page, and every source column started off-screen, so the page
+  showed a ranking and hid its own argument. The card carries rank, logo, name and the consensus
+  score on one line; then EVERY source as a wrapped chip, tinted by its deviation from the consensus
+  and edged in its tier colour (the tier grouping is a column header on desktop, so on a phone the
+  chip has to say it); then the rank range and spread. Nothing scrolls sideways and no source is
+  hidden. A tier key sits above the list, phone only.
+  - **Both renders sit in the DOM at once and CSS picks one** (`.gr-scroll` vs `.gr-cards`). That is
+    what keeps the pages server components with no client JS, and `display:none` keeps the hidden
+    one out of the accessibility tree. It is the same approach `HomeRails` uses for its phone hero.
+  - **Anything added to one render must be added to the other.** They are two views of the same row,
+    and a source added to the table but not the card silently disappears on mobile.
 - **An excluded source keeps its column**, struck through on a hatched ground, weight replaced by
   `EXCLUDED`, its numbers greyed, plus a banner naming each one and its age. Never let a dropped
   source silently disappear.
