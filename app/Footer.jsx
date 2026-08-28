@@ -42,6 +42,13 @@ const COLS = [
     ],
   },
   {
+    head: 'Sports Rankings',
+    links: [
+      { label: 'College Football Top 50', href: '/collegefootballrankings' },
+      { label: 'NFL Power Rankings', href: '/nflrankings' },
+    ],
+  },
+  {
     head: 'Follow',
     links: [
       { label: 'Instagram', href: 'https://www.instagram.com/mindloftdaily/', external: true },

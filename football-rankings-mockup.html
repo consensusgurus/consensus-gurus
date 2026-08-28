@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Consensus Football Rankings — layout mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b0d12; --muted:#3f4757; --slate:#646c7a; --accent:#233a63; --white:#fff;
+  --paper:#f4f6f9; --surface:#f7f8fa; --surface-alt:#eef2f7; --border:#e5e7eb;
+  --ground:#0b0f1a; --blue:#2563eb; --blue-deep:#1d4ed8; --blue-400:#60a5fa;
+  --blue-200:#bfdbfe; --accent-soft:#eef3ff; --accent-border:#cddffb;
+  --cta:#2f6fe4; --success:#10b981; --danger:#c0392b;
+  --gold:#e8b43a; --gold-ink:#a16207; --silver:#aeb4bd; --bronze:#c88a55;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:Manrope,system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:22px 16px 64px}
+
+/* ---- page head ---- */
+.phead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;margin-bottom:14px}
+/* Brand line for every page in this section. Gold rule + caps, so it reads as
+   the masthead the section sits under rather than as part of the page title. */
+.kicker{display:inline-flex;align-items:center;gap:9px;color:var(--gold);
+  font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  margin:0 0 7px}
+.kicker::before{content:'';width:22px;height:3px;border-radius:2px;background:var(--gold)}
+.ptitle{color:#fff;font-size:26px;font-weight:800;letter-spacing:-.02em;margin:0}
+.psub{color:#9fb0cc;font-size:13px;margin:5px 0 0;max-width:56ch;line-height:1.5}
+.toggle{display:flex;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  border-radius:11px;padding:3px;gap:3px}
+.toggle button{appearance:none;border:0;background:transparent;color:#c3d1e8;
+  font:inherit;font-size:13px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer}
+.toggle button.on{background:var(--cta);color:#fff}
+
+/* ---- console ---- */
+.console{background:var(--white);border-radius:14px;overflow:hidden;
+  box-shadow:0 10px 34px rgba(0,0,0,.34)}
+.chead{padding:14px 18px;background:var(--surface-alt);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+.chead h2{margin:3px 0 0;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.stamp{font-size:11.5px;color:var(--muted);text-align:right;line-height:1.6}
+.stamp b{color:var(--ink)}
+
+/* ---- the matrix ---- */
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1030px;font-size:13px}
+th,td{padding:0;text-align:center;white-space:nowrap}
+
+thead .tiers th{padding:9px 8px 5px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--slate);border-bottom:1px solid var(--border);
+  background:var(--surface)}
+thead .tiers th.tg{border-left:1px solid var(--border)}
+thead .srcs th{padding:8px 8px 10px;font-size:11px;font-weight:700;color:var(--muted);
+  background:var(--surface);border-bottom:2px solid var(--accent);vertical-align:bottom}
+thead .srcs th.tg{border-left:1px solid var(--border)}
+thead .srcs .w{display:block;font-size:9.5px;font-weight:800;color:var(--blue);margin-top:2px;
+  letter-spacing:.04em}
+/* Last-updated stamp under every source name, not only the stale ones. */
+thead .srcs .asof{display:block;font-size:9.5px;font-weight:700;color:var(--slate);
+  margin-top:3px;letter-spacing:.02em}
+thead .srcs .asof.stale{color:var(--danger);font-weight:800}
+thead .srcs .asof.stale::before{content:'▲ ';font-size:8px}
+/* An EXCLUDED source keeps its column so the reader sees what was rejected and
+   why, but it is visibly out of the scoring: struck name, no weight, greyed. */
+thead .srcs th.out{background:repeating-linear-gradient(135deg,#f7f8fa,#f7f8fa 6px,#f1f3f6 6px,#f1f3f6 12px);
+  color:#9aa2b1;text-decoration:line-through;text-decoration-thickness:1px}
+thead .srcs th.out .w{color:var(--danger);text-decoration:none;display:inline-block;
+  text-transform:uppercase;letter-spacing:.08em;font-size:8.5px}
+thead .srcs th.out .asof{text-decoration:none}
+td.cell.out{color:#c3c9d4;font-weight:600;
+  background:repeating-linear-gradient(135deg,#fcfcfd,#fcfcfd 6px,#f7f8fa 6px,#f7f8fa 12px)!important}
+
+.cRank,.cTeam,.cScore{position:sticky;background:var(--white);z-index:2}
+.cRank{left:0;width:46px}
+.cTeam{left:46px;text-align:left}
+.cScore{left:270px;box-shadow:1px 0 0 var(--border)}
+thead .cRank,thead .cTeam,thead .cScore{background:var(--surface);z-index:3}
+
+tbody tr:nth-child(even) .cRank,tbody tr:nth-child(even) .cTeam,
+tbody tr:nth-child(even) .cScore,tbody tr:nth-child(even) td{background:#fbfcfe}
+tbody tr:hover td,tbody tr:hover .cRank,tbody tr:hover .cTeam,
+tbody tr:hover .cScore{background:var(--accent-soft)}
+
+td.rk{font-size:15px;font-weight:800;color:var(--ink);padding:9px 0}
+td.rk .medal{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;
+  border-radius:50%;color:#fff;font-size:12.5px;font-weight:800}
+td.tm{padding:7px 14px 7px 8px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;width:224px}
+.tmw{display:flex;align-items:center;gap:9px}
+.lg{width:26px;height:26px;flex:none;object-fit:contain}
+.mono{width:26px;height:26px;flex:none;border-radius:6px;background:var(--surface-alt);
+  color:var(--slate);font-size:9.5px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;letter-spacing:.02em}
+.tmn{overflow:hidden;text-overflow:ellipsis}
+td.tm .apps{display:block;font-size:10px;font-weight:600;color:var(--slate);letter-spacing:.02em}
+
+/* the composite score sits immediately beside the name, ahead of every source */
+td.cScore{padding:7px 12px 7px 4px;width:74px}
+.scorebox{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:56px;padding:4px 8px 5px;border-radius:8px;background:var(--accent);color:#fff}
+.scorebox b{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.scorebox i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;opacity:.72;margin-top:2px}
+thead th.cScore{color:var(--accent)}
+
+td.cell{font-size:13px;font-weight:700;color:var(--muted);padding:9px 8px;
+  border-left:1px solid transparent}
+td.cell.tg{border-left:1px solid var(--border)}
+td.cell.nr{color:#c3c9d4;font-weight:600}
+/* "receiving votes" is the poll's own published state, not a rank we invented */
+td.cell.rv{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--slate)}
+/* deviation from the composite: blue = this source is higher on them, amber = lower */
+td.cell.up1{background:#eff5ff!important;color:var(--blue-deep)}
+td.cell.up2{background:#dbe9fe!important;color:var(--blue-deep)}
+td.cell.dn1{background:#fdf4e8!important;color:#9a6212}
+td.cell.dn2{background:#fbe8cf!important;color:#8a5410}
+
+td.sp{padding:9px 10px;width:112px}
+.spbar{display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.spbar i{display:block;height:5px;border-radius:3px;background:var(--blue-200)}
+.spbar i.hot{background:var(--gold)}
+.spbar span{font-size:11.5px;font-weight:800;color:var(--muted);width:20px;text-align:right}
+.spbar span.nr{color:#c3c9d4;font-size:10px}
+td.sc{padding-right:16px;font-size:12px;font-weight:800;color:var(--slate);
+  font-variant-numeric:tabular-nums}
+
+/* ---- footers ---- */
+.legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:12px 18px;
+  background:var(--surface);border-top:1px solid var(--border);font-size:11.5px;color:var(--muted)}
+.legend .k{display:inline-flex;align-items:center;gap:6px}
+.sw{width:15px;height:15px;border-radius:4px;border:1px solid var(--border)}
+.notes{padding:14px 18px;border-top:1px solid var(--border);font-size:12px;
+  color:var(--muted);line-height:1.65}
+.notes b{color:var(--ink)}
+.warn{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#fdf3f2;
+  border:1px solid #f2d5d1;color:#8d2f24;font-size:12px;line-height:1.55}
+
+.callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:11px;margin-top:14px}
+.co{background:var(--white);border-radius:12px;padding:13px 15px;
+  box-shadow:0 6px 20px rgba(0,0,0,.26)}
+.co .eyebrow{color:var(--blue)}
+.co p{margin:6px 0 0;font-size:12.5px;color:var(--muted);line-height:1.55}
+.co .big{font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.01em;margin-top:3px}
+
+@media(max-width:760px){
+  .wrap{padding:16px 10px 48px}
+  .ptitle{font-size:21px}
+  /* On a phone the rank and the team stay pinned and the score scrolls with
+     the sources: three sticky columns eat the whole viewport, and a pinned
+     score beside unlabelled numbers is worth less than a pinned team name. */
+  .cRank{width:38px;left:0}
+  .cTeam{left:38px;box-shadow:1px 0 0 var(--border)}
+  .cScore{position:static;padding-left:6px;padding-right:8px}
+  td.tm{font-size:12.5px;padding:6px 10px 6px 6px;width:auto}
+  .tmn{max-width:132px}
+  .lg,.mono{width:22px;height:22px}
+  .scorebox{min-width:44px;padding:3px 6px 4px}
+  .scorebox b{font-size:13px}
+  table{font-size:12px}
+}
+</style></head><body>
+<div class="wrap">
+  <div class="phead">
+    <div>
+      <div class="kicker">The Sports Ranking Source of Truth</div>
+      <h1 class="ptitle">Consensus Football Rankings</h1>
+      <p class="psub">Official polls, analytics models, betting markets and media rankings, side by
+        side, and the composite they add up to. Cells are shaded by how far each source departs
+        from the consensus.</p>
+    </div>
+    <div class="toggle" id="tg">
+      <button data-s="cfb" class="on">College Football</button>
+      <button data-s="nfl">NFL</button>
+    </div>
+  </div>
+
+  <div class="console">
+    <div class="chead">
+      <div><div class="eyebrow" id="eyebrow"></div><h2 id="title"></h2></div>
+      <div class="stamp" id="stamp"></div>
+    </div>
+    <div id="warn"></div>
+    <div class="scroll"><table>
+      <thead>
+        <tr class="tiers" id="thTiers"></tr>
+        <tr class="srcs" id="thSrcs"></tr>
+      </thead>
+      <tbody id="body"></tbody>
+    </table></div>
+    <div class="legend">
+      <span class="k"><i class="sw" style="background:#dbe9fe"></i> source ranks them higher than consensus</span>
+      <span class="k"><i class="sw" style="background:#fbe8cf"></i> lower than consensus</span>
+      <span class="k"><i class="sw" style="background:var(--gold)"></i> widest disagreement</span>
+      <span class="k">— not ranked by that source</span>
+    </div>
+    <div class="notes" id="notes"></div>
+  </div>
+
+  <div class="callouts" id="callouts"></div>
+</div>
+
+<script>
+const D = {"cfb":{"depth":50,"tierShare":{"official":0.2777777777777778,"model":0.5000000000000001,"market":0.22222222222222227},"maxAge":30,"sources":[{"id":"ap","label":"AP","full":"AP Top 25","tier":"official","asOf":"2026-08-17","url":"https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/2026/types/1/weeks/1/rankings/1","weight":0.16666666666666666,"ok":true,"why":"11 days old","age":11},{"id":"coaches","label":"Coaches","full":"AFCA Coaches Poll","tier":"official","asOf":"2026-08-04","url":"https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/2026/types/1/weeks/1/rankings/2","weight":0.11111111111111112,"ok":true,"why":"24 days old","age":24},{"id":"sagarin","label":"Sagarin","full":"Sagarin Ratings","tier":"model","asOf":"2026 preseason","url":"https://sagarin.com/sports/cfsend.htm","weight":0.16666666666666669,"ok":true,"why":"undated, names the current season","age":null},{"id":"fplus","label":"F+","full":"BCF Toys F+","tier":"model","asOf":"2026 preseason","url":"https://bcftoys.com/2026-fplus","weight":0.16666666666666669,"ok":true,"why":"undated, names the current season","age":null},{"id":"dratings","label":"DRatings","full":"DRatings","tier":"model","asOf":"2026-08-26","url":"https://www.dratings.com/sports/ncaa-fbs-football-ratings/","weight":0.16666666666666669,"ok":true,"why":"2 days old","age":2},{"id":"fpi","label":"FPI","full":"ESPN FPI","tier":"model","asOf":"2026-07-21","url":"https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/2026/powerindex","weight":0,"ok":false,"why":"38 days old, past the 30-day limit","age":38},{"id":"futures","label":"Futures","full":"Title Futures","tier":"market","asOf":"2026-08-28","url":"https://sports.core.api.espn.com/v2/sports/football/leagues/college-football/seasons/2026/futures/2758","weight":0.22222222222222227,"ok":true,"why":"0 days old","age":0}],"rows":[{"rank":1,"team":"Ohio State","score":49.56,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/194.png","mono":"OS","spread":2,"best":1,"appearances":6,"ranks":[1,1,1,1,3,null,1.5],"shown":["1","1","1","1","3","1","T1"]},{"rank":2,"team":"Oregon","score":48.56,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2483.png","mono":"ORE","spread":2,"best":2,"appearances":6,"ranks":[2,2,2,2,2,null,4],"shown":["2","2","2","2","2","4","4"]},{"rank":3,"team":"Notre Dame","score":47.61,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/87.png","mono":"ND","spread":3.5,"best":1.5,"appearances":6,"ranks":[4,5,3,4,4,null,1.5],"shown":["4","5","3","4","4","3","T1"]},{"rank":4,"team":"Texas","score":46.39,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/251.png","mono":"TEX","spread":3,"best":3,"appearances":6,"ranks":[5,4,5,6,5,null,3],"shown":["5","4","5","6","5","2","3"]},{"rank":5,"team":"Indiana","score":46.33,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/84.png","mono":"IND","spread":5,"best":1,"appearances":6,"ranks":[6,6,4,5,1,null,6],"shown":["6","6","4","5","1","6","6"]},{"rank":6,"team":"Georgia","score":46.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/61.png","mono":"GEO","spread":5,"best":3,"appearances":6,"ranks":[3,3,6,3,8,null,5],"shown":["3","3","6","3","8","5","5"]},{"rank":7,"team":"Miami","score":44.17,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2390.png","mono":"MIA","spread":1,"best":6,"appearances":6,"ranks":[7,7,7,7,6,null,7],"shown":["7","7","7","7","6","7","7"]},{"rank":8,"team":"Texas Tech","score":41.17,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2641.png","mono":"TT","spread":5,"best":7,"appearances":6,"ranks":[12,12,12,8,7,null,9],"shown":["12","12","12","8","7","10","9"]},{"rank":9,"team":"Texas A&M","score":40.94,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/245.png","mono":"TA","spread":7,"best":8,"appearances":6,"ranks":[8,8,8,10,15,null,10.5],"shown":["8","8","8","10","15","11","T10"]},{"rank":10,"team":"Oklahoma","score":40.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/201.png","mono":"OKL","spread":4,"best":9,"appearances":6,"ranks":[10,9,9,13,10,null,12.5],"shown":["10","9","9","13","10","12","T12"]},{"rank":11,"team":"Ole Miss","score":39.78,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/145.png","mono":"OM","spread":6,"best":9,"appearances":6,"ranks":[9,10,15,11,9,null,12.5],"shown":["9","10","15","11","9","14","T12"]},{"rank":12,"team":"Alabama","score":39.61,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/333.png","mono":"ALA","spread":5,"best":9,"appearances":6,"ranks":[13,11,14,9,11,null,10.5],"shown":["13","11","14","9","11","8","T10"]},{"rank":13,"team":"LSU","score":39.11,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/99.png","mono":"LSU","spread":10,"best":8,"appearances":6,"ranks":[11,13,10,18,13,null,8],"shown":["11","13","10","18","13","9","8"]},{"rank":14,"team":"USC","score":37.25,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/30.png","mono":"USC","spread":4,"best":11,"appearances":6,"ranks":[14.5,14,11,15,14,null,14],"shown":["T14","14","11","15","14","13","14"]},{"rank":15,"team":"Michigan","score":36.39,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/130.png","mono":"MIC","spread":4,"best":12,"appearances":6,"ranks":[16,16,13,12,16,null,15],"shown":["16","16","13","12","16","15","15"]},{"rank":16,"team":"Penn State","score":33.56,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/213.png","mono":"PS","spread":8,"best":14,"appearances":6,"ranks":[18,17,18,14,22,null,16],"shown":["18","17","18","14","22","17","16"]},{"rank":17,"team":"BYU","score":32.97,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/252.png","mono":"BYU","spread":12,"best":12,"appearances":6,"ranks":[14.5,15,24,21,12,null,20],"shown":["T14","15","24","21","12","20","20"]},{"rank":18,"team":"Tennessee","score":32.44,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2633.png","mono":"TEN","spread":7,"best":16,"appearances":6,"ranks":[20,18,17,16,23,null,17.5],"shown":["20","18","17","16","23","16","T17"]},{"rank":19,"team":"Washington","score":31.5,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/264.png","mono":"WAS","spread":8,"best":17,"appearances":6,"ranks":[17,19,19,17,18,null,25],"shown":["17","19","19","17","18","26","T24"]},{"rank":20,"team":"Florida","score":29.61,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/57.png","mono":"FLO","spread":11,"best":16,"appearances":6,"ranks":[27,27,16,24,20,null,17.5],"shown":["RV","RV","16","24","20","18","T17"]},{"rank":21,"team":"Utah","score":29.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/254.png","mono":"UTA","spread":12,"best":17,"appearances":6,"ranks":[21,21,29,19,17,null,23],"shown":["21","21","29","19","17","31","23"]},{"rank":22,"team":"Iowa","score":28.83,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2294.png","mono":"IOW","spread":9,"best":19,"appearances":6,"ranks":[22,22,20,20,19,null,28],"shown":["22","22","20","20","19","25","28"]},{"rank":23,"team":"SMU","score":28,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2567.png","mono":"SMU","spread":12,"best":19,"appearances":6,"ranks":[19,20,25,31,21,null,21.5],"shown":["19","20","25","31","21","24","T21"]},{"rank":24,"team":"Missouri","score":27.11,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/142.png","mono":"MIS","spread":9,"best":21,"appearances":6,"ranks":[25,25,21,22,30,null,21.5],"shown":["25","25","21","22","30","21","T21"]},{"rank":25,"team":"Louisville","score":25.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/97.png","mono":"LOU","spread":5,"best":24,"appearances":6,"ranks":[24,26,27,29,24,null,25],"shown":["24","RV","27","29","24","27","T24"]},{"rank":26,"team":"Clemson","score":23.61,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/228.png","mono":"CLE","spread":13,"best":23,"appearances":6,"ranks":[26,23,28,23,36,null,27],"shown":["RV","23","28","23","36","19","27"]},{"rank":27,"team":"Auburn","score":22.25,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2.png","mono":"AUB","spread":24.5,"best":19,"appearances":6,"ranks":[43.5,34,22,26,33,null,19],"shown":["RV","RV","22","26","33","22","19"]},{"rank":28,"team":"South Carolina","score":19.81,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2579.png","mono":"SC","spread":8.5,"best":23,"appearances":5,"ranks":[31.5,30.5,23,28,null,null,25],"shown":["RV","RV","23","28",null,"23","T24"]},{"rank":29,"team":"Vanderbilt","score":18.69,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/238.png","mono":"VAN","spread":16,"best":25,"appearances":6,"ranks":[34.5,33,32,25,41,null,29.5],"shown":["RV","RV","32","25","41","29","T29"]},{"rank":30,"team":"Houston","score":18.67,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/248.png","mono":"HOU","spread":21,"best":23,"appearances":6,"ranks":[23,24,37,44,32,null,31.5],"shown":["23","24","37","44","32","35","T31"]},{"rank":31,"team":"TCU","score":18.33,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2628.png","mono":"TCU","spread":18,"best":28,"appearances":6,"ranks":[30,28,46,33,29,null,29.5],"shown":["RV","RV","46","33","29","38","T29"]},{"rank":32,"team":"Arizona","score":18.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/12.png","mono":"ARI","spread":14,"best":27,"appearances":6,"ranks":[29,30.5,41,34,27,null,34],"shown":["RV","RV","41","34","27","34","T33"]},{"rank":33,"team":"Illinois","score":18.06,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/356.png","mono":"ILL","spread":15,"best":28,"appearances":6,"ranks":[33,29,30,30,28,null,43],"shown":["RV","RV","30","30","28","39","T42"]},{"rank":34,"team":"Kansas State","score":13.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2306.png","mono":"KS","spread":14,"best":25,"appearances":4,"ranks":[null,null,39,27,25,null,38],"shown":[null,null,"39","27","25","41","T36"]},{"rank":35,"team":"Virginia","score":12.92,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/258.png","mono":"VIR","spread":22.5,"best":26,"appearances":6,"ranks":[48.5,32,44,38,26,null,38],"shown":["RV","RV","44","38","26","32","T36"]},{"rank":36,"team":"Pittsburgh","score":12.78,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/221.png","mono":"PIT","spread":11.5,"best":36,"appearances":6,"ranks":[36,47.5,36,36,39,null,38],"shown":["RV","RV","36","36","39","36","T36"]},{"rank":37,"team":"Nebraska","score":11.61,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/158.png","mono":"NEB","spread":14.5,"best":31,"appearances":5,"ranks":[null,41.5,31,35,31,null,45.5],"shown":[null,"RV","31","35","31","30","T45"]},{"rank":38,"team":"Virginia Tech","score":11.5,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/259.png","mono":"VT","spread":8,"best":34,"appearances":5,"ranks":[37,41.5,42,null,34,null,34],"shown":["RV","RV","42",null,"34","33","T33"]},{"rank":39,"team":"Arizona State","score":10.44,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/9.png","mono":"AS","spread":13.5,"best":31.5,"appearances":5,"ranks":[null,44,45,41,35,null,31.5],"shown":[null,"RV","45","41","35","44","T31"]},{"rank":40,"team":"Florida State","score":10.06,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/52.png","mono":"FS","spread":8,"best":32,"appearances":4,"ranks":[null,39.5,40,32,null,null,34],"shown":[null,"RV","40","32",null,"28","T33"]},{"rank":41,"team":"Georgia Tech","score":9.58,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/59.png","mono":"GT","spread":12,"best":35,"appearances":6,"ranks":[40.5,35,47,43,44,null,38],"shown":["RV","RV","47","43","44","48","T36"]},{"rank":42,"team":"Wisconsin","score":8.72,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/275.png","mono":"WIS","spread":19.5,"best":26,"appearances":4,"ranks":[null,null,26,45,37,null,45.5],"shown":[null,null,"26","45","37","43","T45"]},{"rank":43,"team":"Minnesota","score":8.33,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/135.png","mono":"MIN","spread":8,"best":34,"appearances":4,"ranks":[38,null,34,42,40,null,null],"shown":["RV",null,"34","42","40",null,null]},{"rank":44,"team":"NC State","score":7.89,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/152.png","mono":"NS","spread":12,"best":37,"appearances":5,"ranks":[null,39.5,49,37,38,null,43],"shown":[null,"RV","49","37","38",null,"T42"]},{"rank":45,"team":"Kentucky","score":7.22,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/96.png","mono":"KEN","spread":17,"best":33,"appearances":4,"ranks":[null,null,33,40,50,null,41],"shown":[null,null,"33","40","50","40","41"]},{"rank":46,"team":"Oklahoma State","score":7.19,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/197.png","mono":"OS","spread":3.5,"best":34.5,"appearances":3,"ranks":[34.5,37,null,null,null,null,38],"shown":["RV","RV",null,null,null,null,"T36"]},{"rank":47,"team":"Boise State","score":6.39,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/68.png","mono":"BS","spread":21,"best":28,"appearances":4,"ranks":[28,36,null,49,null,null,48.5],"shown":["RV","RV",null,"49",null,"50","T47"]},{"rank":48,"team":"Mississippi State","score":4.78,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/344.png","mono":"MS","spread":8,"best":38,"appearances":3,"ranks":[null,null,38,46,null,null,43],"shown":[null,null,"38","46",null,"49","T42"]},{"rank":49,"team":"UCLA","score":4.17,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/26.png","mono":"UCL","spread":7,"best":35,"appearances":2,"ranks":[null,null,35,null,42,null,null],"shown":[null,null,"35",null,"42",null,null]},{"rank":50,"team":"UNLV","score":3.69,"logo":"https://a.espncdn.com/i/teamlogos/ncaa/500/2439.png","mono":"UNL","spread":10,"best":38,"appearances":3,"ranks":[40.5,38,null,null,48,null,null],"shown":["RV","RV",null,null,"48",null,null]}]},"nfl":{"depth":32,"tierShare":{"model":0.35,"media":0.27083333333333337,"market":0.37916666666666665},"maxAge":30,"sources":[{"id":"dratings","label":"DRatings","full":"DRatings","tier":"model","asOf":"2026-07-29","url":"https://www.dratings.com/sports/nfl-football-ratings/","weight":0.35,"ok":true,"why":"30 days old","age":30},{"id":"fpi","label":"FPI","full":"ESPN FPI","tier":"model","asOf":"2026-06-02","url":"https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/2026/powerindex","weight":0,"ok":false,"why":"87 days old, past the 30-day limit","age":87},{"id":"sagarin","label":"Sagarin","full":"Sagarin Ratings","tier":"model","asOf":"2026-02-08","url":"https://sagarin.com/sports/nflsend.htm","weight":0,"ok":false,"why":"201 days old, past the 30-day limit","age":201},{"id":"sharp","label":"Sharp","full":"Sharp Football Analysis","tier":"media","asOf":"2026-08-24","url":"https://www.sharpfootballanalysis.com/analysis/nfl-power-rankings/","weight":0.27083333333333337,"ok":true,"why":"4 days old","age":4},{"id":"cbs","label":"CBS","full":"CBS Sports","tier":"media","asOf":"2026-04-28","url":"https://www.cbssports.com/nfl/powerrankings/","weight":0,"ok":false,"why":"122 days old, past the 30-day limit","age":122},{"id":"vegas","label":"Vegas","full":"Sportsbook Futures","tier":"market","asOf":"2026-08-27","url":"https://www.vegasinsider.com/nfl/odds/futures/","weight":0.12638888888888888,"ok":true,"why":"1 days old","age":1},{"id":"kalshi","label":"Kalshi","full":"Kalshi Prediction Market","tier":"market","asOf":"2026-08-27","url":"https://kalshi.com/nfl/power-rankings","weight":0.12638888888888888,"ok":true,"why":"1 days old","age":1},{"id":"wintotals","label":"Win Totals","full":"Market Win Totals","tier":"market","asOf":"2026 season","url":"https://www.nfeloapp.com/nfl-power-ratings/nfl-win-totals/","weight":0.12638888888888888,"ok":true,"why":"undated, names the current season","age":null}],"rows":[{"rank":1,"team":"Los Angeles Rams","score":32,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/lar.png","mono":"LAR","spread":0,"best":1,"appearances":5,"ranks":[1,null,null,1,null,1,1,1],"shown":["1","1","2","1","2","1","1","1"]},{"rank":2,"team":"Buffalo Bills","score":30.52,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/buf.png","mono":"BUF","spread":1,"best":2,"appearances":5,"ranks":[3,null,null,2,null,2,2,3],"shown":["3","2","6","2","3","2","2","3"]},{"rank":3,"team":"Seattle Seahawks","score":30.1,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/sea.png","mono":"SEA","spread":2,"best":2,"appearances":5,"ranks":[2,null,null,3,null,4,3,4],"shown":["2","4","1","3","1","4","3","4"]},{"rank":4,"team":"Baltimore Ravens","score":28.3,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/bal.png","mono":"BAL","spread":6,"best":2,"appearances":5,"ranks":[4,null,null,8,null,3,4,2],"shown":["4","3","11","8","14","3","4","2"]},{"rank":5,"team":"Los Angeles Chargers","score":26.04,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/lac.png","mono":"LAC","spread":7,"best":5,"appearances":5,"ranks":[7,null,null,5,null,7,6,12],"shown":["7","7","16","5","9","7","6","12"]},{"rank":6,"team":"New England Patriots","score":25.28,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/ne.png","mono":"NE","spread":4,"best":6,"appearances":5,"ranks":[6,null,null,10,null,8,7,8],"shown":["6","14","5","10","11","8","7","8"]},{"rank":7,"team":"Kansas City Chiefs","score":24.28,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/kc.png","mono":"KC","spread":8,"best":5,"appearances":5,"ranks":[8,null,null,13,null,5,5,9],"shown":["8","9","17","13","12","5","5","9"]},{"rank":8,"team":"San Francisco 49ers","score":23.83,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/sf.png","mono":"SF","spread":7,"best":5,"appearances":5,"ranks":[5,null,null,12,null,11,11,11],"shown":["5","5","8","12","6","11","11","11"]},{"rank":9,"team":"Denver Broncos","score":23.45,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/den.png","mono":"DEN","spread":8,"best":6,"appearances":5,"ranks":[10,null,null,6,null,13,8,14],"shown":["10","15","7","6","4","13","8","14"]},{"rank":10,"team":"Philadelphia Eagles","score":23.33,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/phi.png","mono":"PHI","spread":6,"best":6,"appearances":5,"ranks":[12,null,null,9,null,6,12,6],"shown":["12","10","9","9","13","6","12","6"]},{"rank":11,"team":"Houston Texans","score":22.54,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/hou.png","mono":"HOU","spread":7,"best":7,"appearances":5,"ranks":[14,null,null,7,null,10,9,10],"shown":["14","13","3","7","15","10","9","10"]},{"rank":12,"team":"Detroit Lions","score":22.39,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/det.png","mono":"DET","spread":10,"best":5,"appearances":5,"ranks":[9,null,null,14,null,9,15,5],"shown":["9","8","10","14","18","9","15","5"]},{"rank":13,"team":"Green Bay Packers","score":21.36,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/gb.png","mono":"GB","spread":13,"best":4,"appearances":5,"ranks":[15,null,null,4,null,12,17,13],"shown":["15","6","14","4","7","12","17","13"]},{"rank":14,"team":"Cincinnati Bengals","score":20.5,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/cin.png","mono":"CIN","spread":9,"best":7,"appearances":5,"ranks":[16,null,null,11,null,14,10,7],"shown":["16","12","21","11","17","14","10","7"]},{"rank":15,"team":"Jacksonville Jaguars","score":19.15,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/jax.png","mono":"JAX","spread":6,"best":11,"appearances":5,"ranks":[11,null,null,15,null,17,13,17],"shown":["11","17","4","15","5","17","13","17"]},{"rank":16,"team":"Dallas Cowboys","score":18.43,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/dal.png","mono":"DAL","spread":3,"best":13,"appearances":5,"ranks":[13,null,null,16,null,15,14,16],"shown":["13","11","26","16","8","15","14","16"]},{"rank":17,"team":"Chicago Bears","score":16.51,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/chi.png","mono":"CHI","spread":2,"best":15,"appearances":5,"ranks":[17,null,null,17,null,16,16,15],"shown":["17","16","12","17","10","16","16","15"]},{"rank":18,"team":"Minnesota Vikings","score":14.6,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/min.png","mono":"MIN","spread":1,"best":18,"appearances":5,"ranks":[18,null,null,19,null,18,19,18],"shown":["18","19","13","19","19","18","19","18"]},{"rank":19,"team":"Tampa Bay Buccaneers","score":14.02,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/tb.png","mono":"TB","spread":2,"best":18,"appearances":5,"ranks":[19,null,null,18,null,19,20,20],"shown":["19","18","19","18","16","19","20","20"]},{"rank":20,"team":"Pittsburgh Steelers","score":12.55,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/pit.png","mono":"PIT","spread":4,"best":18,"appearances":5,"ranks":[22,null,null,20,null,21,18,19],"shown":["22","22","18","20","21","21","18","19"]},{"rank":21,"team":"Indianapolis Colts","score":12.1,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/ind.png","mono":"IND","spread":4,"best":20,"appearances":5,"ranks":[20,null,null,21,null,20,24,21],"shown":["20","20","15","21","20","20","24","21"]},{"rank":22,"team":"Washington Commanders","score":10.95,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/wsh.png","mono":"WSH","spread":3,"best":21,"appearances":5,"ranks":[21,null,null,23,null,22,21,24],"shown":["21","21","23","23","26","22","21","24"]},{"rank":23,"team":"Carolina Panthers","score":9.77,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/car.png","mono":"CAR","spread":3,"best":22,"appearances":5,"ranks":[23,null,null,22,null,25,23,25],"shown":["23","26","22","22","22","25","23","25"]},{"rank":24,"team":"New York Giants","score":9,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/nyg.png","mono":"NYG","spread":3,"best":23,"appearances":5,"ranks":[24,null,null,24,null,23,26,23],"shown":["24","23","24","24","25","23","26","23"]},{"rank":25,"team":"New Orleans Saints","score":7.78,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/no.png","mono":"NO","spread":6,"best":22,"appearances":5,"ranks":[26,null,null,25,null,24,28,22],"shown":["26","25","25","25","23","24","28","22"]},{"rank":26,"team":"Atlanta Falcons","score":7.31,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/atl.png","mono":"ATL","spread":6,"best":22,"appearances":5,"ranks":[25,null,null,28,null,26,22,26],"shown":["25","24","20","28","24","26","22","26"]},{"rank":27,"team":"Tennessee Titans","score":6.27,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/ten.png","mono":"TEN","spread":1,"best":26,"appearances":5,"ranks":[27,null,null,26,null,27,27,27],"shown":["27","27","30","26","29","27","27","27"]},{"rank":28,"team":"Las Vegas Raiders","score":5.11,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/lv.png","mono":"LV","spread":4,"best":25,"appearances":5,"ranks":[28,null,null,29,null,28,25,28],"shown":["28","28","31","29","28","28","25","28"]},{"rank":29,"team":"New York Jets","score":4.29,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/nyj.png","mono":"NYJ","spread":3,"best":27,"appearances":5,"ranks":[29,null,null,27,null,30,29,30],"shown":["29","31","32","27","27","30","29","30"]},{"rank":30,"team":"Cleveland Browns","score":2.98,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/cle.png","mono":"CLE","spread":2,"best":29,"appearances":5,"ranks":[30,null,null,31,null,29,30,29],"shown":["30","30","27","31","30","29","30","29"]},{"rank":31,"team":"Arizona Cardinals","score":1.89,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/ari.png","mono":"ARI","spread":2,"best":30,"appearances":5,"ranks":[31,null,null,30,null,32,32,32],"shown":["31","29","29","30","32","32","32","32"]},{"rank":32,"team":"Miami Dolphins","score":1.38,"logo":"https://a.espncdn.com/i/teamlogos/nfl/500/mia.png","mono":"MIA","spread":1,"best":31,"appearances":5,"ranks":[32,null,null,32,null,31,31,31],"shown":["32","32","28","32","31","31","31","31"]}]},"fetchedAt":"2026-08-28"};
+const TIER_LABEL = {"official":"Official polls","model":"Analytics models","media":"Media power rankings","market":"Betting markets"};
+const MEDAL = ['#e8b43a','#aeb4bd','#c88a55'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let sport = 'cfb';
+
+// Sources report freshness in whatever form they publish it: an ISO date, or a
+// phrase like "2026 preseason" when the source genuinely has no finer stamp.
+// Render an ISO date as "Aug 17" and pass anything else through untouched
+// rather than inventing a precision the source never claimed.
+function fmtDate(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  if(!m) return s || 'undated';
+  return MON[+m[2]-1]+' '+(+m[3]);
+}
+// How many days old, for the "N days" note. Null when the source is undated.
+function ageDays(s){
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  if(!m) return null;
+  return Math.round((Date.parse(D.fetchedAt) - Date.parse(s)) / 86400000);
+}
+
+function render(){
+  const d = D[sport], S = d.sources, maxSpread = Math.max(...d.rows.map(r=>r.spread==null?0:r.spread),1);
+  // Coverage is counted against the sources that actually SCORE. Counting an
+  // excluded column in the denominator put "ranked by only 6 of 7" on every
+  // single row, which is noise rather than information.
+  const LIVE = S.filter(s=>s.ok).length;
+
+  document.getElementById('eyebrow').textContent =
+    sport==='cfb' ? 'College Football · FBS · Preseason' : 'NFL · Preseason';
+  document.getElementById('title').textContent =
+    sport==='cfb' ? 'Consensus Top 50' : 'Consensus 1 through 32';
+  document.getElementById('stamp').innerHTML =
+    '<b>'+LIVE+' of '+S.length+' sources</b> scoring, across '+new Set(S.filter(s=>s.ok).map(s=>s.tier)).size+' tiers<br>built '+D.fetchedAt;
+
+  const out = S.filter(s=>!s.ok);
+  document.getElementById('warn').innerHTML = out.length
+    ? '<div class="warn"><b>'+out.length+' source'+(out.length>1?'s':'')+' excluded '+
+      'by the '+d.maxAge+'-day rule.</b> '+
+      out.map(s=>s.full+' ('+s.why+')').join('; ')+
+      '. Their columns are shown struck through for transparency, but they score nothing and the '+
+      'remaining tiers reweighted around them.</div>'
+    : '';
+
+  // tier header row: one cell spanning each tier's sources
+  let tiers='<th class="cRank"></th><th class="cTeam"></th><th class="cScore"></th>', groups=[], prev=null;
+  S.forEach((s,i)=>{ if(s.tier!==prev){groups.push({tier:s.tier,n:1,at:i});prev=s.tier;} else groups[groups.length-1].n++; });
+  groups.forEach((g,i)=>{
+    const pct = d.tierShare[g.tier]*100;
+    const share = (Math.abs(pct-Math.round(pct))<0.05 ? pct.toFixed(0) : pct.toFixed(1));
+    tiers += '<th colspan="'+g.n+'"'+(i?' class="tg"':'')+'>'+TIER_LABEL[g.tier]+' · '+share+'%</th>';
+  });
+  tiers += '<th></th>';
+  document.getElementById('thTiers').innerHTML = tiers;
+
+  let srcs='<th class="cRank">#</th><th class="cTeam">Team</th><th class="cScore">Consensus</th>';
+  S.forEach((s,i)=>{
+    const tg = groups.some(g=>g.at===i && g.at!==0) ? ' tg' : '';
+    // Every source shows when it last updated, not just the stale ones. A
+    // reader comparing columns needs to know one of them is four months old,
+    // and a date that only appears when something is wrong teaches nobody
+    // what "current" looks like.
+    srcs += '<th class="'+(tg+(s.ok?'':' out')).trim()+'" title="'+s.full+' — '+s.why+'">'+s.label+
+      '<span class="w">'+(s.ok?(s.weight*100).toFixed(1)+'%':'excluded')+'</span>'+
+      '<span class="asof'+(s.ok?'':' stale')+'">'+fmtDate(s.asOf)+'</span></th>';
+  });
+  srcs += '<th style="padding-right:16px">Spread</th>';
+  document.getElementById('thSrcs').innerHTML = srcs;
+
+  document.getElementById('body').innerHTML = d.rows.map(r=>{
+    const rk = r.rank<=3
+      ? '<span class="medal" style="background:'+MEDAL[r.rank-1]+'">'+r.rank+'</span>'
+      : r.rank;
+    const cells = r.ranks.map((v,i)=>{
+      const tg = groups.some(g=>g.at===i && g.at!==0) ? ' tg' : '';
+      if(!S[i].ok) return '<td class="cell out'+tg+(r.shown[i]==='RV'?' rv':'')+'">'+
+        (r.shown[i]==null?'—':r.shown[i])+'</td>';
+      if(v==null) return '<td class="cell nr'+tg+'">—</td>';
+      const dev = r.rank - v;                       // +ve: source is HIGHER on them
+      // Deviation shading scales with depth: 3 spots means much less on a
+      // 50-deep board than on a 32-deep one.
+      const hi = d.depth>32?5:3, lo = d.depth>32?9:5;
+      const cls = dev>=lo?' up2':dev>=hi?' up1':dev<=-lo?' dn2':dev<=-hi?' dn1':'';
+      const txt = r.shown[i];
+      // "RV" is a poll's own published state (receiving votes), not a rank we
+      // invented, so it renders as a label rather than a number.
+      const rv = txt==='RV' ? ' rv' : '';
+      return '<td class="cell'+cls+tg+rv+'" title="scored as rank '+v+'">'+txt+'</td>';
+    }).join('');
+    const hot = r.spread!=null && r.spread>=maxSpread*0.75;
+    const bar = r.spread==null
+      ? '<div class="spbar"><span class="nr">—</span></div>'
+      : '<div class="spbar"><i class="'+(hot?'hot':'')+'" style="width:'+
+        Math.max(4,(r.spread/maxSpread)*62)+'px"></i><span>'+
+        (Number.isInteger(r.spread)?r.spread:r.spread.toFixed(1))+'</span></div>';
+    const mono = r.mono;
+    const badge = r.logo
+      ? '<img class="lg" src="'+r.logo+'" alt="" loading="lazy" '+
+        'onerror="this.outerHTML=\'<span class=&quot;mono&quot;>'+mono+'</span>\'">'
+      : '<span class="mono">'+mono+'</span>';
+    return '<tr><td class="cRank rk">'+rk+'</td>'+
+      '<td class="cTeam tm"><div class="tmw">'+badge+'<div class="tmn">'+r.team+
+        (r.appearances<LIVE
+          ? '<span class="apps">ranked by only '+r.appearances+' of '+LIVE+'</span>' : '')+
+      '</div></div></td>'+
+      '<td class="cScore"><span class="scorebox"><b>'+r.score.toFixed(1)+'</b><i>score</i></span></td>'+
+      cells+'<td class="sp">'+bar+'</td></tr>';
+  }).join('');
+
+  const hasPoll = S.some(s=>s.tier==='official');
+  document.getElementById('notes').innerHTML =
+    '<b>How the composite is built.</b> Each source is truncated to its top '+d.depth+
+    ' and scored '+d.depth+' points for first down to 1 for '+d.depth+
+    'th; a team a source does not rank earns nothing from it. Every source is then weighted by its tier share, '+
+    'split within the tier. Tier shares renormalize over the tiers that published this week, so a tier going dark '+
+    'never breaks the ranking, and a tier carrying only one source is capped at 35% because one outlet is not a tier. '+
+    'Ties break on how many sources ranked the team, then its single best rank, then alphabetically. '+
+    '<b>Models are weighted above human polls</b>, because voters anchor on preseason expectation and brand '+
+    'and are slow to drop a name team, while a model re-derives from results every week with no such memory.'+
+    (hasPoll
+      ? ' <b>RV means receiving votes.</b> The AP and Coaches polls publish 25 ranks plus a list of teams receiving '+
+        'votes, so below 25 they still carry real signal. Vote-getters are scored on their vote totals, and teams '+
+        'level on votes share an averaged rank rather than being ordered arbitrarily, but the cell says RV because '+
+        'that is what the poll actually published.'
+      : '')+
+    ' <b>Spread</b> is the gap between a team\'s best and worst rank among the sources that rank them; the count '+
+    'under a team name says how many of the '+LIVE+' scoring sources that is.'+
+    '<span id="logonote"></span>';
+
+  // Logos come from ESPN's CDN. Some hosts (this preview included) block
+  // external images, so say so rather than letting initials read as a bug.
+  setTimeout(()=>{
+    const blocked = document.querySelectorAll('#body .mono').length;
+    const el = document.getElementById('logonote');
+    if(el) el.innerHTML = blocked
+      ? '<br><br><b>Note on logos.</b> Team marks load from ESPN\'s CDN '+
+        '(<code>a.espncdn.com</code>), keyed by ESPN team id for college and by team '+
+        'abbreviation for the NFL. This preview blocks external images, so '+blocked+
+        ' of them fell back to the initials badge. They render as real logos in the local '+
+        'file and on the live site.'
+      : '';
+  }, 1200);
+
+  // Callouts are computed from the board, never hand-written, so they cannot
+  // go stale against the data the week after.
+  const full = d.rows.filter(r=>r.appearances===LIVE);
+  const widest = full.slice().sort((a,b)=>b.spread-a.spread)[0] || d.rows[0];
+  const unanimous = full.filter(r=>r.spread===0).length;
+  const thin = d.rows.slice().sort((a,b)=>a.appearances-b.appearances || a.rank-b.rank)[0];
+  const staleCount = S.filter(s=>!s.ok).length;
+  const cards = [
+    ['Most disagreed on', widest.team, 'Ranked as high as #'+widest.best+' and as low as #'+
+      (widest.best+widest.spread)+'. A '+widest.spread+'-spot spread is the widest among teams every source ranks.'],
+    ['Total agreement', unanimous+(unanimous===1?' team':' teams'),
+      unanimous ? 'Placed in exactly the same spot by all '+LIVE+' scoring sources.'
+                : 'No team is placed identically by all '+LIVE+' scoring sources.'],
+  ];
+  if(thin && thin.appearances<LIVE) cards.push(['Thinnest support', thin.team,
+    'Makes the board at #'+thin.rank+' on just '+thin.appearances+' of '+LIVE+
+    ' scoring sources. A single-source ranking would never show you this.']);
+  if(staleCount) cards.push(['Sources excluded', staleCount+' of '+S.length,
+    'Returning complete, plausible, months-old tables. The live job would exclude them rather than publish them as current.']);
+  document.getElementById('callouts').innerHTML = cards
+    .map(([e,b,p])=>'<div class="co"><div class="eyebrow">'+e+'</div><div class="big">'+b+'</div><p>'+p+'</p></div>').join('');
+}
+
+document.getElementById('tg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  sport=b.dataset.s;
+  [...document.querySelectorAll('#tg button')].forEach(x=>x.classList.toggle('on',x===b));
+  render();
+});
+render();
+</script></body></html>
