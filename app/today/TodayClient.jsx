@@ -1704,7 +1704,19 @@ const CSS = `
 @media(max-width:900px){
   .tdy-wrap{padding:0 0 30px;}
   .dhx-marquee{margin-left:-16px;margin-right:-16px;}
-  .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:14px 0 0;}
+  /* NOTHING ON THE PHONE STACK IS SEPARATED BY A GAP (owner, 2026-08-28).
+     Every block here already runs edge to edge, so the 14px between them was
+     a strip of page ground doing the job the coloured header band above each
+     shelf does anyway. The page is one continuous run of bands now: the two
+     nav rows, then header, tiles, header, tiles, all touching. Each shelf's
+     own header IS the separator, which is why none is needed between them.
+
+     .tdy-shc.circuits carries its own margin at a higher specificity than the
+     plain .tdy-shc below, so it has to be zeroed by name or the circuits shelf
+     alone keeps a 16px gap. Same trap for anything else that sets a margin on
+     a compound selector. */
+  .tdy-shc{border-radius:0;border-left:none;border-right:none;margin:0;}
+  .tdy-shc.circuits{margin-top:0;}
   /* ONE LINE, THREE THINGS (owner, 2026-08-26). The two-row grid this replaces
      was still taller than what it had to say, and it fell apart on any shelf
      with no leader yet: row two then held a lone CTA against an empty half, so
@@ -1748,10 +1760,10 @@ const CSS = `
   .tdy{--tile-w:88px;}
   .tdy-nud{display:none;}
   .tdy-fade{display:none;}
-  .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
+  .tdy-catdone{border-radius:0;border-left-width:4px;border-right:none;margin:0;}
   .tdy-restband{padding-left:16px;padding-right:16px;}
   .tdy-two{grid-template-columns:1fr;}
-  .tdy-card{border-radius:0;border-left:none;border-right:none;margin:10px 0 0;}
+  .tdy-card{border-radius:0;border-left:none;border-right:none;margin:0;}
   .tdy-foot{padding-left:16px;}
 }
 @media(max-width:560px){
@@ -1945,6 +1957,6 @@ const CSS = `
   .tdy-jbshin{padding:14px 14px 18px;}
   .tdy-reor{width:100%;}
   .tdy-azw{max-width:none;}
-  .tdy-teaser{border-radius:0;border-left-width:4px;border-right:none;margin:14px 0 0;}
+  .tdy-teaser{border-radius:0;border-left-width:4px;border-right:none;margin:0;}
 }
 `;
