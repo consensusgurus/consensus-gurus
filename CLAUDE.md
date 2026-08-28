@@ -3767,6 +3767,7 @@ archive and hub chips use the short form `Sun`.
 | Quilt | 26 printed clues instead of the weekday 30 to 34 (from 2026-08-11) |
 | Cages | 27 cages instead of the weekday 29 to 34, and the only day that prints a five-cell cage (from 2026-08-12) |
 | Sando | six printed digits instead of the weekday 10 to 20 (from 2026-08-13) |
+| Knight | thirteen printed digits instead of the weekday 16 to 28 (from 2026-08-28) |
 | Circa | a trickier moment to place |
 | Extra | a trickier story to name |
 | Carve | 7×7 board in nine blocks |
@@ -4098,6 +4099,53 @@ the client (the trick `verify-endgame-playout.mjs` uses), stub `document.element
 grid of known coordinates, and drive synthetic pointer sequences. That is how commit-on-lift, the
 hold-to-aim discriminator, the line lock, the free marks, the win path and the unchanged mouse path
 were all confirmed before the push, along with a unit test of the commit's error arithmetic.
+
+## Knight is the ANTI-KNIGHT SUDOKU, and the rule has to be LOAD-BEARING (launched 2026-08-28)
+
+The eighth sudoku, after Suds (classic), Quilt (jigsaw), Cages (killer), Sando (sandwich),
+Sixes (mini), Mercury (thermo) and Polka (kropki). Ordinary 9x9, ordinary boxes, ordinary
+printed digits, plus one rule: no digit may repeat a chess knight's move away from itself,
+so a 5 at r4c4 also rules out a 5 at r2c3, r2c5, r3c2, r3c6, r5c2, r5c6, r6c3 and r6c5.
+
+It is the first sudoku here whose extra rule is a **cell-to-cell exclusion** rather than a
+region shape, an arithmetic clue on a group, or a relation between neighbours. Nothing is
+drawn on the grid and there is no arithmetic anywhere: the constraint reaches ACROSS boxes
+instead of inside them, which is why the board can print as few as thirteen digits.
+
+- **⚠️ A KNIGHT SET IS NOT A HOUSE.** The eight cells a knight's move from a given cell do
+  NOT see each other, so they carry no "these cells hold every digit" guarantee. The rule
+  supplies **eliminations only**: never a hidden single, never a locked candidate, never a
+  naked or hidden subset. Rows, columns and boxes stay the only 27 houses. This is the same
+  trap Cages documents for cages, and conflating the two produces a solver that calls every
+  legal board contradictory. Note that a knight peer CAN share the selection's box (r4c4 and
+  r5c6 are both in the middle box), which is why the client paints the knight tint AFTER the
+  ordinary peer tint rather than instead of it.
+- **KNIGHT NECESSITY is a checked property, not an aspiration.** On every board, the same
+  clues read as an ORDINARY sudoku admit more than one grid, so the knight rule is never
+  decoration and a board can never be a plain sudoku that happens to have been dug under a
+  knight solver. `scripts/verify-knight.mjs` proves it by counting solutions a second time
+  with the rule switched off and failing at one. Measured while designing the ramp: this
+  holds at every clue count up to 30, so the ramp is not bounded by it.
+- **The ramp is TWO measured axes, both pinned per weekday, neither merely capped.**
+  `printed` runs Mon 28, Tue 25, Wed 22, Thu 20, Fri 18, Sat 16 and **Sunday 13**, the
+  fewest of the week. `level` is 1 (naked and hidden singles) Mon-Thu and 2 (also locked
+  candidates and naked/hidden subsets) Fri, Sat and Sun. Level had to be pinned rather than
+  capped because at 18 clues a board comes out singles-only about two times in three, which
+  is a Tuesday wearing Friday's clue count. The greedy logic floor is 12 to 19 clues
+  depending on the dig order, so a Sunday is found by re-digging the same grid rather than
+  by regenerating.
+- **Generator and verifier share NO code**, as with Cages and Quilt. The generator uses
+  bitmask candidates and branches on the emptiest cell; `verify-knight.mjs` uses Set-based
+  candidates and branches on the house-and-digit with the fewest placements, and it POLICES
+  its logical solver against the known solution so an unsound elimination is reported rather
+  than trusted. `scripts/knight-mutation-test.mjs` breaks the bank nine ways and every one
+  must be caught.
+- **Knight joined the rotating Sudoku circuit**, taking its pool from eight to NINE. `rotate`
+  stays 5, so the circuit still plays five a day and each pool member now appears five days
+  in every nine. Its estimated median (800s, between Polka and Mercury) is an ESTIMATE in
+  verify-circuits; replace it at the next snapshot re-measure.
+- **Accent is indigo #3730a3**, the one step left between Sixes' royal blue and Cages'
+  purple on the Numbers row.
 
 ## Sando is the SANDWICH SUDOKU, and the sums are the whole point (launched 2026-08-13)
 
