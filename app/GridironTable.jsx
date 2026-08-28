@@ -20,6 +20,14 @@ const TIER_LABEL = {
   market: 'Betting markets',
 };
 const TIER_ORDER = ['official', 'model', 'media', 'market'];
+// Tier colours, used only on mobile, where the desktop column grouping is gone
+// and a chip has to say which kind of source it came from on its own.
+const TIER_COLOR = {
+  official: 'var(--accent)',
+  model: 'var(--blue)',
+  media: 'var(--slate)',
+  market: 'var(--gold-ink)',
+};
 const MEDAL = ['#e8b43a', '#aeb4bd', '#c88a55'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -144,16 +152,49 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
 .gr-sw{width:15px;height:15px;border-radius:4px;border:1px solid var(--border);}
 .gr-notes{padding:14px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.65;}
 .gr-notes b{color:var(--ink);}
+/* ---- mobile: one card per team ----
+   A ten-column table behind a horizontal scrollbar is not a mobile layout: the
+   whole point of this page is comparing sources, and on a phone every source
+   was off-screen. Below 760px the table is replaced by a card per team that
+   keeps EVERY source visible, as wrapped chips, with no sideways scrolling.
+   Both renders sit in the DOM and CSS picks one, so the pages stay server
+   components with no client JS; display:none also keeps the hidden one out of
+   the accessibility tree. */
+.gr-cards,.gr-tierkey{display:none;}
 @media(max-width:760px){
-  .gr .cRank{width:38px;left:0;}
-  .gr .cTeam{left:38px;box-shadow:1px 0 0 var(--border);}
-  .gr .cScore{position:static;padding-left:6px;padding-right:8px;}
-  .gr td.tm{font-size:12.5px;padding:6px 10px 6px 6px;width:auto;}
-  .gr-tmn{max-width:132px;}
-  .gr-lg,.gr-mono{width:22px;height:22px;}
-  .gr-score{min-width:44px;padding:3px 6px 4px;}
-  .gr-score b{font-size:13px;}
-  .gr table{font-size:12px;}
+  .gr-scroll{display:none;}
+  .gr-cards{display:block;list-style:none;margin:0;padding:0;}
+  .gr-tierkey{display:flex;flex-wrap:wrap;gap:10px 14px;padding:10px 14px;
+    border-bottom:1px solid var(--border);background:var(--surface);}
+  .gr-tk{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--slate);}
+  .gr-tk i{width:9px;height:9px;border-radius:3px;display:block;}
+  .gr-card{padding:11px 14px 12px;border-bottom:1px solid var(--border);}
+  .gr-card:last-child{border-bottom:0;}
+  .gr-chead2{display:flex;align-items:center;gap:9px;}
+  .gr-crank{font-size:15px;font-weight:800;color:var(--ink);min-width:22px;text-align:center;flex:none;}
+  .gr-card .gr-lg,.gr-card .gr-mono{width:28px;height:28px;}
+  .gr-cname{flex:1;min-width:0;font-size:15px;font-weight:800;letter-spacing:-.01em;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gr-cscore{flex:none;display:inline-flex;flex-direction:column;align-items:center;
+    min-width:56px;padding:4px 9px 5px;border-radius:8px;background:var(--accent);color:#fff;}
+  .gr-cscore b{font-size:15px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
+  .gr-cscore i{font-style:normal;font-size:7.5px;font-weight:800;letter-spacing:.1em;
+    text-transform:uppercase;opacity:.72;margin-top:2px;}
+  .gr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
+  .gr-chip{display:inline-flex;align-items:baseline;gap:5px;padding:3px 8px 3px 6px;
+    border:1px solid var(--border);border-left-width:3px;border-radius:6px;background:var(--white);}
+  .gr-chip s{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--slate);text-decoration:none;}
+  .gr-chip b{font-size:12.5px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
+  .gr-chip.up{background:#eff5ff;}   .gr-chip.up b{color:var(--blue-deep);}
+  .gr-chip.dn{background:#fdf4e8;}   .gr-chip.dn b{color:#9a6212;}
+  .gr-chip.rvc b{font-size:10px;letter-spacing:.06em;}
+  .gr-chip.gone{background:repeating-linear-gradient(135deg,#fcfcfd,#fcfcfd 5px,#f5f6f8 5px,#f5f6f8 10px);
+    border-left-color:#d7dbe2!important;}
+  .gr-chip.gone s,.gr-chip.gone b{color:#b9bfc9;text-decoration:line-through;}
+  .gr-crange{margin-top:8px;font-size:10.5px;font-weight:700;color:var(--slate);letter-spacing:.02em;}
+  .gr-crange em{font-style:normal;color:var(--muted);}
 }
       ` }} />
 
@@ -259,6 +300,57 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile render. Same data, same order, no horizontal scrolling. */}
+        <div className="gr-tierkey">
+          {groups.map((g) => (
+            <span key={g.tier} className="gr-tk">
+              <i style={{ background: TIER_COLOR[g.tier] }} />
+              {TIER_LABEL[g.tier]} {pct(tierShare[g.tier] || 0)}%
+            </span>
+          ))}
+        </div>
+        <ul className="gr-cards">
+          {ranked.map((r) => (
+            <li className="gr-card" key={r.team}>
+              <div className="gr-chead2">
+                <span className="gr-crank">
+                  {r.rank <= 3
+                    ? <span className="gr-medal" style={{ background: MEDAL[r.rank - 1] }}>{r.rank}</span>
+                    : r.rank}
+                </span>
+                {r.logo
+                  ? <Image className="gr-lg" src={r.logo} alt="" width={28} height={28} />
+                  : <span className="gr-mono">{r.mono}</span>}
+                <span className="gr-cname">{r.team}</span>
+                <span className="gr-cscore"><b>{r.score.toFixed(1)}</b><i>score</i></span>
+              </div>
+              <div className="gr-chips">
+                {S.map((s) => {
+                  const shown = r.shown[s.id];
+                  if (shown == null) return null;          // not ranked by this source
+                  const v = r.ranks[s.id];
+                  const dev = v == null ? 0 : r.rank - v;
+                  const cls = !s.ok ? 'gone' : dev >= hi ? 'up' : dev <= -hi ? 'dn' : '';
+                  return (
+                    <span
+                      key={s.id}
+                      className={`gr-chip ${cls}${shown === 'RV' ? ' rvc' : ''}`.trim()}
+                      style={{ borderLeftColor: TIER_COLOR[s.tier] }}
+                    >
+                      <s>{s.short || s.label}</s><b>{shown}</b>
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="gr-crange">
+                Ranked <em>#{r.best}</em> to <em>#{r.best + r.spread}</em>
+                {' '}&middot; spread <em>{Number.isInteger(r.spread) ? r.spread : r.spread.toFixed(1)}</em>
+                {r.appearances < live.length && <> &middot; on {r.appearances} of {live.length} sources</>}
+              </div>
+            </li>
+          ))}
+        </ul>
 
         <div className="gr-legend">
           <span className="gr-k"><i className="gr-sw" style={{ background: '#dbe9fe' }} /> source ranks them higher than consensus</span>
