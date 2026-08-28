@@ -98,6 +98,24 @@ export default function CollegeFootballRankingsPage() {
           boardTitle="Consensus Top 50"
         />
 
+        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <a
+            href="/collegefootballrankings/poster-image"
+            target="_blank"
+            rel="noopener"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700,
+              padding: '9px 15px', borderRadius: 9, textDecoration: 'none',
+              background: T.accent, color: T.white,
+            }}
+          >
+            Download the one-pager
+          </a>
+          <span style={{ fontSize: 11.5, color: T.slate }}>
+            The whole board as a single image, for sharing or printing.
+          </span>
+        </div>
+
         <p style={{ marginTop: 18, fontSize: 12.5, lineHeight: 1.65, color: T.muted, maxWidth: 760 }}>
           Looking for the pros? See the{' '}
           <a href="/nflrankings" style={{ color: T.blue, fontWeight: 700 }}>
