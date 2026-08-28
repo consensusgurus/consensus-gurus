@@ -1902,9 +1902,18 @@ const CSS = `
      the categories on a scrolling row of their own underneath, where they get
      the full width instead of whatever is left after four buttons.
      column-reverse rather than a DOM change, so the desktop bar keeps its one
-     row and its source order. The chip track bleeds back out to the screen
-     edges (negative margin + matching padding) so a scrolled chip runs off the
-     side of the screen rather than stopping short of it.
+     row and its source order.
+
+     BOTH ROWS ARE FULL-WIDTH BANDS THAT TOUCH (owner, 2026-08-28). Every
+     category header on this page is already a filled band running edge to
+     edge, and the nav above them was the one part still built out of rounded
+     pills floating on a gutter, which read as a control panel bolted onto a
+     page made of bands. So the bar carries no padding and no gaps: the two
+     buttons split the top row and meet on a hairline, the chips run as one
+     continuous strip of rectangles separated by hairlines, and both rows sit
+     flush against each other and against the masthead above. The chip track
+     needs no negative margin any more, since the row it sits in has no
+     padding to bleed back out of.
 
      Both rows stick, and everything in them is a size down: two rows at the
      desktop's sizes measured 98px of permanently locked screen against the old
@@ -1915,16 +1924,23 @@ const CSS = `
      THESE RULES LIVE IN THIS BLOCK, not the big phone block above, and that is
      load-bearing: the jump bar's own rules are declared AFTER that block, so at
      equal specificity they win. A copy up there is a copy that does nothing. */
-  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:6px;padding:6px 14px 7px;}
+  .tdy-jb{margin-top:0;}
+  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:0;padding:0;}
   .tdy-jbtw{width:100%;}
-  .tdy-jbt{margin:0 -14px;padding:1px 14px;}
-  .tdy-jbc{overflow:visible;gap:6px;}
+  .tdy-jbt{margin:0;padding:0;gap:0;}
+  .tdy-jbc{overflow:visible;gap:0;}
   /* On a phone these two are full-width targets rather than two words at
      the end of a row, so they take a surface back: a hover ground is no
-     affordance at all on touch. */
-  .tdy-jb2{flex:1 1 0;min-width:0;font-size:11.5px;padding:6px 4px;text-align:center;background:var(--white);border-radius:9px;box-shadow:0 1px 2px rgba(16,24,40,.09);}
+     affordance at all on touch. Each takes half the row and they meet on a
+     hairline, so the pair reads as one band rather than two buttons. */
+  .tdy-jb2{flex:1 1 0;min-width:0;font-size:11.5px;padding:10px 4px;text-align:center;background:var(--white);border-radius:0;box-shadow:none;border-right:1px solid #dfe4ec;}
+  .tdy-jbc .tdy-jb2:last-child{border-right:0;}
   .tdy-jb2.on{background:var(--accent-soft);}
-  .tdy-jc{padding:4px 10px 4px 8px;}
+  /* The chips lose their corners and their gap for the same reason, so the
+     track is one strip of tinted rectangles. The hairline is what tells two
+     neighbouring tints apart; the chip's own ::before meter is unaffected,
+     since it fills the padding box and the border sits outside it. */
+  .tdy-jc{border:0;border-right:1px solid rgba(15,23,42,.09);border-radius:0;padding:8px 12px 8px 10px;}
   .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}
   .tdy-reor{width:100%;}
