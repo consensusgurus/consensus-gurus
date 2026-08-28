@@ -29,6 +29,37 @@ rebuilt automatically every week.
 
 ---
 
+## 0a. ⚠️ THESE PAGES ARE CANONICAL ON sourceoftruths.com
+
+Owner decision, 2026-08-28. The Sports Ranking pages are a **Source of Truths** property and live
+primarily on the OLD host, even though the rest of the site moved to mindloftdaily.com on 2026-08-04.
+
+Three pieces make that work, and they must stay in agreement:
+
+| Piece | Where |
+|---|---|
+| The two paths are SERVED on old hosts instead of 308ing | `middleware.js`, via `SOT_PATHS` |
+| `alternates.canonical` and `openGraph.url` are absolute on the old host | both `page.js` files, via `SOT_URL` |
+| The sitemap lists the same two absolute URLs | `lib/sitemap-entries.js` `pagesEntries` |
+
+`SOT_URL` and `SOT_PATHS` are defined once in `lib/site.js`. **Adding a third ranking page means
+adding its path to `SOT_PATHS` and its canonical, or it will silently 308 to the new host.**
+
+**This is a deliberate exception to the rule stated at the top of `lib/site.js`**, which warns that
+the sitemap, robots and `metadataBase` must all agree on one canonical host or the Change of Address
+filed at cutover is undermined. The old property now says "I moved" for every path EXCEPT two.
+
+**What to watch, and the cheap way out.** Check those two URLs in Search Console over the next few
+weeks. Google may honour the carve-out, or it may fold them into mindloftdaily.com anyway because the
+Change of Address is a sitewide signal and a self-referential canonical on a migrated domain is a
+contradiction. **If it folds them, do not fight it**: delete the `SOT_PATHS` check in the middleware
+and switch the two canonicals back to relative. The pages keep the Source of Truths masthead, titles
+and share copy either way, because the branding never depended on the URL. Nothing else is at risk —
+verified 2026-08-28 that every other old-host path still 308s (`sourceoftruths.com/lists` →
+`mindloftdaily.com/lists`).
+
+---
+
 ## 1. Why this is its own engine and its own route
 
 The owner's call (2026-08-28) was "hybrid": the data reads like the existing sources shape so it is
@@ -85,19 +116,31 @@ them on one scale, and an absent team earning ZERO is the same rule `getSources`
 Weight is assigned by TIER, not by source, so adding a fourth media outlet cannot drown out the AP
 poll:
 
-**Analytics models outweigh human polls** (owner rule, 2026-08-28). Voters anchor on preseason
-expectation and on brand, and they move slowly: a poll will not drop a name team as fast as the
-results say it should, and it systematically rewards teams that started the year ranked. A model
-re-derives from results every week with no such memory. This is the same instinct as the
-media-list crowd tilt already in `CLAUDE.md`, applied to the other side of the critic/objective
-divide. It is a real editorial position, not a neutral default, so it is stated on the page.
+**TIER ORDER: MARKETS > MODELS > MEDIA > HUMAN POLLS** (owner rule, 2026-08-28). The tiers are
+ordered by **how little bias they carry**, not by how famous they are:
+
+- A **betting market** is the least biased signal available. It is real money, continuously
+  repriced by people who lose that money when they are wrong, with no reason to favour a brand, a
+  conference or a television window.
+- An **analytics model** is objective and results-derived, but it is one method with one set of
+  assumptions, and different models genuinely disagree.
+- **Human rankings** come last because their known failure modes all point the same way: voters
+  anchor on where a team started the season, reward reputation and blue-blood brands, are slow to
+  drop a name team that keeps losing, and see a fraction of the games they rank.
+
+That is not a knock on the AP poll, which is a fine measure of what people believe. It is the
+reason it does not lead here. This is a real editorial position, not a neutral default, so the
+argument is stated on the page rather than buried.
 
 | Tier | CFB | NFL | Why |
 |---|---|---|---|
-| Official polls | **25%** | — | AP and Coaches still carry the historical consensus and the vote tail that makes a top 50 possible, but they are weighted below the models per the rule above. The NFL has no official poll. |
-| Analytics models | **45%** | **40%** | Objective, results-derived, and the deepest tier available in both sports. The largest tier in both. |
-| Media power rankings | **10%** | **25%** | The softest signal and the most duplicative of the polls. Currently unpopulated for CFB (every fetchable CFB "media ranking" is an AP/Coaches reprint, which would double-count the poll tier). |
-| Betting markets | **20%** | **35%** | Real money aggregating every public and private model at once, and the hardest single signal to beat. |
+| Betting markets | **40%** | **45%** | The least biased signal available, and the hardest single one to beat. The largest tier in both sports. |
+| Analytics models | **35%** | **35%** | Objective and results-derived, but one method among several. |
+| Media power rankings | **10%** | **20%** | The softest signal and the most duplicative of the polls. Currently unpopulated for CFB (every fetchable CFB "media ranking" is an AP/Coaches reprint, which would double-count the poll tier). |
+| Official polls | **15%** | — | AP and Coaches still carry the historical consensus and the vote tail that makes a top 50 possible, but they are weighted last per the rule above. The NFL has no official poll. |
+
+Live shares after renormalization: **CFB** market 44.4, model 38.9, official 16.7. **NFL** market
+45.0, model 35.0, media 20.0.
 
 Within a tier, sources split the tier's share equally, except the official tier:
 
@@ -109,10 +152,10 @@ from the CFP's first release:    CFP 50%, AP 30%, Coaches 20%
 This mirrors the `decisiveExpert` idea already in `CLAUDE.md`: the committee ranking is the one that
 decides the playoff, so it outweighs the other polls once it exists.
 
-⚠️ **Unresolved tension, needs an owner ruling before November.** These two rules pull against each
-other. With the official tier at 30%, the CFP committee ranking lands at **15% of the composite** —
-so the ranking that literally selects the playoff field would carry less weight than any two of the
-four models. That is defensible if the page's claim is "who is actually best," and wrong if the
+⚠️ **Unresolved tension, needs an owner ruling before November, and it got sharper.** These two
+rules pull against each other. With the official tier now at 16.7% live, the CFP committee ranking
+would land at roughly **8% of the composite** — so the ranking that literally selects the playoff
+field would carry less weight than any single analytics model. That is defensible if the page's claim is "who is actually best," and wrong if the
 claim is "where does this team stand." Options when the committee's first release lands: leave it
 (models-first is the stated rule), raise the official tier only for the CFP weeks, or promote CFP
 out of the official tier into a decisive slot of its own. **Do not decide this silently in code.**
@@ -121,12 +164,20 @@ out of the official tier into a decisive slot of its own. **Do not decide this s
 
 **Tier renormalization.** Tier shares are divided by the total share of the tiers that actually
 published this week AND passed the age gate. A tier going dark reweights the rest instead of
-shrinking the composite. CFB currently has no usable media source, so it runs models 50% / official
-27.8% / market 22.2%.
+shrinking the composite. CFB currently has no usable media source, so it runs market 44.4% /
+model 38.9% / official 16.7%.
 
 **The solo-tier cap (`SOLO_CAP = 0.35`).** A tier carrying exactly one source is capped at 35% and
 the excess redistributes. One outlet is not a tier. Without this the NFL media tier — currently just
 CBS — would carry 50% of the composite alone, more than three independent models combined.
+
+**The market tier is EXEMPT from the cap, and that exemption is what makes the ordering possible.**
+The cap exists to stop one publication's OPINION standing in for a whole category. A betting line is
+not an opinion: it is already an aggregation, priced by everyone with money at stake and moved by
+books balancing action against each other, so a single futures board carries the market rather than
+one voice. Without the exemption the cap handed the top tier straight back to the models on college
+football, where the market is one source. Adding a second CFB market source would make the point
+moot and is worth doing.
 
 ### The 30-day rule (owner rule, 2026-08-28)
 
@@ -430,15 +481,25 @@ recurring automated writer in the repo.
 Live tokens from `lib/theme.js`; Manrope; the dark `--ground` page with a white console, matching
 the Loft surfaces.
 
-- **Masthead.** Every page in this section carries the kicker **"The Sports Ranking Source of
-  Truth"** above the page title, in gold caps with a short gold rule (owner rule, 2026-08-28).
+- **Masthead: these pages are a SOURCE OF TRUTHS property, not a Mind Loft one** (owner rule,
+  2026-08-28). They render `app/SotHeader.jsx` instead of the site-wide `SiteHeader`: the Source of
+  Truths wordmark, a two-item nav, and a quiet link back to Mind Loft. Titles and `og:siteName` read
+  "Source of Truths". The Mind Loft **footer stays** — it carries the legal links and is the site's
+  real internal-link registry, and a sub-brand inside a parent site is the normal shape for that.
+  Branding only: the visual system is unchanged (Midnight blue, Manrope), NOT the pre-rebrand
+  cream/Fraunces identity.
 - **Column order is fixed: rank, team, CONSENSUS SCORE, then every source, then spread** (owner
   rule, 2026-08-28). The composite score sits immediately beside the team name, ahead of every
   source column, in a filled `--accent` box. It is the answer the page exists to give, so it is
   never pushed to the far right past a horizontal scroll.
-- **Source columns are grouped under their tier**, with the tier's live weight percentage in the
-  group header and each source's own weight under its name. The weighting is the methodology, so it
-  is on the page rather than buried in a footnote.
+- **Source columns are grouped under their tier and ordered HEAVIEST TIER FIRST** (owner rule,
+  2026-08-28): market, model, media, official, left to right, so reading order matches how much each
+  tier moves the consensus. `TIER_ORDER` in `app/GridironTable.jsx`. The tier's live weight sits in
+  the group header and each source's own weight under its name: the weighting is the methodology, so
+  it belongs on the page rather than in a footnote.
+- **The header above the board is kept short** so the #1 team is visible on load (owner rule,
+  2026-08-28). The intro is two sentences carrying the bias argument; the full methodology lives in
+  the notes UNDER the table, where there is room for it. Do not grow the intro back.
 - **Sticky columns (desktop).** Rank, team and score are pinned so the source columns scroll under
   a labelled row.
 - **PHONE IS NOT THE TABLE. Below 760px the table is replaced by ONE CARD PER TEAM** (owner rule,
