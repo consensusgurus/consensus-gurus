@@ -384,6 +384,26 @@ function sizeBoard(){
   }
 }
 window.addEventListener('resize', sizeBoard);
+/* MEASURE ON MUTATION, NOT ON A FRAME. The chrome around the board changes
+   height by itself: the tries strip appears with the first guess, and the
+   keyboard disappears at the end. A single rAF after that render still read
+   the OLD layout and left the page 26px long. ResizeObserver fires after
+   layout, which is the guarantee rAF does not give. The guard is because
+   sizeBoard writes styles, and a write inside the callback would otherwise
+   be free to re-enter. */
+if (window.ResizeObserver){
+  var busy = false;
+  var ro = new ResizeObserver(function(){
+    if (busy) return;
+    busy = true;
+    sizeBoard();
+    busy = false;
+  });
+  ['.tries', '.kbwrap', '.cats', '.bar', '.id'].forEach(function(sel){
+    var el = document.querySelector(sel);
+    if (el) ro.observe(el);
+  });
+}
 
 /* ---------- keyboard, values lifted from CruxClient ---------- */
 var KB = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
