@@ -4,7 +4,7 @@
 // the two share GridironTable and differ only in copy and which slice of the
 // snapshot they render. Rules in CLAUDE-RANKINGS.md.
 
-import SiteHeader from '@/app/SiteHeader';
+import SotHeader from '@/app/SotHeader';
 import Footer from '@/app/Footer';
 import GridironTable from '@/app/GridironTable';
 import { GRIDIRON } from '@/lib/gridiron-data';
@@ -14,7 +14,7 @@ import { T } from '@/lib/theme';
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-const TITLE = 'NFL Consensus Power Rankings: All 32 Teams | Mind Loft';
+const TITLE = 'NFL Consensus Power Rankings: All 32 Teams | Source of Truths';
 const DESCRIPTION =
   'One consensus from every NFL power ranking worth reading: analytics models, betting markets and media, each scored 1 to 32 and weighted by tier. Every source shown side by side.';
 
@@ -36,7 +36,7 @@ export const metadata = {
     description: SHARE_DESCRIPTION,
     url: '/nflrankings',
     type: 'website',
-    siteName: 'Mind Loft',
+    siteName: 'Source of Truths',
   },
   twitter: {
     card: 'summary_large_image',
@@ -63,7 +63,7 @@ export default function NflRankingsPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}` },
+      { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SITE_URL}/collegefootballrankings` },
       { '@type': 'ListItem', position: 2, name: 'NFL Power Rankings Consensus' },
     ],
   };
@@ -72,17 +72,9 @@ export default function NflRankingsPage() {
     <div style={{ minHeight: '100vh', background: T.white, color: T.ink, fontFamily: FONT }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
-      <SiteHeader active="rankings" />
+      <SotHeader active="nfl" />
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 20px 40px' }}>
         <div style={{ paddingBottom: 13, marginBottom: 14, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 9, color: T.goldInk,
-            fontSize: 10.5, fontWeight: 800, letterSpacing: '0.16em',
-            textTransform: 'uppercase', marginBottom: 7,
-          }}>
-            <span style={{ width: 22, height: 3, borderRadius: 2, background: T.gold, display: 'inline-block' }} />
-            The Sports Ranking Source of Truth
-          </div>
           <h1 style={{
             fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(25px, 4.6vw, 40px)',
             lineHeight: 1.03, letterSpacing: '-0.03em', margin: 0, color: T.ink,
