@@ -100,7 +100,7 @@ export default function NflRankingsPage() {
 
         <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <a
-            href="/nflrankings/poster-image"
+            href="/nflrankings/breakdown"
             target="_blank"
             rel="noopener"
             style={{
@@ -109,10 +109,22 @@ export default function NflRankingsPage() {
               background: T.accent, color: T.white,
             }}
           >
-            Download the one-pager
+            Download the breakdown (PDF)
+          </a>
+          <a
+            href="/nflrankings/poster-image"
+            target="_blank"
+            rel="noopener"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700,
+              padding: '9px 15px', borderRadius: 9, textDecoration: 'none',
+              background: T.white, color: T.accent, border: `1px solid ${T.border}`,
+            }}
+          >
+            Share image
           </a>
           <span style={{ fontSize: 11.5, color: T.slate }}>
-            The whole board as a single image, for sharing or printing.
+            One page, every source column. The share image is the ranking only.
           </span>
         </div>
 
