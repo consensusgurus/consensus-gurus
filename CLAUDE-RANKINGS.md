@@ -545,6 +545,49 @@ from; it is not wired to anything and may drift. The live pages are the truth.
 
 ---
 
+## 6a. View tracking, and the one-pager
+
+### Tracking
+
+The site has **no path-based view tracking**. Every view is keyed on an opaque string in
+`views.list_id` or `quiz_views.quiz_id`, and an ordinary page is counted by reserving a pseudo-id,
+which is what `home`, `daily`, `kids` and `exam-*` already do. `app/PageViewBeacon.jsx` is that
+idiom generalised, so a server page opts in with one line and stays a server component.
+
+- **Reserved ids: `cfb-rankings`, `nfl-rankings`.** Never create a real quiz with either.
+- **It posts to `/api/quiz/view`, not `/api/views`, deliberately.** The admin's quiz row set unions
+  the ALL-TIME views map as well as the 24h one, so the page keeps its row on a quiet day; the list
+  row set unions only 24h, so it would vanish. And `PageViewsPanel` honours a quiz row's `href` but
+  hardcodes `/list/<id>` for list rows, which is why the existing `home` and `daily` rows are dead
+  links in the panel.
+- **The once-per-session flag is set only AFTER the write lands.** Setting it up front means one
+  failed request suppresses the count for the whole session with nothing recorded.
+- `TRACKED_PAGES` in `app/admin/page.js` (renamed from `KIDS_PAGES`, which was no longer accurate)
+  gives each id a title and a real href. It is **cosmetic**: a tracked id appears in the panel with
+  or without an entry, just as a raw id linking to a dead `/quiz/<id>`.
+
+⚠️ **`/api` must never be redirected on the old hosts.** A 308 to another origin is not a redirect a
+browser follows for an XHR: it returns an `opaqueredirect` and the call fails. Carving the pages out
+of the redirect without carving out `/api` silently killed both the beacon and the footer's visitor
+count on sourceoftruths.com. `middleware.js` exempts `/api/` for this reason. Likewise the SOT_PATHS
+check is a PREFIX match, so a page's sub-routes (the poster) stay on the same host.
+
+### The one-pager
+
+`/<page>/poster-image` renders the entire board as a single PNG, two columns, linked from a Download
+button on each page. 1200x1558 for the 50, 1200x1140 for the 32. Shared renderer in
+`app/gridiron-poster.jsx`.
+
+- **No team logos, deliberately.** Satori fetches every remote image at render time, so fifty of
+  them make the route slow and give it fifty ways to fail, and fifty 26px marks read as noise at
+  this size. Rank, team and score carry the sheet.
+- **Colours are literal hex, never `var()`.** Satori does not resolve CSS custom properties and
+  drops them silently. Same constraint the list poster route documents.
+- Satori is **flex-only**: no CSS grid, and every element with children needs an explicit
+  `display: flex`.
+
+---
+
 ## 7. Weekly build checklist
 
 1. Fetch every registered source; run the per-source gate (§5) on each.
