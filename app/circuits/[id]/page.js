@@ -3,6 +3,7 @@ import Grain from '../../Grain';
 import NavyFrame from '../NavyFrame';
 import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import CircuitLanding from './CircuitLanding';
+import PaperSkin from '../../PaperSkin';
 import { ALL_CIRCUITS, circuitById, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
 import { SITE_URL } from '@/lib/site';
 
@@ -119,6 +120,9 @@ export default function CircuitPage({ params }) {
 
   return (
     <>
+      {/* The whitewash, off unless ?paper=1. Inert without the flag, and
+          FIRST so its class lands before anything below it paints. */}
+      <PaperSkin />
       <Grain />
       <QuizNavHeader />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
