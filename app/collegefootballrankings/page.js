@@ -9,7 +9,7 @@ import Footer from '@/app/Footer';
 import GridironTable from '@/app/GridironTable';
 import { GRIDIRON } from '@/lib/gridiron-data';
 import { computeComposite } from '@/lib/gridiron';
-import { SITE_URL } from '@/lib/site';
+import { SOT_URL } from '@/lib/site';
 import { T } from '@/lib/theme';
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -30,11 +30,12 @@ const SHARE_DESCRIPTION =
 export const metadata = {
   title: TITLE,
   description: DESCRIPTION,
-  alternates: { canonical: '/collegefootballrankings' },
+  // Absolute, on the old host: these pages are canonical there (see lib/site.js).
+  alternates: { canonical: `${SOT_URL}/collegefootballrankings` },
   openGraph: {
     title: SHARE_TITLE,
     description: SHARE_DESCRIPTION,
-    url: '/collegefootballrankings',
+    url: `${SOT_URL}/collegefootballrankings`,
     type: 'website',
     siteName: 'Source of Truths',
   },
@@ -52,7 +53,7 @@ export default function CollegeFootballRankingsPage() {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'College Football Rankings Consensus Top 50',
-    url: `${SITE_URL}/collegefootballrankings`,
+    url: `${SOT_URL}/collegefootballrankings`,
     description: DESCRIPTION,
     numberOfItems: ranked.length,
     itemListElement: ranked.map((r) => ({
@@ -63,7 +64,7 @@ export default function CollegeFootballRankingsPage() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SITE_URL}/collegefootballrankings` },
+      { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SOT_URL}/collegefootballrankings` },
       { '@type': 'ListItem', position: 2, name: 'College Football Rankings Consensus' },
     ],
   };

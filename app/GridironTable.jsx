@@ -19,7 +19,9 @@ const TIER_LABEL = {
   media: 'Media power rankings',
   market: 'Betting markets',
 };
-const TIER_ORDER = ['official', 'model', 'media', 'market'];
+// Column order follows the WEIGHTING, heaviest first (owner rule, 2026-08-28), so the
+// left-to-right reading order matches how much each tier actually moves the consensus.
+const TIER_ORDER = ['market', 'model', 'media', 'official'];
 // Tier colours, used only on mobile, where the desktop column grouping is gone
 // and a chip has to say which kind of source it came from on its own.
 const TIER_COLOR = {

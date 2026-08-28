@@ -20,6 +20,7 @@
 
 import { NextResponse } from 'next/server';
 import { mintHandoff, PARAM } from '@/lib/identity-handoff';
+import { SOT_PATHS } from '@/lib/site';
 
 const OLD_HOSTS = new Set([
   'sourceoftruths.com',
@@ -46,6 +47,12 @@ export async function middleware(req) {
     url.searchParams.set('host', host);
     return NextResponse.rewrite(url);
   }
+
+  // The Sports Ranking pages are a Source of Truths property and are canonical on THIS host
+  // (owner decision, 2026-08-28), so they are served here rather than redirected away. Their
+  // canonical and sitemap entries both point at this host, so the two signals agree. Every
+  // other path on every old host still 308s, exactly as before.
+  if (SOT_PATHS.includes(url.pathname)) return NextResponse.next();
 
   // Path-preserving: /quiz/foo on the old domain lands on /quiz/foo, so every existing deep
   // link, share URL and backlink still resolves.
