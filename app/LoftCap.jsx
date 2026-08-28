@@ -1064,7 +1064,15 @@ export default function LoftCap({
         </div>
         </div>
       ) : null}
-      {!(tiles && tiles.length) && figures.length ? (
+      {/* THE RESULT NEVER RIDES IN THE HEADER (owner, 2026-08-28). Once a
+          game is over the cap swaps its name for the A-Z strip, which takes
+          the whole row, so figures printed alongside it wrap onto a line of
+          their own and sit squeezed against the right edge with nothing to
+          the left of them. It reads as a glitch, and it is also a second
+          copy: every finished game states its result in its own end card,
+          which is where a player is looking. Live figures are unaffected,
+          and so is the `tiles` swap, which was already exclusive of them. */}
+      {!outcome && !(tiles && tiles.length) && figures.length ? (
         <div className="lcap-figs">
           {figures.map((f, i) => (
             <div key={i}>

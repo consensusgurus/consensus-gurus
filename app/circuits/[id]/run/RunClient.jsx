@@ -46,6 +46,8 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
 import { runSummaryHref, circuitShareUrl } from '@/lib/circuits';
+import CircuitScorecard from '../../CircuitScorecard';
+import useCircuitBoard from '../../useCircuitBoard';
 import { T } from '@/lib/theme';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -149,6 +151,14 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const sec = sections[r.si] || null;
   const question = r.phase === 'playing' && sec && r.i < sec.questions.length ? sec.questions[r.i] : null;
   const done = r.phase === 'done';
+
+  // THE BOARD IS PART OF THE ENDING, not a page you go to next (owner,
+  // 2026-08-28). The card used to close with "See the board", which is a link
+  // away at the moment a player most wants to know how that went against
+  // everyone else. It is fetched by the same hook /daily-five uses, so the two
+  // endings cannot ask the route different questions, and only once the run is
+  // over: mid-run it would be a board the player is not on yet.
+  const boardQ = useCircuitBoard(circuitId, done);
 
   // ── hydration ────────────────────────────────────────────────────────────
   // Restores a run in progress, and on a fresh one marks every game already
@@ -404,11 +414,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       { v: fmtTime(now - (r.sT0 || now)), k: 'time' },
       { v: `${r.si + 1}/${N}`, k: `quiz · ${sec.name}` },
     ];
-    if (done) return [
-      { v: `${cleared}/${askable}`, k: 'questions' },
-      { v: `${perfect}/${N}`, k: 'cleared' },
-      { v: fmtTime(runSecs * 1000), k: 'time' },
-    ];
+    // NOTHING ONCE THE RUN IS OVER (owner, 2026-08-28). The finish card below
+    // carries these three figures, and by then the cap has swapped the game
+    // name for the A-Z strip, so a second copy of them lands squeezed against
+    // the right edge underneath it and reads as a glitch. The result belongs in
+    // the box the player is reading, not in the header.
+    if (done) return [];
     if (r.phase === 'verdict') return [
       { v: `${cleared}/${askable}`, k: 'questions' },
       { v: `${r.results.length}/${N}`, k: 'quizzes done' },
@@ -445,7 +456,10 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
       <div className="rn-wrap">
         {/* The run rail. It is the only thing on screen that persists across
-            all five quizzes, which is what makes this read as one sitting. */}
+            all five quizzes, which is what makes this read as one sitting.
+            Once the run is over the SCORECARD draws it, from the same states,
+            so this one stands down rather than the two stacking. */}
+        {!done ? (
         <div className="rn-rail" style={{ '--n': N }}>
           {sections.map((s, idx) => {
             const res = r.results.find((x) => x.key === s.key);
@@ -459,6 +473,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             );
           })}
         </div>
+        ) : null}
 
         {r.phase === 'idle' ? (
           <div className="rn-card rn-gate">
@@ -544,60 +559,48 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
         ) : null}
 
         {done ? (
-          <div className="rn-score">
-            <div className="rn-sh">
-              <span className="rn-eye">{circuitName} {'·'} {dateLabel}</span>
-              <h1 className="rn-h1">{perfect === N ? 'You cleared the whole run.' : 'Run complete.'}</h1>
-            </div>
-
-            <div className="rn-figs">
-              <div className="rn-fig big">
-                <b>{cleared}</b><i>of {askable} questions</i>
-              </div>
-              <div className="rn-fig">
-                <b>{perfect}</b><i>of {N} cleared</i>
-              </div>
-              <div className="rn-fig">
-                <b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i>
-              </div>
-            </div>
-
-            <div className="rn-rows">
-              {sections.map((s) => {
-                const res = r.results.find((x) => x.key === s.key);
-                const sc = res ? res.score : 0;
-                const tot = s.questions.length;
-                const pct = Math.round((sc / tot) * 100);
-                return (
-                  <div key={s.key} className={`rn-row${res && res.status === 'won' ? ' won' : ''}`} style={{ '--acc': s.accent }}>
-                    <img className="rn-ic" src={`/games/btn-${s.key}.png`} alt="" width={44} height={44} />
-                    <div className="rn-rt">
-                      <b>{s.name}</b>
-                      <i>{res && res.status === 'banked' ? 'played earlier today' : (s.topic || s.tag)}</i>
-                    </div>
-                    <div className="rn-rb"><span style={{ width: `${pct}%` }} /></div>
-                    <div className="rn-rn">{sc}<em>/{tot}</em></div>
-                    <div className="rn-rs">{res && res.status === 'won' ? 'clean' : (res && res.secs ? fmtTime(res.secs * 1000) : '')}</div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="rn-acts">
-              <a className="rn-go" href={runSummaryHref(circuitId)}>
-                See the board<ArrowRight size={16} strokeWidth={2.8} />
-              </a>
-              <button type="button" className="rn-alt" onClick={shareRun}>
-                {copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} />}
-                {copied ? 'Copied' : 'Share the run'}
-              </button>
-              <a className="rn-alt" href="/"><Home size={15} strokeWidth={2.8} />Home</a>
-            </div>
-            <p className="rn-fine">
-              Each quiz counted on its own board as you played it. The run board ranks the
-              combined placement across all {N}.
-            </p>
-          </div>
+          <CircuitScorecard
+            eyebrow={`${circuitName} · ${dateLabel}`}
+            headline={perfect === N ? 'You cleared the whole run.' : 'Run complete.'}
+            figures={[
+              { v: cleared, k: `of ${askable} questions`, big: true },
+              { v: perfect, k: `of ${N} cleared` },
+              { v: fmtTime(runSecs * 1000), k: 'on the clock' },
+            ]}
+            rows={sections.map((sc) => {
+              const res = r.results.find((x) => x.key === sc.key);
+              return {
+                key: sc.key,
+                name: sc.name,
+                accent: sc.accent,
+                sub: res && res.status === 'banked' ? 'played earlier today' : (sc.topic || sc.tag),
+                score: res ? res.score : 0,
+                total: sc.questions.length,
+                right: res && res.status === 'won' ? 'clean' : (res && res.secs ? fmtTime(res.secs * 1000) : ''),
+                state: res
+                  ? (res.status === 'won' ? 'won' : res.status === 'banked' ? 'bank' : 'out')
+                  : 'open',
+              };
+            })}
+            board={{
+              rows: (boardQ.data && Array.isArray(boardQ.data.overall)) ? boardQ.data.overall : [],
+              me: (boardQ.data && boardQ.data.me) || null,
+              field: (boardQ.data && boardQ.data.overallField) || 0,
+              keys: sections.map((sc) => sc.key),
+              maxTotal: (boardQ.data && boardQ.data.maxTotal) || N * 15,
+              limit: 5,
+            }}
+            boardState={boardQ.state}
+            boardNote={`Each quiz pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the ${N} up.`}
+            actions={[
+              { label: 'The full board', href: runSummaryHref(circuitId), primary: true, key: 'board',
+                icon: null },
+              { label: copied ? 'Copied' : 'Share the run', onClick: shareRun, key: 'share',
+                icon: copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} /> },
+              { label: 'Home', href: '/', key: 'home', icon: <Home size={15} strokeWidth={2.8} /> },
+            ]}
+            fine={`Each quiz counted on its own board as you played it. The run board ranks the combined placement across all ${N}.`}
+          />
         ) : null}
       </div>
 
@@ -623,17 +626,12 @@ const CSS = `
 .rn .rn-wrap .rn-card p,
 .rn .rn-wrap .rn-card h2,
 .rn .rn-wrap .rn-card i,
-.rn .rn-wrap .rn-card em,
-.rn .rn-wrap .rn-score p,
-.rn .rn-wrap .rn-score i,
-.rn .rn-wrap .rn-score em{color:inherit!important}
+.rn .rn-wrap .rn-card em{color:inherit!important}
 .rn .rn-wrap .rn-lead,
 .rn .rn-wrap .rn-fine,
 .rn .rn-wrap .rn-vs{color:var(--muted,#3f4757)!important}
 .rn .rn-wrap .rn-list li i,
-.rn .rn-wrap .rn-list li em,
-.rn .rn-wrap .rn-rt i,
-.rn .rn-wrap .rn-rn em{color:var(--muted,#3f4757)!important}
+.rn .rn-wrap .rn-list li em{color:var(--muted,#3f4757)!important}
 .rn .rn-wrap .rn-vh,
 .rn .rn-wrap .rn-h1{color:var(--ink,#0b0d12)!important}
 /* The loft ground also forces padding onto a section; nothing here is one now,
@@ -711,47 +709,12 @@ const CSS = `
 .rn-vb.pri{background:var(--acc);border-color:var(--acc);color:#fff;}
 .rn-vb:hover{filter:brightness(1.05);}
 
-.rn-card,.rn-score{margin-bottom:40px;}
-.rn-score{background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;}
-.rn-sh{padding:20px 18px 0;}
-.rn-figs{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1px;background:var(--border,#e5e7eb);
-  margin:16px 0 0;border-top:1px solid var(--border,#e5e7eb);border-bottom:1px solid var(--border,#e5e7eb);}
-.rn-fig{background:var(--white,#fff);padding:14px 16px;}
-.rn-fig b{display:block;font-size:26px;font-weight:800;line-height:1.1;letter-spacing:-.02em;}
-.rn-fig.big b{font-size:34px;color:var(--accent,#233a63);}
-.rn-fig i{display:block;font-style:normal;font-size:11.5px;font-weight:700;color:var(--muted,#3f4757);margin-top:3px;}
-
-.rn-rows{padding:6px 0;}
-.rn-row{display:flex;align-items:center;gap:11px;padding:11px 18px;border-bottom:1px solid var(--border,#e5e7eb);}
-.rn-row:last-child{border-bottom:0;}
-.rn-ic{border-radius:8px;flex:none;object-fit:contain;}
-.rn-rt{min-width:0;width:132px;flex:none;}
-.rn-rt b{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rn-rt i{display:block;font-style:normal;font-size:11.5px;font-weight:600;color:var(--muted,#3f4757);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rn-rb{flex:1;min-width:40px;height:8px;border-radius:4px;background:var(--surface-alt,#eef2f7);overflow:hidden;}
-.rn-rb span{display:block;height:100%;background:var(--acc);}
-.rn-rn{font-family:'DM Mono',ui-monospace,monospace;font-size:15px;font-weight:700;flex:none;}
-.rn-rn em{font-style:normal;font-size:11.5px;color:var(--muted,#3f4757);}
-.rn-rs{width:52px;flex:none;text-align:right;font-family:'DM Mono',ui-monospace,monospace;font-size:11px;
-  color:var(--muted,#3f4757);}
-.rn-row.won .rn-rs{color:#15803d;font-weight:700;}
-
-.rn-acts{display:flex;gap:8px;flex-wrap:wrap;padding:16px 18px 0;}
-.rn-alt{display:inline-flex;align-items:center;gap:7px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);
-  border-radius:10px;padding:12px 15px;font-family:inherit;font-weight:800;font-size:14px;color:var(--ink,#0b0d12);
-  cursor:pointer;text-decoration:none;}
-.rn-alt:hover{background:var(--surface,#f7f8fa);}
-.rn-score .rn-fine{padding:0 18px 18px;}
+.rn-card{margin-bottom:40px;}
 
 @media (max-width:640px){
   .rn-rail{grid-template-columns:repeat(auto-fit,minmax(60px,1fr));}
   .rn-pipn{font-size:10.5px;}
   .rn-h1{font-size:22px;}
   .rn-q{font-size:18px;}
-  .rn-figs{grid-template-columns:1fr 1fr;}
-  .rn-fig.big{grid-column:1 / -1;}
-  .rn-rt{width:auto;flex:1;}
-  .rn-rb{display:none;}
 }
 `;
