@@ -413,9 +413,13 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       { v: `${cleared}/${askable}`, k: 'questions' },
       { v: `${r.results.length}/${N}`, k: 'quizzes done' },
     ];
+    // Three columns rather than two, and short labels: the cap gives each
+    // figure a fixed 124px and centres it, so two long words ("quizzes",
+    // "questions") sit shoulder to shoulder and read as one.
     return [
       { v: `${N}`, k: 'quizzes' },
-      { v: `${askable}`, k: 'questions' },
+      { v: `${askable}`, k: 'asked' },
+      { v: '1', k: 'life each' },
     ];
   })();
 
@@ -457,7 +461,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
         </div>
 
         {r.phase === 'idle' ? (
-          <section className="rn-card rn-gate">
+          <div className="rn-card rn-gate">
             <span className="rn-eye">One long quiz</span>
             <h1 className="rn-h1">{circuitName}</h1>
             <p className="rn-lead">
@@ -478,11 +482,11 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               Start the run<ArrowRight size={17} strokeWidth={2.8} />
             </button>
             <p className="rn-fine">Twenty seconds a question. Keys 1 to 4 answer.</p>
-          </section>
+          </div>
         ) : null}
 
         {r.phase === 'playing' && question ? (
-          <section className="rn-card rn-play" style={{ '--acc': sec.accent }}>
+          <div className="rn-card rn-play" style={{ '--acc': sec.accent }}>
             <div className="rn-meta">
               <span className="rn-game">{sec.name}</span>
               {question.cat ? <span className="rn-cat">{question.cat}</span> : null}
@@ -508,11 +512,11 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               <span>{answeredSoFar} right in the run</span>
               <span>{fmtTime(Date.now() - r.t0)}</span>
             </div>
-          </section>
+          </div>
         ) : null}
 
         {r.phase === 'verdict' && last ? (
-          <section className="rn-card rn-verd" style={{ '--acc': (sections.find((s) => s.key === last.key) || {}).accent }}>
+          <div className="rn-card rn-verd" style={{ '--acc': (sections.find((s) => s.key === last.key) || {}).accent }}>
             <span className="rn-eye">{last.status === 'won' ? 'Cleared' : 'Out'}</span>
             <h2 className="rn-vh">
               {last.status === 'won'
@@ -536,11 +540,11 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               </button>
               <a className="rn-vb" href={`/circuits/${circuitId}`}>Leave the run</a>
             </div>
-          </section>
+          </div>
         ) : null}
 
         {done ? (
-          <section className="rn-score">
+          <div className="rn-score">
             <div className="rn-sh">
               <span className="rn-eye">{circuitName} {'·'} {dateLabel}</span>
               <h1 className="rn-h1">{perfect === N ? 'You cleared the whole run.' : 'Run complete.'}</h1>
@@ -593,7 +597,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               Each quiz counted on its own board as you played it. The run board ranks the
               combined placement across all {N}.
             </p>
-          </section>
+          </div>
         ) : null}
       </div>
 
@@ -604,6 +608,36 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
 const CSS = `
 .rn{font-family:'Manrope',system-ui,sans-serif;color:var(--ink,#0b0d12);}
+
+/* THE CARDS ARE WHITE ON A NAVY PAGE, so they have to opt OUT of the loft
+   ground's re-inking. LoftCap ships a set of !important rules that repaint
+   text for a dark background, and two of them reach in here: every <section>
+   on a loft page has its p / h2 / i / em re-coloured (which is why nothing
+   below is a section any more, they are divs), and any <p> that is a direct
+   child of a direct div child of the page column is repainted too. These
+   rules carry three classes so they outrank both, and !important because the
+   rules they are answering carry it. Measured on the live page, not assumed:
+   the first version of this file used <section> and shipped the lead
+   paragraph, the game descriptions and the verdict heading in pale blue on
+   white. */
+.rn .rn-wrap .rn-card p,
+.rn .rn-wrap .rn-card h2,
+.rn .rn-wrap .rn-card i,
+.rn .rn-wrap .rn-card em,
+.rn .rn-wrap .rn-score p,
+.rn .rn-wrap .rn-score i,
+.rn .rn-wrap .rn-score em{color:inherit!important}
+.rn .rn-wrap .rn-lead,
+.rn .rn-wrap .rn-fine,
+.rn .rn-wrap .rn-vs{color:var(--muted,#3f4757)!important}
+.rn .rn-wrap .rn-list li i,
+.rn .rn-wrap .rn-list li em,
+.rn .rn-wrap .rn-rt i,
+.rn .rn-wrap .rn-rn em{color:var(--muted,#3f4757)!important}
+.rn .rn-wrap .rn-vh,
+.rn .rn-wrap .rn-h1{color:var(--ink,#0b0d12)!important}
+/* The loft ground also forces padding onto a section; nothing here is one now,
+   but a card that ever becomes one would silently gain 30px of it. */
 /* The page column carries NO top or bottom padding: on a loft page a rule in
    LoftCap zeroes padding on any direct child whose class ends in "-wrap", so
    the spacing has to be margin. That rule is also why this stays a single
