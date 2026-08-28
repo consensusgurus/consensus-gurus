@@ -52,7 +52,12 @@ export async function middleware(req) {
   // (owner decision, 2026-08-28), so they are served here rather than redirected away. Their
   // canonical and sitemap entries both point at this host, so the two signals agree. Every
   // other PAGE on every old host still 308s, exactly as before.
-  if (SOT_PATHS.includes(url.pathname)) return NextResponse.next();
+  // Prefix match, not equality: a page's sub-routes belong to it. Exact matching
+  // sent /collegefootballrankings/poster-image to the new host, so the download
+  // link on a Source of Truths page dropped the reader on mindloftdaily.com.
+  if (SOT_PATHS.some((p) => url.pathname === p || url.pathname.startsWith(`${p}/`))) {
+    return NextResponse.next();
+  }
 
   // ...and so must the API, or those pages are broken on this host. A 308 to another origin
   // is not a redirect a browser follows for an XHR: it comes back as an opaqueredirect and
