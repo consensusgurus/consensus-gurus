@@ -54,6 +54,9 @@ const NUM_WORDS = /\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|tw
 const hasNumber = (t) => /\d/.test(t) || NUM_WORDS.test(normAnswer(t));
 const hasDouble = (t) => /([a-z])\1/i.test(String(t).replace(/[^A-Za-z]/g, ''));
 const capList = (m) => (Array.isArray(m.cap) ? m.cap : [m.cap]).filter(Boolean);
+// Word count for a place name: spaces and hyphens break a word, an apostrophe
+// does not, so Porto-Novo and Saint John's are two words and N'Djamena is one.
+const placeWords = (t) => String(t).trim().split(/[\s-]+/).filter(Boolean).length;
 
 // Letter attributes are generated from a template against real coverage, so
 // only letters with enough members ever reach a board (gen + verify both
@@ -97,6 +100,9 @@ const U_COUNTRIES = {
     { id: 'tiny', label: 'Population under 1 million', w: 2, test: (m) => m.pop === -1 },
     { id: 'eu', label: 'In the European Union', w: 3, test: (m) => !!m.eu },
     { id: 'oly', label: 'Has hosted a Summer Olympics', w: 2, test: (m) => !!m.oly },
+    { id: 'nato', label: 'In NATO', w: 3, test: (m) => !!m.nato },
+    { id: 'cw', label: 'In the Commonwealth', w: 3, test: (m) => !!m.cw },
+    { id: 'wc', label: "Has won the men's soccer World Cup", w: 2, test: (m) => !!m.wc },
     { id: 'south', label: 'Capital in the Southern Hemisphere', w: 2, test: (m) => !!m.sh },
     { id: 'b-russia', label: 'Borders Russia', w: 2, test: (m) => borders('Russia').has(m.t) },
     { id: 'b-china', label: 'Borders China', w: 2, test: (m) => borders('China').has(m.t) },
@@ -107,6 +113,8 @@ const U_COUNTRIES = {
     { id: 'b5', label: 'Borders five or more countries', w: 2, test: (m) => borders(m.t).size >= 5 },
     { id: 'hasz', label: 'Name contains a Z', w: 1, test: (m) => /z/i.test(m.t) },
     { id: 'multi', label: 'Name has more than one word', w: 1, test: (m) => words(m.t).length > 1 },
+    { id: 'endsa', label: 'Name ends in A', w: 2, test: (m) => /a$/i.test(m.t) },
+    { id: 'cap2', label: 'Capital city name has more than one word', w: 2, test: (m) => capList(m).some((c) => placeWords(c) > 1) },
     ...letterAttrs(COUNTRIES, 'n', (L) => `Name starts with ${L}`, (m) => [m.t]),
     ...letterAttrs(COUNTRIES, 'cap', (L) => `Capital city starts with ${L}`, capList),
   ],
@@ -208,6 +216,10 @@ const U_TV = {
     { id: 'ten', label: 'Ran ten or more seasons', w: 3, test: (m) => !!m.ten },
     { id: 'str', label: 'A streaming original', w: 3, test: (m) => !!m.str },
     { id: 'nyc', label: 'Set in New York City', w: 3, test: (m) => !!m.nyc },
+    { id: 'net', label: 'First aired on ABC, CBS, NBC or Fox', w: 3, test: (m) => !!m.net },
+    { id: 'cable', label: 'First aired on a cable channel', w: 3, test: (m) => !!m.cable },
+    { id: 'book', label: 'Adapted from a book, comic or video game', w: 2, test: (m) => !!m.book },
+    { id: 'the', label: 'Title starts with "The"', w: 2, test: (m) => /^The /.test(m.t) },
     { id: 'one', label: 'One-word title', w: 2, test: (m) => words(strip(m.t)).length === 1 },
     { id: 'num', label: 'A number in the title', w: 2, test: (m) => hasNumber(m.t) },
     ...letterAttrs(TVSHOWS, 'n', (L) => `Title starts with ${L} ("The" doesn't count)`, (m) => [m.t]),
@@ -224,14 +236,26 @@ const U_MUSICIANS = {
     { id: 'solo', label: 'A solo act', w: 3, test: (m) => !m.band },
     { id: 'uk', label: 'A British act', w: 3, test: (m) => !!m.uk },
     { id: 'us', label: 'An American act', w: 3, test: (m) => !!m.us },
+    { id: 'intl', label: 'Neither an American nor a British act', w: 2, test: (m) => !m.us && !m.uk },
     { id: 'aoty', label: 'Won the Grammy Album of the Year', w: 3, test: (m) => !!m.aoty },
     { id: 'hall', label: 'In the Rock & Roll Hall of Fame', w: 3, test: (m) => !!m.hall },
     { id: 'fem', label: 'A solo female artist', w: 3, test: (m) => !!m.fem },
+    { id: 'rap', label: 'A hip-hop or rap act', w: 3, test: (m) => !!m.rap },
+    { id: 'ctry', label: 'A country act', w: 2, test: (m) => !!m.ctry },
     { id: 'one', label: 'A one-word name ("The" doesn\'t count)', w: 2, test: (m) => words(strip(m.t)).length === 1 },
     { id: 'num', label: 'A number in the name', w: 2, test: (m) => hasNumber(m.t) },
     ...letterAttrs(MUSICIANS, 'n', (L) => `Name starts with ${L} ("The" doesn't count)`, (m) => [m.t]),
   ],
 };
+
+// Home time zone by state or province. Every state and province with a big
+// four team sits wholly in one zone for the city that carries the team
+// (Nashville and Memphis are both Central, so Tennessee is Central), so the
+// map is by state rather than by team. Arizona, Colorado, Utah and Alberta
+// are Mountain, which no attribute claims.
+const TZ_ET = new Set(['CT', 'DC', 'DE', 'FL', 'GA', 'IN', 'MA', 'MD', 'ME', 'MI', 'NC', 'NH', 'NJ', 'NY', 'OH', 'ON', 'PA', 'QC', 'RI', 'SC', 'VA', 'VT', 'WV']);
+const TZ_CT = new Set(['AL', 'AR', 'IA', 'IL', 'KS', 'LA', 'MB', 'MN', 'MO', 'MS', 'ND', 'NE', 'OK', 'SD', 'TN', 'TX', 'WI']);
+const TZ_PT = new Set(['BC', 'CA', 'NV', 'OR', 'WA']);
 
 const U_TEAMS = {
   id: 'teams',
@@ -250,6 +274,10 @@ const U_TEAMS = {
     { id: 'fl', label: 'Based in Florida', w: 2, test: (m) => m.st === 'FL' },
     { id: 'ny', label: 'A New York team', w: 2, test: (m) => m.st === 'NY' },
     { id: 'can', label: 'Based in Canada', w: 3, test: (m) => !!m.can },
+    { id: 'et', label: 'Plays in the Eastern time zone', w: 3, test: (m) => TZ_ET.has(m.st) },
+    { id: 'ct', label: 'Plays in the Central time zone', w: 3, test: (m) => TZ_CT.has(m.st) },
+    { id: 'pac', label: 'Plays in the Pacific time zone', w: 2, test: (m) => TZ_PT.has(m.st) },
+    { id: 'bird', label: 'Named after a bird', w: 2, test: (m) => !!m.bird },
     { id: 'old', label: 'Franchise founded before 1950', w: 3, test: (m) => !!m.old },
     { id: 'nos', label: 'Nickname doesn\'t end in S', w: 2, test: (m) => !/s$/i.test(words(m.t).slice(-1)[0] || '') },
     { id: 'city2', label: 'Two-word place name', w: 2, test: (m) => words(m.t).length >= 3 },

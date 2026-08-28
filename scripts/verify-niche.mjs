@@ -174,12 +174,36 @@ const FIXED = [
   ['states', 'gulf', 5, 'Gulf states'],
   ['states', 'lakes', 8, 'Great Lakes states'],
   ['states', 'riv', 10, 'Mississippi River states'],
+  ['countries', 'nato', 32, 'NATO members'],
+  ['countries', 'cw', 56, 'Commonwealth members'],
+  ['countries', 'wc', 8, 'World Cup winning nations'],
+  ['teams', 'bird', 12, 'teams named after a bird'],
 ];
 for (const [uid, attrId, want, what] of FIXED) {
   const got = count(uid, attrId);
   if (got !== want) F(`${uid}: ${got} ${what}, expected ${want}`);
 }
 if (UNIVERSE_MAP.states.members.length !== 50) F(`states: ${UNIVERSE_MAP.states.members.length} members, expected 50`);
+// A bird is a creature: bird must be a strict subset of animal, or a board
+// pairing the two would judge the same team two ways.
+for (const m of UNIVERSE_MAP.teams.members) {
+  if (m.bird && !m.animal) F(`teams: "${m.t}" is flagged bird but not animal`);
+  const zones = ['CT,DC,DE,FL,GA,IN,MA,MD,ME,MI,NC,NH,NJ,NY,OH,ON,PA,QC,RI,SC,VA,VT,WV',
+    'AL,AR,IA,IL,KS,LA,MB,MN,MO,MS,ND,NE,OK,SD,TN,TX,WI',
+    'BC,CA,NV,OR,WA'].filter((z) => z.split(',').includes(m.st)).length;
+  if (zones > 1) F(`teams: "${m.t}" (${m.st}) is in ${zones} time zones`);
+}
+// A band is not a solo act, and rap and country are the act's own genre, so
+// neither may land on a group flagged as a solo female artist.
+for (const m of UNIVERSE_MAP.musicians.members) {
+  if (m.band && m.fem) F(`musicians: "${m.t}" is a band and also flagged a solo female artist`);
+}
+// A show has ONE first home: the three-way net / cable / str split must not
+// double-count, or the same show answers a cell two different ways.
+for (const m of UNIVERSE_MAP.tv.members) {
+  const homes = ['net', 'cable', 'str'].filter((k) => m[k]);
+  if (homes.length > 1) F(`tv: "${m.t}" is flagged ${homes.join(' and ')}; a show has one first home`);
+}
 for (const [lg, want] of [['nfl', 32], ['nba', 30], ['mlb', 30], ['nhl', 32]]) {
   const got = UNIVERSE_MAP.teams.members.filter((m) => m.lg === lg).length;
   if (got !== want) F(`teams: ${got} ${lg} teams, expected ${want}`);

@@ -2,6 +2,18 @@
 // gen-niche — build the Niche puzzle bank and write app/niche/puzzles.js.
 //
 //   node scripts/gen-niche.mjs [--from YYYY-MM-DD] [--days N] [--startnum N] [--seed N]
+//   node scripts/gen-niche.mjs --existing app/niche/puzzles.js --days N   (extend a bank)
+//
+// EXTENDING an existing bank (--existing <path>): boards already banked are
+// live or already played, and the past is frozen, so a full regenerate is the
+// wrong shipping mechanism. --existing loads that bank, re-emits its boards
+// BYTE-IDENTICALLY, and generates only the days after it, seeding every
+// bank-wide rule from the banked boards first: the per-universe attribute
+// usage counts (ATTR_CAP), each universe's most recent board (MAX_ECHO), and
+// every earlier board of each universe (the 4-attribute overlap rule). --from
+// and --startnum default to the day and number after the last banked board;
+// passing them explicitly is checked against that. Without --existing the
+// script behaves exactly as before.
 //
 // A board is three row attributes and three column attributes from that day's
 // universe (four each on the Sunday Edition, always Countries). The generator
@@ -26,19 +38,41 @@
 // Deterministic: a seeded RNG, so a re-run with the same arguments reproduces
 // the same bank. Do NOT hand-edit boards in puzzles.js; regenerate and re-run
 // scripts/verify-niche.mjs.
-import { writeFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { writeFileSync, readFileSync } from 'node:fs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { dirname, join, isAbsolute } from 'node:path';
 import { UNIVERSE_MAP, universeForDate, cellMembers, boardMatchable } from '../app/niche/facts.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const args = process.argv.slice(2);
 const arg = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; };
-const FROM = arg('--from', '2026-08-21');
-const DAYS = Number(arg('--days', '38'));
-const START_NUM = Number(arg('--startnum', '1'));
+const EXISTING = arg('--existing', null);
 const SEED = Number(arg('--seed', '20260820'));
+
+// The banked past. Its boards are re-emitted from their own source lines, so
+// extending a bank cannot rewrite a board that has already been played.
+let banked = [];
+let bankedLines = [];
+if (EXISTING) {
+  const path = isAbsolute(EXISTING) ? EXISTING : join(ROOT, EXISTING);
+  banked = (await import(pathToFileURL(path).href)).PUZZLES;
+  if (!Array.isArray(banked) || !banked.length) throw new Error(`--existing ${EXISTING}: no PUZZLES found`);
+  bankedLines = readFileSync(path, 'utf8').split('\n').filter((l) => /^\s*\{"num":/.test(l));
+  if (bankedLines.length !== banked.length) {
+    throw new Error(`--existing: parsed ${banked.length} boards but matched ${bankedLines.length} source lines; the file is not in generator format`);
+  }
+}
+const lastBanked = banked.length ? banked[banked.length - 1] : null;
+
+const FROM = arg('--from', lastBanked ? isoPlus(lastBanked.live, 1) : '2026-08-21');
+const DAYS = Number(arg('--days', '38'));
+const START_NUM = Number(arg('--startnum', lastBanked ? String(lastBanked.num + 1) : '1'));
+if (lastBanked) {
+  const wantFrom = isoPlus(lastBanked.live, 1);
+  if (FROM !== wantFrom) throw new Error(`--from ${FROM} does not continue the banked bank (last board ${lastBanked.live}, expected ${wantFrom})`);
+  if (START_NUM !== lastBanked.num + 1) throw new Error(`--startnum ${START_NUM} does not continue the banked bank (last num ${lastBanked.num})`);
+}
 
 const MIN_CELL = 3;      // the promised floor: every cell holds at least three answers
 const TIGHT = 8;         // a "tight" cell has at most this many valid answers
@@ -129,6 +163,14 @@ const out = [];
 const usage = {};          // `${universeId}:${attrId}` -> count
 const prevByUniverse = {}; // universeId -> Set of last board's attr ids
 const histByUniverse = {}; // universeId -> [Set of each board's attr ids]
+// Seed every bank-wide rule from the boards already banked, so an extension is
+// held to the same caps, echo and overlap limits as a full generate.
+for (const p of banked) {
+  const all = [...p.rows, ...p.cols];
+  for (const id of all) usage[`${p.universe}:${id}`] = (usage[`${p.universe}:${id}`] || 0) + 1;
+  prevByUniverse[p.universe] = new Set(all);
+  (histByUniverse[p.universe] = histByUniverse[p.universe] || []).push(prevByUniverse[p.universe]);
+}
 for (let i = 0; i < DAYS; i++) {
   const iso = isoPlus(FROM, i);
   const universe = universeForDate(iso);
@@ -139,7 +181,7 @@ for (let i = 0; i < DAYS; i++) {
     .filter(([k]) => k.startsWith(`${universe.id}:`))
     .map(([k, v]) => [k.split(':')[1], v]));
   const board = buildBoard(universe, size, prevByUniverse[universe.id] || new Set(),
-    histByUniverse[universe.id] || [], uUsage, i < 7 ? 1 : 2, rnd);
+    histByUniverse[universe.id] || [], uUsage, banked.length + i < 7 ? 1 : 2, rnd);
   if (!board) throw new Error(`no board found for ${iso} (${universe.id}); loosen constraints or grow the attribute pool`);
   for (const id of [...board.rows, ...board.cols]) {
     usage[`${universe.id}:${id}`] = (usage[`${universe.id}:${id}`] || 0) + 1;
@@ -179,9 +221,10 @@ const header = `// Puzzle data for Niche, the daily trivia grid. Imported ONLY b
 // re-run scripts/verify-niche.mjs.
 export const PUZZLES = [
 `;
-const body = out.map((p) => `  ${JSON.stringify(p)},`).join('\n');
+const body = [...bankedLines, ...out.map((p) => `  ${JSON.stringify(p)},`)].join('\n');
 writeFileSync(join(ROOT, 'app/niche/puzzles.js'), `${header}${body}\n];\n`);
-console.log(`wrote ${out.length} boards: ${out[0].live} through ${out[out.length - 1].live}`);
+if (banked.length) console.log(`kept ${banked.length} banked boards: ${banked[0].live} through ${lastBanked.live}`);
+console.log(`wrote ${out.length} new board(s): ${out[0].live} through ${out[out.length - 1].live}`);
 const byU = {};
-for (const p of out) byU[p.universe] = (byU[p.universe] || 0) + 1;
-console.log('per universe:', JSON.stringify(byU));
+for (const p of [...banked, ...out]) byU[p.universe] = (byU[p.universe] || 0) + 1;
+console.log('per universe (whole bank):', JSON.stringify(byU));

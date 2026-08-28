@@ -14,12 +14,15 @@
 //          generous reading; mythical Kraken and generic Predators do not).
 //   old    franchise founded before 1950 (original-16 MLB, Original Six NHL,
 //          the pre-war NFL and BAA-era NBA clubs).
+//   bird   the nickname is a bird, a strict subset of animal (the Blue Jays
+//          and the Orioles included, the mythical Seahawks by the same
+//          generous reading that lets the Bruins be bears).
 //   a      typed aliases, lowercase (the bare nickname always works).
 export const TEAMS = [
   // ── NFL ──
-  { t: 'Arizona Cardinals', lg: 'nfl', st: 'AZ', animal: 1, old: 1 },
-  { t: 'Atlanta Falcons', lg: 'nfl', st: 'GA', animal: 1 },
-  { t: 'Baltimore Ravens', lg: 'nfl', st: 'MD', animal: 1, champ: 1 },
+  { t: 'Arizona Cardinals', lg: 'nfl', st: 'AZ', animal: 1, old: 1, bird: 1 },
+  { t: 'Atlanta Falcons', lg: 'nfl', st: 'GA', animal: 1, bird: 1 },
+  { t: 'Baltimore Ravens', lg: 'nfl', st: 'MD', animal: 1, champ: 1, bird: 1 },
   { t: 'Buffalo Bills', lg: 'nfl', st: 'NY' },
   { t: 'Carolina Panthers', lg: 'nfl', st: 'NC', animal: 1 },
   { t: 'Chicago Bears', lg: 'nfl', st: 'IL', animal: 1, old: 1 },
@@ -42,15 +45,15 @@ export const TEAMS = [
   { t: 'New Orleans Saints', lg: 'nfl', st: 'LA', champ: 1 },
   { t: 'New York Giants', lg: 'nfl', st: 'NY', champ: 1, old: 1 },
   { t: 'New York Jets', lg: 'nfl', st: 'NY' },
-  { t: 'Philadelphia Eagles', lg: 'nfl', st: 'PA', animal: 1, champ: 1, old: 1 },
+  { t: 'Philadelphia Eagles', lg: 'nfl', st: 'PA', animal: 1, champ: 1, old: 1, bird: 1 },
   { t: 'Pittsburgh Steelers', lg: 'nfl', st: 'PA', champ: 1, old: 1 },
   { t: 'San Francisco 49ers', a: ['49ers', 'niners'], lg: 'nfl', st: 'CA', old: 1 },
-  { t: 'Seattle Seahawks', lg: 'nfl', st: 'WA', animal: 1, champ: 1 },
+  { t: 'Seattle Seahawks', lg: 'nfl', st: 'WA', animal: 1, champ: 1, bird: 1 },
   { t: 'Tampa Bay Buccaneers', a: ['bucs'], lg: 'nfl', st: 'FL', champ: 1 },
   { t: 'Tennessee Titans', lg: 'nfl', st: 'TN' },
   { t: 'Washington Commanders', lg: 'nfl', st: 'MD', old: 1 },
   // ── NBA ──
-  { t: 'Atlanta Hawks', lg: 'nba', st: 'GA', animal: 1, old: 1 },
+  { t: 'Atlanta Hawks', lg: 'nba', st: 'GA', animal: 1, old: 1, bird: 1 },
   { t: 'Boston Celtics', lg: 'nba', st: 'MA', champ: 1, old: 1 },
   { t: 'Brooklyn Nets', lg: 'nba', st: 'NY' },
   { t: 'Charlotte Hornets', lg: 'nba', st: 'NC', animal: 1 },
@@ -68,7 +71,7 @@ export const TEAMS = [
   { t: 'Miami Heat', lg: 'nba', st: 'FL', champ: 1 },
   { t: 'Milwaukee Bucks', lg: 'nba', st: 'WI', animal: 1, champ: 1 },
   { t: 'Minnesota Timberwolves', lg: 'nba', st: 'MN', animal: 1 },
-  { t: 'New Orleans Pelicans', lg: 'nba', st: 'LA', animal: 1 },
+  { t: 'New Orleans Pelicans', lg: 'nba', st: 'LA', animal: 1, bird: 1 },
   { t: 'New York Knicks', lg: 'nba', st: 'NY', old: 1 },
   { t: 'Oklahoma City Thunder', a: ['okc thunder', 'okc'], lg: 'nba', st: 'OK', champ: 1 },
   { t: 'Orlando Magic', lg: 'nba', st: 'FL' },
@@ -84,7 +87,7 @@ export const TEAMS = [
   { t: 'Arizona Diamondbacks', a: ['dbacks', 'd-backs'], lg: 'mlb', st: 'AZ', animal: 1, champ: 1 },
   { t: 'Athletics', a: ['oakland athletics', 'as', "a's"], lg: 'mlb', st: 'CA', old: 1 },
   { t: 'Atlanta Braves', lg: 'mlb', st: 'GA', champ: 1, old: 1 },
-  { t: 'Baltimore Orioles', a: ['os'], lg: 'mlb', st: 'MD', animal: 1, old: 1 },
+  { t: 'Baltimore Orioles', a: ['os'], lg: 'mlb', st: 'MD', animal: 1, old: 1, bird: 1 },
   { t: 'Boston Red Sox', lg: 'mlb', st: 'MA', champ: 1, old: 1 },
   { t: 'Chicago Cubs', lg: 'mlb', st: 'IL', animal: 1, champ: 1, old: 1 },
   { t: 'Chicago White Sox', lg: 'mlb', st: 'IL', champ: 1, old: 1 },
@@ -106,13 +109,13 @@ export const TEAMS = [
   { t: 'San Diego Padres', lg: 'mlb', st: 'CA' },
   { t: 'San Francisco Giants', lg: 'mlb', st: 'CA', champ: 1, old: 1 },
   { t: 'Seattle Mariners', lg: 'mlb', st: 'WA' },
-  { t: 'St. Louis Cardinals', a: ['st louis cardinals', 'cardinals'], lg: 'mlb', st: 'MO', animal: 1, champ: 1, old: 1 },
+  { t: 'St. Louis Cardinals', a: ['st louis cardinals', 'cardinals'], lg: 'mlb', st: 'MO', animal: 1, champ: 1, old: 1, bird: 1 },
   { t: 'Tampa Bay Rays', lg: 'mlb', st: 'FL', animal: 1 },
   { t: 'Texas Rangers', lg: 'mlb', st: 'TX', champ: 1 },
-  { t: 'Toronto Blue Jays', a: ['jays'], lg: 'mlb', st: 'ON', can: 1, animal: 1 },
+  { t: 'Toronto Blue Jays', a: ['jays'], lg: 'mlb', st: 'ON', can: 1, animal: 1, bird: 1 },
   { t: 'Washington Nationals', a: ['nats'], lg: 'mlb', st: 'DC', champ: 1 },
   // ── NHL ──
-  { t: 'Anaheim Ducks', lg: 'nhl', st: 'CA', animal: 1, champ: 1 },
+  { t: 'Anaheim Ducks', lg: 'nhl', st: 'CA', animal: 1, champ: 1, bird: 1 },
   { t: 'Boston Bruins', lg: 'nhl', st: 'MA', animal: 1, champ: 1, old: 1 },
   { t: 'Buffalo Sabres', lg: 'nhl', st: 'NY' },
   { t: 'Calgary Flames', lg: 'nhl', st: 'AB', can: 1 },
@@ -133,7 +136,7 @@ export const TEAMS = [
   { t: 'New York Rangers', lg: 'nhl', st: 'NY', old: 1 },
   { t: 'Ottawa Senators', a: ['sens'], lg: 'nhl', st: 'ON', can: 1 },
   { t: 'Philadelphia Flyers', lg: 'nhl', st: 'PA' },
-  { t: 'Pittsburgh Penguins', a: ['pens'], lg: 'nhl', st: 'PA', animal: 1, champ: 1 },
+  { t: 'Pittsburgh Penguins', a: ['pens'], lg: 'nhl', st: 'PA', animal: 1, champ: 1, bird: 1 },
   { t: 'San Jose Sharks', lg: 'nhl', st: 'CA', animal: 1 },
   { t: 'Seattle Kraken', lg: 'nhl', st: 'WA' },
   { t: 'St. Louis Blues', a: ['st louis blues'], lg: 'nhl', st: 'MO', champ: 1 },

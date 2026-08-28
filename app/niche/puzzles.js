@@ -57,4 +57,11 @@ export const PUZZLES = [
   {"num":37,"quizId":"niche-9-25-26","live":"2026-09-25","dateLabel":"September 25, 2026","sunday":false,"universe":"teams","rows":["n-s","lg-nba","old"],"cols":["allit","ca","city2"]},
   {"num":38,"quizId":"niche-9-26-26","live":"2026-09-26","dateLabel":"September 26, 2026","sunday":false,"universe":"musicians","rows":["fem","n-c","n-r"],"cols":["one","hall","us"]},
   {"num":39,"quizId":"niche-9-27-26","live":"2026-09-27","dateLabel":"September 27, 2026","sunday":true,"universe":"countries","rows":["n-s","oly","multi","cap-b"],"cols":["isl","cont-eu","cont-na","cont-as"]},
+  {"num":40,"quizId":"niche-9-28-26","live":"2026-09-28","dateLabel":"September 28, 2026","sunday":false,"universe":"states","rows":["col","n-n","y1700s"],"cols":["can","oc","endsa"]},
+  {"num":41,"quizId":"niche-9-29-26","live":"2026-09-29","dateLabel":"September 29, 2026","sunday":false,"universe":"animals","rows":["eggs","aqua","n-p"],"cols":["fly","big","legs4"]},
+  {"num":42,"quizId":"niche-9-30-26","live":"2026-09-30","dateLabel":"September 30, 2026","sunday":false,"universe":"movies","rows":["bp","bil","ani"],"cols":["dec-00s","one","dec-10s"]},
+  {"num":43,"quizId":"niche-10-1-26","live":"2026-10-01","dateLabel":"October 1, 2026","sunday":false,"universe":"tv","rows":["dec-00s","dec-old","net"],"cols":["ten","the","n-m"]},
+  {"num":44,"quizId":"niche-10-2-26","live":"2026-10-02","dateLabel":"October 2, 2026","sunday":false,"universe":"teams","rows":["allit","n-n","ny"],"cols":["et","lg-nfl","lg-nhl"]},
+  {"num":45,"quizId":"niche-10-3-26","live":"2026-10-03","dateLabel":"October 3, 2026","sunday":false,"universe":"musicians","rows":["intl","n-d","uk"],"cols":["solo","fem","band"]},
+  {"num":46,"quizId":"niche-10-4-26","live":"2026-10-04","dateLabel":"October 4, 2026","sunday":true,"universe":"countries","rows":["n-b","pop100","cont-af","n-a"],"cols":["endsa","cap2","south","b5"]},
 ];
