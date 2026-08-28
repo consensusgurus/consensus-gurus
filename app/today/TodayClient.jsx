@@ -1762,8 +1762,18 @@ const CSS = `
 
 /* The sticky category jump bar. Its top offset is set inline from a live
    measurement of whatever masthead this page carries, since the desktop and
-   phone mastheads are different elements. */
-.tdy-jb{position:sticky;z-index:40;background:rgba(231,236,243,.94);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);border-bottom:1px solid #e3e7ee;margin:14px 0 0;}
+   phone mastheads are different elements.
+
+   NO BAND RECTANGLE (owner, 2026-08-28). It carried a 94% ground plus a 9px
+   backdrop blur plus a hairline bottom border, and the three together drew a
+   lighter rectangle across the page with a visible left edge, right edge and
+   underline: a box around the navigation, in a tone the page does not
+   otherwise use. Same objection as the shelf card above. The bar's ground is
+   now the page ground EXACTLY and opaquely (#e7ecf3, the .qzloft / .tdy-page
+   colour), with no border and no blur, so it is invisible where it sits and
+   simply an opaque floor for the tiles once it sticks. If the page ground ever
+   moves, this literal and the two fade stops below move with it. */
+.tdy-jb{position:sticky;z-index:40;background:#e7ecf3;margin:14px 0 0;}
 .tdy-jbin{display:flex;align-items:center;gap:12px;padding:8px 2px;}
 .tdy-jbtw{position:relative;flex:1 1 auto;min-width:0;display:flex;}
 .tdy-jbt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1 1 auto;min-width:0;padding:1px;}
@@ -1783,8 +1793,8 @@ const CSS = `
    The gradient matches the bar's own ground, and the arrow (z-index 2) rides
    above it. */
 .tdy-jbtw::before,.tdy-jbtw::after{content:'';position:absolute;top:0;bottom:0;width:36px;pointer-events:none;z-index:1;opacity:0;transition:opacity .16s;}
-.tdy-jbtw::before{left:0;background:linear-gradient(to left,rgba(231,236,243,0),rgba(231,236,243,.97));}
-.tdy-jbtw::after{right:0;background:linear-gradient(to right,rgba(231,236,243,0),rgba(231,236,243,.97));}
+.tdy-jbtw::before{left:0;background:linear-gradient(to left,rgba(231,236,243,0),#e7ecf3);}
+.tdy-jbtw::after{right:0;background:linear-gradient(to right,rgba(231,236,243,0),#e7ecf3);}
 .tdy-jbtw.fl::before{opacity:1;}
 .tdy-jbtw.fr::after{opacity:1;}
 .tdy-jbc{display:flex;align-items:center;gap:8px;flex:none;}
