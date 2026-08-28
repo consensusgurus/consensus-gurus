@@ -18,12 +18,16 @@ export default function SotHeader({ active }) {
     <header className="soth">
       <style dangerouslySetInnerHTML={{ __html: `
 .soth{width:100vw;margin-left:calc(50% - 50vw);background:var(--ground);color:#fff;
-  border-bottom:3px solid var(--gold);}
+  border-bottom:none;position:relative;}
+/* The brand rule is the site's own navy-to-blue gradient (the same device
+   app/sporcle-alternative uses), not a gold bar. Gold is reserved for medals. */
+.soth::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--blue) 55%,var(--blue-400));}
 .soth-in{max-width:1180px;margin:0 auto;padding:13px clamp(14px,2vw,24px);
   display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
 .soth-brand{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit;margin-right:auto;}
 .soth-wm{font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1;color:#fff;}
-.soth-wm b{color:var(--gold);font-weight:800;}
+.soth-wm b{color:var(--blue-400);font-weight:800;}
 .soth-tag{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#9fb0cc;}
 .soth-nav{display:flex;gap:6px;flex-wrap:wrap;}
 .soth-nav a{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;

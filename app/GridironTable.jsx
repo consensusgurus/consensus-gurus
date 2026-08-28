@@ -24,11 +24,14 @@ const TIER_LABEL = {
 const TIER_ORDER = ['market', 'model', 'media', 'official'];
 // Tier colours, used only on mobile, where the desktop column grouping is gone
 // and a chip has to say which kind of source it came from on its own.
+// Descending the site's own blue ramp in weight order, so the heaviest tier reads
+// as the deepest colour. Slate closes it out for the polls. No gold: the theme
+// reserves that for medals.
 const TIER_COLOR = {
-  official: 'var(--accent)',
+  market: 'var(--accent)',
   model: 'var(--blue)',
-  media: 'var(--slate)',
-  market: 'var(--gold-ink)',
+  media: 'var(--blue-400)',
+  official: 'var(--slate)',
 };
 const MEDAL = ['#e8b43a', '#aeb4bd', '#c88a55'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -146,7 +149,7 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
 .gr td.sp{padding:9px 10px;width:112px;}
 .gr-spbar{display:flex;align-items:center;gap:7px;justify-content:flex-end;}
 .gr-spbar i{display:block;height:5px;border-radius:3px;background:var(--blue-200);}
-.gr-spbar i.hot{background:var(--gold);}
+.gr-spbar i.hot{background:var(--blue-deep);}
 .gr-spbar span{font-size:11.5px;font-weight:800;color:var(--muted);width:20px;text-align:right;}
 .gr-legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:12px 18px;
   background:var(--surface);border-top:1px solid var(--border);font-size:11.5px;color:var(--muted);}
@@ -362,7 +365,7 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
         <div className="gr-legend">
           <span className="gr-k"><i className="gr-sw" style={{ background: '#dbe9fe' }} /> source ranks them higher than consensus</span>
           <span className="gr-k"><i className="gr-sw" style={{ background: '#fbe8cf' }} /> lower than consensus</span>
-          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--gold)' }} /> widest disagreement</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--blue-deep)' }} /> widest disagreement</span>
           <span className="gr-k">{'—'} not ranked by that source</span>
         </div>
 
