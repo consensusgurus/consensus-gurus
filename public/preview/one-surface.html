@@ -112,7 +112,8 @@ body{background:var(--ground);color:var(--ink);font-family:var(--sans);
 
 /* previous guesses, in the same three colours as the keys */
 .tries{flex:none;display:flex;flex-direction:column;gap:3px;align-items:center;
-  margin:2px 0 6px;max-height:52px;overflow:hidden}
+  margin:2px 0 5px;max-height:45px;overflow:hidden}
+.tries:empty{display:none}
 .try{display:flex;gap:3px}
 .try i{width:19px;height:19px;border-radius:4px;display:grid;place-items:center;
   font-style:normal;font-size:10px;font-weight:800}
@@ -444,7 +445,10 @@ function paint(){
   var done = n === SLOTS.length || guesses <= 0;
   document.getElementById('kbwrap').style.display = done ? 'none' : '';
   document.getElementById('hint').disabled = done || !open().length;
-  sizeBoard();
+  /* NEXT frame, not this one: the tries strip and the keyboard's own show/hide
+     change the stage's height, and measuring before that reflow sizes the board
+     against the old height and pushes the page into a scroll. */
+  requestAnimationFrame(sizeBoard);
 }
 
 var toastT = null;
