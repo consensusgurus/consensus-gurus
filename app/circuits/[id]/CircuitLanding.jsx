@@ -19,7 +19,7 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowRight, Share2, Trophy, Check } from 'lucide-react';
-import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM } from '@/lib/circuits';
+import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref } from '@/lib/circuits';
 import { notifyShareCredit } from '../../ShareCreditPop';
 import { dailyMeIdentity } from '../../dailyMeClient';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -59,6 +59,9 @@ export default function CircuitLanding({ circuit, games }) {
   // The first game they have NOT played, so the button starts where they are
   // rather than always at the top of the run.
   const nextGame = games.find((g) => !(perGame[g.key] && !perGame[g.key].abandoned)) || games[0];
+  // Can this circuit be played as one continuous quiz? Read off the circuit
+  // rather than a name, so a second runnable circuit needs no edit here.
+  const runnable = isRunnableCircuit(id);
 
   function doShare() {
     const url = withRef(circuitShareUrl(id));
@@ -173,9 +176,22 @@ export default function CircuitLanding({ circuit, games }) {
         <p className="clp-sub">{share.invite}</p>
 
         <div className="clp-acts">
+          {/* A RUNNABLE circuit leads with the continuous board, because that is
+              what the circuit is for: one sitting, no hand-offs. Playing the
+              games one at a time still works and is the second control, since a
+              player part way through a run should be able to pick up a single
+              game without starting the whole thing again. */}
+          {runnable ? (
+            <a className="clp-go" href={runHref(id)}>
+              {complete ? 'Run it again' : done ? 'Carry on with the run' : `Play all ${n} as one quiz`}
+              <ArrowRight size={15} strokeWidth={2.6} />
+            </a>
+          ) : null}
           {nextGame ? (
-            <a className="clp-go" href={circuitHref(nextGame.key, marquee ? MARQUEE_ID : id)}>
-              {complete ? 'Play it again' : done ? `Continue with ${nextGame.name}` : `Start the run with ${nextGame.name}`}
+            <a className={runnable ? 'clp-sh' : 'clp-go'} href={circuitHref(nextGame.key, marquee ? MARQUEE_ID : id)}>
+              {runnable
+                ? `Or just ${nextGame.name}`
+                : (complete ? 'Play it again' : done ? `Continue with ${nextGame.name}` : `Start the run with ${nextGame.name}`)}
               <ArrowRight size={15} strokeWidth={2.6} />
             </a>
           ) : null}

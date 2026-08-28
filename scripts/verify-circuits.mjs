@@ -19,6 +19,7 @@ import {
   circuitById, circuitKeysFor, isMarquee,
   circuitPageHref, circuitShareUrl, circuitShareInvite, circuitShareResult,
   SHARE_HOST_FOR_CIRCUITS, CIRCUIT_BASE,
+  RUN_GAMES, isRunnableCircuit, runHref,
 } from '../lib/circuits.js';
 import { SHARE_HOST } from '../lib/site.js';
 
@@ -75,6 +76,10 @@ const MED = {
   // Atlas, 25 multiple-choice questions, so the same estimate. Replace with the
   // measured median at the next snapshot re-measure.
   sport: 45,
+  // Biz launched 2026-08-27 with no live clock data yet: the same shape again,
+  // 25 multiple-choice questions. Replace with the measured median once the
+  // board has a fortnight of rows.
+  biz: 45,
 };
 // The ascent tolerance, same reasoning as the Five's: the medians drift, and a
 // re-measure must not fail a roster that was correctly ordered when it shipped.
@@ -111,6 +116,19 @@ for (const c of CIRCUITS) {
     if (c.keys.length <= c.rotate) fails.push(`${c.id}: a rotating pool of ${c.keys.length} is not bigger than its window`);
   } else if (c.keys.length > MAX) fails.push(`${c.id}: ${c.keys.length} games, cap is ${MAX}`);
   if (circuitById(c.id) !== c) fails.push(`${c.id}: circuitById does not resolve to it`);
+  // A RUNNABLE circuit is played as one continuous board, so every member has
+  // to be a game the run page can deal: a bank of four-choice questions in play
+  // order. RUN_GAMES names them, and a circuit that flags `run` while holding
+  // anything else would render a run that silently drops that game.
+  if (c.run) {
+    if (isMarquee(c.id)) fails.push(`${c.id}: the marquee cannot be runnable, its roster crosses every category`);
+    const off = (c.keys || []).filter((k) => !RUN_GAMES.includes(k));
+    if (off.length) fails.push(`${c.id}: flagged run but holds ${off.join(', ')}, which RUN_GAMES does not cover`);
+    if (!isRunnableCircuit(c.id)) fails.push(`${c.id}: flagged run but isRunnableCircuit says otherwise`);
+    if (runHref(c.id) !== `${CIRCUIT_BASE}/${c.id}/run`) fails.push(`${c.id}: runHref is ${runHref(c.id)}`);
+  } else if (isRunnableCircuit(c.id)) {
+    fails.push(`${c.id}: isRunnableCircuit is true without the run flag`);
+  }
 }
 
 // ── 2. every key is a real, non-excluded game ───────────────────────────────

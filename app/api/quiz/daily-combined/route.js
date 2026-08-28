@@ -281,7 +281,15 @@ export async function GET(request) {
   // Best-N and the ceiling scale to how many games existed that day (1..10).
   const gameCount = games.length;
   // best-N is per-day: best 10 from the 2026-07-24 slate on, best 5 before.
-  const dayBestN = fiveOnly ? FIVE_SIZE : bestNForSuffix(suffix);
+  // A SKILL CIRCUIT SCORES OVER ITS WHOLE ROSTER (owner, 2026-08-27). Best-N
+  // was pinned at FIVE_SIZE for every circuit, which is right for the marquee
+  // and right for a five, and wrong for every other size: the Arcade pair could
+  // only ever reach 30 while its own board announced a ceiling of 75, and the
+  // circuit's landing page has always said n * 15. The ladder pays per game
+  // either way, so not one player's points move; only the ceiling and the
+  // fraction printed beside them come right. effBestN below still caps this at
+  // the number of games that actually published that day.
+  const dayBestN = circuitOn ? fiveKeys.length : (fiveOnly ? FIVE_SIZE : bestNForSuffix(suffix));
   // Which points rule this day pays, so the client can print the matching
   // explainer on an archived day instead of describing today's rule.
   const ladder = usesLadder(suffix);

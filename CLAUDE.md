@@ -6279,3 +6279,77 @@ branch in `lib/quiz-scoring.js` (`asked = key === 'streak' ? 40 : 25`).
 to a rotating pool. Its copy does not claim to be exhaustive, so nothing goes stale. Whether Biz
 should take a slot is an owner call. Also NOT in `lib/daily-five.js`, whose hand-picked bank ran out
 on 2026-09-13.
+
+## THE RUN: a circuit played as ONE LONG QUIZ (owner, 2026-08-27)
+
+`/circuits/<id>/run` deals every game in a runnable circuit as a single continuous board.
+No hand-off between games, no start gate on each, no end card between them: you answer, a
+line tells you when a quiz has ended for you, and the next quiz starts on its own after
+four seconds. It is the same games in the same order with the furniture between them taken
+out, and it is the first circuit surface that is not five separate pages.
+
+**IT IS A PRESENTATION, NOT A SCORING CHANGE, and that is the whole design.** The run files
+exactly the rows the five clients file: one ordinary `POST /api/quiz/result` per section,
+carrying that game's own `quizId`, score, total, guesses and clock. So every per-game
+leaderboard, the circuit board, IQ Points, the trophies, the archive and the slate all see a
+player who played those five games, because they did. There is no run row, no run table, no
+run scoring and nothing new to rank. The combined placement is computed exactly as before by
+`/api/quiz/daily-combined?circuit=<id>`. **Never add a score of its own here.** A second
+scoring path for the same plays is the trap this file warns about in five other places.
+
+**THE SECTION CLOCK IS PER SECTION.** Each game posts the time from its own first question
+to its own last, so a run player's row is comparable with a solo player's on that game's
+board. The run's total clock is the sum of the sections actually played, it is a display
+figure on the scorecard, and it is posted nowhere. Do not post a run-wide time to any game.
+
+**EVERY LOCAL WRITE THE SOLO CLIENT MAKES IS MADE HERE TOO** (`finishSection` in
+`RunClient.jsx`), and this is the part that fails silently if it is missed: the per-puzzle
+save `sot_<key>_<num>`, the day breadcrumb `sot_<key>_day`, the write-once stats record
+`sot_<key>_stats`, and the abandon-dedupe key `sot_<key>_rec_<num>`. Miss any one and the
+slate shows a game as unplayed that the server holds a row for, which is a disagreement
+nothing errors on. The abandon row is filed through the shared `useAbandonFlush`, using that
+game's own dedupe key, so leaving mid-section is a started game rather than a game with no
+trace and a section can never post twice.
+
+**A GAME ALREADY PLAYED TODAY IS BANKED, NOT REPLAYED.** The daily board keeps a player's
+first attempt, so re-serving a game they finished this morning could only produce a row that
+does not count. Those sections are marked banked at the start, their recorded score is read
+out of that game's own local stats, and the run steps over them. A banked game that was run
+clean still counts as cleared on the scorecard: it is the same feat whichever surface it
+happened on.
+
+**WHAT MAKES A CIRCUIT RUNNABLE.** `run: true` on the circuit, and every member listed in
+`RUN_GAMES` (`lib/circuits.js`), which today is deep, atlas, sport, biz and streak. A game
+can be dealt into a continuous board only if its day is a bank of four-choice questions in
+play order, which is exactly what those five are: the same client five times over different
+banks. `scripts/verify-circuits.mjs` asserts a circuit flagged `run` holds nothing else, so
+a sixth game added to the roster and not to the bank map fails the checker rather than
+silently vanishing from the run. Adding a quiz of the same shape means adding its key to
+`RUN_GAMES` and to `BANKS` in `app/circuits/[id]/run/page.js`, and nothing else. The marquee
+can never be runnable: its roster crosses every category by construction.
+
+**Gauntlet's roster changed in the same pass.** Blitz left and Biz joined. Blitz ends on a
+miss like the rest, but it is mental arithmetic against a clock rather than a bank of
+questions, so it was the one member that could not be dealt into a continuous board; it
+keeps its home in Mental Math and stops being double listed. The roster is now exactly the
+five one-life trivia quizzes, which is both what the title says and what the run needs.
+
+**A SKILL CIRCUIT NOW SCORES OVER ITS WHOLE ROSTER.** `dayBestN` in the daily-combined route
+was pinned at `FIVE_SIZE` for every circuit, which is right for the marquee and right for a
+five and wrong for every other size: the Arcade pair could only ever reach 30 while its own
+board announced a ceiling of 75, and the circuit landing page has always said `n * 15`. The
+ladder pays per game either way, so no player's points moved; only the ceiling and the
+fraction printed beside them came right.
+
+**The end of a run is its scorecard**, rendered in place by the run client: total questions
+cleared out of the day's total, quizzes cleared, the run clock, then a row per game with its
+tile art, its own colour off the daily registry, its score and a bar. It links to the board
+at `/daily-five?circuit=<id>`, which is unchanged and remains the run's permalink. The share
+text carries figures and a pip per game and never a question or an answer, per the standing
+rule that share art leaks no solutions.
+
+**Reading the code:** `app/circuits/[id]/run/page.js` resolves every bank on the SERVER and
+ships only the picked day's questions, exactly as each game's own page does, so four banks
+never reach a browser that is playing the fifth. Question shape, tier size and the twenty
+second clock are derived rather than restated; the name, tag and colour come out of the
+daily registry. The one thing copied is each client's `TIER_NAMES`, which is display only.
