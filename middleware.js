@@ -51,8 +51,16 @@ export async function middleware(req) {
   // The Sports Ranking pages are a Source of Truths property and are canonical on THIS host
   // (owner decision, 2026-08-28), so they are served here rather than redirected away. Their
   // canonical and sitemap entries both point at this host, so the two signals agree. Every
-  // other path on every old host still 308s, exactly as before.
+  // other PAGE on every old host still 308s, exactly as before.
   if (SOT_PATHS.includes(url.pathname)) return NextResponse.next();
+
+  // ...and so must the API, or those pages are broken on this host. A 308 to another origin
+  // is not a redirect a browser follows for an XHR: it comes back as an opaqueredirect and
+  // the call fails. Measured 2026-08-28, that silently killed the view beacon and the footer's
+  // visitor count on sourceoftruths.com. API routes are not an SEO surface and are served by
+  // this same deployment against the same database, so serving them here costs nothing and
+  // redirecting them costs a broken page.
+  if (url.pathname.startsWith('/api/')) return NextResponse.next();
 
   // Path-preserving: /quiz/foo on the old domain lands on /quiz/foo, so every existing deep
   // link, share URL and backlink still resolves.

@@ -33,17 +33,26 @@ export default function PageViewBeacon({ id }) {
     let seen = false;
     try {
       seen = sessionStorage.getItem(key) === '1';
-      if (!seen) sessionStorage.setItem(key, '1');
     } catch {
       // sessionStorage unavailable (private mode, blocked cookies): count it.
     }
     if (seen) return;
+
+    // The flag is set only AFTER the write lands, never before. Marking it up
+    // front means one failed request suppresses the count for the rest of the
+    // session with nothing to show for it, which is exactly what happened while
+    // the old host was still redirecting /api cross-origin.
     fetch('/api/quiz/view', {
       method: 'POST',
       keepalive: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ quizId: id }),
-    }).catch(() => {});
+    })
+      .then((r) => {
+        if (!r.ok) return;
+        try { sessionStorage.setItem(key, '1'); } catch { /* nothing to do */ }
+      })
+      .catch(() => {});
   }, [id]);
 
   return null;
