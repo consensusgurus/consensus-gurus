@@ -14,25 +14,34 @@ import { T } from '@/lib/theme';
 
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
-const TITLE = 'NFL Power Rankings Consensus | Mind Loft';
+const TITLE = 'NFL Consensus Power Rankings: All 32 Teams | Mind Loft';
 const DESCRIPTION =
-  'Every published NFL power ranking in one table: analytics models, betting markets and media rankings side by side, plus the composite they add up to. Updated weekly.';
+  'One consensus from every NFL power ranking worth reading: analytics models, betting markets and media, each scored 1 to 32 and weighted by tier. Every source shown side by side.';
+
+// Share copy is written for the moment someone sees it in a feed, so it leads
+// with what makes the page different (the consensus, and that the disagreement
+// is visible) rather than repeating the page title. The site name already rides
+// along in `siteName`, so the share title does not carry the "| Mind Loft".
+const SHARE_TITLE = 'The NFL Consensus, All 32 Teams';
+// Kept under ~200 characters: Twitter truncates a card description around there.
+const SHARE_DESCRIPTION =
+  'Every NFL power ranking in one table, and the consensus they add up to. Models, betting markets and media side by side, so you can see exactly where they disagree and by how much.';
 
 export const metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: '/nflrankings' },
   openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
     url: '/nflrankings',
     type: 'website',
     siteName: 'Mind Loft',
   },
   twitter: {
     card: 'summary_large_image',
-    title: TITLE,
-    description: DESCRIPTION,
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
   },
 };
 
@@ -78,13 +87,14 @@ export default function NflRankingsPage() {
             fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(30px, 6vw, 52px)',
             lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, color: T.ink,
           }}>
-            NFL <span style={{ color: T.accent }}>power rankings</span>
+            NFL <span style={{ color: T.accent }}>consensus power rankings</span>
           </h1>
-          <p style={{ marginTop: 15, maxWidth: 680, fontSize: 16, lineHeight: 1.6, color: T.muted }}>
-            The NFL has no official poll, so this composite is built from three independent kinds of
-            signal: analytics models, betting markets, and the one media power ranking that publishes
-            a full list at a stable address. Every source is shown, so you can see who disagrees and
-            by how much.
+          <p style={{ marginTop: 15, maxWidth: 700, fontSize: 16, lineHeight: 1.6, color: T.muted }}>
+            Every ranking scored into one. The NFL has no official poll, so the consensus is built
+            from three independent kinds of signal: analytics models, betting markets, and media
+            power rankings. Each is scored 1 to 32 by position and weighted by tier rather than by
+            outlet, so no single publication can dominate, and a tier carrying only one source is
+            capped. Sources that have stopped updating are excluded but still shown.
           </p>
         </div>
 
