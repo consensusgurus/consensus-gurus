@@ -39,6 +39,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
 import Grain from '../../../Grain';
 import Footer from '../../../Footer';
+import DailyChrome from '../../../DailyChrome';
+import LoftCap from '../../../LoftCap';
 import useAbandonFlush from '../../../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
@@ -101,6 +103,21 @@ function statFor(gameKey, num) {
 function alreadyDone(gameKey, num) {
   const sv = readJson(`sot_${gameKey}_${num}`);
   return !!(sv && sv.status && sv.status !== 'playing');
+}
+
+// A SECTION IS AN ORDINARY PLAY OF THAT GAME, so it owes that game's view as
+// well as its result (owner, 2026-08-27). Each solo client posts one view per
+// page load; the run posts one per section, when the section actually starts.
+// Without it a game's plays figure counts the run and its views does not, and
+// the two disagree for no reason a reader could ever work out. A section never
+// reached is never viewed, which is the same rule a page load follows.
+function pingView(quizId) {
+  try {
+    fetch('/api/quiz/view', {
+      method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quizId }),
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 const HAPT = { ok: [7], wrong: [0, 26, 34, 26], win: [10, 40, 20, 40, 20, 60] };
@@ -215,6 +232,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     if (cur.t0 || cur.phase !== 'idle') return;
     const t = Date.now();
     commit({ ...cur, t0: t, sT0: t, phase: 'playing', i: 0 });
+    if (sections[cur.si]) pingView(sections[cur.si].quizId);
     setQStart(t);
     setNow(t);
   }
@@ -272,6 +290,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     if (j >= N) { commit({ ...cur, si: N, phase: 'done', results }); return; }
     const t = Date.now();
     commit({ ...cur, si: j, i: 0, sT0: t, phase: 'playing', results });
+    pingView(sections[j].quizId);
     setQStart(t);
     setNow(t);
   }
@@ -376,17 +395,51 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     ? sec.tierNames[Math.min(sec.tierNames.length - 1, Math.floor(r.i / Math.max(1, sec.perTier)))]
     : '';
 
+  // The cap's live figures, in the same vocabulary every daily uses: how far
+  // you are into the quiz on screen, the clock, and which quiz of the run this
+  // is. It is the run's version of the strip Atlas and Streak carry.
+  const capFigures = (() => {
+    if (r.phase === 'playing' && sec) return [
+      { v: `${r.i}/${sec.questions.length}`, k: 'straight' },
+      { v: fmtTime(now - (r.sT0 || now)), k: 'time' },
+      { v: `${r.si + 1}/${N}`, k: `quiz · ${sec.name}` },
+    ];
+    if (done) return [
+      { v: `${cleared}/${askable}`, k: 'questions' },
+      { v: `${perfect}/${N}`, k: 'cleared' },
+      { v: fmtTime(runSecs * 1000), k: 'time' },
+    ];
+    if (r.phase === 'verdict') return [
+      { v: `${cleared}/${askable}`, k: 'questions' },
+      { v: `${r.results.length}/${N}`, k: 'quizzes done' },
+    ];
+    return [
+      { v: `${N}`, k: 'quizzes' },
+      { v: `${askable}`, k: 'questions' },
+    ];
+  })();
+
   return (
-    <div className="rn">
+    // The daily ground, chrome and cap, so the run reads as one of our pages
+    // rather than a page of its own: `loft-page` is what paints the navy, and
+    // the rule that does it is injected by LoftCap, so the two go together.
+    // DailyChrome sits OUTSIDE the column, like every daily client, so its
+    // bands run full bleed. It takes no slug: the run is not one game, and
+    // with none the slate rail stays off and the Five bar renders nothing.
+    <div className="loft-page rn" style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: 'hidden' }}>
       <Grain />
+      <DailyChrome loft />
+      <LoftCap
+        name={circuitName}
+        cat="Trivia"
+        dateLabel={done ? (perfect === N ? 'Run cleared' : 'Run complete') : dateLabel}
+        outcome={done ? (perfect === N ? 'won' : (cleared > 0 ? 'part' : 'lost')) : null}
+        progress={askable ? Math.round((answeredSoFar / askable) * 100) : null}
+        figures={capFigures}
+      />
       <style>{CSS}</style>
 
       <div className="rn-wrap">
-        <header className="rn-top">
-          <a className="rn-back" href={`/circuits/${circuitId}`}>{circuitName}</a>
-          <span className="rn-date">{dateLabel}</span>
-        </header>
-
         {/* The run rail. It is the only thing on screen that persists across
             all five quizzes, which is what makes this read as one sitting. */}
         <div className="rn-rail" style={{ '--n': N }}>
@@ -550,14 +603,15 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 }
 
 const CSS = `
-.rn{min-height:100vh;background:var(--paper,#f4f6f9);font-family:'Manrope',system-ui,sans-serif;color:var(--ink,#0b0d12);}
-.rn-wrap{max-width:760px;margin:0 auto;padding:18px 16px 40px;}
-.rn-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;}
-.rn-back{font-weight:800;font-size:14px;color:var(--accent,#233a63);text-decoration:none;}
-.rn-back:hover{text-decoration:underline;}
-.rn-date{font-family:'DM Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#3f4757);}
+.rn{font-family:'Manrope',system-ui,sans-serif;color:var(--ink,#0b0d12);}
+/* The page column carries NO top or bottom padding: on a loft page a rule in
+   LoftCap zeroes padding on any direct child whose class ends in "-wrap", so
+   the spacing has to be margin. That rule is also why this stays a single
+   class: an attribute selector tests the whole string, so a second class here
+   would silently stop matching it. */
+.rn-wrap{max-width:760px;margin:0 auto;padding:0 16px;}
 
-.rn-rail{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin-bottom:14px;}
+.rn-rail{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin:16px 0 14px;}
 .rn-pip{border-radius:8px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);padding:7px 8px 8px;
   border-top:4px solid var(--border,#e5e7eb);min-width:0;}
 .rn-pip.now{border-top-color:var(--acc);box-shadow:0 2px 10px rgba(15,23,42,.10);}
@@ -623,6 +677,7 @@ const CSS = `
 .rn-vb.pri{background:var(--acc);border-color:var(--acc);color:#fff;}
 .rn-vb:hover{filter:brightness(1.05);}
 
+.rn-card,.rn-score{margin-bottom:40px;}
 .rn-score{background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);border-radius:14px;overflow:hidden;}
 .rn-sh{padding:20px 18px 0;}
 .rn-figs{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1px;background:var(--border,#e5e7eb);
