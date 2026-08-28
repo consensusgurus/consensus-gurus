@@ -339,7 +339,7 @@ function slot(){ return SLOTS[slotIx]; }
 function open(){ return slot().cells.filter(function(k){ return !green[k]; }); }
 
 /* ---------- grid ---------- */
-var xw = document.getElementById('xw'), stage = document.querySelector('.stage');
+var xw = document.getElementById('xw');
 var cellOf = {};
 Object.keys(answer).forEach(function(k){
   var p = k.split(',');
@@ -351,16 +351,37 @@ Object.keys(answer).forEach(function(k){
   xw.appendChild(d);
   cellOf[k] = d;
 });
+/* SHRINK TO FIT, MEASURED RATHER THAN COMPUTED.
+   A height budget summed from the chrome's boxes is wrong by whatever margins
+   collapsed that day: totalling .top/.id/.prog/.cats/.tries/.bar/.kbwrap came
+   out 23px short here and still scrolled. So ask the document instead. Start
+   at the width-derived size, shrink while the page overflows, then give back
+   the last pixel that still fits. The board is the only elastic thing on the
+   page, so it absorbs the guess log appearing and the keyboard being hidden. */
+function applyCell(c){
+  xw.style.setProperty('--cell', c + 'px');
+  xw.style.gridTemplateColumns = 'repeat(' + COLS + ',' + c + 'px)';
+  xw.style.gridAutoRows = c + 'px';
+}
+function overflow(){
+  var de = document.documentElement;
+  return de.scrollHeight - de.clientHeight;
+}
 function sizeBoard(){
   var wide = window.innerWidth >= 900;
   var availW = Math.min(window.innerWidth - (wide ? 0 : 28), 660);
-  var availH = Math.max(150, stage.clientHeight - 10);
-  var byW = Math.floor((availW - (COLS - 1) * 2) / COLS);
-  var byH = Math.floor((availH - (COLS - 1) * 2) / COLS);
-  var cell = Math.max(17, Math.min(byW, byH, 40));
-  xw.style.setProperty('--cell', cell + 'px');
-  xw.style.gridTemplateColumns = 'repeat(' + COLS + ',' + cell + 'px)';
-  xw.style.gridAutoRows = cell + 'px';
+  var max = Math.max(15, Math.min(Math.floor((availW - (COLS - 1) * 2) / COLS), 40));
+  var c = max;
+  applyCell(c);
+  for (var i = 0; i < 24 && c > 15 && overflow() > 0; i++){
+    c = Math.max(15, c - Math.max(1, Math.floor(overflow() / COLS)));
+    applyCell(c);
+  }
+  for (var j = 0; j < 6 && c < max; j++){
+    applyCell(c + 1);
+    if (overflow() > 0){ applyCell(c); break; }
+    c++;
+  }
 }
 window.addEventListener('resize', sizeBoard);
 
