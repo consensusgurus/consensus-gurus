@@ -13,6 +13,9 @@
 // Usage: node scripts/verify-circuits.mjs
 
 import { register } from 'node:module';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { DAILY_KEYS, DAILY_GAME_MAP, RETIRED_DAILY } from '../lib/daily-games.js';
 import {
   CIRCUITS, ALL_CIRCUITS, MARQUEE, MARQUEE_ID, CIRCUIT_NAME_LISTS,
@@ -451,6 +454,25 @@ for (const c of ALL_CIRCUITS) {
 for (const c of ALL_CIRCUITS) {
   const bare = circuitShareResult(c.id, {});
   if (/undefined|NaN/.test(bare)) fails.push(`${c.id}: result text with no stats renders ${bare.match(/undefined|NaN/)[0]}`);
+}
+
+// ── 11. a circuit surface never wears one game's hue ────────────────────────
+// The run page borrows the dailies' cap, where the band is painted from the
+// game's own category (--cc on the band, --cat-hue on the stage under it). A
+// circuit is five games, so the run passes `neutral` and takes the plain band.
+//
+// Checked at the SOURCE rather than through an import, because the colour is a
+// prop on a client component and nothing lib/circuits exports can see it. That
+// is exactly why it needs a check: a hardcoded cat="Trivia" painted the whole
+// Gauntlet run green and nothing failed.
+{
+  const runFile = join(dirname(fileURLToPath(import.meta.url)), '..', 'app', 'circuits', '[id]', 'run', 'RunClient.jsx');
+  const src = readFileSync(runFile, 'utf8');
+  // Up to the SELF-CLOSING '/>', never the first '>': the props carry a
+  // 'cleared > 0' ternary, and a lazy match to '>' stops inside it.
+  const tag = src.match(/<LoftCap\b[\s\S]*?\/>/);
+  if (!tag) fails.push('run page: no <LoftCap ... /> found, so its band cannot be checked');
+  else if (!/(^|[\s{])neutral([\s}=]|$)/.test(tag[0])) fails.push("run page: <LoftCap> is missing `neutral`, so the run wears one game's category hue");
 }
 
 // ── report ──────────────────────────────────────────────────────────────────

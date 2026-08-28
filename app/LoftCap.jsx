@@ -51,6 +51,7 @@ export default function LoftCap({
   sunday = null,
   progress = null,   // 0-100, draws the hairline at the foot of the cap
   extra = null,      // an optional third tier (Anon's spine, for instance)
+  neutral = false,   // wear the plain band whatever `cat` says (see the hue below)
 }) {
   // THE PAGE'S OWN ADDRESS, printed beside the game name (owner, 2026-08-15).
   // DailyMasthead carried "mindloftdaily.com/<slug>" so the address rode along
@@ -72,7 +73,18 @@ export default function LoftCap({
   // same reason the URL above is: it cannot go stale, and it costs no edit to
   // any of the 70 game clients.
   const key = loftKey(String(pathname || '').replace(/^\/+/, ''));
-  const hue = SUDOKU.has(key) ? catBlue('sudoku') : (cat ? catBlue(cat) : null);
+  //
+  // NEUTRAL: A SURFACE THAT IS NOT ONE GAME WEARS THE PLAIN BAND (owner,
+  // 2026-08-28). The hue rule above is written for a daily, where the page IS
+  // one game and the category is the true thing to say. A circuit run is five
+  // games in a row, so painting it in one of their categories says something
+  // false about the other four, and it does not stop at the band: the A-to-Z
+  // strip is transparent black over it, --cat-hue washes the stage under it,
+  // and the scorecard trim takes the same variable. So the Gauntlet run came
+  // out green end to end, off a single hardcoded cat="Trivia".
+  // It suppresses the HUE without clearing `cat`, deliberately: the eyebrow
+  // still names what the run is, and only the colour falls back to #2b4676.
+  const hue = neutral ? null : (SUDOKU.has(key) ? catBlue('sudoku') : (cat ? catBlue(cat) : null));
   // The band takes it inline (so it paints on the first frame, with no flash of
   // the old navy), and the document takes it so the play STAGE can wash itself
   // with the same hue: the stage is a sibling subtree, out of reach of a

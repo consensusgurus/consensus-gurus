@@ -444,7 +444,13 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     <div className="loft-page rn" style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: 'hidden' }}>
       <Grain />
       <DailyChrome loft />
+      {/* THE PLAIN BAND, not the Trivia hue. `cat` stays so the eyebrow still
+          says what the run is, but a circuit is not one game and must not be
+          painted as one: the cap's colour reaches the A-to-Z strip, the stage
+          wash and the scorecard through --cc / --cat-hue. See `neutral` in
+          app/LoftCap.jsx. */}
       <LoftCap
+        neutral
         name={circuitName}
         cat="Trivia"
         dateLabel={done ? (perfect === N ? 'Run cleared' : 'Run complete') : dateLabel}
