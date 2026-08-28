@@ -1957,7 +1957,12 @@ const CSS = `
      load-bearing: the jump bar's own rules are declared AFTER that block, so at
      equal specificity they win. A copy up there is a copy that does nothing. */
   .tdy-jb{margin-top:0;}
-  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:0;padding:0;}
+  /* ONE HEIGHT FOR BOTH ROWS (owner, 2026-08-28), declared once here and taken
+     as a min-height by both, rather than left to fall out of two different
+     paddings around two different content boxes. A button's box is its own
+     text; a chip's is the .nm line beside a dot, so equal padding gave 35px
+     against 31px and the two bands read as one big row over one thin one. */
+  .tdy-jbin{flex-direction:column-reverse;align-items:stretch;gap:0;padding:0;--navh:35px;}
   .tdy-jbtw{width:100%;}
   .tdy-jbt{margin:0;padding:0;gap:0;}
   .tdy-jbc{overflow:visible;gap:0;}
@@ -1965,14 +1970,14 @@ const CSS = `
      the end of a row, so they take a surface back: a hover ground is no
      affordance at all on touch. Each takes half the row and they meet on a
      hairline, so the pair reads as one band rather than two buttons. */
-  .tdy-jb2{flex:1 1 0;min-width:0;font-size:11.5px;padding:10px 4px;text-align:center;background:var(--white);border-radius:0;box-shadow:none;border-right:1px solid #dfe4ec;}
+  .tdy-jb2{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;min-height:var(--navh);font-size:11.5px;padding:0 4px;text-align:center;background:var(--white);border-radius:0;box-shadow:none;border-right:1px solid #dfe4ec;}
   .tdy-jbc .tdy-jb2:last-child{border-right:0;}
   .tdy-jb2.on{background:var(--accent-soft);}
   /* The chips lose their corners and their gap for the same reason, so the
      track is one strip of tinted rectangles. The hairline is what tells two
      neighbouring tints apart; the chip's own ::before meter is unaffected,
      since it fills the padding box and the border sits outside it. */
-  .tdy-jc{border:0;border-right:1px solid rgba(15,23,42,.09);border-radius:0;padding:8px 12px 8px 10px;}
+  .tdy-jc{border:0;border-right:1px solid rgba(15,23,42,.09);border-radius:0;min-height:var(--navh);padding:0 12px 0 10px;}
   .tdy-jc .nm{font-size:11.5px;}
   .tdy-jbshin{padding:14px 14px 18px;}
   .tdy-reor{width:100%;}
