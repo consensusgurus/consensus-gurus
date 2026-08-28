@@ -40,8 +40,8 @@ PUZZLES_JS = os.path.join(REPO, 'app', 'shards', 'puzzles.js')
 
 # 2026-08-20: rebuilt again to drop the two-letter slots (see gen.py's template
 # note). Boards through 2026-08-19 are played and frozen.
-FIRST_NEW = datetime.date(2026, 8, 20)
-LAST_NEW = datetime.date(2026, 9, 30)
+FIRST_NEW = datetime.date(2026, 10, 1)
+LAST_NEW = datetime.date(2026, 10, 31)
 
 # n, shard size range, piece count range, ambiguity floor, scoring budget
 # ambig = minimum geometric tilings; mindup = minimum repeated shard shapes, the

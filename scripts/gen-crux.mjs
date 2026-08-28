@@ -113,9 +113,11 @@ for (const p of PUZZLES) {
   if (p.live >= FROM) continue;   // regenerated boards do not count as history
   history.push({
     day: dnum(p.live),
+    live: p.live,
     cats: p.categories.map((c) => c.name),
     words: p.categories.flatMap((c) => c.words),
     sigs: p.categories.map((c) => `${c.name}:${[...c.words].sort().join('/')}`),
+    colls: (p.collisions ?? []).map((c) => `${c.word}|${c.reads}`),
   });
 }
 
@@ -127,10 +129,19 @@ const wordCeil = Math.max(1, Math.round((WORD_CEIL_PER_50 * dates.length) / 50))
 
 const lastCat = new Map(), lastWord = new Map(), usedSig = new Set();
 const catCount = new Map(), wordCount = new Map(), pairCount = new Map();
+// The collision ceiling is a BANK-WIDE rule, not a per-run one: keep this in
+// step with CRUX_VARIETY_FROM in scripts/verify-daily-banks.mjs. pairCount used
+// to start empty, so a run only counted the traps it had just made and happily
+// took a pair to its third or fourth appearance on top of the frozen boards.
+// The Sep 30 to Oct 31 batch tripped exactly that: 32 fresh boards pushed 32
+// pairs (CORNET|Cookware, SNARE|Trapping gear, MONITOR|Computer parts and the
+// rest) past the limit, and only the verifier noticed.
+const VARIETY_FROM = '2026-08-20';
 for (const h of history) {
   for (const c of h.cats) lastCat.set(c, Math.max(lastCat.get(c) ?? -1e9, h.day));
   for (const w of h.words) lastWord.set(w, Math.max(lastWord.get(w) ?? -1e9, h.day));
   for (const s of h.sigs) usedSig.add(s);
+  if (h.live >= VARIETY_FROM) for (const k of h.colls) pairCount.set(k, (pairCount.get(k) ?? 0) + 1);
 }
 
 // ── semantic uniqueness: count the filings of words into categories ────────

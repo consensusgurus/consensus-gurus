@@ -103,6 +103,31 @@ export const CATEGORIES = [
   { name: 'Rodents', words: ['VOLE', 'GERBIL', 'CAPYBARA', 'DORMOUSE', 'CHINCHILLA', 'MOUSE'] },
   { name: 'Computer parts', words: ['MOTHERBOARD', 'PROCESSOR', 'KEYBOARD', 'TRACKPAD', 'CHIPSET'] },
   { name: 'Lizards', words: ['SKINK', 'GECKO', 'IGUANA', 'CHAMELEON', 'AGAMA', 'MONITOR'] },
+
+  // Added 2026-08-28 to widen the collision pool. The Sep 30 to Oct 31 batch
+  // could not be built without it: 37 of the pool's 83 collision pairs had
+  // already been used twice on boards live from 2026-08-20, which is the
+  // bank-wide ceiling, and a Sunday needs three fresh ones on four mutually
+  // linked categories. Every pair below is a genuine second reading, not
+  // padding: a fireplace POKER is a card game, a coal SCUTTLE is a ship's
+  // hatch, MACE is a spice and a weapon, a PIKE is a fish and a polearm.
+  { name: 'Butterflies', words: ['ADMIRAL', 'PEACOCK', 'COMMA', 'BRIMSTONE', 'FRITILLARY', 'RINGLET'] },
+  { name: 'Naval ranks', words: ['COMMODORE', 'ENSIGN', 'MIDSHIPMAN', 'PURSER', 'BOSUN', 'YEOMAN'] },
+  { name: 'Punctuation marks', words: ['COLON', 'SEMICOLON', 'CARET', 'PILCROW', 'ELLIPSIS', 'OBELUS'] },
+  { name: 'Athletics events', words: ['HURDLES', 'JAVELIN', 'DECATHLON', 'STEEPLECHASE', 'RELAY', 'DISCUS'] },
+  { name: 'Electrical parts', words: ['RESISTOR', 'CAPACITOR', 'DIODE', 'TRANSFORMER', 'SOLENOID', 'FUSE'] },
+  { name: 'Knots', words: ['BOWLINE', 'CLOVE', 'SHEEPSHANK', 'HITCH', 'PRUSIK', 'SPLICE'] },
+  { name: 'Spices', words: ['NUTMEG', 'CUMIN', 'MACE', 'SAFFRON', 'CARDAMOM', 'TURMERIC'] },
+  { name: 'Medieval weapons', words: ['HALBERD', 'FLAIL', 'POLEAXE', 'MORNINGSTAR', 'PIKE', 'GLAIVE'] },
+  { name: 'Printing terms', words: ['SERIF', 'KERNING', 'GALLEY', 'EMBOSS', 'PLATEN', 'LIGATURE'] },
+  { name: 'Ship rooms', words: ['FORECASTLE', 'WARDROOM', 'ORLOP', 'BILGE', 'BRIG', 'SCUTTLE'] },
+  { name: 'Fireplace tools', words: ['POKER', 'TONGS', 'BELLOWS', 'TRIVET', 'ANDIRON', 'FENDER'] },
+  { name: 'Card games', words: ['WHIST', 'CRIBBAGE', 'CANASTA', 'EUCHRE', 'PIQUET', 'BEZIQUE'] },
+  { name: 'Heraldry terms', words: ['CHEVRON', 'BEND', 'SALTIRE', 'ESCUTCHEON', 'RAMPANT', 'GULES'] },
+  { name: 'Military insignia', words: ['PIP', 'STRIPE', 'CROWN', 'EPAULETTE', 'BRAID', 'LANYARD'] },
+  { name: 'Tooth parts', words: ['ENAMEL', 'DENTINE', 'PULP', 'CUSP', 'MOLAR', 'INCISOR'] },
+  { name: 'Window parts', words: ['SASH', 'MULLION', 'TRANSOM', 'SILL', 'CASEMENT', 'LOUVRE'] },
+  { name: 'Poker terms', words: ['FLOP', 'RIVER', 'BLIND', 'ANTE', 'KICKER', 'MUCK'] },
 ];
 
 // word -> the other pool categories it plausibly reads as
@@ -144,7 +169,6 @@ export const READS = {
   ANVIL: ['Hand tools'],
   STIRRUP: ['Horse tack'],
   SADDLE: ['Bicycle parts', 'Landforms'],
-  BIT: ['Hand tools'],
   CRANK: ['Bicycle parts'],
   PEDAL: ['Bicycle parts'],
   WASHER: ['Laundry appliances'],
@@ -199,11 +223,9 @@ export const READS = {
   VAMP: ['Shoe parts'],
   SHANK: ['Golf scores', 'Shoe parts'],
   ROACH: ['Insects', 'Fish'],
-  CROSS: ['Boxing punches'],
   GILL: ['Fish', 'Mushroom parts'],
   CAP: ['Mushroom parts'],
   SPORE: ['Mushroom parts'],
-  VAULT: ['Gymnastics apparatus', 'Bank things'],
   BEAM: ['Timber', 'Gymnastics apparatus'],
   RINGS: ['Gymnastics apparatus'],
   POMMEL: ['Horse tack'],
@@ -215,11 +237,38 @@ export const READS = {
   SIDECAR: ['Bicycle parts'],
   MOLE: ['Rodents', 'Spy trade'],
   PLANT: ['Spy trade'],
-  SLEEPER: ['Spy trade'],
   LEGEND: ['Spy trade'],
   MOUSE: ['Computer parts', 'Rodents'],
   MONITOR: ['Computer parts', 'Lizards'],
   KEYBOARD: ['Music notation'],
+
+  // the 2026-08-28 widening (see the categories above)
+  ADMIRAL: ['Naval ranks'],
+  COMMA: ['Punctuation marks'],
+  COLON: ['Organs'],
+  RELAY: ['Electrical parts'],
+  CLOVE: ['Spices'],
+  MACE: ['Medieval weapons'],
+  PIKE: ['Fish'],
+  FLAIL: ['Farm implements'],
+  GALLEY: ['Ship rooms'],
+  SCUTTLE: ['Fireplace tools'],
+  POKER: ['Card games'],
+  FENDER: ['Sailing gear'],
+  TONGS: ['Cookware'],
+  TRIVET: ['Cookware'],
+  YEOMAN: ['Medieval ranks'],
+  BEND: ['Knots'],
+  CHEVRON: ['Military insignia'],
+  CROWN: ['Tooth parts'],
+  LANYARD: ['Sailing gear'],
+  TRANSOM: ['Sailing gear'],
+  RIVER: ['Landforms'],
+  // readings the pool already had the words for and had simply not written down
+  BIT: ['Hand tools', 'Computer parts'],
+  CROSS: ['Heraldry terms'],
+  SLEEPER: ['Timber'],
+  VAULT: ['Gymnastics apparatus', 'Cathedral parts'],
 };
 
 // word -> the ONE category that owns it. Asserted unique by the generator.
