@@ -16,6 +16,7 @@
 // the daily board break by time, so a quick death at 12 beats a slow one.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useHoverStale } from '@/lib/hover-armed';
 import { useSearchParams } from 'next/navigation';
 import { X, Smartphone, Globe2 } from 'lucide-react';
 import Grain from '../Grain';
@@ -176,6 +177,10 @@ export default function AtlasClient({ puzzles = [], questionsByNum = {}, forceNu
   const STORE_KEY = `sot_atlas_${PUZZLE.num}`;
 
   const [g, setG] = useState(() => freshState());
+  // Hover off until the pointer moves again, so the box just clicked is not
+  // outlined by a resting mouse when the next question paints. See
+  // lib/hover-armed.js.
+  const hovStale = useHoverStale(g.i);
   const gRef = useRef(g);
   const [now, setNow] = useState(() => Date.now());
   const [qStart, setQStart] = useState(null);   // Date.now() when current question appeared
@@ -502,7 +507,7 @@ export default function AtlasClient({ puzzles = [], questionsByNum = {}, forceNu
         <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.faded, opacity: 0.75 }}>{TIER_NAMES[qq.tier - 1]}</span>
       </div>
       <div style={{ fontFamily: SANS, fontSize: 18.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4, marginBottom: 13 }}>{qq.q}</div>
-      <div className="at-grid">
+      <div className={`at-grid${hovStale ? ' nohov' : ''}`}>
         {[0, 1, 2, 3].map((k) => choiceBtn(qq, k, dead))}
       </div>
     </div>
@@ -545,7 +550,7 @@ export default function AtlasClient({ puzzles = [], questionsByNum = {}, forceNu
           .at-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           @media(max-width:560px){.at-grid{grid-template-columns:1fr;}}
           .at-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}
-          .at-choice:not(:disabled):hover{background:${COLORS.paper};}
+          .at-grid:not(.nohov) .at-choice:not(:disabled):hover{background:${COLORS.paper};}
           .at-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
           .at-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
         `}</style>

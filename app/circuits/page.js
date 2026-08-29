@@ -1,7 +1,7 @@
 import Grain from '../Grain';
 import NavyFrame from './NavyFrame';
 import QuizNavHeader from '../quizzes/QuizNavHeader';
-import { ALL_CIRCUITS, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
+import { ALL_CIRCUITS, DISPLAY_CIRCUITS, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
 import { SITE_URL } from '@/lib/site';
 
 // /circuits — the index of all fifteen.
@@ -37,7 +37,8 @@ function etTodayServer() {
 
 export default function CircuitsIndexPage() {
   const day = etTodayServer();
-  const rows = ALL_CIRCUITS.map((c) => ({
+  // Browse order, the same one the home page's shelf uses.
+  const rows = DISPLAY_CIRCUITS.map((c) => ({
     id: c.id,
     name: c.name,
     marquee: !!isMarquee(c.id),

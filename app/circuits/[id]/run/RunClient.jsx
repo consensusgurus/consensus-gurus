@@ -36,6 +36,7 @@
 // avoid rather than the one it is likely to notice.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useHoverStale } from '@/lib/hover-armed';
 import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
 import Grain from '../../../Grain';
 import Footer from '../../../Footer';
@@ -137,6 +138,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const [now, setNow] = useState(() => Date.now());
   const [qStart, setQStart] = useState(null);
   const [lock, setLock] = useState(false);
+  // Hover off until the pointer moves again: see lib/hover-armed.js. The key
+  // is the section AND the question, since every section restarts at 0.
+  const hovStale = useHoverStale(`${r.si}:${r.i}`);
   const [hold, setHold] = useState(false);
   const [resumes, setResumes] = useState(0);
   const [identity, setIdentity] = useState(null);
@@ -494,7 +498,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               {sections.map((s) => (
                 <li key={s.key} style={{ '--acc': s.accent }}>
                   <b>{s.name}</b>
-                  <i>{s.topic ? s.topic : s.tag}</i>
+                  <i>{s.subject || s.cat || s.tag}</i>
                   <em>{s.questions.length}</em>
                 </li>
               ))}
@@ -516,7 +520,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             </div>
             <div className="rn-bar"><span style={{ width: `${remainFrac * 100}%`, background: remainFrac < 0.25 ? T.danger : sec.accent }} /></div>
             <h2 className="rn-q">{question.q}</h2>
-            <div className="rn-ch">
+            <div className={`rn-ch${hovStale ? ' nohov' : ''}`}>
               {question.choices.map((c, k) => (
                 <button
                   key={k}
@@ -579,7 +583,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 key: sc.key,
                 name: sc.name,
                 accent: sc.accent,
-                sub: res && res.status === 'banked' ? 'played earlier today' : (sc.topic || sc.tag),
+                sub: res && res.status === 'banked' ? 'played earlier today' : (sc.subject || sc.cat || sc.tag),
                 score: res ? res.score : 0,
                 total: sc.questions.length,
                 right: res && res.status === 'won' ? 'clean' : (res && res.secs ? fmtTime(res.secs * 1000) : ''),
@@ -690,7 +694,7 @@ const CSS = `
 .rn-c{display:flex;align-items:center;gap:10px;text-align:left;background:var(--surface,#f7f8fa);
   border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:13px 14px;font-family:inherit;
   font-size:15px;font-weight:700;color:var(--ink,#0b0d12);cursor:pointer;}
-.rn-c:hover:not(:disabled){border-color:var(--acc);background:var(--white,#fff);}
+.rn-ch:not(.nohov) .rn-c:hover:not(:disabled){border-color:var(--acc);background:var(--white,#fff);}
 .rn-c:disabled{cursor:default;}
 .rn-c.ok{border-color:#15803d;background:#dcfce7;}
 .rn-k{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;border-radius:6px;

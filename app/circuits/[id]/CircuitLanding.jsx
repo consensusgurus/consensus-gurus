@@ -19,7 +19,7 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowRight, Share2, Trophy, Check } from 'lucide-react';
-import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref } from '@/lib/circuits';
+import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref, runSummaryHref } from '@/lib/circuits';
 import { notifyShareCredit } from '../../ShareCreditPop';
 import { dailyMeIdentity } from '../../dailyMeClient';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -56,6 +56,15 @@ export default function CircuitLanding({ circuit, games }) {
   const done = donePlayed.length;
   const complete = n > 0 && done === n;
   const field = (data && data.overallField) || 0;
+  // WHAT THEY SCORED, on the page that told them they had finished (owner,
+  // 2026-08-29, having completed the Gauntlet and found no score anywhere on
+  // it). The figures come out of the same payload the progress does; the
+  // scorecard proper lives on the run summary, and the first action becomes a
+  // link to it the moment the run is complete.
+  const me = (data && data.me) || null;
+  const maxTotal = (data && data.maxTotal) || n * 15;
+  const points = me && Number.isFinite(me.total) ? Math.round(me.total * 10) / 10 : null;
+  const rank = me && Number.isFinite(me.rank) && me.rank > 0 ? me.rank : null;
   // The first game they have NOT played, so the button starts where they are
   // rather than always at the top of the run.
   const nextGame = games.find((g) => !(perGame[g.key] && !perGame[g.key].abandoned)) || games[0];
@@ -181,14 +190,20 @@ export default function CircuitLanding({ circuit, games }) {
               games one at a time still works and is the second control, since a
               player part way through a run should be able to pick up a single
               game without starting the whole thing again. */}
+          {complete ? (
+            <a className="clp-go" href={runSummaryHref(marquee ? MARQUEE_ID : id)}>
+              See how the run went
+              <ArrowRight size={15} strokeWidth={2.6} />
+            </a>
+          ) : null}
           {runnable ? (
-            <a className="clp-go" href={runHref(id)}>
+            <a className={complete ? 'clp-sh' : 'clp-go'} href={runHref(id)}>
               {complete ? 'Run it again' : done ? 'Carry on with the run' : `Play all ${n} as one quiz`}
               <ArrowRight size={15} strokeWidth={2.6} />
             </a>
           ) : null}
           {nextGame ? (
-            <a className={runnable ? 'clp-sh' : 'clp-go'} href={circuitHref(nextGame.key, marquee ? MARQUEE_ID : id)}>
+            <a className={runnable || complete ? 'clp-sh' : 'clp-go'} href={circuitHref(nextGame.key, marquee ? MARQUEE_ID : id)}>
               {runnable
                 ? `Or just ${nextGame.name}`
                 : (complete ? 'Play it again' : done ? `Continue with ${nextGame.name}` : `Start the run with ${nextGame.name}`)}
@@ -205,6 +220,8 @@ export default function CircuitLanding({ circuit, games }) {
           <div><b>{n}</b><i>games</i></div>
           <div><b>{n * 15}</b><i>points on offer</i></div>
           <div><b>{done}/{n}</b><i>played today</i></div>
+          {complete && points !== null ? <div><b>{points}</b><i>of {maxTotal} points</i></div> : null}
+          {complete && rank ? <div><b>{`#${rank}`}</b><i>on the circuit board</i></div> : null}
           {field ? <div><b>{field}</b><i>on it today</i></div> : null}
         </div>
       </div>
@@ -224,7 +241,7 @@ export default function CircuitLanding({ circuit, games }) {
               <img className="clp-ic" src={g.img} alt="" aria-hidden="true" />
               <span className="clp-ct">
                 <span className="clp-cn">{g.name}</span>
-                <span className="clp-cm">{g.cat} &middot; {g.tag}</span>
+                <span className="clp-cm">{g.subject || g.cat}</span>
               </span>
               <ArrowRight className="clp-arr" size={16} strokeWidth={2.4} />
             </a>

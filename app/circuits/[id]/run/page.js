@@ -139,6 +139,10 @@ export default function CircuitRunPage({ params }) {
       key,
       name: g.name || key,
       tag: g.tag || '',
+      // The one line under the name, on the start list AND the scorecard: the
+      // game's SUBJECT, never its day topic and never its question count. See
+      // the note on `subject` in lib/daily-games.js.
+      subject: g.subject || g.cat || '',
       accent: g.color || '#233a63',
       quizId: day.quizId,
       num: day.num,

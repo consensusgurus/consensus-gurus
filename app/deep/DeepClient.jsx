@@ -12,6 +12,7 @@
 // down one thing you can go. Ties on the daily board break by time.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useHoverStale } from '@/lib/hover-armed';
 import { useSearchParams } from 'next/navigation';
 import { X, Smartphone, Anchor } from 'lucide-react';
 import Grain from '../Grain';
@@ -173,6 +174,10 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
   const STORE_KEY = `sot_deep_${PUZZLE.num}`;
 
   const [g, setG] = useState(() => freshState());
+  // Hover off until the pointer moves again, so the box just clicked is not
+  // outlined by a resting mouse when the next question paints. See
+  // lib/hover-armed.js.
+  const hovStale = useHoverStale(g.i);
   const gRef = useRef(g);
   const [now, setNow] = useState(() => Date.now());
   const [qStart, setQStart] = useState(null);   // Date.now() when current question appeared
@@ -499,7 +504,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.faded, opacity: 0.75 }}>{TIER_NAMES[qq.tier - 1]}</span>
       </div>
       <div style={{ fontFamily: SANS, fontSize: 18.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4, marginBottom: 13 }}>{qq.q}</div>
-      <div className="dp-grid">
+      <div className={`dp-grid${hovStale ? ' nohov' : ''}`}>
         {[0, 1, 2, 3].map((k) => choiceBtn(qq, k, dead))}
       </div>
     </div>
@@ -542,7 +547,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
           .dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           @media(max-width:560px){.dp-grid{grid-template-columns:1fr;}}
           .dp-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}
-          .dp-choice:not(:disabled):hover{background:${COLORS.paper};}
+          .dp-grid:not(.nohov) .dp-choice:not(:disabled):hover{background:${COLORS.paper};}
           .dp-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
           .dp-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
           .dp-topic{font-family:${SANS};font-weight:900;font-size:22px;color:${COLORS.accent};line-height:1.2;}

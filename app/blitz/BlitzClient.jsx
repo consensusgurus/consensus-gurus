@@ -19,6 +19,7 @@
 // where it sits once the options are sorted.
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useHoverStale } from '@/lib/hover-armed';
 import { useSearchParams } from 'next/navigation';
 import { X, Smartphone, Zap } from 'lucide-react';
 import Grain from '../Grain';
@@ -181,6 +182,10 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
   const STORE_KEY = `sot_blitz_${PUZZLE.num}`;
 
   const [g, setG] = useState(() => freshState());
+  // Hover off until the pointer moves again, so the box just clicked is not
+  // outlined by a resting mouse when the next question paints. See
+  // lib/hover-armed.js.
+  const hovStale = useHoverStale(g.i);
   const gRef = useRef(g);
   const [now, setNow] = useState(() => Date.now());
   const [qStart, setQStart] = useState(null);   // Date.now() when the current problem appeared
@@ -523,7 +528,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
   const qCard = (pp, dead) => (
     <div>
       <div className="bz-prob">{pp.q}</div>
-      <div className="bz-grid">
+      <div className={`bz-grid${hovStale ? ' nohov' : ''}`}>
         {[0, 1, 2, 3].map((k) => choiceBtn(pp, k, dead))}
       </div>
     </div>
@@ -565,7 +570,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           .bz-btn:hover{background:var(--accent-soft);}
           .bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           .bz-choice{font-family:${SANS};display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid;border-radius:9px;padding:15px 12px;transition:background .12s ease,border-color .12s ease;}
-          .bz-choice:not(:disabled):hover{background:${COLORS.paper};}
+          .bz-grid:not(.nohov) .bz-choice:not(:disabled):hover{background:${COLORS.paper};}
           .bz-prob{font-family:${MONO};font-weight:500;font-size:44px;line-height:1.15;letter-spacing:-0.02em;color:${COLORS.ink};text-align:center;padding:14px 4px 20px;font-variant-numeric:tabular-nums;}
           @media(max-width:560px){.bz-prob{font-size:36px;padding:10px 2px 16px;}}
           .bz-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}

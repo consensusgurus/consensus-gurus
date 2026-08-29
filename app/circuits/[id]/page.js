@@ -88,7 +88,7 @@ export default function CircuitPage({ params }) {
   // to every daily in the circuit, and it is the half of the page that is true
   // whether or not anyone is signed in.
   const games = circuitGamesFor(c.id, day).map((g) => ({
-    key: g.key, name: g.name, cat: g.cat, tag: g.tag, how: g.how,
+    key: g.key, name: g.name, cat: g.cat, tag: g.tag, how: g.how, subject: g.subject || '',
     href: g.href, img: g.img, color: g.colorNavy || g.color || '#c9d2e0',
   }));
 
