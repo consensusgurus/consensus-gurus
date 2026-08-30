@@ -46,7 +46,7 @@ const PAINT_MS = 980;      // one bank owns the screen for this long
 const COUNT_MS = 560;      // its number, its ladder block and its segment
 const REPAINT_MS = 1250;   // the colours come back, the total lands
 const CLIMB_MS = 3400;     // the position falls to the player's slot
-const HOLD_MS = 1900;      // the finished frame, before the card
+const HOLD_MS = 1500;      // the finished frame, before the card
 
 // A dark ink for a ramp colour. Every colour in LADDER_RAMP is a high-lightness
 // pastel, so a flat scale toward black is legible on all eight without a table
@@ -103,6 +103,9 @@ export default function GauntletFinale({
 }) {
   const N = sections.length;
   // -1 waiting a beat, 0..N-1 a bank, N the repaint and the total, N+1 the board.
+  // NOTHING IS DRAWN AT -1. The middle's non-painting branch is the TOTAL, so
+  // rendering it before the first bank flashed the run's final score for a
+  // quarter of a second and gave away the ending the sequence exists to build.
   const [step, setStep] = useState(-1);
   const doneRef = useRef(false);
 
@@ -178,15 +181,15 @@ export default function GauntletFinale({
       <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       <div className="gfin-run">
-        {restored
+        {step < 0 ? null : restored
           ? <><Count to={score} ms={800} from={0} resetKey="tot" /> of {total} right</>
-          : <>running · <Count to={painting ? running[step] : 0} ms={COUNT_MS} from={step > 0 ? running[step - 1] : 0} resetKey={step} /></>}
+          : <>running · <Count to={running[step]} ms={COUNT_MS} from={step > 0 ? running[step - 1] : 0} resetKey={step} /></>}
       </div>
 
       {/* THE MIDDLE. One bank at a time while the paint is up, then the total,
           then out of the way so the board owns the screen. */}
       <div className={`gfin-mid${step === N + 1 ? ' gone' : ''}${restored ? ' up' : ''}`}>
-        {painting ? (
+        {step < 0 ? null : painting ? (
           <>
             {cur.subject ? <div className="gfin-sub">{cur.subject}</div> : null}
             <div className="gfin-nm">{cur.name}</div>
