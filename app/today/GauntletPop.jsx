@@ -1,22 +1,41 @@
 "use client";
 
 // GauntletPop — the once-a-day nudge to play the Trivia Gauntlet (owner,
-// 2026-08-29; SIMPLIFIED 2026-08-30).
+// 2026-08-29; simplified and RE-SKINNED 2026-08-30).
 //
 // IT IS THE ONLY POP-UP LEFT ON THE SITE. The contest interstitial, its QR
 // poster follow-on, the share sheet and the homepage install card all came off
 // on 2026-08-30, so this is the one thing that appears without being asked
-// for. That is the reason it says so little: three things only, the name of the
-// circuit, what is in it, and a way to start it. Anything else here is a fourth
-// thing an uninvited box is asking a reader to deal with.
+// for. That is why it says so little: the name of the run, what is in it, and
+// a way to start it. Nothing else.
 //
-// IT WEARS THE GAUNTLET PAGE'S CLOTHES, not its own. /circuits/gauntlet is a
-// navy card with a blue left rule over a column of white rows, each carrying
-// its game's colour as a rule and reading as a category. This is that, at
-// pop-up size, so arriving on the page after pressing Play is not a change of
-// scene. The rows come out of circuitGamesFor, which is the same accessor the
-// page itself uses, so a roster change or a recoloured game reaches this
-// pop-up with no edit here.
+// IT WEARS THE RUN STAGE'S CLOTHES, NOT THE LANDING PAGE'S. This is the
+// correction the owner made on 2026-08-30 ("looks nothing like our circuit
+// aesthetic, not even the same fonts"). The first version copied
+// /circuits/gauntlet, the LANDING page, which is white cards on navy in Manrope
+// throughout. The Gauntlet a player actually sits inside is
+// /circuits/gauntlet/run, and that surface has its own vocabulary, none of
+// which the landing page uses:
+//
+//   * Near-black ground (T.ground), edge to edge, no white cards anywhere.
+//     Panels are a faint white LIFT over it with a hairline border.
+//   * DM MONO for every label, eyebrow and figure; Manrope only for a name.
+//     This is the tell the owner spotted: a card with no mono on it cannot
+//     read as part of this stage.
+//   * SKY as the call to action, #7dd3fc on #08222e ink, never the brand CTA
+//     blue. RunNextUp's own comment is the rule: "this stage's colour family is
+//     the ladder ramp, and every hue in it is a light pastel carrying dark ink."
+//   * A game is identified by its LADDER colour, rampFor(circuitSlotFor(...)),
+//     which is deliberately NOT its registry colour (see LADDER_RAMP in
+//     lib/circuits). Each row carries it as a rung down its left edge, which is
+//     a slice of the ladder the run is drawn on.
+//
+// Anything changed here should be changed against that page, not against the
+// landing card and not against the site's light surfaces.
+//
+// THE HEADING IS THE STAGE'S OWN TWO-LINE IDENTITY BLOCK, a mono eyebrow over
+// a sans name, exactly as the run cap sets "RUN COMPLETE / Trivia Gauntlet". It
+// reads "Daily Trivia Gauntlet" without spending a fourth line to say so.
 //
 // THREE CONDITIONS, all of them required, and the reason for each:
 //
@@ -35,12 +54,16 @@
 //   right grain for something whose whole job is to not become wallpaper.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, X } from 'lucide-react';
-import { circuitGamesFor, circuitName, runHref } from '@/lib/circuits';
+import { X } from 'lucide-react';
+import { circuitGamesFor, circuitName, circuitSlotFor, rampFor, runHref } from '@/lib/circuits';
+import { T } from '@/lib/theme';
 
 const STORE = 'sot_gauntlet_nudge';
 const ID = 'gauntlet';
 const WAIT_MS = 1500;
+
+const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
 export default function GauntletPop({ ready = false, unplayed = false, day = '' }) {
   const [open, setOpen] = useState(false);
@@ -75,40 +98,45 @@ export default function GauntletPop({ ready = false, unplayed = false, day = '' 
     return () => window.removeEventListener('keydown', onKey);
   }, [open, close]);
 
-  // Today's roster, in today's run order, through the same accessor the landing
-  // page uses. Keyed on `day` rather than read at module scope because the
-  // circuit shuffles its middle daily and the ET date is a prop here.
-  const games = useMemo(() => (day ? circuitGamesFor(ID, day) : []), [day]);
+  // Today's roster, in today's run order, through the same accessor the run
+  // and the landing page use, so a roster change or the daily shuffle reaches
+  // this pop-up with no edit. The COLOUR comes off the canonical slot rather
+  // than the shuffled position, exactly as the ladder does it, so a category
+  // keeps its hue from one morning to the next.
+  const games = useMemo(() => {
+    if (!day) return [];
+    try {
+      return circuitGamesFor(ID, day).map((g) => ({
+        key: g.key,
+        label: g.subject || g.cat,
+        color: rampFor(circuitSlotFor(ID, g.key)),
+      }));
+    } catch (e) { return []; }
+  }, [day]);
 
   if (!open) return null;
-
-  const name = circuitName(ID);
 
   return (
     <div className="gnp-bd" role="dialog" aria-modal="true" aria-labelledby="gnp-h" onClick={close}>
       <style>{CSS}</style>
       <div className="gnp" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="gnp-x" onClick={close} aria-label="Close">
-          <X size={15} strokeWidth={2.6} />
+          <X size={14} strokeWidth={2.4} />
         </button>
-        <h2 className="gnp-h" id="gnp-h">Daily {name}</h2>
+
+        <i className="gnp-e">Daily</i>
+        <h2 className="gnp-h" id="gnp-h">{circuitName(ID)}</h2>
 
         <ul className="gnp-list">
           {games.map((g) => (
-            <li
-              key={g.key}
-              className="gnp-row"
-              style={{ '--cc': g.colorNavy || g.color || '#c9d2e0' }}
-            >
-              {g.subject || g.cat}
+            <li key={g.key} className="gnp-row" style={{ '--rung': g.color }}>
+              <s className="gnp-rung" aria-hidden="true" />
+              {g.label}
             </li>
           ))}
         </ul>
 
-        <a className="gnp-go" href={runHref(ID)}>
-          Play
-          <ArrowRight size={15} strokeWidth={2.6} />
-        </a>
+        <a className="gnp-go" href={runHref(ID)}>Play</a>
       </div>
     </div>
   );
@@ -116,35 +144,42 @@ export default function GauntletPop({ ready = false, unplayed = false, day = '' 
 
 const CSS = `
 .gnp-bd{position:fixed;inset:0;z-index:4000;display:flex;align-items:center;justify-content:center;
-        padding:20px;background:rgba(5,12,28,.62);backdrop-filter:blur(2px);
+        padding:20px;background:rgba(3,6,14,.74);backdrop-filter:blur(2px);
         animation:gnpfade .18s ease-out;}
-.gnp{position:relative;width:100%;max-width:380px;max-height:calc(100vh - 40px);overflow-y:auto;
-     background:var(--ground,#14264f);color:#fff;border-radius:15px;padding:22px 24px 22px 26px;
-     font-family:'Manrope',system-ui,-apple-system,sans-serif;
-     box-shadow:0 22px 60px rgba(0,0,0,.45);animation:gnprise .2s ease-out;}
-.gnp::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue,#2563eb);
-             border-radius:15px 0 0 15px;}
-.gnp-x{position:absolute;top:11px;right:11px;background:transparent;border:none;color:#9fb6e8;
+/* The stage's ground, its hairline and its lift. No white card anywhere. */
+.gnp{position:relative;width:100%;max-width:340px;max-height:calc(100vh - 40px);overflow-y:auto;
+     background:${T.ground};border:1px solid rgba(255,255,255,.14);border-radius:13px;
+     padding:20px 20px 18px;font-family:${SANS};color:#eef2fa;
+     box-shadow:0 24px 64px rgba(0,0,0,.6);animation:gnprise .2s ease-out;}
+.gnp-x{position:absolute;top:10px;right:10px;background:transparent;border:none;color:#66748f;
        cursor:pointer;padding:5px;line-height:0;border-radius:7px;}
-.gnp-x:hover{color:#fff;background:#1b2b52;}
-.gnp-h{font-size:24px;font-weight:800;letter-spacing:-.6px;line-height:1.1;margin:0 30px 0 0;}
-.gnp-list{list-style:none;margin:15px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;}
-/* The landing page's row, at pop-up size: white card, its game's colour as a
-   4px rule down the left. The rule is a ::before rather than a border-left so
-   it squares off inside the radius instead of curving into it. */
-.gnp-row{position:relative;background:var(--white,#fff);color:var(--ink,#0f172a);
-         border-radius:9px;padding:10px 13px 10px 17px;overflow:hidden;
-         font-size:14px;font-weight:800;letter-spacing:-.2px;}
-.gnp-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc,#c9d2e0);}
-.gnp-go{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px;
-        background:var(--cta,#2563eb);color:#fff;border:none;border-radius:10px;padding:13px 18px;
-        font-size:14px;font-weight:800;letter-spacing:.03em;text-decoration:none;cursor:pointer;}
-.gnp-go:hover{filter:brightness(1.08);}
+.gnp-x:hover{color:#fff;background:rgba(255,255,255,.07);}
+.gnp-x:focus-visible{outline:2px solid #7dd3fc;outline-offset:2px;}
+/* Eyebrow over name: the run cap's own identity block. */
+.gnp-e{display:block;font-style:normal;font-family:${MONO};font-size:9.5px;letter-spacing:.15em;
+       text-transform:uppercase;color:#66748f;margin-bottom:3px;}
+.gnp-h{font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:#fff;margin:0 26px 0 0;}
+.gnp-list{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:5px;}
+/* A row is a faint lift with a hairline, and the ladder rung down its left is
+   what names the game. Not a white card and not a border-left: the rung is a
+   short bar with its own radius, the way a rung reads on the ladder. */
+.gnp-row{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.05);
+         border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:9px 12px;
+         font-size:13px;font-weight:800;letter-spacing:-.01em;color:#eef2fa;}
+.gnp-rung{flex:none;width:3px;height:15px;border-radius:2px;background:var(--rung,#7dd3fc);
+          text-decoration:none;}
+/* SKY, never the brand CTA blue. This stage's colour family is the ladder ramp
+   and every hue in it is a light pastel carrying dark ink. */
+.gnp-go{display:block;margin-top:15px;background:#7dd3fc;color:#08222e;border:none;border-radius:9px;
+        padding:12px 18px;font-family:${SANS};font-size:13.5px;font-weight:800;letter-spacing:.02em;
+        text-align:center;text-decoration:none;cursor:pointer;}
+.gnp-go:hover{filter:brightness(1.06);}
+.gnp-go:focus-visible{outline:2px solid #7dd3fc;outline-offset:2px;}
 @keyframes gnpfade{from{opacity:0}to{opacity:1}}
 @keyframes gnprise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(max-width:520px){
-  .gnp{padding:20px 18px 20px 21px;}
-  .gnp-h{font-size:21px;}
+  .gnp{padding:18px 16px 16px;}
+  .gnp-h{font-size:20px;}
 }
 @media(prefers-reduced-motion:reduce){
   .gnp-bd,.gnp{animation:none;}
