@@ -107,7 +107,7 @@ export default function StageChrome({
   const pct = Math.max(0, Math.min(100, Math.round((Number(progress) || 0) * 100)));
 
   return (
-    <div className="stg-top" style={{ '--stg': colour, '--stg-ink': RAMP_INK, '--stg-gnd': STAGE_GROUND }}>
+    <div className="stg-top" style={{ '--stg': colour }}>
       <style>{CSS}</style>
 
       <div className="stg-cap">
@@ -196,7 +196,7 @@ const MONO = "'DM Mono',ui-monospace,'SFMono-Regular',monospace";
 // the template literal and the build fails with an error pointing somewhere
 // else entirely. It has happened on this codebase before.
 const CSS = `
-.stg-top{background:var(--stg-gnd);font-family:${SANS};color:var(--stg-ink,#e9edf4);}
+.stg-top{background:var(--stg-ground,#0b0f1a);font-family:${SANS};color:var(--stg-ink,#e9edf4);}
 
 .stg-cap{display:flex;align-items:center;gap:16px;padding:12px 20px;}
 .stg-id{display:flex;flex-direction:column;gap:1px;min-width:0;}
@@ -204,7 +204,7 @@ const CSS = `
   text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
 .stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
-  text-transform:uppercase;font-weight:500;color:var(--stg-ink);background:var(--stg);
+  text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg);
   border-radius:99px;padding:3px 8px;}
 .stg-fg{display:flex;gap:20px;margin-left:22px;}
 .stg-fg>div{display:flex;flex-direction:column;}
@@ -219,7 +219,7 @@ const CSS = `
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
 .stg-cx:hover{border-color:rgba(var(--stg-lift,255,255,255),.2);color:var(--stg-ink,#e9edf4);}
-.stg-rank.on{color:var(--stg-ink);background:var(--stg);border-color:var(--stg);}
+.stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg);border-color:var(--stg);}
 .stg-cx:focus-visible{outline:2px solid var(--stg);outline-offset:2px;}
 
 .stg-prog{height:2px;background:rgba(var(--stg-lift,255,255,255),.08);}
