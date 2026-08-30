@@ -623,24 +623,25 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             on the page, so the words were saying what the icon says. Rankings
             keeps its label and takes a PODIUM mark rather than a second house,
             since two identical glyphs side by side read as one control drawn
-            twice. It is the only way into the panel while a question is up,
-            which is why it stays in every phase but the finish, where the
-            scorecard below already carries the board. */}
-        {!done ? (
-          <button
-            type="button"
-            className={`rn-cx rn-cxr${panel ? ' on' : ''}`}
-            onClick={() => setPanel((v) => !v)}
-            aria-expanded={panel}
-            aria-controls="rn-rankings"
-          >
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
-              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
-              <path d="M4 21v-7" /><path d="M12 21V4" /><path d="M20 21v-10" />
-            </svg>
-            Rankings
-          </button>
-        ) : null}
+            twice. It is on screen in EVERY phase, the finish included: the
+            strip comes down while a question is up and again at the finish, so
+            without the chip there the archive and the all time record would be
+            reachable only by somebody who had NOT run it yet, which is exactly
+            backwards. The scorecard below still carries today's board; the
+            panel is what carries the days before it. */}
+        <button
+          type="button"
+          className={`rn-cx rn-cxr${panel ? ' on' : ''}`}
+          onClick={() => setPanel((v) => !v)}
+          aria-expanded={panel}
+          aria-controls="rn-rankings"
+        >
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+            strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 21v-7" /><path d="M12 21V4" /><path d="M20 21v-10" />
+          </svg>
+          Rankings
+        </button>
         <a className="rn-cx rn-cxi" href="/" aria-label="Home" title="Home">
           <Home size={13} strokeWidth={2.4} />
         </a>
