@@ -48,6 +48,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
 import { runSummaryHref, circuitShareUrl } from '@/lib/circuits';
 import CircuitScorecard from '../../CircuitScorecard';
+import GauntletLadder from '../../GauntletLadder';
 import useCircuitBoard from '../../useCircuitBoard';
 import { T } from '@/lib/theme';
 
@@ -55,7 +56,15 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
 const Q_SECONDS = 20;        // the same clock all five games run
-const VERDICT_MS = 4200;     // how long a section verdict holds before the next starts
+// HOW LONG THE HANDOVER HOLDS. It ran 4.2s when the card between quizzes was
+// two lines. It now carries the verdict, three figures about the quiz just
+// finished and the handover to the next with three more, and 4.2s is not
+// enough to read that, let alone take it in. Eight is: a fast player presses
+// Next now and loses nothing, a slow one is no longer robbed of the screen,
+// and seven handovers cost 56s of a run that runs several minutes. The drain
+// bar reads its duration from this same constant (--dwell below) so the bar
+// and the timeout cannot drift apart.
+const VERDICT_MS = 8000;
 const RIGHT_MS = 420;        // the green flash between questions, as in the solo clients
 
 function etToday() {
@@ -465,34 +474,47 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       <style>{CSS}</style>
 
       <div className="rn-wrap">
-        {/* The run rail. It is the only thing on screen that persists across
-            all five quizzes, which is what makes this read as one sitting.
-            Once the run is over the SCORECARD draws it, from the same states,
-            so this one stands down rather than the two stacking. */}
+        {/* THE LADDER. It is the only thing on screen that persists across
+            every quiz, which is what makes this read as one sitting, and it is
+            the object the scorecard and the share card are drawn on too. It
+            replaced a rail of pips that read "Atlas 17/25": the pips said what
+            you scored and nothing about what you never reached, which on a
+            one-life quiz is the whole point.
+
+            NO `field` PROP YET, so the unlit rungs render at a flat dim and no
+            average is marked. That is deliberate on the day two banks launch,
+            when there is no field to draw. See GauntletLadder for what turns
+            on when the curve is passed.
+
+            Once the run is over the SCORECARD draws the ladder, from the same
+            states, so this one stands down rather than the two stacking. */}
         {!done ? (
-        <div className="rn-rail" style={{ '--n': N }}>
-          {sections.map((s, idx) => {
-            const res = r.results.find((x) => x.key === s.key);
-            const state = res ? (res.status === 'won' ? 'won' : res.status === 'banked' ? 'bank' : 'out')
-              : (idx === r.si && r.phase !== 'idle' ? 'now' : '');
-            return (
-              <div key={s.key} className={`rn-pip ${state}`} style={{ '--acc': s.accent }} title={s.name}>
-                <span className="rn-pipn">{s.name}</span>
-                <span className="rn-pips">{res ? `${res.score}/${res.total}` : (idx === r.si && r.phase === 'playing' ? `${r.i}/${s.questions.length}` : `${s.questions.length}`)}</span>
-              </div>
-            );
-          })}
-        </div>
+          <div className="rn-lad">
+            <GauntletLadder
+              sections={sections}
+              results={r.results}
+              activeIndex={r.phase === 'playing' ? r.si : -1}
+              activeAnswered={r.i}
+              labels
+            />
+          </div>
         ) : null}
 
         {r.phase === 'idle' ? (
           <div className="rn-card rn-gate">
-            <span className="rn-eye">One long quiz</span>
-            <h1 className="rn-h1">{circuitName}</h1>
+            <span className="rn-eye">{circuitName} · one long quiz</span>
+            {/* The stake, stated as the headline rather than buried as the
+                fourth clause of a paragraph. Every figure is counted off
+                `sections`, so adding a bank changes no copy here. */}
+            <h1 className="rn-h1 rn-hero">
+              {askable} questions.<br />
+              {N} quizzes.<br />
+              <u>One life each.</u>
+            </h1>
             <p className="rn-lead">
-              {N} quizzes, {askable} questions, one life in each. Answer wrong or run the clock
-              out and that quiz is over for the day, but the run is not: the next one starts on
-              its own. Every quiz still counts on its own board.
+              Miss once and that quiz is finished for the day, and the questions under it stay
+              dark. The next one starts on its own, with your life reset. Every quiz still
+              counts on its own board.
             </p>
             <ul className="rn-list">
               {sections.map((s) => (
@@ -512,13 +534,16 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
         {r.phase === 'playing' && question ? (
           <div className="rn-card rn-play" style={{ '--acc': sec.accent }}>
+            {/* The clock moves to the card's own top edge, full bleed, so it
+                sits in peripheral vision instead of competing with the
+                question. It turns danger red under five seconds. */}
+            <div className="rn-bar edge"><span style={{ width: `${remainFrac * 100}%`, background: remainFrac < 0.25 ? T.danger : sec.accent }} /></div>
             <div className="rn-meta">
               <span className="rn-game">{sec.name}</span>
               {question.cat ? <span className="rn-cat">{question.cat}</span> : null}
               {tierName ? <span className="rn-tier">{tierName}</span> : null}
               <span className="rn-count">{r.i + 1} of {sec.questions.length}</span>
             </div>
-            <div className="rn-bar"><span style={{ width: `${remainFrac * 100}%`, background: remainFrac < 0.25 ? T.danger : sec.accent }} /></div>
             <h2 className="rn-q">{question.q}</h2>
             <div className={`rn-ch${hovStale ? ' nohov' : ''}`}>
               {question.choices.map((c, k) => (
@@ -533,9 +558,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 </button>
               ))}
             </div>
+            {/* THE LIFE TOKEN. One lit dot, always on screen, in the quiz's
+                colour. The mechanic that separates this from every other quiz
+                on the site had no picture at all before it. */}
             <div className="rn-run">
-              <span>{answeredSoFar} right in the run</span>
-              <span>{fmtTime(Date.now() - r.t0)}</span>
+              <span className="rn-life"><s />One life · {sec.name}</span>
+              <span>{answeredSoFar} right in the run · {fmtTime(Date.now() - r.t0)}</span>
             </div>
           </div>
         ) : null}
@@ -548,14 +576,30 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 ? `You ran ${(sections.find((s) => s.key === last.key) || {}).name} clean.`
                 : `${(sections.find((s) => s.key === last.key) || {}).name} ends at ${last.score} of ${last.total}.`}
             </h2>
-            <p className="rn-vs">
-              {upNext ? <>Next up is <b>{upNext.name}</b>, {upNext.questions.length} questions.</> : 'That was the last one. Here is how the run went.'}
-            </p>
+            <div className="rn-vfig">
+              <div><b>{last.total - last.score}</b><i>never reached</i></div>
+              <div><b>{fmtTime(last.secs * 1000)}</b><i>your clock</i></div>
+              <div><b>{cleared}</b><i>banked so far</i></div>
+            </div>
+            {/* THE HANDOVER. The next quiz's name, set large, in its own
+                colour, plus the one reassurance that was previously unsaid
+                anywhere: the life comes back. */}
+            {upNext ? (
+              <div className="rn-hand" style={{ '--to': upNext.accent }}>
+                <span className="rn-he">Next up · your life resets</span>
+                <span className="rn-hn">{upNext.name}</span>
+                <span className="rn-hs">{upNext.subject || upNext.cat || upNext.tag} · {upNext.questions.length} questions</span>
+              </div>
+            ) : (
+              <p className="rn-vs">That was the last one. Here is how the run went.</p>
+            )}
             {/* Keyed on the resume count so the bar RESTARTS with the fresh
                 timeout a resume starts. Without the key the CSS animation
-                picks up where it paused while the timer runs a full 4.2s
-                again, and the bar empties while the card sits there. */}
-            <div className={`rn-vbar${hold ? ' held' : ''}`}><span key={resumes} /></div>
+                picks up where it paused while the timer runs the full dwell
+                again, and the bar empties while the card sits there. The bar
+                takes its duration from VERDICT_MS rather than a second copy of
+                the number in the stylesheet. */}
+            <div className={`rn-vbar${hold ? ' held' : ''}`} style={{ '--dwell': `${VERDICT_MS}ms` }}><span key={resumes} /></div>
             <div className="rn-vacts">
               <button type="button" className="rn-vb pri" onClick={() => { setHold(false); nextSection(); }}>
                 {upNext ? 'Next now' : 'See the run'}<ArrowRight size={15} strokeWidth={2.8} />
@@ -570,6 +614,10 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
         {done ? (
           <CircuitScorecard
+            rail={false}
+            hero={(
+              <GauntletLadder sections={sections} results={r.results} labels />
+            )}
             eyebrow={`${circuitName} · ${dateLabel}`}
             headline={perfect === N ? 'You cleared the whole run.' : 'Run complete.'}
             figures={[
@@ -643,7 +691,13 @@ const CSS = `
 .rn .rn-wrap .rn-list li i,
 .rn .rn-wrap .rn-list li em{color:var(--muted,#3f4757)!important}
 .rn .rn-wrap .rn-vh,
-.rn .rn-wrap .rn-h1{color:var(--ink,#0b0d12)!important}
+.rn .rn-wrap .rn-h1,
+.rn .rn-wrap .rn-vfig b{color:var(--ink,#0b0d12)!important}
+.rn .rn-wrap .rn-vfig i,
+.rn .rn-wrap .rn-he,
+.rn .rn-wrap .rn-hs,
+.rn .rn-wrap .rn-life{color:var(--muted,#3f4757)!important}
+.rn .rn-wrap .rn-hn{color:var(--to)!important}
 /* The loft ground also forces padding onto a section; nothing here is one now,
    but a card that ever becomes one would silently gain 30px of it. */
 /* The page column carries NO top or bottom padding: on a loft page a rule in
@@ -652,6 +706,43 @@ const CSS = `
    class: an attribute selector tests the whole string, so a second class here
    would silently stop matching it. */
 .rn-wrap{max-width:760px;margin:0 auto;padding:0 16px;}
+
+/* THE LADDER's own strip, on the navy ground rather than inside a card. The
+   ladder colours itself from the run-local ramp, which is tuned for this
+   ground; the CARDS keep each game's registry colour, which is tuned for
+   white. Two grounds, two palettes, exactly as colorNavy and color already
+   split site-wide. */
+.rn-lad{margin:16px 0 16px;}
+
+/* The gate's headline. */
+.rn-hero{font-size:34px;line-height:1.06;letter-spacing:-.03em;}
+.rn-hero u{text-decoration:none;color:#c0392b;}
+
+/* The life token. */
+.rn-life{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',ui-monospace,monospace;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
+.rn-life s{text-decoration:none;width:8px;height:8px;border-radius:50%;background:var(--acc);flex:none;
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 20%,transparent);}
+
+/* The clock, full bleed on the card's top edge. The card is padded 20px 18px,
+   so the bar pulls back out of that padding; the card clips it to its own
+   14px radius rather than the bar trying to match the corner itself, which
+   would leave the 1.5px border showing through at each end. */
+.rn-play{overflow:hidden;}
+.rn-bar.edge{margin:-20px -18px 16px;height:3px;border-radius:0;}
+
+/* The handover. */
+.rn-vfig{display:flex;gap:24px;flex-wrap:wrap;margin:0 0 16px;}
+.rn-vfig div b{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:19px;
+  font-weight:500;line-height:1;font-variant-numeric:tabular-nums;}
+.rn-vfig div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;margin-top:5px;}
+.rn-hand{border-top:1px solid var(--border,#e5e7eb);padding-top:14px;margin-bottom:16px;}
+.rn-he{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.16em;
+  text-transform:uppercase;}
+.rn-hn{display:block;font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1;
+  text-transform:uppercase;color:var(--to);margin-top:6px;}
+.rn-hs{display:block;font-size:12.5px;font-weight:600;margin-top:6px;}
 
 .rn-rail{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin:16px 0 14px;}
 .rn-pip{border-radius:8px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);padding:7px 8px 8px;
@@ -708,7 +799,7 @@ const CSS = `
 .rn-vs{font-size:14px;font-weight:600;color:var(--muted,#3f4757);margin:0 0 14px;}
 .rn-vbar{height:4px;border-radius:2px;background:var(--surface-alt,#eef2f7);overflow:hidden;margin-bottom:14px;}
 .rn-vbar span{display:block;height:100%;background:var(--acc);width:100%;transform-origin:left;
-  animation:rnv 4.2s linear forwards;}
+  animation:rnv var(--dwell,8000ms) linear forwards;}
 .rn-vbar.held span{animation-play-state:paused;}
 @keyframes rnv{from{transform:scaleX(1);}to{transform:scaleX(0);}}
 @media (prefers-reduced-motion:reduce){.rn-vbar span{animation:none;}}
@@ -725,6 +816,9 @@ const CSS = `
   .rn-rail{grid-template-columns:repeat(auto-fit,minmax(60px,1fr));}
   .rn-pipn{font-size:10.5px;}
   .rn-h1{font-size:22px;}
+  .rn-hero{font-size:26px;}
+  .rn-hn{font-size:28px;}
+  .rn-bar.edge{margin:-20px -18px 14px;}
   .rn-q{font-size:18px;}
 }
 `;

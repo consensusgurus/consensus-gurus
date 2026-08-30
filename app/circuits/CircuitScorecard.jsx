@@ -42,6 +42,12 @@ export default function CircuitScorecard({
   figures = [],          // [{ v, k, big }]
   rows = [],             // [{ key, name, sub, accent, score, total, right, state, action, href }]
   rail = true,
+  // An optional graphic that REPLACES the pip rail. The Gauntlet hands over
+  // its ladder, which says everything the pips did plus how far into each bank
+  // the player never got. Every other circuit passes nothing and keeps the
+  // pips, because a ladder of questions means nothing on a circuit whose games
+  // are a sudoku and a crossword.
+  hero = null,
   board = null,          // { rows, me, field, keys, maxTotal, limit }
   boardState = 'ready',  // 'loading' | 'error' | 'ready'
   boardNote = null,
@@ -63,7 +69,7 @@ export default function CircuitScorecard({
           is at the top for the same reason it is at the top during a run: the
           shape of the sitting is the first thing to read and the detail below
           is the elaboration. */}
-      {rail && rows.length ? (
+      {hero ? <div className="csc-hero">{hero}</div> : rail && rows.length ? (
         <div className="csc-rail" style={{ '--n': rows.length }}>
           {rows.map((x) => (
             <div key={x.key} className={`csc-pip${x.state ? ` ${x.state}` : ''}`}
@@ -201,6 +207,7 @@ function BoardRow({ row, pos, keys, me, maxTotal }) {
 const CSS = `
 .csc{font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink,#0b0d12);}
 
+.csc-hero{margin:16px 0 16px;}
 .csc-rail{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin:16px 0 14px;}
 .csc-pip{border-radius:8px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);
   padding:7px 8px 8px;border-top:4px solid var(--border,#e5e7eb);min-width:0;}
