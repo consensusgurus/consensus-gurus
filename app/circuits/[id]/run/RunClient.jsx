@@ -578,7 +578,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             ))}
           </div>
         ) : null}
-        <a className="rn-cx" href={`/circuits/${circuitId}`}>Leave</a>
+        {/* BACK TO HOME, not Leave (owner, 2026-08-30). The chip is the way
+            out of the run, and "Leave" names what the reader is giving up
+            rather than where the press takes them. It goes to the home
+            console rather than to the circuit's landing page, because home is
+            what "out" means from here. */}
+        <a className="rn-cx" href="/">Back to home</a>
       </div>
       <div className="rn-cprog">
         <span style={{ width: `${askable ? Math.round((answeredSoFar / askable) * 100) : 0}%` }} />
@@ -969,7 +974,7 @@ body:has(.rn)::before{background:${T.ground};}
   text-transform:uppercase;color:#8ea6d6;margin-top:5px;}
 .rn-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.12em;text-transform:uppercase;
   color:#9fc2ff;text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:7px;
-  padding:7px 11px;}
+  padding:7px 11px;white-space:nowrap;}
 .rn-cx:hover{color:#fff;border-color:rgba(255,255,255,.4);}
 .rn-cprog{height:2px;background:rgba(255,255,255,.1);}
 .rn-cprog span{display:block;height:100%;background:${T.blue400};transition:width .3s ease;}
