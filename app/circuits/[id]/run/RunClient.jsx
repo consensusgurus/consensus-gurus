@@ -582,6 +582,15 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // in. Hidden while a question is up, and at the finish where the scorecard
   // carries all of it at full size.
   const stripOn = hydrated && !done && r.phase !== 'playing' && !!leaderRow && leaderScore != null;
+  // ...AND ITS ROW IS HELD WHILE THE BOARD IS IN FLIGHT (owner, 2026-08-30).
+  // The strip mounting when the fetch lands inserts a whole row above the
+  // stage and pushes the gate down, which is the other half of the jump the
+  // headline was making. Scoped to the GATE and to boardGate's own 'loading',
+  // so a day that genuinely has no leader draws no empty bar. boardQ must NOT
+  // be read here: it is inactive until the run is done and so sits at
+  // 'loading' forever, which would hold the row for good.
+  const stripPending = !stripOn && hydrated && !done && r.phase === 'idle'
+    && boardGate.state === 'loading';
 
   // TODAY'S AVERAGE RUN, for the mark the climb column is measured against.
   // It is the sum of each bank's own mean, which useGauntletField already
@@ -715,6 +724,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           and it goes at the finish too, where the scorecard says all of it at
           full size. So: the gate and the handover, which is exactly where a
           player looks up from the run. */}
+      {stripPending ? (
+        <div className="rn-strip rn-strip-ph" aria-hidden="true">
+          <span className="rn-se">Today</span>
+          <b className="rn-sn">&nbsp;</b>
+        </div>
+      ) : null}
       {stripOn ? (
         <button
           type="button"
@@ -1347,6 +1362,11 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-strip:hover{background:rgba(255,255,255,.055);}
 .rn-strip:focus-visible{outline:2px solid #7dd3fc;outline-offset:-2px;}
 .rn-strip.on{background:rgba(125,211,252,.08);}
+/* THE HELD ROW. Same element and same padding as the real strip, with a real
+   .rn-sn inside carrying a space, so its height is the strip's height by
+   construction rather than by a number that has to be kept in step with the
+   padding, the type and the phone override. */
+.rn-strip-ph{cursor:default;}
 .rn-se{color:${T.gold};letter-spacing:.1em;text-transform:uppercase;font-size:9.5px;flex:none;}
 .rn-sn{font-family:${SANS};font-weight:800;font-size:13.5px;color:#fff;flex:none;
   max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1449,8 +1469,17 @@ body:has(.rn)::before{background:${T.ground};}
   text-transform:uppercase;font-weight:500;color:${T.blue400};margin-bottom:8px;}
 .rn-eye.ok{color:${T.success};}
 .rn-eye.out{color:#ef8577;}
+/* THREE LINES OF BOX, WHATEVER THE HEADLINE SAYS (owner, 2026-08-30). The gate
+   has two headlines and the field one is a line shorter. The rule ("180
+   questions. / 7 quizzes. / One life each.") is not a placeholder, it is the
+   fallback branch, so it is what renders until useGauntletField's seven board
+   fetches have ALL landed; the swap to "N played today." then takes a line out
+   from under the roster, the button and the fine print, and the whole gate
+   jumps up while the reader is looking at it. The floor is three lines of this
+   element's own leading (3 x 1.03), so the words change and the box does not.
+   It is in em, so the mobile font-size carries it with no second number. */
 .rn-h1{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1.03;
-  margin:0;color:#fff;}
+  margin:0;color:#fff;min-height:3.09em;}
 .rn-h1 var{font-style:normal;font-family:${MONO};font-weight:500;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;}
 .rn-h1 u{text-decoration:none;color:#ef8577;}
