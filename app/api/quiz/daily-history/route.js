@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { scoreGame, combineDaily, DAILY_KEYS, GAME_MAX, bestNForSuffix, etDayEndMs } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, rankByCorrect, DAILY_KEYS, GAME_MAX, bestNForSuffix, etDayEndMs } from '@/lib/daily-combined';
+import { CIRCUIT_PARAM, circuitById, circuitKeysFor, circuitScoreMode, isMarquee } from '@/lib/circuits';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -50,8 +51,23 @@ function parseSuffix(suffix) {
 // The daily-games COMBINED-board champion for each completed Eastern day (the #1
 // on that day's best-N-of-slate standings, same scoring the live board uses),
 // plus an all-time per-game stat line. Today is excluded (still in progress).
-export async function GET() {
+export async function GET(req) {
   const todaySuffix = etTodaySuffix();
+  // NARROWED TO ONE CIRCUIT, with ?circuit=<id>. Unnarrowed this route crowns
+  // the whole daily slate, which is the wrong question for a circuit's own
+  // archive: the Gauntlet's champion is whoever was best across ITS seven
+  // banks, not whoever collected the most points across fifty games. The
+  // narrowing reuses circuitKeysFor per day, so there is still exactly one
+  // copy of "which games this circuit ran on that date", and an unknown or
+  // marquee id simply falls through to the full-slate behaviour unchanged.
+  let circuitId = '';
+  try { circuitId = (new URL(req.url).searchParams.get(CIRCUIT_PARAM) || '').trim(); }
+  catch (e) { circuitId = ''; }
+  const circuitDef = circuitId && !isMarquee(circuitId) ? circuitById(circuitId) : null;
+  const circuitOn = !!circuitDef;
+  // Questions right rather than ladder points, for the one circuit that ranks
+  // that way, so the archive is quoted in the same unit as its live board.
+  const rawScore = circuitOn && circuitScoreMode(circuitId) === 'correct';
   // Eastern "today" as an ISO date. Used to drop today (still in progress) AND
   // any future-dated day, so a stray play on a pre-published future daily is
   // never crowned a champion.
@@ -76,7 +92,7 @@ export async function GET() {
     const { data, error } = await loadQuizResultsCached(supabaseAdmin);
     if (error) {
       console.error('daily-history error', error);
-      return NextResponse.json({ today: todaySuffix, days: 0, history: [], champions: [], games: [] });
+      return NextResponse.json({ today: todaySuffix, circuit: circuitOn ? circuitId : null, days: 0, history: [], champions: [], games: [] });
     }
 
     // One pass: bucket completed-day daily rows by day -> game, and accumulate
@@ -134,23 +150,54 @@ export async function GET() {
         const born = acctMs.get(r.user_id);
         return (born && born >= dayEnd) ? { ...r, user_id: null, username: null } : r;
       });
+      // THE ROSTER AS IT STOOD ON THAT DAY. circuitKeysFor takes the ISO date,
+      // so a rotating circuit is read with the games it actually ran, and every
+      // other game on the slate is dropped before anything is scored.
+      const memberKeys = circuitOn ? circuitKeysFor(circuitId, dayISO) : null;
+      if (circuitOn && (!memberKeys || !memberKeys.length)) continue;
       for (const [key, rows] of dm.entries()) {
+        if (memberKeys && !memberKeys.includes(key)) continue;
         const gr = scoreGame(asPlayed(rows));
         if (gr.field <= 0) continue; // no registered field that day for this game
         gameResults.push({ key, quizId: `${key}-${suffix}`, field: gr.field, players: gr.players });
       }
       if (!gameResults.length) continue;
-      const dayBestN = bestNForSuffix(suffix);
+      // A day the circuit did not fully publish is not a day it was run.
+      if (memberKeys && gameResults.length < memberKeys.length) continue;
+      const dayBestN = memberKeys ? memberKeys.length : bestNForSuffix(suffix);
       const overall = combineDaily(gameResults, dayBestN);
       if (!overall.length) continue;
+      // ONLY A WHOLE RUN IS RANKED, the same gate the live circuit board
+      // applies: a combined placement across seven games means nothing from
+      // somebody who played two of them.
+      const eligible = memberKeys
+        ? overall.filter((r) => {
+            const pg = r.perGame || {};
+            return memberKeys.every((k) => pg[k] && !pg[k].abandoned);
+          })
+        : overall;
+      if (!eligible.length) continue;
+      // Re-ranks in place, and rewrites each row's `total` to questions right
+      // with the clock as the tiebreak, exactly as /api/quiz/daily-combined
+      // does for the same circuit.
+      if (rawScore) rankByCorrect(eligible, memberKeys);
       // Crown only REGISTERED players. A guest (anon userKey 'a:...') has no
       // account, profile, or stable identity, so it can't hold a Hall-of-Fame
       // crown or link to a player page. Guests still count on the live combined
       // board; they just aren't crowned as the day's champion here.
-      const registered = overall.filter((o) => String(o.userKey || '').startsWith('u:'));
+      const registered = eligible.filter((o) => String(o.userKey || '').startsWith('u:'));
       if (!registered.length) continue; // no registered player that day -> no champion, skip the day
       const gameCount = gameResults.length;
-      const maxTotal = Math.min(dayBestN, gameCount) * GAME_MAX;
+      // On a questions-right circuit the ceiling is that day's own question
+      // count, read off the banks the way scoreGame reads a denominator: the
+      // largest total any player recorded for each puzzle.
+      const maxTotal = rawScore
+        ? gameResults.reduce((sum, g) => {
+            let t = 0;
+            for (const p of g.players.values()) t = Math.max(t, Number(p.total) || 0);
+            return sum + t;
+          }, 0)
+        : Math.min(dayBestN, gameCount) * GAME_MAX;
       const w = registered[0];
       const ru = registered[1] || null;
       history.push({
@@ -159,7 +206,7 @@ export async function GET() {
         label: dayLabel,
         gameCount,
         maxTotal,
-        field: overall.length,
+        field: eligible.length,
         winner: { username: w.username, userKey: w.userKey, total: w.total, gamesPlayed: w.gamesPlayed },
         runnerUp: ru ? { username: ru.username, userKey: ru.userKey, total: ru.total } : null,
       });
@@ -178,8 +225,13 @@ export async function GET() {
     }
     const champions = [...crowns.values()].sort((a, b) => b.wins - a.wins || String(a.username).localeCompare(String(b.username)));
 
-    // All-time per-game stat line, in canonical daily order.
-    const games = DAILY_KEYS.filter((k) => gameAgg.has(k)).map((k) => {
+    // All-time per-game stat line, in canonical daily order. Narrowed to the
+    // circuit's CURRENT roster when one was asked for: a game it dropped is no
+    // longer part of what this circuit is.
+    const rosterNow = circuitOn ? new Set(circuitKeysFor(circuitId, todayISO)) : null;
+    const games = DAILY_KEYS
+      .filter((k) => gameAgg.has(k) && (!rosterNow || rosterNow.has(k)))
+      .map((k) => {
       const g = gameAgg.get(k);
       return {
         key: k,
@@ -192,9 +244,21 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ today: todaySuffix, days: trimmed.length, history: trimmed, champions, games }, { headers: CACHE_HEADERS });
+    return NextResponse.json({
+      today: todaySuffix,
+      // Which circuit this archive is, or null for the full slate, so a client
+      // cannot mistake one narrowed history for another.
+      circuit: circuitOn ? circuitId : null,
+      // What a winner's `total` IS: 'correct' is questions answered right,
+      // 'points' is the 0..15 ladder summed over the roster.
+      scoreMode: rawScore ? 'correct' : 'points',
+      days: trimmed.length,
+      history: trimmed,
+      champions,
+      games,
+    }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-history exception', e);
-    return NextResponse.json({ today: todaySuffix, days: 0, history: [], champions: [], games: [] });
+    return NextResponse.json({ today: todaySuffix, circuit: circuitOn ? circuitId : null, days: 0, history: [], champions: [], games: [] });
   }
 }

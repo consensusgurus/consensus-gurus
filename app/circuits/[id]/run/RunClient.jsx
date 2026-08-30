@@ -49,6 +49,7 @@ import GauntletLadder, { rampFor } from '../../GauntletLadder';
 import RunNextUp from '../../RunNextUp';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
+import useCircuitHistory from '../../useCircuitHistory';
 import { T } from '@/lib/theme';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -73,6 +74,14 @@ function etToday() {
 function fmtTime(ms) {
   const s = Math.max(0, Math.round(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+// 1st, 2nd, 3rd, 4th... including the teens, which are all -th however they end.
+function ord(n) {
+  const v = Number(n) || 0;
+  const t = v % 100;
+  if (t >= 11 && t <= 13) return `${v}th`;
+  const suf = ['th', 'st', 'nd', 'rd'][v % 10] || 'th';
+  return `${v}${suf}`;
 }
 function getAnonId() {
   if (typeof window === 'undefined') return null;
@@ -166,6 +175,11 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const [resumes, setResumes] = useState(0);
   const [identity, setIdentity] = useState(null);
   const [copied, setCopied] = useState(false);
+  // THE RANKINGS PANEL. Shut by default in every phase: it is a thing a player
+  // asks for, and the run is the page. `tab` survives a close so reopening
+  // lands where they left off.
+  const [panel, setPanel] = useState(false);
+  const [tab, setTab] = useState('today');
   const lockRef = useRef(false);
   const holdRef = useRef(false);
 
@@ -503,28 +517,53 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const field = useGauntletField(sections, hydrated);
   const fieldOn = !!(field && field.any);
 
-  // How many ran every bank clean today. Not derivable from the per-bank
-  // distributions (they cannot tell you it was the same person each time), so
-  // it comes off the combined board, where a row carries its per-game score
-  // and total.
-  const standing = (() => {
-    // boardGate, not boardQ: on the gate the finish-time call is still inactive
-    // and holding null.
-    const src = boardGate.data || boardQ.data;
-    const rows = src && Array.isArray(src.overall) ? src.overall : null;
-    if (!rows) return null;
-    let n = 0;
-    for (const row of rows) {
-      const pg = row.perGame || {};
-      let all = true;
-      for (const s of sections) {
-        const p = pg[s.key];
-        if (!p || p.abandoned || !(p.total > 0) || p.score !== p.total) { all = false; break; }
-      }
-      if (all) n += 1;
-    }
-    return n;
-  })();
+  // TODAY'S BOARD, read once and used by three things: the gate headline, the
+  // strip under the cap, and the rankings panel. boardQ is the fresh read the
+  // finish makes and wins whenever it has landed; boardGate is the one taken
+  // on the gate, which keeps holding its snapshot through the run because the
+  // hook does not clear `data` when it goes inactive.
+  const boardNow = boardQ.data || boardGate.data || null;
+  const boardRows = boardNow && Array.isArray(boardNow.overall) ? boardNow.overall : [];
+  // A row's `total` is questions right on this circuit and ladder points on
+  // any other, which is exactly what the payload's scoreMode says. Nothing
+  // below assumes a unit.
+  const rightUnit = boardNow && boardNow.scoreMode === 'correct';
+  const scoreWord = rightUnit ? 'right' : 'pts';
+  const leaderRow = boardRows.length ? boardRows[0] : null;
+  // THE LEADER'S SCORE, not a count of clean runs (owner, 2026-08-30). Nobody
+  // clears 180 questions on one life each, so "nobody has cleared all 7" is a
+  // line that will be true every single day, and a headline that never changes
+  // says nothing. What the leader actually managed does change, daily, and it
+  // is the number a player is about to be measured against.
+  const leaderScore = leaderRow && Number.isFinite(Number(leaderRow.total))
+    ? Math.round(Number(leaderRow.total)) : null;
+  const myRow = boardNow ? (boardNow.me || boardNow.meProvisional || null) : null;
+  // The strip needs a leader to be worth a line. With nobody through the whole
+  // roster yet it says nothing, so it is not drawn and the cap chip is the way
+  // in. Hidden while a question is up, and at the finish where the scorecard
+  // carries all of it at full size.
+  const stripOn = hydrated && !done && r.phase !== 'playing' && !!leaderRow && leaderScore != null;
+
+  // THE ARCHIVE, fetched only once the panel is open, and only once. Today's
+  // board is already in hand; completed days are a second, cacheable read that
+  // most players never ask for.
+  const hist = useCircuitHistory(circuitId, panel);
+  const histDays = hist.data && Array.isArray(hist.data.history) ? hist.data.history : [];
+  const champions = hist.data && Array.isArray(hist.data.champions) ? hist.data.champions : [];
+  const bestDay = histDays.reduce(
+    (best, d) => (!best || (d.winner && d.winner.total > best.winner.total) ? d : best), null);
+  // "You took this day" is decided here rather than by the route, which folds
+  // no per-player data on purpose so it can stay CDN-cached.
+  const myName = (identity && identity.username) || savedIdentity().username || '';
+  const histMax = histDays.reduce((m, d) => Math.max(m, Number(d.winner && d.winner.total) || 0), 0);
+
+  // Escape shuts the panel, the way every other overlay on the site behaves.
+  useEffect(() => {
+    if (!panel) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setPanel(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [panel]);
 
   // CLAIM YOUR SPOT. The ladder pays REGISTERED positions only, and a finish is
   // where the attention is, so a guest's scorecard carries the canonical join
@@ -578,16 +617,68 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             ))}
           </div>
         ) : null}
-        {/* BACK TO HOME, not Leave (owner, 2026-08-30). The chip is the way
-            out of the run, and "Leave" names what the reader is giving up
-            rather than where the press takes them. It goes to the home
-            console rather than to the circuit's landing page, because home is
-            what "out" means from here. */}
-        <a className="rn-cx" href="/">Back to home</a>
+        {/* RANKINGS, then HOME. Two chips fit on one line only because Home
+            gave up its words for its glyph (owner, 2026-08-30): "Back to home"
+            ran 110px against 32px for the house, and the chip is the only exit
+            on the page, so the words were saying what the icon says. Rankings
+            keeps its label and takes a PODIUM mark rather than a second house,
+            since two identical glyphs side by side read as one control drawn
+            twice. It is the only way into the panel while a question is up,
+            which is why it stays in every phase but the finish, where the
+            scorecard below already carries the board. */}
+        {!done ? (
+          <button
+            type="button"
+            className={`rn-cx rn-cxr${panel ? ' on' : ''}`}
+            onClick={() => setPanel((v) => !v)}
+            aria-expanded={panel}
+            aria-controls="rn-rankings"
+          >
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 21v-7" /><path d="M12 21V4" /><path d="M20 21v-10" />
+            </svg>
+            Rankings
+          </button>
+        ) : null}
+        <a className="rn-cx rn-cxi" href="/" aria-label="Home" title="Home">
+          <Home size={13} strokeWidth={2.4} />
+        </a>
       </div>
       <div className="rn-cprog">
         <span style={{ width: `${askable ? Math.round((answeredSoFar / askable) * 100) : 0}%` }} />
       </div>
+
+      {/* THE STRIP. One line carrying the two facts a player wants without
+          asking: what the best run today is, and where they sit against it.
+          It is itself the button for the panel below.
+
+          IT COMES DOWN WHILE A QUESTION IS UP. A live figure about other
+          people is the one thing that should not sit above a 20 second clock,
+          and it goes at the finish too, where the scorecard says all of it at
+          full size. So: the gate and the handover, which is exactly where a
+          player looks up from the run. */}
+      {stripOn ? (
+        <button
+          type="button"
+          className={`rn-strip${panel ? ' on' : ''}`}
+          onClick={() => setPanel((v) => !v)}
+          aria-expanded={panel}
+          aria-controls="rn-rankings"
+        >
+          <span className="rn-se">Today</span>
+          <b className="rn-sn">{leaderRow.username || 'Guest'}</b>
+          <span className="rn-sf">{leaderScore} {scoreWord}</span>
+          <span className="rn-sd">
+            &middot; {boardNow.overallField || boardRows.length}{' '}
+            {(boardNow.overallField || boardRows.length) === 1 ? 'run' : 'runs'}
+          </span>
+          <span className="rn-sy">
+            {myRow && myRow.rank ? `You ${ord(myRow.rank)}` : 'Not run yet'}
+            <i>{panel ? '\u2039' : '\u203A'}</i>
+          </span>
+        </button>
+      ) : null}
 
       {/* THE CLOCK, full bleed on the stage's own top edge, so it sits in
           peripheral vision instead of competing with the question. Red under
@@ -599,6 +690,173 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           background: sec ? sec.accent : 'transparent',
         }} />
       </div>
+
+      {/* THE PANEL. It EXPANDS in flow rather than dropping over the stage as
+          a sheet: an overlay needs a scrim, a z-index, a clipping parent and a
+          focus trap to be honest, and all a reader asked for was to see the
+          board. Pushing the run down for as long as they are reading it costs
+          nothing on the gate, where the panel is opened nine times out of ten,
+          and nothing is ever hidden behind it. */}
+      {panel ? (
+        <div className="rn-rank" id="rn-rankings" role="region" aria-label="Rankings">
+          <div className="rn-rin">
+            <div className="rn-rhd">
+              <span>Today &middot; <b>{dateLabel}</b></span>
+              <s>
+                {boardNow ? `${boardNow.overallField || boardRows.length} ` : ''}
+                {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'run' : 'runs'}
+              </s>
+              <button type="button" className="rn-rx" onClick={() => setPanel(false)}>Close</button>
+            </div>
+
+            {/* THE PODIUM. Height carries the place, so first reads as first
+                before a single figure is read. */}
+            {boardRows.length ? (
+              <div className="rn-pod">
+                {[boardRows[1], boardRows[0], boardRows[2]].map((row, i) => {
+                  const place = i === 1 ? 1 : (i === 0 ? 2 : 3);
+                  if (!row) return <div key={place} className="rn-pstep empty" />;
+                  return (
+                    <div key={place} className={`rn-pstep p${place}`}>
+                      <span className="rn-ppl">{ord(place)}</span>
+                      <b className="rn-pnm">{row.username || 'Guest'}</b>
+                      <span className="rn-pfg">
+                        {Math.round(Number(row.total) || 0)} <u>{scoreWord}</u>
+                        {rightUnit && row.timeTotal ? ` \u00B7 ${fmtTime(row.timeTotal * 1000)}` : ''}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rn-rmsg">
+                {boardQ.state === 'loading' || boardGate.state === 'loading'
+                  ? 'Reading the board.'
+                  : 'Nobody has run the whole thing today yet. Yours would be the first.'}
+              </div>
+            )}
+
+            <div className="rn-tabs" role="tablist">
+              {[['today', "Today's board"], ['arch', 'Archive'], ['all', 'All time']].map(([k, label]) => (
+                <button
+                  key={k}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === k}
+                  className={`rn-tab${tab === k ? ' on' : ''}`}
+                  onClick={() => setTab(k)}
+                >{label}</button>
+              ))}
+            </div>
+
+            {/* TODAY: the podium's own tail, from 4th down, and the reader's
+                row pinned to the end however far down it really is. */}
+            {tab === 'today' ? (
+              <div className="rn-rpane">
+                {boardRows.length > 3 ? (
+                  <div className="rn-rlist">
+                    {boardRows.slice(3).map((row) => (
+                      <div key={row.userKey || row.username} className="rn-rrow2">
+                        <span className="rn-rpos">{row.rank || ''}</span>
+                        <b className="rn-rnm">{row.username || 'Guest'}</b>
+                        <span className="rn-rfg">
+                          {Math.round(Number(row.total) || 0)} {scoreWord}
+                          {rightUnit && row.timeTotal ? <s>{` \u00B7 ${fmtTime(row.timeTotal * 1000)}`}</s> : null}
+                        </span>
+                      </div>
+                    ))}
+                    {myRow && !boardRows.some((row) => row.userKey && myRow.userKey && row.userKey === myRow.userKey) ? (
+                      <div className="rn-rrow2 me">
+                        <span className="rn-rpos">{myRow.rank || ''}</span>
+                        <b className="rn-rnm">You</b>
+                        <span className="rn-rfg">{Math.round(Number(myRow.total) || 0)} {scoreWord}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                <p className="rn-rfine">
+                  {rightUnit
+                    ? 'Ranked on questions right, the clock breaks a tie.'
+                    : 'Ranked on points across the roster.'}
+                  {boardNow && boardNow.partial
+                    ? ` ${boardNow.partial} ${boardNow.partial === 1 ? 'is' : 'are'} partway through it.`
+                    : ''}
+                </p>
+              </div>
+            ) : null}
+
+            {/* ARCHIVE: completed days only. A day is crowned at Eastern
+                midnight and never re-crowned, so nothing here can move. */}
+            {tab === 'arch' ? (
+              <div className="rn-rpane">
+                {hist.state === 'loading' ? <div className="rn-rmsg">Reading the archive.</div> : null}
+                {hist.state === 'error' ? <div className="rn-rmsg">The archive could not be loaded just now.</div> : null}
+                {histDays.length ? (
+                  <>
+                    <div className="rn-hist">
+                      {histDays.slice(0, 10).reverse().map((d) => {
+                        const mine = !!myName && d.winner && d.winner.username === myName;
+                        const h = histMax ? Math.max(6, Math.round((Number(d.winner.total) || 0) / histMax * 62)) : 6;
+                        return (
+                          <span key={d.date} className={`rn-hcol${mine ? ' win' : ''}`}>
+                            <i>{Math.round(Number(d.winner.total) || 0)}</i>
+                            <span className="rn-hbar" style={{ height: `${h}px` }} />
+                            <b>{String(d.label || '').replace(/^[A-Za-z]+ /, '')}</b>
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <div className="rn-rlist">
+                      {histDays.slice(0, 8).map((d) => (
+                        <div key={d.date} className={`rn-rrow2${myName && d.winner.username === myName ? ' me' : ''}`}>
+                          <span className="rn-rpos day">{d.label}</span>
+                          <b className="rn-rnm">{d.winner.username}</b>
+                          <span className="rn-rfg">
+                            {Math.round(Number(d.winner.total) || 0)} {hist.data.scoreMode === 'correct' ? 'right' : 'pts'}
+                            <s>{` \u00B7 ${d.field} ${d.field === 1 ? 'run' : 'runs'}`}</s>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (hist.state === 'ready' ? (
+                  <div className="rn-rmsg">No completed day has been crowned yet.</div>
+                ) : null)}
+              </div>
+            ) : null}
+
+            {/* ALL TIME: who has taken the most days, and the best run anyone
+                has put together on it. */}
+            {tab === 'all' ? (
+              <div className="rn-rpane">
+                {hist.state === 'loading' ? <div className="rn-rmsg">Reading the record.</div> : null}
+                {champions.length ? (
+                  <div className="rn-rlist">
+                    {champions.slice(0, 8).map((c, i) => (
+                      <div key={c.userKey} className={`rn-rrow2${myName && c.username === myName ? ' me' : ''}`}>
+                        <span className="rn-rpos">{i + 1}</span>
+                        <b className="rn-rnm">{c.username}</b>
+                        <span className="rn-rfg">{c.wins} {c.wins === 1 ? 'day' : 'days'}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {bestDay ? (
+                  <p className="rn-rfine">
+                    Best run on record: <b>{bestDay.winner.username}</b>,{' '}
+                    {Math.round(Number(bestDay.winner.total) || 0)}{' '}
+                    {hist.data.scoreMode === 'correct' ? 'right' : 'pts'} on {bestDay.label}.
+                    {hist.data.days ? ` ${hist.data.days} days crowned.` : ''}
+                  </p>
+                ) : null}
+                {!champions.length && hist.state === 'ready' ? (
+                  <div className="rn-rmsg">Nobody has taken a day yet.</div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <div className="rn-wrap">
         <div className={`rn-stage${done ? " full" : ""}`}>
@@ -633,15 +891,20 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             {r.phase === 'idle' ? (
               <div className="rn-gate">
                 <span className="rn-eye">{circuitName} · one long quiz</span>
-                {/* The headline is the field when there is one, because
-                    "four are still standing" is the most honest description of
-                    what this is, and the rule when there is not. */}
+                {/* The headline is the field when there is one, and the rule
+                    when there is not. THE SECOND LINE IS THE LEADER'S SCORE
+                    (owner, 2026-08-30). It used to count clean runs, which on
+                    180 questions at one life each is zero for everybody, every
+                    day, so it always fell through to "nobody has cleared all
+                    seven" and said the same thing forever. What the best run
+                    today actually managed moves daily, and it is the number
+                    the reader is about to be measured against. */}
                 {fieldOn && field.started >= FIELD_FLOOR ? (
                   <h1 className="rn-h1">
                     <var>{field.started}</var> played today.<br />
-                    {standing != null && standing > 0
-                      ? <><var>{standing}</var> ran the whole thing clean.</>
-                      : <>Nobody has cleared all <var>{N}</var> yet.</>}
+                    {leaderScore != null
+                      ? <>The leader nailed <var>{leaderScore}</var>.</>
+                      : <><u>One life each.</u></>}
                   </h1>
                 ) : (
                   <h1 className="rn-h1">
@@ -976,6 +1239,97 @@ body:has(.rn)::before{background:${T.ground};}
   color:#9fc2ff;text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:7px;
   padding:7px 11px;white-space:nowrap;}
 .rn-cx:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+.rn-cx.rn-cxi{padding:7px 9px;display:inline-flex;align-items:center;}
+.rn-cx.rn-cxr{display:inline-flex;align-items:center;gap:6px;background:none;cursor:pointer;
+  font-family:${MONO};}
+.rn-cx.rn-cxr.on{color:#08222e;background:${T.blue200};border-color:${T.blue200};}
+.rn-cx:focus-visible{outline:2px solid #7dd3fc;outline-offset:2px;}
+
+/* THE STRIP. One line, the cap's own register, and a button: the leader on the
+   left, the reader's own place on the right. It carries a faint lift rather
+   than a fill so it reads as part of the cap rather than as a banner laid over
+   the stage. */
+.rn-strip{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  background:rgba(255,255,255,.03);border:0;border-bottom:1px solid rgba(255,255,255,.09);
+  padding:10px 20px;font-family:${MONO};font-size:11.5px;color:#9aa8c4;}
+.rn-strip:hover{background:rgba(255,255,255,.055);}
+.rn-strip:focus-visible{outline:2px solid #7dd3fc;outline-offset:-2px;}
+.rn-strip.on{background:rgba(125,211,252,.08);}
+.rn-se{color:${T.gold};letter-spacing:.1em;text-transform:uppercase;font-size:9.5px;flex:none;}
+.rn-sn{font-family:${SANS};font-weight:800;font-size:13.5px;color:#fff;flex:none;
+  max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rn-sf{font-variant-numeric:tabular-nums;flex:none;}
+.rn-sd{color:#66748f;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rn-sy{margin-left:auto;flex:none;color:#7dd3fc;letter-spacing:.1em;text-transform:uppercase;
+  font-size:9.5px;display:inline-flex;align-items:center;gap:7px;}
+.rn-sy i{font-style:normal;font-size:13px;line-height:1;}
+
+/* THE PANEL. In flow, so nothing is ever hidden behind it. */
+.rn-rank{border-bottom:1px solid rgba(255,255,255,.09);background:#0d1220;
+  animation:rn-rdrop .22s ease;}
+@keyframes rn-rdrop{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){.rn-rank{animation:none;}}
+.rn-rin{max-width:660px;margin:0 auto;padding:16px 20px 20px;}
+.rn-rhd{display:flex;align-items:baseline;gap:10px;font-family:${MONO};font-size:9.5px;
+  letter-spacing:.13em;text-transform:uppercase;color:#66748f;margin-bottom:12px;}
+.rn-rhd b{color:#9fc2ff;font-weight:400;}
+.rn-rhd s{text-decoration:none;margin-left:auto;color:#66748f;}
+.rn-rx{background:none;border:0;cursor:pointer;color:#66748f;font-family:${MONO};font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;padding:0 0 0 4px;}
+.rn-rx:hover{color:#fff;}
+
+/* The podium: three steps, height carrying the place. */
+.rn-pod{display:flex;align-items:flex-end;gap:8px;}
+.rn-pstep{flex:1;min-width:0;border-radius:9px 9px 0 0;padding:12px 12px 11px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-bottom:0;}
+.rn-pstep.empty{background:none;border-color:transparent;}
+.rn-pstep.p1{padding-top:26px;border-color:rgba(232,180,58,.42);
+  background:linear-gradient(180deg,rgba(232,180,58,.2),rgba(232,180,58,.05));}
+.rn-pstep.p2{padding-top:17px;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));}
+.rn-ppl{display:block;font-family:${MONO};font-size:10px;color:#66748f;letter-spacing:.1em;
+  margin-bottom:6px;}
+.rn-pstep.p1 .rn-ppl{color:${T.gold};}
+.rn-pnm{display:block;font-size:16px;font-weight:800;letter-spacing:-.02em;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rn-pstep.p1 .rn-pnm{font-size:19px;}
+.rn-pfg{display:block;font-family:${MONO};font-size:12.5px;color:#9aa8c4;margin-top:5px;
+  font-variant-numeric:tabular-nums;}
+.rn-pfg u{text-decoration:none;color:#66748f;}
+
+.rn-tabs{display:flex;gap:2px;margin:18px 0 12px;border-bottom:1px solid rgba(255,255,255,.09);}
+.rn-tab{background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
+  font-family:${MONO};font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#66748f;
+  padding:8px 12px;margin-bottom:-1px;}
+.rn-tab:hover{color:#9aa8c4;}
+.rn-tab.on{color:#fff;border-bottom-color:#7dd3fc;}
+
+.rn-rlist{display:grid;gap:1px;background:rgba(255,255,255,.06);border-radius:9px;overflow:hidden;}
+.rn-rrow2{display:flex;align-items:center;gap:11px;background:#0e131f;padding:9px 12px;}
+.rn-rrow2.me{background:rgba(125,211,252,.11);}
+.rn-rpos{font-family:${MONO};font-size:11.5px;color:#66748f;min-width:26px;flex:none;
+  font-variant-numeric:tabular-nums;}
+.rn-rpos.day{min-width:46px;}
+.rn-rrow2.me .rn-rpos{color:#7dd3fc;}
+.rn-rnm{flex:1;min-width:0;font-size:14px;font-weight:700;color:#fff;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
+.rn-rfg{font-family:${MONO};font-size:12.5px;color:#9aa8c4;flex:none;
+  font-variant-numeric:tabular-nums;}
+.rn-rfg s{text-decoration:none;color:#66748f;}
+.rn-rfine{font-size:12px;line-height:1.6;font-weight:600;color:#66748f;margin:12px 0 0;}
+.rn-rfine b{color:#9aa8c4;}
+.rn-rmsg{padding:14px;text-align:center;font-size:12.5px;font-weight:600;color:#66748f;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:11px;}
+
+/* One column per crowned day: the winning score, and yours in sky. */
+.rn-hist{display:flex;gap:4px;align-items:flex-end;margin-bottom:14px;}
+.rn-hcol{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.rn-hbar{width:100%;border-radius:3px 3px 0 0;background:rgba(255,255,255,.13);}
+.rn-hcol.win .rn-hbar{background:#7dd3fc;}
+.rn-hcol i{font-style:normal;font-size:10.5px;font-weight:700;color:#9aa8c4;}
+.rn-hcol.win i{color:#7dd3fc;}
+.rn-hcol b{font-family:${MONO};font-size:9px;color:#66748f;white-space:nowrap;}
+
 .rn-cprog{height:2px;background:rgba(255,255,255,.1);}
 .rn-cprog span{display:block;height:100%;background:${T.blue400};transition:width .3s ease;}
 
@@ -1202,5 +1556,17 @@ body:has(.rn)::before{background:${T.ground};}
   .rn-vfig{gap:18px;}
   .rn-hn{font-size:34px;}
   .rn-sc-figs{margin-left:0;gap:18px;}
+  /* The strip keeps the two facts that matter and drops the denominator. */
+  .rn-strip{padding:9px 14px;gap:8px;}
+  .rn-sd{display:none;}
+  .rn-rin{padding:14px 14px 18px;}
+  .rn-pod{gap:5px;}
+  .rn-pstep{padding:10px 8px 9px;border-radius:7px 7px 0 0;}
+  .rn-pstep.p1{padding-top:20px;}
+  .rn-pnm{font-size:13px;}
+  .rn-pstep.p1 .rn-pnm{font-size:15px;}
+  .rn-pfg{font-size:11px;}
+  .rn-tab{padding:8px 9px;letter-spacing:.08em;}
+  .rn-hcol i{font-size:9.5px;}
 }
 `;
