@@ -46,6 +46,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
 import { runSummaryHref, circuitShareUrl, circuitScoreMode } from '@/lib/circuits';
 import GauntletLadder, { rampFor } from '../../GauntletLadder';
+import RunNextUp from '../../RunNextUp';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
 import { T } from '@/lib/theme';
@@ -827,6 +828,15 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     You&rsquo;re on the board. Every finish counts under your name now.
                   </div>
                 ) : null}
+
+                {/* WHERE NEXT (owner, 2026-08-30). The scorecard used to end on three
+                    controls, and the only one that led anywhere on this site was Home:
+                    the player likeliest to play something else was asked nothing. Four
+                    open puzzles and two more circuits, none of them played today, with
+                    the whole roster and every other circuit one press away IN PLACE.
+                    It sits above the actions because it is the offer and they are the
+                    exits. See app/circuits/RunNextUp.jsx for the two orderings. */}
+                <RunNextUp circuitId={circuitId} />
 
                 <div className="rn-vacts rn-sacts">
                   <button type="button" className="rn-vb pri" onClick={shareRun}>
