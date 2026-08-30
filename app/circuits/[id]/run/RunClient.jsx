@@ -389,16 +389,8 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
   function shareRun() {
     const url = withRef(circuitShareUrl(circuitId));
-    const bar = sections.map((s) => {
-      const res = r.results.find((x) => x.key === s.key);
-      if (!res) return '⬜';
-      if (res.status === 'won') return '\u{1F7E9}';
-      if (res.status === 'banked') return '\u{1F7E6}';
-      return res.score >= Math.ceil(res.total / 2) ? '\u{1F7E8}' : '\u{1F7E5}';
-    }).join('');
     const text = [
       `${circuitName} · ${cleared} of ${askable} questions`,
-      bar,
       'One long quiz, one life each.',
       url,
     ].join('\n');
@@ -557,33 +549,25 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       </div>
 
       <div className="rn-wrap">
-        <div className={`rn-stage${done ? " full" : ""}`}>
+        <div className="rn-stage">
           {/* THE LADDER, in its own gutter, the one thing on screen that
               persists across every quiz. It is what makes this read as one
-              sitting rather than seven pages. On a phone it lies down across
-              the top instead (the component's own media query).
-
-              IT COMES DOWN AT THE FINISH (owner, 2026-08-30). The scorecard
-              below draws the same object at full width with each bank named
-              under it, so leaving the gutter up said the run's shape twice,
-              and on a phone the gutter is a 26px strip with its labels
-              suppressed: a row of bars carrying nothing the labelled ladder
-              beneath it does not carry better. */}
-          {done ? null : (
-            <div className="rn-gutter">
-              <span className="rn-lcap">{fieldOn ? "Today's field" : 'Run'}</span>
-              <GauntletLadder
-                orientation="col"
-                height={640}
-                sections={sections}
-                results={r.results}
-                activeIndex={r.phase === 'playing' ? r.si : -1}
-                activeAnswered={r.i}
-                field={fieldOn ? field.curves : null}
-                labels
-              />
-            </div>
-          )}
+              sitting rather than seven pages, and the scorecard draws the same
+              object from the same state. On a phone it lies down across the
+              top instead (the component's own media query). */}
+          <div className="rn-gutter">
+            <span className="rn-lcap">{done ? 'Your run' : fieldOn ? "Today's field" : 'Run'}</span>
+            <GauntletLadder
+              orientation="col"
+              height={640}
+              sections={sections}
+              results={r.results}
+              activeIndex={r.phase === 'playing' ? r.si : -1}
+              activeAnswered={r.i}
+              field={fieldOn ? field.curves : null}
+              labels
+            />
+          </div>
 
           <div className="rn-body">
             {r.phase === 'idle' ? (
@@ -731,21 +715,6 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
             {done ? (
               <div className="rn-done">
-                {/* ONE PER-BANK READOUT, AT THE TOP (owner, 2026-08-30). This
-                    card carried three: the gutter strip above it, this ladder,
-                    and a row-per-bank list under it saying the same scores again
-                    in words. The ladder is the one that reads at a glance and
-                    names every bank, so it is the one that stays, and it leads
-                    the card. */}
-                <span className="rn-lcap">The run</span>
-                <GauntletLadder
-                  orientation="row"
-                  sections={sections}
-                  results={r.results}
-                  field={fieldOn ? field.curves : null}
-                  labels
-                />
-
                 <div className="rn-sc-hero">
                   <div className="rn-sc-big">
                     {cleared}<small>/{askable}</small>
@@ -764,35 +733,6 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.total)
                       ? <div><b>{Math.round(boardQ.data.me.total * 10) / 10}</b><i>of {(boardQ.data && boardQ.data.maxTotal) || N * 15} points</i></div> : null}
                   </div>
-                </div>
-
-                <div className="rn-board">
-                  <span className="rn-lcap">
-                    Today&rsquo;s circuit board{boardQ.data && boardQ.data.overallField ? ` · ${boardQ.data.overallField} on it` : ''}
-                  </span>
-                  {boardQ.state === 'loading' ? (
-                    <div className="rn-bmsg">Reading the board.</div>
-                  ) : boardQ.state === 'error' ? (
-                    <div className="rn-bmsg">The board could not be loaded just now.</div>
-                  ) : (
-                    <div className="rn-lb">
-                      {((boardQ.data && boardQ.data.overall) || []).slice(0, 5).map((row, i) => (
-                        <div key={row.userKey || i} className={`rn-brow${boardQ.data.me && row.userKey === boardQ.data.me.userKey ? ' me' : ''}`}>
-                          <span className="rn-bp">{i + 1}</span>
-                          <span className="rn-bn">{row.username || 'Guest'}</span>
-                          <span className="rn-bs">{Math.round(row.total * 10) / 10}</span>
-                        </div>
-                      ))}
-                      {boardQ.data && boardQ.data.me
-                        && !((boardQ.data.overall || []).slice(0, 5).some((x) => x.userKey === boardQ.data.me.userKey)) ? (
-                          <div className="rn-brow me">
-                            <span className="rn-bp">{boardQ.data.me.rank || '—'}</span>
-                            <span className="rn-bn">You</span>
-                            <span className="rn-bs">{Math.round(boardQ.data.me.total * 10) / 10}</span>
-                          </div>
-                        ) : null}
-                    </div>
-                  )}
                 </div>
 
                 {guest && !claimed ? (
@@ -829,6 +769,66 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     You&rsquo;re on the board. Every finish counts under your name now.
                   </div>
                 ) : null}
+
+                <span className="rn-lcap rn-scl">The run</span>
+                <GauntletLadder
+                  orientation="row"
+                  sections={sections}
+                  results={r.results}
+                  field={fieldOn ? field.curves : null}
+                  labels
+                />
+
+                <div className="rn-scrows">
+                  {sections.map((sc) => {
+                    const res = r.results.find((x) => x.key === sc.key);
+                    const st = res ? res.status : null;
+                    const bt = res && field ? field.beaten(sc.key, res.score) : null;
+                    return (
+                      <div key={sc.key} className="rn-scr" style={{ '--acc': rampFor(sc.slot != null ? sc.slot : 0) }}>
+                        <b>{sc.name}</b>
+                        <i>
+                          {st === 'banked' ? 'played earlier today' : lineFor(sc)}
+                          {st === 'lost' ? ` · out on Q${res.score + 1}` : ''}
+                        </i>
+                        <s>{bt != null ? `beat ${Math.round(bt * 100)}%` : ''}</s>
+                        <span className={`rn-pill ${st === 'won' ? 'clean' : st ? 'out' : 'open'}`}>
+                          {st === 'won' ? 'Clean' : st === 'banked' ? 'Banked' : st ? 'Out' : 'Not run'}
+                        </span>
+                        <em>{res ? res.score : 0}/{sc.questions.length}</em>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="rn-board">
+                  <span className="rn-lcap">
+                    Today&rsquo;s circuit board{boardQ.data && boardQ.data.overallField ? ` · ${boardQ.data.overallField} on it` : ''}
+                  </span>
+                  {boardQ.state === 'loading' ? (
+                    <div className="rn-bmsg">Reading the board.</div>
+                  ) : boardQ.state === 'error' ? (
+                    <div className="rn-bmsg">The board could not be loaded just now.</div>
+                  ) : (
+                    <div className="rn-lb">
+                      {((boardQ.data && boardQ.data.overall) || []).slice(0, 5).map((row, i) => (
+                        <div key={row.userKey || i} className={`rn-brow${boardQ.data.me && row.userKey === boardQ.data.me.userKey ? ' me' : ''}`}>
+                          <span className="rn-bp">{i + 1}</span>
+                          <span className="rn-bn">{row.username || 'Guest'}</span>
+                          <span className="rn-bs">{Math.round(row.total * 10) / 10}</span>
+                        </div>
+                      ))}
+                      {boardQ.data && boardQ.data.me
+                        && !((boardQ.data.overall || []).slice(0, 5).some((x) => x.userKey === boardQ.data.me.userKey)) ? (
+                          <div className="rn-brow me">
+                            <span className="rn-bp">{boardQ.data.me.rank || '—'}</span>
+                            <span className="rn-bn">You</span>
+                            <span className="rn-bs">{Math.round(boardQ.data.me.total * 10) / 10}</span>
+                          </div>
+                        ) : null}
+                    </div>
+                  )}
+                </div>
 
                 <div className="rn-vacts rn-sacts">
                   <button type="button" className="rn-vb pri" onClick={shareRun}>
@@ -868,25 +868,8 @@ const CSS = `
 .rn{font-family:${SANS};color:#eef2fa;}
 .rn-wrap{max-width:1120px;margin:0 auto;padding:0 20px 40px;}
 
-/* THE GROUND REACHES THE EDGES (owner, 2026-08-30, "i want the whole page to
-   be uniform color dark"). globals.css paints html, body AND the safe-area
-   dome brand navy, on the standing rule that every route lays an opaque ground
-   of its own over the viewport. This one does, and navy STILL showed above and
-   below it, because those three surfaces are not the page: the overscroll
-   canvas, the installed-app dome and Safari's bottom bar all read body's
-   background, never the element covering it. So the run claims them, scoped by
-   :has(.rn) so no other route is touched and nothing has to be put back on
-   unmount. theme-color is the fourth surface and is set by the route's own
-   viewport export in page.js, since a meta tag is not reachable from CSS. */
-html:has(.rn),body:has(.rn){background:${T.ground};}
-body:has(.rn)::before{background:${T.ground};}
-
-/* THE CAP. NOT A BAND (owner, 2026-08-30, "i want the whole page to be
-   uniform color dark"). It was a navy panel across the top of a near-black
-   page, which is the one horizontal seam left on a screen whose whole point is
-   that it is a dark stage rather than a stack of cards. It takes the ground,
-   so what marks it is its own contents and the progress hairline under it. */
-.rn-cap{background:${T.ground};display:flex;align-items:center;gap:16px;padding:12px 20px;}
+/* THE CAP, and the only band on the page. */
+.rn-cap{background:${T.accent};display:flex;align-items:center;gap:16px;padding:12px 20px;}
 .rn-cid{min-width:0;flex:1;}
 .rn-cid i{display:block;font-style:normal;font-family:${MONO};font-size:9.5px;letter-spacing:.15em;
   text-transform:uppercase;color:#9fc2ff;margin-bottom:2px;}
@@ -916,11 +899,9 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-gutter{flex:none;width:136px;padding:20px 16px 24px 0;margin-right:24px;
   border-right:1px solid rgba(255,255,255,.08);}
 .rn-body{flex:1;min-width:0;padding:22px 0 30px;max-width:720px;}
-/* With the gutter down at the finish, the card would otherwise sit at 720px
-   hard against the left edge of an 1120px page. It centres instead. */
-.rn-stage.full .rn-body{max-width:840px;margin:0 auto;}
 .rn-lcap{display:block;font-family:${MONO};font-size:9px;letter-spacing:.13em;
   text-transform:uppercase;color:#66748f;margin-bottom:12px;}
+.rn-scl{margin-top:26px;}
 
 /* Shared type. */
 .rn-eye{display:block;font-family:${MONO};font-size:10.5px;letter-spacing:.16em;
@@ -1031,8 +1012,8 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-sacts{margin-top:22px;}
 
 /* The scorecard. */
-.rn-sc-hero{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;margin-top:24px;
-  padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.09);}
+.rn-sc-hero{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;padding-bottom:22px;
+  border-bottom:1px solid rgba(255,255,255,.09);}
 .rn-sc-big{font-family:${MONO};font-size:clamp(46px,7vw,64px);font-weight:500;color:#fff;
   line-height:.86;letter-spacing:-.04em;font-variant-numeric:tabular-nums;}
 .rn-sc-big small{font-size:.36em;color:#66748f;letter-spacing:0;}
@@ -1043,11 +1024,24 @@ body:has(.rn)::before{background:${T.ground};}
   line-height:1;font-variant-numeric:tabular-nums;}
 .rn-sc-figs div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
   text-transform:uppercase;color:#66748f;margin-top:6px;}
+.rn-scrows{margin-top:20px;}
+.rn-scr{display:flex;align-items:center;gap:12px;padding:10px 0 10px 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);border-left:3px solid var(--acc);}
+.rn-scr b{font-size:14.5px;font-weight:800;color:#fff;width:66px;flex:none;}
+.rn-scr i{font-style:normal;font-size:12.5px;font-weight:600;color:#66748f;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rn-scr s{text-decoration:none;font-family:${MONO};font-size:11px;color:${T.blue200};
+  width:74px;text-align:right;flex:none;}
+.rn-pill{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:999px;flex:none;width:62px;text-align:center;}
+.rn-pill.clean{background:rgba(16,185,129,.16);color:#6ee7b7;}
+.rn-pill.out{background:rgba(192,57,43,.16);color:#ef8577;}
+.rn-pill.open{background:rgba(255,255,255,.06);color:#66748f;}
+.rn-scr em{font-style:normal;font-family:${MONO};font-size:13px;color:#dce6f7;
+  font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none;}
 
-/* CLAIM YOUR SPOT, under the board (owner, 2026-08-30), because that is the
-   moment a guest has just read a column of ranked names and found that none of
-   them is theirs. It sat between the figures and the ladder, which put a form
-   in the middle of the result.
+/* CLAIM YOUR SPOT, directly under the figures, because that is where the rank
+   and the points the reader is about to lose are printed.
    The join form inks itself from --join-* custom properties. LoftFinish resets
    them to light values because its card is white; this card is dark, so they
    are set here for a dark ground or the heading ships black on near-black. */
@@ -1113,5 +1107,7 @@ body:has(.rn)::before{background:${T.ground};}
   .rn-vfig{gap:18px;}
   .rn-hn{font-size:34px;}
   .rn-sc-figs{margin-left:0;gap:18px;}
+  .rn-scr s{display:none;}
+  .rn-scr b{width:58px;}
 }
 `;

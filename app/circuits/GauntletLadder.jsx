@@ -45,6 +45,7 @@
 //   />
 
 import React, { useMemo } from 'react';
+import { LADDER_RAMP, rampFor } from '@/lib/circuits';
 
 // The run-local ramp, cool to warm in run order.
 //
@@ -58,20 +59,10 @@ import React, { useMemo } from 'react';
 // The ramp earns its keep too. Run order is shortest first, so a monotonic hue
 // walk means the ladder reads as heat climbing across the run, which makes the
 // ordering rule visible for free.
-export const LADDER_RAMP = [
-  '#7dd3fc', // sky
-  '#6ee7b7', // mint
-  '#bef264', // lime
-  '#e8b43a', // gold
-  '#fb923c', // orange
-  '#fb7185', // rose
-  '#e879f9', // magenta
-  '#c084fc', // violet, the eighth step if the roster grows again
-];
-
-export function rampFor(i) {
-  return LADDER_RAMP[((i % LADDER_RAMP.length) + LADDER_RAMP.length) % LADDER_RAMP.length];
-}
+// Re-exported from lib/circuits, which is where the ramp lives now: the share
+// card renders on the server and wants the same colours, and this is a client
+// module. Callers of this file did not have to change.
+export { LADDER_RAMP, rampFor };
 
 // THE AVERAGE SCORE on a bank today, from that bank's survival curve.
 //
