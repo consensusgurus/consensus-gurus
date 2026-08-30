@@ -764,59 +764,70 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       {panel ? (
         <div className="rn-rank" id="rn-rankings" role="region" aria-label="Rankings">
           <div className="rn-rin">
-            <div className="rn-rhd">
-              <span>Today &middot; <b>{dateLabel}</b></span>
-              <s>
-                {boardNow ? `${boardNow.overallField || boardRows.length} ` : ''}
-                {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
-              </s>
+            {/* THE TABS LEAD, and everything under them belongs to the one that
+                is on, the podium included. The podium is TODAY's three, so it
+                cannot sit ABOVE the control that switches the day out from
+                under it: read in that order it looks like the three cards
+                should change when you press Archive, and they never did. Each
+                pane then states its own span on the line beneath, because the
+                three of them describe three different stretches of time and
+                one header at the top of the panel can only be honest about
+                one of them. */}
+            <div className="rn-thd">
+              <div className="rn-tabs" role="tablist">
+                {[['today', "Today's board"], ['arch', 'Archive'], ['all', 'All time']].map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === k}
+                    className={`rn-tab${tab === k ? ' on' : ''}`}
+                    onClick={() => setTab(k)}
+                  >{label}</button>
+                ))}
+              </div>
               <button type="button" className="rn-rx" onClick={() => setPanel(false)}>Close</button>
             </div>
 
-            {/* THE PODIUM. Height carries the place, so first reads as first
-                before a single figure is read. */}
-            {boardRows.length ? (
-              <div className="rn-pod">
-                {[boardRows[1], boardRows[0], boardRows[2]].map((row, i) => {
-                  const place = i === 1 ? 1 : (i === 0 ? 2 : 3);
-                  if (!row) return <div key={place} className="rn-pstep empty" />;
-                  return (
-                    <div key={place} className={`rn-pstep p${place}`}>
-                      <span className="rn-ppl">{ord(place)}</span>
-                      <b className="rn-pnm">{row.username || 'Guest'}</b>
-                      <span className="rn-pfg">
-                        {Math.round(Number(row.total) || 0)} <u>{scoreWord}</u>
-                        {rightUnit && row.timeTotal ? ` \u00B7 ${fmtTime(row.timeTotal * 1000)}` : ''}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="rn-rmsg">
-                {boardQ.state === 'loading' || boardGate.state === 'loading'
-                  ? 'Reading the board.'
-                  : 'Nobody has run the whole thing today yet. Yours would be the first.'}
-              </div>
-            )}
-
-            <div className="rn-tabs" role="tablist">
-              {[['today', "Today's board"], ['arch', 'Archive'], ['all', 'All time']].map(([k, label]) => (
-                <button
-                  key={k}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === k}
-                  className={`rn-tab${tab === k ? ' on' : ''}`}
-                  onClick={() => setTab(k)}
-                >{label}</button>
-              ))}
-            </div>
-
-            {/* TODAY: the podium's own tail, from 4th down, and the reader's
-                row pinned to the end however far down it really is. */}
+            {/* TODAY: the podium, then its own tail from 4th down, with the
+                reader's row pinned to the end however far down it really is. */}
             {tab === 'today' ? (
               <div className="rn-rpane">
+                <div className="rn-rhd">
+                  <span>Today &middot; <b>{dateLabel}</b></span>
+                  <s>
+                    {boardNow ? `${boardNow.overallField || boardRows.length} ` : ''}
+                    {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
+                  </s>
+                </div>
+
+                {/* THE PODIUM. Height carries the place, so first reads as
+                    first before a single figure is read. */}
+                {boardRows.length ? (
+                  <div className="rn-pod">
+                    {[boardRows[1], boardRows[0], boardRows[2]].map((row, i) => {
+                      const place = i === 1 ? 1 : (i === 0 ? 2 : 3);
+                      if (!row) return <div key={place} className="rn-pstep empty" />;
+                      return (
+                        <div key={place} className={`rn-pstep p${place}`}>
+                          <span className="rn-ppl">{ord(place)}</span>
+                          <b className="rn-pnm">{row.username || 'Guest'}</b>
+                          <span className="rn-pfg">
+                            {Math.round(Number(row.total) || 0)} <u>{scoreWord}</u>
+                            {rightUnit && row.timeTotal ? ` \u00B7 ${fmtTime(row.timeTotal * 1000)}` : ''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="rn-rmsg">
+                    {boardQ.state === 'loading' || boardGate.state === 'loading'
+                      ? 'Reading the board.'
+                      : 'Nobody has run the whole thing today yet. Yours would be the first.'}
+                  </div>
+                )}
+
                 {boardRows.length > 3 ? (
                   <div className="rn-rlist">
                     {boardRows.slice(3).map((row) => (
@@ -853,6 +864,14 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 midnight and never re-crowned, so nothing here can move. */}
             {tab === 'arch' ? (
               <div className="rn-rpane">
+                <div className="rn-rhd">
+                  <span>Crowned days</span>
+                  <s>
+                    {hist.data && hist.data.days
+                      ? `${hist.data.days} ${hist.data.days === 1 ? 'day' : 'days'}`
+                      : ''}
+                  </s>
+                </div>
                 {hist.state === 'loading' ? <div className="rn-rmsg">Reading the archive.</div> : null}
                 {hist.state === 'error' ? <div className="rn-rmsg">The archive could not be loaded just now.</div> : null}
                 {histDays.length ? (
@@ -893,6 +912,14 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 has put together on it. */}
             {tab === 'all' ? (
               <div className="rn-rpane">
+                <div className="rn-rhd">
+                  <span>All time</span>
+                  <s>
+                    {champions.length
+                      ? `${champions.length} ${champions.length === 1 ? 'champion' : 'champions'}`
+                      : ''}
+                  </s>
+                </div>
                 {hist.state === 'loading' ? <div className="rn-rmsg">Reading the record.</div> : null}
                 {champions.length ? (
                   <div className="rn-rlist">
@@ -1372,12 +1399,17 @@ body:has(.rn)::before{background:${T.ground};}
   letter-spacing:.13em;text-transform:uppercase;color:#66748f;margin-bottom:12px;}
 .rn-rhd b{color:#9fc2ff;font-weight:400;}
 .rn-rhd s{text-decoration:none;margin-left:auto;color:#66748f;}
+/* THE TAB ROW leads the panel and carries Close on its own right edge, so the
+   one control in it that is not a tab sits outside the tablist. */
+.rn-thd{display:flex;align-items:stretch;gap:10px;margin-bottom:12px;
+  border-bottom:1px solid rgba(255,255,255,.09);}
 .rn-rx{background:none;border:0;cursor:pointer;color:#66748f;font-family:${MONO};font-size:9.5px;
-  letter-spacing:.12em;text-transform:uppercase;padding:0 0 0 4px;}
+  letter-spacing:.12em;text-transform:uppercase;padding:0 2px;margin-left:auto;flex:none;
+  align-self:center;}
 .rn-rx:hover{color:#fff;}
 
 /* The podium: three steps, height carrying the place. */
-.rn-pod{display:flex;align-items:flex-end;gap:8px;}
+.rn-pod{display:flex;align-items:flex-end;gap:8px;margin-bottom:14px;}
 .rn-pstep{flex:1;min-width:0;border-radius:9px 9px 0 0;padding:12px 12px 11px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);border-bottom:0;}
 .rn-pstep.empty{background:none;border-color:transparent;}
@@ -1395,7 +1427,7 @@ body:has(.rn)::before{background:${T.ground};}
   font-variant-numeric:tabular-nums;}
 .rn-pfg u{text-decoration:none;color:#66748f;}
 
-.rn-tabs{display:flex;gap:2px;margin:18px 0 12px;border-bottom:1px solid rgba(255,255,255,.09);}
+.rn-tabs{display:flex;gap:2px;min-width:0;}
 .rn-tab{background:none;border:0;border-bottom:2px solid transparent;cursor:pointer;
   font-family:${MONO};font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#66748f;
   padding:8px 12px;margin-bottom:-1px;}
@@ -1674,13 +1706,14 @@ body:has(.rn)::before{background:${T.ground};}
   .rn-strip{padding:9px 14px;gap:8px;}
   .rn-sd{display:none;}
   .rn-rin{padding:14px 14px 18px;}
-  .rn-pod{gap:5px;}
+  .rn-thd{gap:6px;}
+  .rn-pod{gap:5px;margin-bottom:11px;}
   .rn-pstep{padding:10px 8px 9px;border-radius:7px 7px 0 0;}
   .rn-pstep.p1{padding-top:20px;}
   .rn-pnm{font-size:13px;}
   .rn-pstep.p1 .rn-pnm{font-size:15px;}
   .rn-pfg{font-size:11px;}
-  .rn-tab{padding:8px 9px;letter-spacing:.08em;}
+  .rn-tab{padding:8px 7px;letter-spacing:.06em;}
   .rn-hcol i{font-size:9.5px;}
 }
 `;
