@@ -32,7 +32,6 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users, Star } from 'lucide-react';
-import { notifyShareCredit } from './ShareCreditPop';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 import { T } from '@/lib/theme';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -136,6 +135,10 @@ export default function DailyTilePanel({
   // lib/contest now. Resolved after mount, never during render: contestIsLive()
   // reads the clock and this panel ships inside a statically rendered page.
   const [promo, setPromo] = useState(false);
+  // Feedback for the share chip below. It used to hand the share to the
+  // share pop-up, which owned its own confirmation; with that gone the chip
+  // does the share itself and has to say so.
+  const [shared, setShared] = useState(false);
   useEffect(() => { setPromo(contestIsLive()); }, []);
   const [calMonth, setCalMonth] = useState(() => todayISO.slice(0, 7));
   useEffect(() => { setCalMonth(todayISO.slice(0, 7)); }, [game.key, todayISO]);
@@ -292,14 +295,34 @@ export default function DailyTilePanel({
             {isDone ? <span className="dtp-donechip">Done today</span> : null}
             {/* Shares THIS game rather than the quizzes home the panel sits on,
                 so the credit link sends people straight to it. */}
+            {/* THE ONE SHARE HANDLER THAT HAD NO FALLBACK. Every other Share
+                button on the site tries the share pop-up and then does its own
+                native-share or clipboard copy when the pop-up declines, so when
+                the pop-up was stubbed out on 2026-08-30 they all carried on
+                working. This chip's only action WAS the pop-up, so it needed
+                the fallback writing. Native sheet where there is one, clipboard
+                everywhere else. */}
             <button
               type="button"
               className="dtp-sharechip"
               onClick={() => {
                 const base = (typeof window !== 'undefined' && window.location) ? window.location.origin : '';
-                notifyShareCredit('', base + game.href);
+                const url = base + game.href;
+                const text = `${game.name} on Mind Loft\n${url}`;
+                try {
+                  if (typeof navigator !== 'undefined' && navigator.share) {
+                    navigator.share({ text }).catch(() => {});
+                    return;
+                  }
+                } catch (e) { /* fall through to the clipboard */ }
+                try {
+                  navigator.clipboard?.writeText(text).then(() => {
+                    setShared(true);
+                    setTimeout(() => setShared(false), 1800);
+                  });
+                } catch (e) { /* no clipboard: the chip simply does nothing */ }
               }}
-            ><Share2 size={11} strokeWidth={2.6} />{promo ? `Share for ${CONTEST.prizeLabel}*` : 'Share for credit'}</button>
+            ><Share2 size={11} strokeWidth={2.6} />{shared ? 'Link copied' : (promo ? `Share for ${CONTEST.prizeLabel}*` : 'Share this game')}</button>
             {/* Pin this game to the top of the home board (owner, 2026-08-02).
                 This is the ONLY pin control for a FINISHED game: that tile is
                 itself a button, so it can only carry a static star, and the

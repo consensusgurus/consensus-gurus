@@ -6,9 +6,6 @@ import VisitorBeacon from './VisitorBeacon';
 import ResultQueue from './ResultQueue';
 import DailyStartPing from './DailyStartPing';
 import DailySaveSync from './DailySaveSync';
-import ShareCreditPop from './ShareCreditPop';
-import ContestPop from './ContestPop';
-import QrPosterPop from './QrPosterPop';
 import TrophyPop from './TrophyPop';
 import { getAllSources } from '@/lib/sources';
 import { T } from '@/lib/theme';
@@ -126,13 +123,14 @@ export default function RootLayout({ children }) {
             order is not load-bearing, but keeping the marker before the board
             it belongs to reads correctly. */}
         <DailySaveSync />
-        <ShareCreditPop />
-        {/* Mounted AFTER ShareCreditPop: its CTA dispatches the share-credit
-            event, and the listener must already exist. Renders null on every
-            page except a live contest on a promo path with an undismissed
-            browser, so the cost elsewhere is one localStorage read. */}
-        <ContestPop />
-        <QrPosterPop />
+        {/* NO POP-UPS HERE ANY MORE (owner, 2026-08-30). The contest
+            interstitial, its QR poster follow-on and the share sheet were all
+            mounted on this line and all came off together: the Trivia Gauntlet
+            nudge on /today is the one thing left on the site that appears
+            without being asked for. TrophyPop stays because it is a reward for
+            something the player just did rather than a pitch, and it fires only
+            on an actual unlock. Anything added back here needs the owner's word
+            first. */}
         <TrophyPop />
         <Analytics />
       </body>

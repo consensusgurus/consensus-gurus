@@ -1,5 +1,4 @@
 import QuizHomeClient from './quizzes/QuizHomeClient';
-import InstallPrompt from './InstallPrompt';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
 
@@ -58,16 +57,14 @@ export default function HomePage() {
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
       <QuizHomeClient variant="v3" sourceCount={SOURCE_COUNT} />
-      {/* THE DAILY FIVE OVERLAY IS RETIRED (owner, 2026-08-30). It met a first
-          visit with a full-screen pitch for one run before the visitor had seen
-          anything the site actually offers, which is the shape of interstitial
-          that costs more goodwill than it buys. app/WelcomeOverlay.jsx stays in
-          the tree, unmounted, so restoring it is one line.
-
-          InstallPrompt stays: it waits on engagement rather than firing on a
-          first visit, and it was only ever paired with the overlay here because
-          their audiences are disjoint. */}
-      <InstallPrompt />
+      {/* NOTHING UNINVITED ON THE HOMEPAGE. The Daily Five overlay went on
+          2026-08-30 for meeting a first visit with a full-screen pitch before
+          the visitor had seen anything the site offers, and the install card
+          followed it the same day when the owner cleared every pop-up but the
+          Trivia Gauntlet nudge. Waiting on engagement was not enough to save it:
+          the objection is that the page asks for something before the reader
+          does, not how long it waits first. app/WelcomeOverlay.jsx stays in the
+          tree, unmounted, so restoring that one is a line. */}
     </>
   );
 }
