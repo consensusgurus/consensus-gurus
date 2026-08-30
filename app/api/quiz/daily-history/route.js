@@ -150,11 +150,18 @@ export async function GET(req) {
         const born = acctMs.get(r.user_id);
         return (born && born >= dayEnd) ? { ...r, user_id: null, username: null } : r;
       });
-      // THE ROSTER AS IT STOOD ON THAT DAY. circuitKeysFor takes the ISO date,
-      // so a rotating circuit is read with the games it actually ran, and every
-      // other game on the slate is dropped before anything is scored.
-      const memberKeys = circuitOn ? circuitKeysFor(circuitId, dayISO) : null;
-      if (circuitOn && (!memberKeys || !memberKeys.length)) continue;
+      // THE ROSTER AS IT STOOD ON THAT DAY, narrowed again to the banks that
+      // actually RAN. circuitKeysFor answers "which games belong to this
+      // circuit", which is the current answer even for a past date: a circuit
+      // that GREW does not retroactively un-run the days before its newest
+      // member existed. Requiring all seven on a day the Gauntlet had five
+      // erased the whole archive (verified live: days 0). So a day is scored
+      // over the intersection, and a day carrying less than half the roster is
+      // not that circuit's day at all and is skipped.
+      const rosterKeys = circuitOn ? circuitKeysFor(circuitId, dayISO) : null;
+      const memberKeys = rosterKeys ? rosterKeys.filter((k) => dm.has(k)) : null;
+      const dayFloor = rosterKeys ? Math.max(2, Math.ceil(rosterKeys.length / 2)) : 0;
+      if (circuitOn && (!memberKeys || memberKeys.length < dayFloor)) continue;
       for (const [key, rows] of dm.entries()) {
         if (memberKeys && !memberKeys.includes(key)) continue;
         const gr = scoreGame(asPlayed(rows));
@@ -162,7 +169,8 @@ export async function GET(req) {
         gameResults.push({ key, quizId: `${key}-${suffix}`, field: gr.field, players: gr.players });
       }
       if (!gameResults.length) continue;
-      // A day the circuit did not fully publish is not a day it was run.
+      // Every bank that ran needs a registered field, or the day's crown would
+      // be decided over fewer games than the players were measured on.
       if (memberKeys && gameResults.length < memberKeys.length) continue;
       const dayBestN = memberKeys ? memberKeys.length : bestNForSuffix(suffix);
       const overall = combineDaily(gameResults, dayBestN);
@@ -205,6 +213,9 @@ export async function GET(req) {
         dateISO: dayISO,
         label: dayLabel,
         gameCount,
+        // How many of the circuit's CURRENT roster ran that day, so a client can
+        // say a day was scored over five banks rather than seven.
+        rosterCount: rosterKeys ? rosterKeys.length : null,
         maxTotal,
         field: eligible.length,
         winner: { username: w.username, userKey: w.userKey, total: w.total, gamesPlayed: w.gamesPlayed },
