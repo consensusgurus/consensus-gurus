@@ -267,26 +267,57 @@ const CSS = `
 /* PHONE: THE TALL GUTTER LIES DOWN. A column ladder is 640px of rungs, which
    beside a question on a 390px screen is most of the viewport spent on
    furniture. Under 820px it becomes the same condensed strip the row
-   orientation draws, 26px tall, and the labels go: seven names across 350px do
-   not fit, and the block you are on is named by the card beside it anyway.
+   orientation draws, 26px of rungs, with each bank NAMED under it.
+
+   THE NAMES STAY (owner, 2026-08-30). They were dropped here on the reasoning
+   that seven of them would not fit across 350px and that the card beside the
+   strip names the bank you are on. Neither held: measured on the Gauntlet's
+   roster the blocks take flex weight from their question counts, so on a 390px
+   phone the narrowest (Deep, 15 questions) is 26px and the widest (Streak, 40)
+   is 70px, against three-to-six-character names at 8.5px/800, which run 18 to
+   36px. And the card names only the CURRENT bank, while the whole point of the
+   strip is the six the reader is not on. Only games servable as one continuous
+   board reach this ladder, and lib/circuits' RUN_GAMES is the entire list, so
+   the names are known and short; anything that does overrun ellipsises.
+
    Everything the caller set inline has to be overridden here, which is what
    the !important marks are for: the height on the container and on every rung
    is a literal px value from the derived pitch.
    NO BACKTICKS IN THIS BLOCK. It is a template literal, and one closes it. */
 @media (max-width:820px){
-  .gl-col{flex-direction:row;gap:6px;align-items:flex-end;width:100%;height:26px!important}
-  .gl-col .gl-b{flex:var(--q,25) 1 0;height:100%}
-  .gl-col .gl-rungs{flex-direction:row;align-items:flex-end;height:100%;width:100%}
+  .gl-col{flex-direction:row;gap:6px;align-items:flex-end;width:100%;height:auto!important}
+  .gl-col .gl-b{flex:var(--q,25) 1 0;height:auto}
+  .gl-col .gl-rungs{flex-direction:row;align-items:flex-end;height:26px;width:100%}
   .gl-col .gl-b i{flex:1 1 0;min-width:0;width:auto!important;height:var(--t)!important}
-  .gl-col .gl-k{display:none}
-  .gl-col .gl-b.gone::after{left:var(--cut);right:0;top:0;bottom:0}
+  /* NAMED, not hidden (owner, 2026-08-30). See the note above the block: the
+     label goes back, under the bars. order is reset because the tall gutter
+     puts it ABOVE the rungs and the strip wants it below, which is the source
+     order. The hatch stops at the rungs so a spent bank does not cross out its
+     own name. */
+  .gl-col .gl-k{display:flex;order:0;margin:5px 0 0;justify-content:center}
+  .gl-col .gl-k b{font-size:8.5px;letter-spacing:.01em}
+  .gl-col .gl-k em{display:none}
+  .gl-col .gl-b.gone::after{left:var(--cut);right:0;top:0;height:26px;bottom:auto}
 }
 @media (max-width:640px){
   .gl-row{gap:5px}
   .gl-row .gl-rungs{height:34px}
   .gl-row .gl-b i{margin-right:0}
   .gl-row .gl-b.gone::after{height:34px}
-  .gl-k b{font-size:9.5px}
+  /* Centred under its own block rather than ranged left, which on a 26px
+     block read as the name of the gap beside it. */
+  .gl-k{justify-content:center}
+  .gl-k b{font-size:8.5px}
   .gl-k em{display:none}
+}
+/* THE NARROWEST PHONE. Measured in an iframe at 330px: everything reads at
+   8.5px except the shortest bank, whose block is only as wide as its share of
+   the questions (Deep is 15 of 180, so 22px), and "Deep" ellipsised to "De…".
+   Four pixels off each gap and half a pixel off the type buys it back, and at
+   330px there is no other claim on the width. Verified: all seven labels
+   render uncut. */
+@media (max-width:400px){
+  .gl-col,.gl-row{gap:4px}
+  .gl-k b{font-size:8px;letter-spacing:0}
 }
 `;
