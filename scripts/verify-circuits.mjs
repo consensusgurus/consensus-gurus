@@ -225,6 +225,70 @@ for (const c of CIRCUITS) {
   }
 }
 
+// ── 5b. a circuit that declares its own order obeys it ──────────────────────
+// `keys` still has to ascend (it is the canonical list and the ladder colours
+// from it), which check 5 above already proved. What is checked here is the
+// ORDER THE PLAYER ACTUALLY GETS: the tail is pinned in the order it is named,
+// the head is a genuine permutation of everything else, the same date always
+// gives the same answer, and different dates do not all give the same one.
+{
+  const DAYS = [];
+  for (let i = 0; i < 120; i += 1) {
+    DAYS.push(new Date(Date.UTC(2026, 7, 30) + i * 86400000).toISOString().slice(0, 10));
+  }
+  for (const c of CIRCUITS) {
+    if (!c.order || !Array.isArray(c.order.tail)) continue;
+    const canon = (c.keys || []).slice();
+    const seen = new Set();
+    for (const iso of DAYS) {
+      const got = circuitKeysFor(c.id, iso);
+      if (got.length !== canon.length) {
+        fails.push(`${c.id}: ${iso} returned ${got.length} keys, expected ${canon.length}`);
+        continue;
+      }
+      if ([...got].sort().join() !== [...canon].sort().join()) {
+        fails.push(`${c.id}: ${iso} is not a permutation of the roster`);
+        continue;
+      }
+      const tailGot = got.slice(got.length - c.order.tail.length);
+      if (tailGot.join() !== c.order.tail.join()) {
+        fails.push(`${c.id}: ${iso} ends ${tailGot.join(' > ')}, expected ${c.order.tail.join(' > ')}`);
+      }
+      // determinism: the same day, asked twice, is the same run
+      if (circuitKeysFor(c.id, iso).join() !== got.join()) {
+        fails.push(`${c.id}: ${iso} is not deterministic`);
+      }
+      seen.add(got.join());
+    }
+    // AND IT SHUFFLES FAIRLY, which is a stronger claim than "it varies" and
+    // the one that actually matters: every head game should open the run about
+    // as often as every other. A count test rather than a distinct-orders test
+    // because the first draft of this shuffle passed the latter easily while
+    // opening on one of its five games a third as often as the rest (it took
+    // the low bits of an LCG). 700 days is enough for the bound to be tight
+    // without being flaky.
+    const headLen = canon.length - c.order.tail.length;
+    if (headLen > 1) {
+      const LONG = 700;
+      const opens = new Map();
+      for (let i = 0; i < LONG; i += 1) {
+        const iso = new Date(Date.UTC(2026, 7, 30) + i * 86400000).toISOString().slice(0, 10);
+        const f = circuitKeysFor(c.id, iso)[0];
+        opens.set(f, (opens.get(f) || 0) + 1);
+      }
+      const want = LONG / headLen;
+      for (const [k, v] of opens) {
+        if (v < want * 0.6 || v > want * 1.6) {
+          fails.push(`${c.id}: ${k} opens ${v} of ${LONG} days, expected about ${Math.round(want)}; the shuffle is skewed`);
+        }
+      }
+      if (opens.size !== headLen) {
+        fails.push(`${c.id}: only ${opens.size} of ${headLen} head games ever open the run`);
+      }
+    }
+  }
+}
+
 // ── 6. the derived name list cannot drop a game silently ────────────────────
 // CIRCUIT_NAME_LISTS is what app/DailyStrip.jsx filters by. It maps keys to
 // display names and drops anything unresolved, so a typo would quietly shrink a
@@ -240,6 +304,33 @@ CIRCUIT_NAME_LISTS.forEach(([name, names], i) => {
     fails.push(`${c.id}: ${c.keys.length} keys but only ${names.length} resolved to a game name — a key is wrong`);
   }
 });
+
+function seedLocal(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function shuffleLocal(arr, seed) {
+  const out = arr.slice();
+  let s = (seed >>> 0) || 1;
+  for (let i = out.length - 1; i > 0; i -= 1) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    // HIGH BITS, never `s % (i + 1)`. The low-order bits of an LCG have very
+    // short periods, and taking the modulo of them skews the result badly:
+    // measured over 700 days, the first draft opened on Script 43 times
+    // against an expected 140. Scaling the full 32-bit word uses the high
+    // bits, which do not have that defect.
+    const j = Math.floor((s / 4294967296) * (i + 1));
+    const t = out[i]; out[i] = out[j]; out[j] = t;
+  }
+  return out;
+}
+function applyOrderLocal(c, live, day) {
+  if (!c.order || !Array.isArray(c.order.tail)) return live;
+  const tail = c.order.tail.filter((k) => live.includes(k));
+  const head = live.filter((k) => !tail.includes(k));
+  return [...shuffleLocal(head, seedLocal(`${day}:${c.id}`)), ...tail];
+}
 
 // ── 7. the read accessors agree with the data ───────────────────────────────
 for (const c of CIRCUITS) {
@@ -257,8 +348,9 @@ for (const c of CIRCUITS) {
         return filtered.filter((_, i) => pick.has(i));
       })()
     : filtered;
-  if (live.join(',') !== expected.join(',')) {
-    fails.push(`${c.id}: circuitKeysFor returned [${live.join(',')}], expected [${expected.join(',')}]`);
+  const want = applyOrderLocal(c, expected, todayIso);
+  if (live.join(',') !== want.join(',')) {
+    fails.push(`${c.id}: circuitKeysFor returned [${live.join(',')}], expected [${want.join(',')}]`);
   }
   if (live.length < 2) {
     fails.push(`${c.id}: only ${live.length} live game(s) today — the band needs at least 2 to render a run`);

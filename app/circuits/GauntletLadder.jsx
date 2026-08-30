@@ -55,9 +55,11 @@ import React, { useMemo } from 'react';
 // edit separates them all. Every game keeps its own colour everywhere else it
 // appears; here the tie back to identity is the label under the block.
 //
-// The ramp earns its keep too. Run order is shortest first, so a monotonic hue
-// walk means the ladder reads as heat climbing across the run, which makes the
-// ordering rule visible for free.
+// COLOUR BY `slot`, NOT BY POSITION. The Gauntlet shuffles its middle every
+// day, so coming off the array index would repaint every game each morning and
+// the colour would stop meaning anything. Sections carry a `slot`, their index
+// in the circuit's canonical key list, and that is what indexes the ramp: Atlas
+// is the same colour on Tuesday as it was on Monday, wherever it lands.
 export const LADDER_RAMP = [
   '#7dd3fc', // sky
   '#6ee7b7', // mint
@@ -194,7 +196,7 @@ export default function GauntletLadder({
               live ? 'live' : '',
             ].filter(Boolean).join(' ')}
             style={{
-              '--c': s.ladderColor || rampFor(bi),
+              '--c': s.ladderColor || rampFor(s.slot != null ? s.slot : bi),
               '--q': n,
               '--cut': `${n ? (((done + 1) / n) * 100).toFixed(2) : 0}%`,
             }}

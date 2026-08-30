@@ -71,6 +71,9 @@ export default function CircuitLanding({ circuit, games }) {
   // Can this circuit be played as one continuous quiz? Read off the circuit
   // rather than a name, so a second runnable circuit needs no edit here.
   const runnable = isRunnableCircuit(id);
+  // Does this circuit shuffle its order daily? The copy under the run list has
+  // to say which, because "shortest first" stops being true the moment it does.
+  const ordered = !!(circuit.order && Array.isArray(circuit.order.tail));
 
   function doShare() {
     const url = withRef(circuitShareUrl(id));
@@ -249,7 +252,10 @@ export default function CircuitLanding({ circuit, games }) {
         })}
       </div>
       <div className="clp-note">
-        Shortest first, longest last. Each game pays 15 points for a win down to 1 for finishing, and the
+        {ordered
+          ? `The last two are always the last two. The rest are shuffled fresh every day, so the run has a different shape each morning. `
+          : 'Shortest first, longest last. '}
+        Each game pays 15 points for a win down to 1 for finishing, and the
         circuit adds all {n} up. A game played on its own still counts toward it, but you need all {n} in
         the same day to take a rank on the circuit board.
       </div>

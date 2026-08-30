@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import RunClient from './RunClient';
-import { circuitById, circuitGamesFor, circuitKeysFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
+import { circuitById, circuitGamesFor, circuitKeysFor, circuitSlotFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { SITE_URL } from '@/lib/site';
 
@@ -150,6 +150,10 @@ export default function CircuitRunPage({ params }) {
       // the note on `subject` in lib/daily-games.js.
       subject: g.subject || g.cat || '',
       accent: g.color || '#233a63',
+      // The game's slot in the circuit's CANONICAL key list, not in today's
+      // shuffled run. The ladder colours by this so a game keeps its colour
+      // from one day to the next even though its position moves.
+      slot: circuitSlotFor(circuit.id, key),
       quizId: day.quizId,
       num: day.num,
       topic: day.topic || '',
