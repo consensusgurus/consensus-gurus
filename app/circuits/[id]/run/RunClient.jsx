@@ -598,11 +598,6 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     <u>One life each.</u>
                   </h1>
                 )}
-                <p className="rn-lead">
-                  Miss once and that quiz is finished for the day, and the questions under it stay
-                  dark. The next one starts on its own, with your life reset. Every quiz still
-                  counts on its own board.
-                </p>
                 <div className="rn-roster">
                   {sections.map((s) => (
                     <div key={s.key} className="rn-rrow" style={{ '--acc': rampFor(s.slot != null ? s.slot : 0) }}>
@@ -930,16 +925,20 @@ const CSS = `
 .rn-fine{font-size:12px;line-height:1.65;font-weight:600;color:#66748f;margin:16px 0 0;}
 
 /* The start list. */
-.rn-roster{display:grid;margin:24px 0 0;border-top:1px solid rgba(255,255,255,.08);}
-.rn-rrow{display:flex;align-items:center;gap:14px;padding:10px 0 10px 13px;
-  border-bottom:1px solid rgba(255,255,255,.06);border-left:3px solid var(--acc);}
-.rn-rrow b{font-size:15px;font-weight:800;color:#fff;width:70px;flex:none;}
-.rn-rrow i{font-style:normal;font-size:12.5px;font-weight:600;color:#9aa8c4;flex:1;min-width:0;
+/* THE START LIST IS THE BODY OF THE GATE. The paragraph that used to sit above
+   it restated the headline in grey, so it went and the list took the height:
+   the seven quizzes are the thing a reader is actually deciding about, and at
+   this size the names carry from across a room. */
+.rn-roster{display:grid;margin:26px 0 0;border-top:1px solid rgba(255,255,255,.09);}
+.rn-rrow{display:flex;align-items:center;gap:16px;padding:15px 0 15px 16px;
+  border-bottom:1px solid rgba(255,255,255,.07);border-left:4px solid var(--acc);}
+.rn-rrow b{font-size:19px;font-weight:800;letter-spacing:-.02em;color:#fff;width:96px;flex:none;}
+.rn-rrow i{font-style:normal;font-size:15px;font-weight:600;color:#9aa8c4;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rn-rrow s{text-decoration:none;font-family:${MONO};font-size:11px;color:#66748f;
-  width:70px;text-align:right;flex:none;}
-.rn-rrow em{font-style:normal;font-family:${MONO};font-size:12px;color:#66748f;
-  font-variant-numeric:tabular-nums;width:28px;text-align:right;flex:none;}
+.rn-rrow s{text-decoration:none;font-family:${MONO};font-size:12.5px;color:#66748f;
+  width:78px;text-align:right;flex:none;}
+.rn-rrow em{font-style:normal;font-family:${MONO};font-size:14px;color:#8ea6d6;
+  font-variant-numeric:tabular-nums;width:34px;text-align:right;flex:none;}
 
 .rn-go{display:inline-flex;align-items:center;gap:9px;background:${T.cta};color:#fff;border:0;
   border-radius:11px;padding:15px 22px;font-family:inherit;font-weight:800;font-size:15px;
@@ -1101,10 +1100,11 @@ const CSS = `
   .rn-body{padding:16px 0 22px;max-width:none;}
   .rn-h1{font-size:27px;}
   .rn-lead{font-size:13.5px;margin-top:12px;}
-  .rn-roster{margin-top:16px;}
-  .rn-rrow{gap:10px;padding:8px 0 8px 11px;}
-  .rn-rrow b{width:60px;font-size:13.5px;}
-  .rn-rrow i{font-size:11.5px;}
+  .rn-roster{margin-top:18px;}
+  .rn-rrow{gap:12px;padding:12px 0 12px 13px;}
+  .rn-rrow b{width:74px;font-size:16px;}
+  .rn-rrow i{font-size:13px;}
+  .rn-rrow em{font-size:12.5px;}
   .rn-rrow s{display:none;}
   .rn-go{width:100%;justify-content:center;margin-top:18px;}
   .rn-q{font-size:20px;margin-bottom:16px;}
