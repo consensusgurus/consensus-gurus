@@ -29,14 +29,17 @@ import React from 'react';
 
 // An unlit rung, by ground. White at 10% is the right dim on near-black and
 // is simply not there on a pale surface, which is what the home is.
-const DIM = 'rgba(255,255,255,0.10)';
+// On a stage this follows the register through the lift channel; the
+// fallback is what every surface off the stage gets, and the home overrides
+// it explicitly because it has no channel to read.
+const DIM = 'rgba(var(--stg-lift,255,255,255),0.10)';
 const DIM_LIGHT = 'rgba(11,15,26,0.11)';
 
 function fieldInk(v, light) {
   const f = Math.max(0, Math.min(1, Number(v) || 0));
   return light
     ? 'rgba(11,15,26,' + (0.07 + 0.14 * f).toFixed(3) + ')'
-    : 'rgba(255,255,255,' + (0.07 + 0.16 * f).toFixed(3) + ')';
+    : 'rgba(var(--stg-lift,255,255,255),' + (0.07 + 0.16 * f).toFixed(3) + ')';
 }
 
 export default function StageLadder({
@@ -81,10 +84,10 @@ const CSS = `
 .stl-wrap{display:flex;flex-direction:column;gap:9px;min-width:0;}
 .stl-wrap.v{height:100%;}
 .stl-l{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.14em;
-  text-transform:uppercase;color:#66748f;}
+  text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stl{display:flex;align-items:flex-end;gap:5px;width:100%;}
 .stl-b{display:flex;align-items:flex-end;gap:1px;min-width:0;height:100%;}
-.stl-r{flex:1 1 0;min-width:1px;min-height:2px;border-radius:1px;background:rgba(255,255,255,.10);}
+.stl-r{flex:1 1 0;min-width:1px;min-height:2px;border-radius:1px;background:rgba(var(--stg-lift,255,255,255),.10);}
 .stl.v{flex-direction:column;align-items:stretch;height:100%;gap:5px;}
 .stl.v .stl-b{flex-direction:column;align-items:stretch;height:auto;width:100%;}
 .stl.v .stl-r{width:100%;}
