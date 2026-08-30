@@ -50,6 +50,7 @@ import RunNextUp from '../../RunNextUp';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
 import GauntletFinale from '../../GauntletFinale';
+import MissList, { missOf, MissAnswer, MISS_CSS } from '../../RunMisses';
 import useCircuitHistory from '../../useCircuitHistory';
 import { T } from '@/lib/theme';
 
@@ -57,15 +58,16 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
 const Q_SECONDS = 20;        // the same clock all five games run
-// HOW LONG THE HANDOVER HOLDS. It ran 4.2s when the card between quizzes was
-// two lines. It now carries the verdict, three figures about the quiz just
-// finished and the handover to the next with three more, and 4.2s is not
-// enough to read that, let alone take it in. Eight is: a fast player presses
-// Next now and loses nothing, a slow one is no longer robbed of the screen,
-// and seven handovers cost 56s of a run that runs several minutes. The drain
-// bar reads its duration from this same constant (--dwell below) so the bar
-// and the timeout cannot drift apart.
-const VERDICT_MS = 8000;
+// HOW LONG THE HANDOVER HOLDS. 4.2s when the card was two lines, 8s once it
+// carried the verdict and six figures, and THIRTY from 2026-08-30 (owner), when
+// it also began naming the question that ended the quiz and the answer that was
+// wanted. That is something to read and think about rather than glance at, and
+// the cost of erring long is nil: Next now advances immediately, Hold stops the
+// clock, and nobody who wants to move on is made to wait. Erring short cannot
+// be undone, because the next quiz has already started. The drain bar reads its
+// duration from this same constant (--dwell below) so the bar and the timeout
+// cannot drift apart.
+const VERDICT_MS = 30000;
 const RIGHT_MS = 420;        // the green flash between questions, as in the solo clients
 
 function etToday() {
@@ -196,6 +198,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // directly: the sequence is the moment a run ends, not a thing to sit
   // through on the way to a leaderboard you have already seen.
   const [curtain, setCurtain] = useState(false);
+  // THE MISS SUMMARY IS ASKED FOR (owner, 2026-08-30). It used to play as the
+  // finale's last screen, which made every run sit through seven questions on
+  // the way to its scorecard. It is a button on the card now: the player who
+  // wants to know what beat them presses it, and the one who does not never
+  // sees it.
+  const [misses, setMisses] = useState(false);
   const curtainOnce = useRef(false);
   const doneAtLoad = useRef(null);
   const lockRef = useRef(false);
@@ -633,6 +641,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const lastSec = last ? sections.find((s) => s.key === last.key) : null;
   const lastAvg = last && field && field.avg[last.key] != null ? field.avg[last.key] : null;
   const lastBeaten = last && field ? field.beaten(last.key, last.score) : null;
+  const lastMiss = missOf(lastSec, last);
 
   return (
     // NO SITE CHROME AT ALL. Every other daily wears DailyChrome (the site
@@ -1027,7 +1036,18 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                  the run always held between quizzes, doing more with it. */
               <div
                 className="rn-chm"
-                style={{ '--from': lastSec ? lastSec.accent : T.blue, '--to': upNext ? upNext.accent : T.blue }}
+                /* THE RAMP, NOT THE REGISTRY ACCENT (owner, 2026-08-30: the
+                   colour "almost blends fully into the background"). A game's
+                   registry colour is a deep navy-green chosen against a light
+                   slate row, and the next quiz's name is set in it at 58px on a
+                   near-black stage, where #0f5132 is very nearly the ground. The
+                   ladder's ramp is the palette this stage actually runs on, every
+                   step a high-lightness pastel, and it is already the colour that
+                   bank wears on the ladder two inches away. */
+                style={{
+                  '--from': lastSec ? rampFor(lastSec.slot) : T.blue,
+                  '--to': upNext ? rampFor(upNext.slot) : T.blue,
+                }}
               >
                 <span className={`rn-eye${last.status === 'won' ? ' ok' : ' out'}`}>
                   {last.status === 'won' ? 'Cleared · no misses' : 'Out · one wrong'}
@@ -1051,6 +1071,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   <div><b>{fmtTime(last.secs * 1000)}</b><i>your clock</i></div>
                   <div><b>{last.total - last.score}</b><i>never reached</i></div>
                 </div>
+                <MissAnswer miss={lastMiss} />
                 {upNext ? (
                   <div className="rn-hand">
                     <span className="rn-he">Next up · your life resets</span>
@@ -1211,6 +1232,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     {copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} />}
                     {copied ? 'Copied' : 'Share the run'}
                   </button>
+                  <button type="button" className={`rn-vb${misses ? ' on' : ''}`} onClick={() => setMisses((v) => !v)}>
+                    Miss summary
+                  </button>
                   <a className="rn-vb" href={runSummaryHref(circuitId)}>The full board</a>
                   {/* PLAY IT AGAIN (owner, 2026-08-30). Today's result is filed
                       and the board keeps it, so the only thing left to offer is
@@ -1221,6 +1245,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   </button>
                   <a className="rn-vb" href="/"><Home size={15} strokeWidth={2.8} />Home</a>
                 </div>
+                {misses ? (
+                  <MissList sections={sections} results={r.results} colourOf={(s) => rampFor(s.slot)} />
+                ) : null}
                 <p className="rn-fine">
                   {r.practice
                     ? `A practice run posts nothing. Today's results are already on the board above, and they are the ones that count.`
@@ -1254,6 +1281,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   );
 }
 const CSS = `
+${MISS_CSS}
 /* THE RUN IS A DARK STAGE, not white cards on navy (owner, 2026-08-30, "it
    should look just like the mock-up"). Every other daily puts its board in a
    white card because the board is an object you manipulate; this is a question
@@ -1533,6 +1561,7 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-vb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 14px;font-family:inherit;
   font-weight:800;font-size:13.5px;color:#eef2fa;cursor:pointer;text-decoration:none;}
+.rn-vb.on{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
 .rn-vb.pri{background:#7dd3fc;border-color:#7dd3fc;color:#08222e;}
 .rn-vb:hover{filter:brightness(1.1);}
 .rn-sacts{margin-top:22px;}
