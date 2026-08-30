@@ -40,15 +40,14 @@ import { useHoverStale } from '@/lib/hover-armed';
 import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
 import Grain from '../../../Grain';
 import Footer from '../../../Footer';
-import DailyChrome from '../../../DailyChrome';
 import LoftCap from '../../../LoftCap';
 import useAbandonFlush from '../../../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
 import { runSummaryHref, circuitShareUrl } from '@/lib/circuits';
-import CircuitScorecard from '../../CircuitScorecard';
-import GauntletLadder from '../../GauntletLadder';
+import GauntletLadder, { rampFor } from '../../GauntletLadder';
+import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
 import { T } from '@/lib/theme';
 
@@ -172,6 +171,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // endings cannot ask the route different questions, and only once the run is
   // over: mid-run it would be a board the player is not on yet.
   const boardQ = useCircuitBoard(circuitId, done);
+  // The same board, read once on the gate, for the headline. It stops when the
+  // run starts and the call above takes over at the finish.
+  const boardGate = useCircuitBoard(circuitId, hydrated && !done && r.phase === 'idle');
 
   // ── hydration ────────────────────────────────────────────────────────────
   // Restores a run in progress, and on a fresh one marks every game already
@@ -447,21 +449,50 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     ];
   })();
 
+  // ── the field ──────────────────────────────────────────────────────────
+  // Today's survival curve per bank, from the score distribution the board
+  // route already returns. Fetched once, on the gate, because the gate's own
+  // headline is made of it. A bank with too small a field simply has no curve
+  // and every surface below falls back to its plain form.
+  const field = useGauntletField(sections, hydrated);
+  const fieldOn = !!(field && field.any);
+
+  // How many ran every bank clean today. Not derivable from the per-bank
+  // distributions (they cannot tell you it was the same person each time), so
+  // it comes off the combined board, where a row carries its per-game score
+  // and total.
+  const standing = (() => {
+    // boardGate, not boardQ: on the gate the finish-time call is still inactive
+    // and holding null.
+    const src = boardGate.data || boardQ.data;
+    const rows = src && Array.isArray(src.overall) ? src.overall : null;
+    if (!rows) return null;
+    let n = 0;
+    for (const row of rows) {
+      const pg = row.perGame || {};
+      let all = true;
+      for (const s of sections) {
+        const p = pg[s.key];
+        if (!p || p.abandoned || !(p.total > 0) || p.score !== p.total) { all = false; break; }
+      }
+      if (all) n += 1;
+    }
+    return n;
+  })();
+
+  const lastSec = last ? sections.find((s) => s.key === last.key) : null;
+  const lastAvg = last && field && field.avg[last.key] != null ? field.avg[last.key] : null;
+  const lastBeaten = last && field ? field.beaten(last.key, last.score) : null;
+
   return (
-    // The daily ground, chrome and cap, so the run reads as one of our pages
-    // rather than a page of its own: `loft-page` is what paints the navy, and
-    // the rule that does it is injected by LoftCap, so the two go together.
-    // DailyChrome sits OUTSIDE the column, like every daily client, so its
-    // bands run full bleed. It takes no slug: the run is not one game, and
-    // with none the slate rail stays off and the Five bar renders nothing.
-    <div className="loft-page rn" style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: 'hidden' }}>
+    // ONE HEADER, not two. Every other daily wears DailyChrome (the site
+    // masthead plus the stat bar) above its cap, which on this page put two
+    // full headers and a rank strip between the reader and the run. The
+    // Gauntlet is a sitting, not a page you browse to from a nav, so it keeps
+    // the cap alone and hands back the escape as a single Leave control. The
+    // loft ground and its ink rules come from LoftCap either way.
+    <div className="loft-page rn" style={{ minHeight: '100vh', background: T.ground, position: 'relative', overflowX: 'hidden' }}>
       <Grain />
-      <DailyChrome loft />
-      {/* THE PLAIN BAND, not the Trivia hue. `cat` stays so the eyebrow still
-          says what the run is, but a circuit is not one game and must not be
-          painted as one: the cap's colour reaches the A-to-Z strip, the stage
-          wash and the scorecard through --cc / --cat-hue. See `neutral` in
-          app/LoftCap.jsx. */}
       <LoftCap
         neutral
         name={circuitName}
@@ -473,192 +504,285 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       />
       <style>{CSS}</style>
 
+      {/* THE CLOCK, full bleed on the stage's own top edge, so it sits in
+          peripheral vision instead of competing with the question. Red under
+          five seconds. It holds its lane at every phase so the stage does not
+          jump by three pixels between question and verdict. */}
+      <div className={`rn-tick${r.phase === 'playing' && remainFrac < 0.25 ? ' hot' : ''}`}>
+        <span style={{
+          width: r.phase === 'playing' ? `${remainFrac * 100}%` : '0%',
+          background: sec ? sec.accent : 'transparent',
+        }} />
+      </div>
+
       <div className="rn-wrap">
-        {/* THE LADDER. It is the only thing on screen that persists across
-            every quiz, which is what makes this read as one sitting, and it is
-            the object the scorecard and the share card are drawn on too. It
-            replaced a rail of pips that read "Atlas 17/25": the pips said what
-            you scored and nothing about what you never reached, which on a
-            one-life quiz is the whole point.
-
-            NO `field` PROP YET, so the unlit rungs render at a flat dim and no
-            average is marked. That is deliberate on the day two banks launch,
-            when there is no field to draw. See GauntletLadder for what turns
-            on when the curve is passed.
-
-            Once the run is over the SCORECARD draws the ladder, from the same
-            states, so this one stands down rather than the two stacking. */}
-        {!done ? (
-          <div className="rn-lad">
+        <div className="rn-stage">
+          {/* THE LADDER, in its own gutter, the one thing on screen that
+              persists across every quiz. It is what makes this read as one
+              sitting rather than seven pages, and the scorecard draws the same
+              object from the same state. On a phone it lies down across the
+              top instead (the component's own media query). */}
+          <div className="rn-gutter">
+            <span className="rn-lcap">{done ? 'Your run' : fieldOn ? "Today's field" : 'Run'}</span>
             <GauntletLadder
+              orientation="col"
+              height={520}
               sections={sections}
               results={r.results}
               activeIndex={r.phase === 'playing' ? r.si : -1}
               activeAnswered={r.i}
+              field={fieldOn ? field.curves : null}
               labels
             />
           </div>
-        ) : null}
 
-        {r.phase === 'idle' ? (
-          <div className="rn-card rn-gate">
-            <span className="rn-eye">{circuitName} · one long quiz</span>
-            {/* The stake, stated as the headline rather than buried as the
-                fourth clause of a paragraph. Every figure is counted off
-                `sections`, so adding a bank changes no copy here. */}
-            <h1 className="rn-h1 rn-hero">
-              {askable} questions.<br />
-              {N} quizzes.<br />
-              <u>One life each.</u>
-            </h1>
-            <p className="rn-lead">
-              Miss once and that quiz is finished for the day, and the questions under it stay
-              dark. The next one starts on its own, with your life reset. Every quiz still
-              counts on its own board.
-            </p>
-            <ul className="rn-list">
-              {sections.map((s) => (
-                <li key={s.key} style={{ '--acc': s.accent }}>
-                  <b>{s.name}</b>
-                  <i>{s.subject || s.cat || s.tag}</i>
-                  <em>{s.questions.length}</em>
-                </li>
-              ))}
-            </ul>
-            <button type="button" className="rn-go" onClick={startRun}>
-              Start the run<ArrowRight size={17} strokeWidth={2.8} />
-            </button>
-            <p className="rn-fine">Twenty seconds a question. Keys 1 to 4 answer.</p>
-          </div>
-        ) : null}
-
-        {r.phase === 'playing' && question ? (
-          <div className="rn-card rn-play" style={{ '--acc': sec.accent }}>
-            {/* The clock moves to the card's own top edge, full bleed, so it
-                sits in peripheral vision instead of competing with the
-                question. It turns danger red under five seconds. */}
-            <div className="rn-bar edge"><span style={{ width: `${remainFrac * 100}%`, background: remainFrac < 0.25 ? T.danger : sec.accent }} /></div>
-            <div className="rn-meta">
-              <span className="rn-game">{sec.name}</span>
-              {question.cat ? <span className="rn-cat">{question.cat}</span> : null}
-              {tierName ? <span className="rn-tier">{tierName}</span> : null}
-              <span className="rn-count">{r.i + 1} of {sec.questions.length}</span>
-            </div>
-            <h2 className="rn-q">{question.q}</h2>
-            <div className={`rn-ch${hovStale ? ' nohov' : ''}`}>
-              {question.choices.map((c, k) => (
-                <button
-                  key={k}
-                  type="button"
-                  className={`rn-c${lock && k === question.correct ? ' ok' : ''}`}
-                  onClick={() => answer(k)}
-                  disabled={lock}
-                >
-                  <span className="rn-k">{k + 1}</span>{c}
+          <div className="rn-body">
+            {r.phase === 'idle' ? (
+              <div className="rn-gate">
+                <span className="rn-eye">{circuitName} · one long quiz</span>
+                {/* The headline is the field when there is one, because
+                    "four are still standing" is the most honest description of
+                    what this is, and the rule when there is not. */}
+                {fieldOn && field.started >= FIELD_FLOOR ? (
+                  <h1 className="rn-h1">
+                    <var>{field.started}</var> played today.<br />
+                    {standing != null && standing > 0
+                      ? <><var>{standing}</var> ran the whole thing clean.</>
+                      : <>Nobody has cleared all <var>{N}</var> yet.</>}
+                  </h1>
+                ) : (
+                  <h1 className="rn-h1">
+                    <var>{askable}</var> questions.<br />
+                    <var>{N}</var> quizzes.<br />
+                    <u>One life each.</u>
+                  </h1>
+                )}
+                <p className="rn-lead">
+                  Miss once and that quiz is finished for the day, and the questions under it stay
+                  dark. The next one starts on its own, with your life reset. Every quiz still
+                  counts on its own board.
+                </p>
+                <div className="rn-roster">
+                  {sections.map((s) => (
+                    <div key={s.key} className="rn-rrow" style={{ '--acc': rampFor(s.slot != null ? s.slot : 0) }}>
+                      <b>{s.name}</b>
+                      <i>{s.subject || s.cat || s.tag}</i>
+                      {fieldOn && field.avg[s.key] != null
+                        ? <s>avg {field.avg[s.key].toFixed(1)}</s>
+                        : <s />}
+                      <em>{s.questions.length}</em>
+                    </div>
+                  ))}
+                </div>
+                <button type="button" className="rn-go" onClick={startRun}>
+                  Take your run<ArrowRight size={17} strokeWidth={2.8} />
                 </button>
-              ))}
-            </div>
-            {/* THE LIFE TOKEN. One lit dot, always on screen, in the quiz's
-                colour. The mechanic that separates this from every other quiz
-                on the site had no picture at all before it. */}
-            <div className="rn-run">
-              <span className="rn-life"><s />One life · {sec.name}</span>
-              <span>{answeredSoFar} right in the run · {fmtTime(Date.now() - r.t0)}</span>
-            </div>
-          </div>
-        ) : null}
-
-        {r.phase === 'verdict' && last ? (
-          <div className="rn-card rn-verd" style={{ '--acc': (sections.find((s) => s.key === last.key) || {}).accent }}>
-            <span className="rn-eye">{last.status === 'won' ? 'Cleared' : 'Out'}</span>
-            <h2 className="rn-vh">
-              {last.status === 'won'
-                ? `You ran ${(sections.find((s) => s.key === last.key) || {}).name} clean.`
-                : `${(sections.find((s) => s.key === last.key) || {}).name} ends at ${last.score} of ${last.total}.`}
-            </h2>
-            <div className="rn-vfig">
-              <div><b>{last.total - last.score}</b><i>never reached</i></div>
-              <div><b>{fmtTime(last.secs * 1000)}</b><i>your clock</i></div>
-              <div><b>{cleared}</b><i>banked so far</i></div>
-            </div>
-            {/* THE HANDOVER. The next quiz's name, set large, in its own
-                colour, plus the one reassurance that was previously unsaid
-                anywhere: the life comes back. */}
-            {upNext ? (
-              <div className="rn-hand" style={{ '--to': upNext.accent }}>
-                <span className="rn-he">Next up · your life resets</span>
-                <span className="rn-hn">{upNext.name}</span>
-                <span className="rn-hs">{upNext.subject || upNext.cat || upNext.tag} · {upNext.questions.length} questions</span>
+                <p className="rn-fine">
+                  Twenty seconds a question. Keys 1 to 4 answer.
+                  {fieldOn ? <><br />The dim rungs beside you are where today&rsquo;s players fell, and the bright one on each block is the average.</> : null}
+                </p>
               </div>
-            ) : (
-              <p className="rn-vs">That was the last one. Here is how the run went.</p>
-            )}
-            {/* Keyed on the resume count so the bar RESTARTS with the fresh
-                timeout a resume starts. Without the key the CSS animation
-                picks up where it paused while the timer runs the full dwell
-                again, and the bar empties while the card sits there. The bar
-                takes its duration from VERDICT_MS rather than a second copy of
-                the number in the stylesheet. */}
-            <div className={`rn-vbar${hold ? ' held' : ''}`} style={{ '--dwell': `${VERDICT_MS}ms` }}><span key={resumes} /></div>
-            <div className="rn-vacts">
-              <button type="button" className="rn-vb pri" onClick={() => { setHold(false); nextSection(); }}>
-                {upNext ? 'Next now' : 'See the run'}<ArrowRight size={15} strokeWidth={2.8} />
-              </button>
-              <button type="button" className="rn-vb" onClick={() => { if (hold) setResumes((k) => k + 1); setHold(!hold); }}>
-                {hold ? <><Play size={14} strokeWidth={2.8} />Resume</> : <><Pause size={14} strokeWidth={2.8} />Hold</>}
-              </button>
-              <a className="rn-vb" href={`/circuits/${circuitId}`}>Leave the run</a>
-            </div>
-          </div>
-        ) : null}
+            ) : null}
 
-        {done ? (
-          <CircuitScorecard
-            rail={false}
-            hero={(
-              <GauntletLadder sections={sections} results={r.results} labels />
-            )}
-            eyebrow={`${circuitName} · ${dateLabel}`}
-            headline={perfect === N ? 'You cleared the whole run.' : 'Run complete.'}
-            figures={[
-              { v: cleared, k: `of ${askable} questions`, big: true },
-              { v: perfect, k: `of ${N} cleared` },
-              { v: fmtTime(runSecs * 1000), k: 'on the clock' },
-            ]}
-            rows={sections.map((sc) => {
-              const res = r.results.find((x) => x.key === sc.key);
-              return {
-                key: sc.key,
-                name: sc.name,
-                accent: sc.accent,
-                sub: res && res.status === 'banked' ? 'played earlier today' : (sc.subject || sc.cat || sc.tag),
-                score: res ? res.score : 0,
-                total: sc.questions.length,
-                right: res && res.status === 'won' ? 'clean' : (res && res.secs ? fmtTime(res.secs * 1000) : ''),
-                state: res
-                  ? (res.status === 'won' ? 'won' : res.status === 'banked' ? 'bank' : 'out')
-                  : 'open',
-              };
-            })}
-            board={{
-              rows: (boardQ.data && Array.isArray(boardQ.data.overall)) ? boardQ.data.overall : [],
-              me: (boardQ.data && boardQ.data.me) || null,
-              field: (boardQ.data && boardQ.data.overallField) || 0,
-              keys: sections.map((sc) => sc.key),
-              maxTotal: (boardQ.data && boardQ.data.maxTotal) || N * 15,
-              limit: 5,
-            }}
-            boardState={boardQ.state}
-            boardNote={`Each quiz pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the ${N} up.`}
-            actions={[
-              { label: 'The full board', href: runSummaryHref(circuitId), primary: true, key: 'board',
-                icon: null },
-              { label: copied ? 'Copied' : 'Share the run', onClick: shareRun, key: 'share',
-                icon: copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} /> },
-              { label: 'Home', href: '/', key: 'home', icon: <Home size={15} strokeWidth={2.8} /> },
-            ]}
-            fine={`Each quiz counted on its own board as you played it. The run board ranks the combined placement across all ${N}.`}
-          />
+            {r.phase === 'playing' && question ? (
+              <div className="rn-play" style={{ '--acc': sec.accent }}>
+                <div className="rn-meta">
+                  <span className="rn-game">{sec.name}</span>
+                  {question.cat ? <span className="rn-chip">{question.cat}</span> : null}
+                  {tierName ? <span className="rn-chip tier">{tierName}</span> : null}
+                  <span className="rn-count">{r.i + 1} of {sec.questions.length}</span>
+                </div>
+                <h2 className="rn-q">{question.q}</h2>
+                <div className={`rn-ch${hovStale ? ' nohov' : ''}`}>
+                  {question.choices.map((c, k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={`rn-c${lock && k === question.correct ? ' ok' : ''}`}
+                      onClick={() => answer(k)}
+                      disabled={lock}
+                    >
+                      <span className="rn-k">{k + 1}</span>{c}
+                    </button>
+                  ))}
+                </div>
+                <div className="rn-foot">
+                  {/* THE LIFE TOKEN. One lit dot, always on screen, in the
+                      quiz's own colour. The mechanic that separates this from
+                      every other quiz on the site had no picture before it. */}
+                  <span className="rn-life"><s />One life · {sec.name}</span>
+                  {fieldOn && field.curves[sec.key] ? (
+                    <span className="rn-chip alive">
+                      {Math.round((field.curves[sec.key][r.i] || 0) * (field.plays[sec.key] || 0))} of {field.plays[sec.key]} still alive here
+                    </span>
+                  ) : null}
+                  <span className="rn-tally">{answeredSoFar} right in the run · {fmtTime(Date.now() - r.t0)}</span>
+                </div>
+              </div>
+            ) : null}
+
+            {r.phase === 'verdict' && last ? (
+              /* THE HANDOVER. The finished quiz's colour washes out to the
+                 left, the next one's arrives on the right, and its name is set
+                 large enough to be the thing you read. It is the same screen
+                 the run always held between quizzes, doing more with it. */
+              <div
+                className="rn-chm"
+                style={{ '--from': lastSec ? lastSec.accent : T.blue, '--to': upNext ? upNext.accent : T.blue }}
+              >
+                <span className={`rn-eye${last.status === 'won' ? ' ok' : ' out'}`}>
+                  {last.status === 'won' ? 'Cleared · no misses' : 'Out · one wrong'}
+                </span>
+                <h2 className="rn-vh">
+                  {lastSec ? lastSec.name : 'That quiz'}{last.status === 'won' ? ' run clean, ' : ' ends at '}
+                  <u className={last.status === 'won' ? 'ok' : ''}>{last.score} of {last.total}</u>.
+                </h2>
+                <div className="rn-vfig">
+                  {lastAvg != null ? (
+                    <div>
+                      <b className={last.score >= lastAvg ? 'up' : 'dn'}>
+                        {last.score >= lastAvg ? '+' : '−'}{Math.abs(last.score - lastAvg).toFixed(1)}
+                      </b>
+                      <i>vs today&rsquo;s {lastAvg.toFixed(1)} average</i>
+                    </div>
+                  ) : null}
+                  {lastBeaten != null ? (
+                    <div><b className="up">{Math.round(lastBeaten * 100)}%</b><i>of the field beaten</i></div>
+                  ) : null}
+                  <div><b>{fmtTime(last.secs * 1000)}</b><i>your clock</i></div>
+                  <div><b>{last.total - last.score}</b><i>never reached</i></div>
+                </div>
+                {upNext ? (
+                  <div className="rn-hand">
+                    <span className="rn-he">Next up · your life resets</span>
+                    <span className="rn-hn">{upNext.name}</span>
+                    <span className="rn-hs">{upNext.subject || upNext.cat || upNext.tag} · {upNext.questions.length} questions</span>
+                  </div>
+                ) : (
+                  <div className="rn-hand">
+                    <span className="rn-he">That was the last one</span>
+                    <span className="rn-hn">Results</span>
+                  </div>
+                )}
+                {/* Keyed on the resume count so the bar RESTARTS with the fresh
+                    timeout a resume starts. Without the key the animation picks
+                    up where it paused while the timer runs the full dwell
+                    again, and the bar empties while the card sits there. It
+                    takes its duration from VERDICT_MS rather than a second copy
+                    of the number in the stylesheet. */}
+                <div className={`rn-vbar${hold ? ' held' : ''}`} style={{ '--dwell': `${VERDICT_MS}ms` }}>
+                  <span key={resumes} />
+                </div>
+                <div className="rn-vacts">
+                  <button type="button" className="rn-vb pri" onClick={() => { setHold(false); nextSection(); }}>
+                    {upNext ? 'Next now' : 'See the run'}<ArrowRight size={15} strokeWidth={2.8} />
+                  </button>
+                  <button type="button" className="rn-vb" onClick={() => { if (hold) setResumes((k) => k + 1); setHold(!hold); }}>
+                    {hold ? <><Play size={14} strokeWidth={2.8} />Resume</> : <><Pause size={14} strokeWidth={2.8} />Hold</>}
+                  </button>
+                  <a className="rn-vb" href={`/circuits/${circuitId}`}>Leave the run</a>
+                </div>
+              </div>
+            ) : null}
+
+            {done ? (
+              <div className="rn-done">
+                <div className="rn-sc-hero">
+                  <div className="rn-sc-big">
+                    {cleared}<small>/{askable}</small>
+                    <i>questions cleared</i>
+                  </div>
+                  <div className="rn-sc-figs">
+                    <div><b>{perfect}</b><i>of {N} cleared</i></div>
+                    <div><b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i></div>
+                    {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank)
+                      ? <div><b>#{boardQ.data.me.rank}</b><i>of {boardQ.data.overallField || 0}</i></div> : null}
+                    {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.total)
+                      ? <div><b>{Math.round(boardQ.data.me.total * 10) / 10}</b><i>of {(boardQ.data && boardQ.data.maxTotal) || N * 15} points</i></div> : null}
+                  </div>
+                </div>
+
+                <span className="rn-lcap rn-scl">The run</span>
+                <GauntletLadder
+                  orientation="row"
+                  sections={sections}
+                  results={r.results}
+                  field={fieldOn ? field.curves : null}
+                  labels
+                />
+
+                <div className="rn-scrows">
+                  {sections.map((sc) => {
+                    const res = r.results.find((x) => x.key === sc.key);
+                    const st = res ? res.status : null;
+                    const bt = res && field ? field.beaten(sc.key, res.score) : null;
+                    return (
+                      <div key={sc.key} className="rn-scr" style={{ '--acc': rampFor(sc.slot != null ? sc.slot : 0) }}>
+                        <b>{sc.name}</b>
+                        <i>
+                          {st === 'banked' ? 'played earlier today' : (sc.subject || sc.cat || sc.tag)}
+                          {st === 'lost' ? ` · out on Q${res.score + 1}` : ''}
+                        </i>
+                        <s>{bt != null ? `beat ${Math.round(bt * 100)}%` : ''}</s>
+                        <span className={`rn-pill ${st === 'won' ? 'clean' : st ? 'out' : 'open'}`}>
+                          {st === 'won' ? 'Clean' : st === 'banked' ? 'Banked' : st ? 'Out' : 'Not run'}
+                        </span>
+                        <em>{res ? res.score : 0}/{sc.questions.length}</em>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="rn-board">
+                  <span className="rn-lcap">
+                    Today&rsquo;s circuit board{boardQ.data && boardQ.data.overallField ? ` · ${boardQ.data.overallField} on it` : ''}
+                  </span>
+                  {boardQ.state === 'loading' ? (
+                    <div className="rn-bmsg">Reading the board.</div>
+                  ) : boardQ.state === 'error' ? (
+                    <div className="rn-bmsg">The board could not be loaded just now.</div>
+                  ) : (
+                    <div className="rn-lb">
+                      {((boardQ.data && boardQ.data.overall) || []).slice(0, 5).map((row, i) => (
+                        <div key={row.userKey || i} className={`rn-brow${boardQ.data.me && row.userKey === boardQ.data.me.userKey ? ' me' : ''}`}>
+                          <span className="rn-bp">{i + 1}</span>
+                          <span className="rn-bn">{row.username || 'Guest'}</span>
+                          <span className="rn-bs">{Math.round(row.total * 10) / 10}</span>
+                        </div>
+                      ))}
+                      {boardQ.data && boardQ.data.me
+                        && !((boardQ.data.overall || []).slice(0, 5).some((x) => x.userKey === boardQ.data.me.userKey)) ? (
+                          <div className="rn-brow me">
+                            <span className="rn-bp">{boardQ.data.me.rank || '—'}</span>
+                            <span className="rn-bn">You</span>
+                            <span className="rn-bs">{Math.round(boardQ.data.me.total * 10) / 10}</span>
+                          </div>
+                        ) : null}
+                    </div>
+                  )}
+                </div>
+
+                <div className="rn-vacts rn-sacts">
+                  <button type="button" className="rn-vb pri" onClick={shareRun}>
+                    {copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} />}
+                    {copied ? 'Copied' : 'Share the run'}
+                  </button>
+                  <a className="rn-vb" href={runSummaryHref(circuitId)}>The full board</a>
+                  <a className="rn-vb" href="/"><Home size={15} strokeWidth={2.8} />Home</a>
+                </div>
+                <p className="rn-fine">
+                  Each quiz counted on its own board as you played it. The circuit board ranks the
+                  combined placement across all {N}. Each quiz pays 15 points for a win down to 1
+                  for finishing, and the run adds the {N} up.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {/* The one way out, since the run no longer carries the site nav. */}
+        {!done ? (
+          <a className="rn-leave" href={`/circuits/${circuitId}`}>Leave the run</a>
         ) : null}
       </div>
 
@@ -666,159 +790,194 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     </div>
   );
 }
-
 const CSS = `
-.rn{font-family:'Manrope',system-ui,sans-serif;color:var(--ink,#0b0d12);}
+/* THE RUN IS A DARK STAGE, not white cards on navy (owner, 2026-08-30, "it
+   should look just like the mock-up"). Every other daily puts its board in a
+   white card because the board is an object you manipulate; this is a question
+   on a screen, and the mockup put it straight on the ground with the ladder
+   beside it. That also means the loft ground's ink rules, which repaint text
+   for a dark background and which the old white cards had to fight with
+   three-class !important overrides, are now doing exactly what is wanted. The
+   overrides are gone with the cards.
 
-/* THE CARDS ARE WHITE ON A NAVY PAGE, so they have to opt OUT of the loft
-   ground's re-inking. LoftCap ships a set of !important rules that repaint
-   text for a dark background, and two of them reach in here: every <section>
-   on a loft page has its p / h2 / i / em re-coloured (which is why nothing
-   below is a section any more, they are divs), and any <p> that is a direct
-   child of a direct div child of the page column is repainted too. These
-   rules carry three classes so they outrank both, and !important because the
-   rules they are answering carry it. Measured on the live page, not assumed:
-   the first version of this file used <section> and shipped the lead
-   paragraph, the game descriptions and the verdict heading in pale blue on
-   white. */
-.rn .rn-wrap .rn-card p,
-.rn .rn-wrap .rn-card h2,
-.rn .rn-wrap .rn-card i,
-.rn .rn-wrap .rn-card em{color:inherit!important}
-.rn .rn-wrap .rn-lead,
-.rn .rn-wrap .rn-fine,
-.rn .rn-wrap .rn-vs{color:var(--muted,#3f4757)!important}
-.rn .rn-wrap .rn-list li i,
-.rn .rn-wrap .rn-list li em{color:var(--muted,#3f4757)!important}
-.rn .rn-wrap .rn-vh,
-.rn .rn-wrap .rn-h1,
-.rn .rn-wrap .rn-vfig b{color:var(--ink,#0b0d12)!important}
-.rn .rn-wrap .rn-vfig i,
-.rn .rn-wrap .rn-he,
-.rn .rn-wrap .rn-hs,
-.rn .rn-wrap .rn-life{color:var(--muted,#3f4757)!important}
-.rn .rn-wrap .rn-hn{color:var(--to)!important}
-/* The loft ground also forces padding onto a section; nothing here is one now,
-   but a card that ever becomes one would silently gain 30px of it. */
-/* The page column carries NO top or bottom padding: on a loft page a rule in
-   LoftCap zeroes padding on any direct child whose class ends in "-wrap", so
-   the spacing has to be margin. That rule is also why this stays a single
-   class: an attribute selector tests the whole string, so a second class here
-   would silently stop matching it. */
-.rn-wrap{max-width:760px;margin:0 auto;padding:0 16px;}
+   Anything added here that must NOT be repainted has to carry its own colour:
+   the rule catches every <p> that is a direct child of a direct div child of
+   the page column, and every <section>. Nothing here is a section. */
+.rn{font-family:${SANS};color:#eef2fa;}
+.rn-wrap{max-width:1120px;margin:0 auto;padding:0 20px 40px;}
 
-/* THE LADDER's own strip, on the navy ground rather than inside a card. The
-   ladder colours itself from the run-local ramp, which is tuned for this
-   ground; the CARDS keep each game's registry colour, which is tuned for
-   white. Two grounds, two palettes, exactly as colorNavy and color already
-   split site-wide. */
-.rn-lad{margin:16px 0 16px;}
+/* THE CLOCK, full bleed under the cap. It keeps its lane at every phase so the
+   stage does not jump three pixels between a question and a verdict. */
+.rn-tick{height:3px;background:rgba(255,255,255,.07);}
+.rn-tick span{display:block;height:100%;transition:width .2s linear;}
+.rn-tick.hot span{background:${T.danger}!important;}
 
-/* The gate's headline. */
-.rn-hero{font-size:34px;line-height:1.06;letter-spacing:-.03em;}
-.rn-hero u{text-decoration:none;color:#c0392b;}
+/* THE STAGE: the ladder's gutter, then the run. */
+.rn-stage{display:flex;gap:0;align-items:stretch;min-height:560px;}
+.rn-gutter{flex:none;width:136px;padding:20px 16px 24px 0;margin-right:24px;
+  border-right:1px solid rgba(255,255,255,.08);}
+.rn-body{flex:1;min-width:0;padding:22px 0 30px;max-width:720px;}
+.rn-lcap{display:block;font-family:${MONO};font-size:9px;letter-spacing:.13em;
+  text-transform:uppercase;color:#66748f;margin-bottom:12px;}
+.rn-scl{margin-top:26px;}
 
-/* The life token. */
-.rn-life{display:inline-flex;align-items:center;gap:8px;font-family:'DM Mono',ui-monospace,monospace;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;}
-.rn-life s{text-decoration:none;width:8px;height:8px;border-radius:50%;background:var(--acc);flex:none;
-  box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 20%,transparent);}
+/* Shared type. */
+.rn-eye{display:block;font-family:${MONO};font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;font-weight:500;color:${T.blue400};margin-bottom:8px;}
+.rn-eye.ok{color:${T.success};}
+.rn-eye.out{color:#ef8577;}
+.rn-h1{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1.03;
+  margin:0;color:#fff;}
+.rn-h1 var{font-style:normal;font-family:${MONO};font-weight:500;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;}
+.rn-h1 u{text-decoration:none;color:#ef8577;}
+.rn-lead{font-size:15px;line-height:1.55;font-weight:600;color:#9aa8c4;margin:16px 0 0;max-width:56ch;}
+.rn-fine{font-size:12px;line-height:1.65;font-weight:600;color:#66748f;margin:16px 0 0;}
 
-/* The clock, full bleed on the card's top edge. The card is padded 20px 18px,
-   so the bar pulls back out of that padding; the card clips it to its own
-   14px radius rather than the bar trying to match the corner itself, which
-   would leave the 1.5px border showing through at each end. */
-.rn-play{overflow:hidden;}
-.rn-bar.edge{margin:-20px -18px 16px;height:3px;border-radius:0;}
-
-/* The handover. */
-.rn-vfig{display:flex;gap:24px;flex-wrap:wrap;margin:0 0 16px;}
-.rn-vfig div b{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:19px;
-  font-weight:500;line-height:1;font-variant-numeric:tabular-nums;}
-.rn-vfig div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
-  text-transform:uppercase;margin-top:5px;}
-.rn-hand{border-top:1px solid var(--border,#e5e7eb);padding-top:14px;margin-bottom:16px;}
-.rn-he{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.16em;
-  text-transform:uppercase;}
-.rn-hn{display:block;font-size:38px;font-weight:800;letter-spacing:-.04em;line-height:1;
-  text-transform:uppercase;color:var(--to);margin-top:6px;}
-.rn-hs{display:block;font-size:12.5px;font-weight:600;margin-top:6px;}
-
-.rn-rail{display:grid;grid-template-columns:repeat(var(--n,5),1fr);gap:6px;margin:16px 0 14px;}
-.rn-pip{border-radius:8px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);padding:7px 8px 8px;
-  border-top:4px solid var(--border,#e5e7eb);min-width:0;}
-.rn-pip.now{border-top-color:var(--acc);box-shadow:0 2px 10px rgba(15,23,42,.10);}
-.rn-pip.won{border-top-color:#15803d;background:#f0fdf4;}
-.rn-pip.out{border-top-color:#c0392b;}
-.rn-pip.bank{opacity:.62;}
-.rn-pipn{display:block;font-weight:800;font-size:11.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.45;}
-.rn-pips{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;color:var(--muted,#3f4757);}
-
-.rn-card{background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);border-radius:14px;padding:20px 18px 18px;}
-.rn-eye{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.14em;
-  text-transform:uppercase;font-weight:800;color:var(--acc,#233a63);margin-bottom:6px;}
-.rn-h1{font-size:26px;font-weight:800;line-height:1.2;margin:0 0 8px;letter-spacing:-.01em;}
-.rn-lead{font-size:14.5px;line-height:1.55;color:var(--muted,#3f4757);font-weight:600;margin:0 0 14px;}
-.rn-fine{font-size:12px;color:var(--muted,#3f4757);font-weight:600;margin:12px 0 0;}
-
-.rn-list{list-style:none;margin:0 0 16px;padding:0;}
-.rn-list li{display:flex;align-items:baseline;gap:9px;padding:9px 0 9px 11px;border-top:1px solid var(--border,#e5e7eb);
-  border-left:4px solid var(--acc);}
-.rn-list li b{font-size:14.5px;font-weight:800;}
-.rn-list li i{flex:1;min-width:0;font-style:normal;font-size:12.5px;font-weight:600;color:var(--muted,#3f4757);
+/* The start list. */
+.rn-roster{display:grid;margin:24px 0 0;border-top:1px solid rgba(255,255,255,.08);}
+.rn-rrow{display:flex;align-items:center;gap:14px;padding:10px 0 10px 13px;
+  border-bottom:1px solid rgba(255,255,255,.06);border-left:3px solid var(--acc);}
+.rn-rrow b{font-size:15px;font-weight:800;color:#fff;width:70px;flex:none;}
+.rn-rrow i{font-style:normal;font-size:12.5px;font-weight:600;color:#9aa8c4;flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rn-list li em{font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:12px;color:var(--muted,#3f4757);}
+.rn-rrow s{text-decoration:none;font-family:${MONO};font-size:11px;color:#66748f;
+  width:70px;text-align:right;flex:none;}
+.rn-rrow em{font-style:normal;font-family:${MONO};font-size:12px;color:#66748f;
+  font-variant-numeric:tabular-nums;width:28px;text-align:right;flex:none;}
 
-.rn-go{display:inline-flex;align-items:center;gap:8px;background:var(--accent,#233a63);color:#fff;border:0;
-  border-radius:10px;padding:13px 18px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;text-decoration:none;}
-.rn-go:hover{filter:brightness(1.08);}
+.rn-go{display:inline-flex;align-items:center;gap:9px;background:${T.cta};color:#fff;border:0;
+  border-radius:11px;padding:15px 22px;font-family:inherit;font-weight:800;font-size:15px;
+  cursor:pointer;margin-top:24px;}
+.rn-go:hover{filter:brightness(1.1);}
 
-.rn-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
-.rn-game{font-weight:800;font-size:12.5px;color:var(--acc);}
-.rn-cat,.rn-tier{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--muted,#3f4757);background:var(--surface-alt,#eef2f7);border-radius:5px;padding:3px 6px;}
-.rn-count{margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:var(--muted,#3f4757);}
-.rn-bar{height:5px;border-radius:3px;background:var(--surface-alt,#eef2f7);overflow:hidden;margin-bottom:14px;}
-.rn-bar span{display:block;height:100%;transition:width .2s linear;}
-.rn-q{font-size:20px;line-height:1.35;font-weight:800;margin:0 0 16px;letter-spacing:-.01em;}
-.rn-ch{display:grid;gap:8px;}
-.rn-c{display:flex;align-items:center;gap:10px;text-align:left;background:var(--surface,#f7f8fa);
-  border:1.5px solid var(--border,#e5e7eb);border-radius:10px;padding:13px 14px;font-family:inherit;
-  font-size:15px;font-weight:700;color:var(--ink,#0b0d12);cursor:pointer;}
-.rn-ch:not(.nohov) .rn-c:hover:not(:disabled){border-color:var(--acc);background:var(--white,#fff);}
+/* The question. */
+.rn-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.rn-game{font-size:12.5px;font-weight:800;color:var(--acc);}
+.rn-chip{font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:#9aa8c4;border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:3px 7px;}
+.rn-chip.tier{border-color:rgba(232,180,58,.42);color:${T.gold};}
+.rn-chip.alive{border-color:rgba(96,165,250,.4);color:${T.blue200};}
+.rn-count{margin-left:auto;font-family:${MONO};font-size:11.5px;color:#66748f;
+  font-variant-numeric:tabular-nums;}
+.rn-q{font-size:clamp(21px,2.7vw,29px);font-weight:800;letter-spacing:-.025em;line-height:1.28;
+  color:#fff;margin:0 0 22px;max-width:28ch;}
+.rn-ch{display:grid;gap:9px;}
+.rn-c{display:flex;align-items:center;gap:12px;text-align:left;background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.12);border-radius:11px;padding:15px 16px;font-family:inherit;
+  font-size:15.5px;font-weight:600;color:#eef2fa;cursor:pointer;transition:border-color .12s,background .12s;}
+.rn-ch:not(.nohov) .rn-c:hover:not(:disabled){border-color:var(--acc);background:rgba(255,255,255,.08);}
 .rn-c:disabled{cursor:default;}
-.rn-c.ok{border-color:#15803d;background:#dcfce7;}
-.rn-k{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;border-radius:6px;
-  background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);font-family:'DM Mono',ui-monospace,monospace;
-  font-size:11px;font-weight:700;color:var(--muted,#3f4757);}
-.rn-run{display:flex;justify-content:space-between;margin-top:14px;font-family:'DM Mono',ui-monospace,monospace;
-  font-size:11.5px;color:var(--muted,#3f4757);}
+.rn-c.ok{border-color:${T.successDeep};background:rgba(16,185,129,.16);color:#c6f5e2;}
+.rn-c.ok .rn-k{border-color:${T.successDeep};color:#6ee7b7;}
+.rn-k{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;flex:none;
+  border-radius:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+  font-family:${MONO};font-size:11px;font-weight:500;color:#66748f;}
 
-.rn-verd{border-top:5px solid var(--acc,#233a63);}
-.rn-vh{font-size:21px;font-weight:800;line-height:1.3;margin:0 0 6px;letter-spacing:-.01em;}
-.rn-vs{font-size:14px;font-weight:600;color:var(--muted,#3f4757);margin:0 0 14px;}
-.rn-vbar{height:4px;border-radius:2px;background:var(--surface-alt,#eef2f7);overflow:hidden;margin-bottom:14px;}
-.rn-vbar span{display:block;height:100%;background:var(--acc);width:100%;transform-origin:left;
+.rn-foot{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-top:22px;padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.08);}
+.rn-life{display:inline-flex;align-items:center;gap:9px;padding:9px 13px;border-radius:9px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);
+  font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa8c4;}
+.rn-life s{text-decoration:none;width:9px;height:9px;border-radius:50%;background:var(--acc);flex:none;
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent);}
+.rn-tally{margin-left:auto;font-family:${MONO};font-size:11.5px;color:#66748f;
+  font-variant-numeric:tabular-nums;}
+
+/* THE HANDOVER. The outgoing quiz's colour leaves on the left, the incoming
+   one arrives on the right, and the name is the thing you read. */
+.rn-chm{position:relative;border-radius:14px;border:1px solid rgba(255,255,255,.09);
+  padding:26px 26px 24px;overflow:hidden;}
+.rn-chm::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(112deg,color-mix(in srgb,var(--from) 26%,transparent) 0%,
+    ${T.ground} 48%,color-mix(in srgb,var(--to) 18%,transparent) 100%);}
+.rn-chm > *{position:relative;}
+.rn-vh{font-size:clamp(23px,3.2vw,34px);font-weight:800;letter-spacing:-.035em;line-height:1.08;
+  color:#fff;margin:0;}
+.rn-vh u{text-decoration:none;font-family:${MONO};font-weight:500;color:#ef8577;
+  font-variant-numeric:tabular-nums;}
+.rn-vh u.ok{color:${T.success};}
+.rn-vfig{display:flex;gap:26px;flex-wrap:wrap;margin:20px 0 0;}
+.rn-vfig div b{display:block;font-family:${MONO};font-size:21px;color:#fff;font-weight:500;
+  line-height:1;font-variant-numeric:tabular-nums;}
+.rn-vfig div b.up{color:${T.success};}
+.rn-vfig div b.dn{color:#ef8577;}
+.rn-vfig div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:#66748f;margin-top:6px;}
+.rn-hand{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.11);}
+.rn-he{display:block;font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:#66748f;}
+.rn-hn{display:block;font-size:clamp(34px,5.4vw,58px);font-weight:800;letter-spacing:-.05em;
+  line-height:.92;text-transform:uppercase;color:var(--to);margin-top:8px;}
+.rn-hs{display:block;font-size:12.5px;font-weight:600;color:#9aa8c4;margin-top:8px;}
+.rn-vbar{height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;margin:22px 0 15px;}
+.rn-vbar span{display:block;height:100%;background:var(--to);width:100%;transform-origin:left;
   animation:rnv var(--dwell,8000ms) linear forwards;}
 .rn-vbar.held span{animation-play-state:paused;}
 @keyframes rnv{from{transform:scaleX(1);}to{transform:scaleX(0);}}
-@media (prefers-reduced-motion:reduce){.rn-vbar span{animation:none;}}
+@media (prefers-reduced-motion:reduce){.rn-vbar span{animation:none;transform:scaleX(0);}}
+
 .rn-vacts{display:flex;gap:8px;flex-wrap:wrap;}
-.rn-vb{display:inline-flex;align-items:center;gap:7px;background:var(--white,#fff);border:1.5px solid var(--border,#e5e7eb);
-  border-radius:9px;padding:10px 13px;font-family:inherit;font-weight:800;font-size:13.5px;color:var(--ink,#0b0d12);
-  cursor:pointer;text-decoration:none;}
-.rn-vb.pri{background:var(--acc);border-color:var(--acc);color:#fff;}
-.rn-vb:hover{filter:brightness(1.05);}
+.rn-vb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 14px;font-family:inherit;
+  font-weight:800;font-size:13.5px;color:#eef2fa;cursor:pointer;text-decoration:none;}
+.rn-vb.pri{background:${T.cta};border-color:${T.cta};color:#fff;}
+.rn-vb:hover{filter:brightness(1.1);}
+.rn-sacts{margin-top:22px;}
 
-.rn-card{margin-bottom:40px;}
+/* The scorecard. */
+.rn-sc-hero{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap;padding-bottom:22px;
+  border-bottom:1px solid rgba(255,255,255,.09);}
+.rn-sc-big{font-family:${MONO};font-size:clamp(46px,7vw,64px);font-weight:500;color:#fff;
+  line-height:.86;letter-spacing:-.04em;font-variant-numeric:tabular-nums;}
+.rn-sc-big small{font-size:.36em;color:#66748f;letter-spacing:0;}
+.rn-sc-big i{display:block;font-style:normal;font-family:${SANS};font-size:9.5px;font-weight:800;
+  letter-spacing:.13em;text-transform:uppercase;color:#66748f;margin-top:10px;}
+.rn-sc-figs{display:flex;gap:24px;margin-left:auto;flex-wrap:wrap;}
+.rn-sc-figs div b{display:block;font-family:${MONO};font-size:21px;color:#fff;font-weight:500;
+  line-height:1;font-variant-numeric:tabular-nums;}
+.rn-sc-figs div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:#66748f;margin-top:6px;}
+.rn-scrows{margin-top:20px;}
+.rn-scr{display:flex;align-items:center;gap:12px;padding:10px 0 10px 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);border-left:3px solid var(--acc);}
+.rn-scr b{font-size:14.5px;font-weight:800;color:#fff;width:66px;flex:none;}
+.rn-scr i{font-style:normal;font-size:12.5px;font-weight:600;color:#66748f;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rn-scr s{text-decoration:none;font-family:${MONO};font-size:11px;color:${T.blue200};
+  width:74px;text-align:right;flex:none;}
+.rn-pill{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 8px;border-radius:999px;flex:none;width:62px;text-align:center;}
+.rn-pill.clean{background:rgba(16,185,129,.16);color:#6ee7b7;}
+.rn-pill.out{background:rgba(192,57,43,.16);color:#ef8577;}
+.rn-pill.open{background:rgba(255,255,255,.06);color:#66748f;}
+.rn-scr em{font-style:normal;font-family:${MONO};font-size:13px;color:#dce6f7;
+  font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none;}
 
-@media (max-width:640px){
-  .rn-rail{grid-template-columns:repeat(auto-fit,minmax(60px,1fr));}
-  .rn-pipn{font-size:10.5px;}
-  .rn-h1{font-size:22px;}
-  .rn-hero{font-size:26px;}
-  .rn-hn{font-size:28px;}
-  .rn-bar.edge{margin:-20px -18px 14px;}
-  .rn-q{font-size:18px;}
+.rn-board{margin-top:24px;border-top:1px solid rgba(255,255,255,.09);padding-top:16px;}
+.rn-lb{display:grid;gap:2px;}
+.rn-brow{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:7px;
+  font-size:13.5px;font-weight:600;color:#9aa8c4;}
+.rn-brow .rn-bp{font-family:${MONO};font-size:11.5px;color:#66748f;width:26px;flex:none;}
+.rn-brow .rn-bn{flex:1;min-width:0;color:#dce6f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rn-brow .rn-bs{font-family:${MONO};font-size:13px;color:#fff;font-variant-numeric:tabular-nums;}
+.rn-brow.me{background:rgba(47,111,228,.18);border:1px solid rgba(96,165,250,.35);color:#fff;}
+.rn-brow.me .rn-bp,.rn-brow.me .rn-bn{color:#fff;}
+.rn-bmsg{padding:16px;text-align:center;font-size:12.5px;font-weight:600;color:#66748f;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:11px;}
+
+.rn-leave{display:inline-block;margin:6px 0 0;font-family:${MONO};font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:#66748f;text-decoration:none;}
+.rn-leave:hover{color:#9aa8c4;}
+
+@media (max-width:820px){
+  .rn-wrap{padding:0 14px 30px;}
+  .rn-stage{flex-direction:column;min-height:0;}
+  .rn-gutter{width:auto;padding:14px 0 14px;margin:0;border-right:0;
+    border-bottom:1px solid rgba(255,255,255,.08);}
+  .rn-body{padding:18px 0 24px;max-width:none;}
+  .rn-q{font-size:21px;}
+  .rn-chm{padding:18px 16px;}
+  .rn-sc-figs{margin-left:0;gap:20px;}
 }
 `;
