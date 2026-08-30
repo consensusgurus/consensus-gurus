@@ -840,7 +840,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
               catRank={catRank}
               outcome={won ? 'won' : 'lost'}
               title={won ? 'Solved' : 'Not solved'}
-              detail={`${finalScore} \u00b7 ${used} moves \u00b7 ${`${par} · ${perfect}`} par · perfect \u00b7 ${elapsed}`}
+              detail={`${finalScore}/10 \u00b7 ${used} moves \u00b7 par ${par}, perfect ${perfect} \u00b7 ${elapsed}`}
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready
