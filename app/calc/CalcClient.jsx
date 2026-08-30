@@ -962,8 +962,8 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
               }))}
             options={[
               won
-                ? { tone: 'board', label: 'See the route', sub: 'The line you walked', kind: 'pri', onClick: () => setRevealed(true) }
-                : { tone: 'reveal', label: 'Reveal', sub: 'Show a route that works', kind: 'pri', onClick: () => setRevealed(true) },
+                ? { tone: 'board', label: 'See the route', sub: 'The line you walked', onClick: () => setRevealed(true) }
+                : { tone: 'reveal', label: 'Reveal', sub: 'Show a route that works', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Calc', sub: `No. ${prevPuzzle.num}, yesterday's board`, href: `/calc?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers', kind: 'gold', onClick: copyShare },

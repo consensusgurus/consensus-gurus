@@ -863,8 +863,8 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
               }))}
             options={[
               won
-                ? { tone: 'board', label: 'See the board', sub: 'Your finished grid, rarity and all', kind: 'pri', onClick: () => setRevealed(true) }
-                : { tone: 'reveal', label: 'See the board', sub: 'Example answers for what you missed', kind: 'pri', onClick: () => setRevealed(true) },
+                ? { tone: 'board', label: 'See the board', sub: 'Your finished grid, rarity and all', onClick: () => setRevealed(true) }
+                : { tone: 'reveal', label: 'See the board', sub: 'Example answers for what you missed', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Niche', sub: `No. ${prevPuzzle.num}, a different universe`, href: `/niche?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your grid and rarity, no spoilers',

@@ -226,10 +226,10 @@ export default function LoftFinish({
   const optsRaw = options.filter(Boolean)
     .map((o) => (o.tone === 'replay' ? { ...o, sub: replaySub || attemptRule.replay } : o));
   // THE ROW ORDER IS DECIDED HERE, not by the order a client lists its options
-  // (owner): a real Reveal leads the card, then Share, then Return to board
-  // beside Replay, then Play another beside the Archive, and Back to main at
-  // the foot. Ordering by tone means a client only declares what it offers and
-  // never has to know the layout.
+  // (owner): a real Reveal, or Return to board, leads the card BESIDE Replay,
+  // then Share, then Play another beside the Archive, and the browse toggle
+  // beside Back to main at the foot. Ordering by tone means a client only
+  // declares what it offers and never has to know the layout.
   //
   // 'reveal' AND 'board' ARE TWO DIFFERENT TILES (owner, 2026-08-19). One tone
   // used to do both jobs: the same tile rendered "Reveal answer" to a player who
@@ -247,10 +247,33 @@ export default function LoftFinish({
   // label already branches on (tone: won ? board : reveal), and a
   // client that never reveals passes 'board' outright. All 65 do one or the
   // other; a tone this table does not know still falls to 5 as before.
-  const RANK = { reveal: -1, board: 1, replay: 2, another: 3, similar: 4, main: 9 };
-  // A declared tone always wins over 'kind', so the gold Share keeps rank 0 only
-  // because it declares no tone. No gold tile does, and none should: giving one
-  // a tone would silently move it out of the top slot.
+  // THE LEAD TILE PAIRS WITH REPLAY, ABOVE THE GOLD SHARE (owner report,
+  // 2026-08-30: "replay and reveal answer should split a line"). Reveal ranked
+  // above the gold and Replay below it, so the leading run was Reveal ALONE.
+  // A wide tile does not merely take a row, it CUTS the half tiles into
+  // separate runs (see the per-run parity note below), so a run of one is odd
+  // and the parity rule widened Reveal to fill it. That left the card spending
+  // a full row on Reveal, another on Share, and a third wide row on Back to
+  // main, because the five tiles below the gold were odd too: five rows for
+  // seven options, three of them a single tile.
+  //
+  // Ranking reveal, board and replay ALL above the gold makes the leading run a
+  // clean pair, which in turn leaves Play another, the Archive, the browse
+  // toggle and Back to main as a run of four. Four rows, and the only wide tile
+  // is the gold Share itself. Reveal still leads the card, and Return to board
+  // still sits beside Replay, so the 2026-08-19 split above is unchanged.
+  //
+  // Seven clients (calc, mercury, polka, towers, knight, sixes, niche) declared
+  // that tile kind:'pri', which made it wide by declaration and so unable to
+  // pair with anything. The kind came off all seven in the same push. It cost
+  // them no styling: .loft-opt.t-reveal is declared AFTER .loft-opt.pri at
+  // equal specificity, so the purple tint was already winning and 'pri' was
+  // doing nothing but forcing the full width.
+  const RANK = { reveal: -3, board: -2, replay: -1, another: 3, similar: 4, main: 9 };
+  // A declared tone always wins over 'kind', so the gold Share keeps rank 0
+  // because it declares no tone, which now puts it directly under the lead pair
+  // and above Play another. No gold tile declares a tone, and none should:
+  // giving one a tone would silently move it out of that slot.
   const rankOf = (o) => (RANK[o.tone] != null ? RANK[o.tone] : (o.kind === 'gold' ? 0 : 5));
   const sorted = [...optsRaw].sort((a, b) => rankOf(a) - rankOf(b));
   // 'main' is held back so the Archive button, which this component renders

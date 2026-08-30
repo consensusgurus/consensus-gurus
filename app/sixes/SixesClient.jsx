@@ -1001,8 +1001,8 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
               }))}
             options={[
               won
-                ? { tone: 'board', label: 'See the board', sub: 'Your finished grid', kind: 'pri', onClick: () => setRevealed(true) }
-                : { tone: 'reveal', label: 'Reveal', sub: 'Show the solution', kind: 'pri', onClick: () => setRevealed(true) },
+                ? { tone: 'board', label: 'See the board', sub: 'Your finished grid', onClick: () => setRevealed(true) }
+                : { tone: 'reveal', label: 'Reveal', sub: 'Show the solution', onClick: () => setRevealed(true) },
               prevPuzzle && { tone: 'another', label: 'Play another Sixes', sub: `No. ${prevPuzzle.num}, yesterday's puzzle`, href: `/sixes?p=${prevPuzzle.num}` },
               nextUp && { tone: 'similar', label: 'Play similar', sub: `${nextUp.name} · ${nextUp.tag}`, href: nextUp.href },
               { label: copied ? 'Copied' : (shareCta || 'Share'), sub: 'Your result, no spoilers',
