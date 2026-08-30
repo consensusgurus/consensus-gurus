@@ -868,6 +868,19 @@ const CSS = `
 .rn{font-family:${SANS};color:#eef2fa;}
 .rn-wrap{max-width:1120px;margin:0 auto;padding:0 20px 40px;}
 
+/* THE GROUND REACHES THE EDGES (owner, 2026-08-30, "i want the whole page to
+   be uniform color dark"). globals.css paints html, body AND the safe-area
+   dome brand navy, on the standing rule that every route lays an opaque ground
+   of its own over the viewport. This one does, and navy STILL showed above and
+   below it, because those three surfaces are not the page: the overscroll
+   canvas, the installed-app dome and Safari's bottom bar all read body's
+   background, never the element covering it. So the run claims them, scoped by
+   :has(.rn) so no other route is touched and nothing has to be put back on
+   unmount. theme-color is the fourth surface and is set by the route's own
+   viewport export in page.js, since a meta tag is not reachable from CSS. */
+html:has(.rn),body:has(.rn){background:${T.ground};}
+body:has(.rn)::before{background:${T.ground};}
+
 /* THE CAP. NOT A BAND (owner, 2026-08-30, "i want the whole page to be
    uniform color dark"). It was a navy panel across the top of a near-black
    page, which is the one horizontal seam left on a screen whose whole point is

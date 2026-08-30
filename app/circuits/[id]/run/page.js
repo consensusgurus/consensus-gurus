@@ -4,6 +4,7 @@ import RunClient from './RunClient';
 import { circuitById, circuitGamesFor, circuitKeysFor, circuitSlotFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { SITE_URL } from '@/lib/site';
+import { T } from '@/lib/theme';
 
 import { PUZZLES as deepPuzzles } from '../../../deep/puzzles';
 import { QUESTION_MAP as deepQuestions } from '../../../deep/questions';
@@ -49,6 +50,22 @@ const BANKS = {
 };
 
 export const dynamic = 'force-dynamic';
+
+// THE BROWSER CHROME TAKES THE RUN'S GROUND. theme-color is what tints
+// Safari's dome and its bottom address bar, and the root layout sets it to
+// brand navy for the whole site. On this page that put a navy strip above and
+// below a near-black stage, which is the same seam the cap change removed from
+// inside the page. A route-level viewport export REPLACES the root's rather
+// than merging with it, so every other field is restated here verbatim: drop
+// viewportFit and the installed app loses its edge-to-edge layout.
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+  themeColor: T.ground,
+};
 
 // The house voice SPELLS a small count ("Twenty-five questions, one life"), and
 // this is the most visible string on the page, so "Five trivia quizzes" rather
