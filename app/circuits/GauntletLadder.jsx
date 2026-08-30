@@ -259,9 +259,17 @@ const CSS = `
 .gl-col .gl-k{order:-1;margin:0 0 4px}
 .gl-col .gl-b.gone::after{left:0;right:0;top:var(--cut);bottom:0}
 
+/* PHONE. Measured on the live page at 390px: seven banks and 180 questions
+   put a rung at about 1.15px, and a 1px gap beside a 1.15px rung is half the
+   block, so the comb stops reading as a comb and starts reading as noise. The
+   gap goes to zero here and the rungs abut, which turns each block into one
+   continuous shape whose silhouette is still the tier ramp and whose colour is
+   still where you got to. The current rung and the fatal one keep their extra
+   flex, so the two things you must be able to find stay findable. */
 @media (max-width:640px){
   .gl-row{gap:5px}
   .gl-row .gl-rungs{height:34px}
+  .gl-row .gl-b i{margin-right:0}
   .gl-row .gl-b.gone::after{height:34px}
   .gl-k b{font-size:9.5px}
   .gl-k em{display:none}
