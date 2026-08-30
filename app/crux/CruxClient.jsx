@@ -62,6 +62,22 @@ const COLORS = {
   faded: T.muted,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
+// Static furniture only: everything here is one colour whatever the game is
+// doing. Anything that varies by state is set at its source above, and the
+// cl-kx class exists to keep this rule off the four letter-key states.
+//
+// !important is load-bearing rather than lazy: these elements carry INLINE
+// styles from the Loft build, and a plain rule loses to an inline one.
+const STAGE_BOARD_CSS = `
+.stage-page .cl-key:not(.cl-kx){background:rgba(255,255,255,0.07)!important;
+  color:#e9edf4!important;border:1px solid rgba(255,255,255,0.13)!important;}
+.stage-page .cl-btn{background:transparent!important;color:#e9edf4!important;
+  border:1.5px solid rgba(255,255,255,0.18)!important;}
+.stage-page .cl-cat{border:1px solid rgba(255,255,255,0.10);border-radius:8px;}
+.stage-page .cx-tries{color:#8b95a8;}
+.stage-page hr{border-color:rgba(255,255,255,0.10);}
+`;
+
 // Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
 // Fraunces + DM Mono are already loaded site-wide by app/layout.js.
 const SERIF = "'Manrope', system-ui, -apple-system, sans-serif";
@@ -563,6 +579,24 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // See app/StageChrome.jsx for why a daily is a sitting rather than a page.
   const STAGE = isStage('crux', searchParams);
   const STAGE_C = gameColor('crux');
+  // TEXT and FILL are different problems here, which is why there are two
+  // names rather than one restyled COLORS. Near-black TEXT is invisible on
+  // this ground and has to move; a near-black FILL is a perfectly good
+  // object on it and stays. Conflating the two is what would turn every
+  // dark chip on the board into a pale one.
+  const INK = STAGE ? '#e9edf4' : COLORS.ink;
+  const FADED = STAGE ? '#8b95a8' : COLORS.faded;
+  const SPAL = STAGE ? {
+    tile: 'rgba(255,255,255,0.045)',
+    tileB: 'rgba(255,255,255,0.13)',
+    sel: 'rgba(125,211,252,0.14)',
+    selCur: 'rgba(125,211,252,0.26)',
+    selB: 'rgba(125,211,252,0.5)',
+    key: 'rgba(255,255,255,0.09)',
+    keyB: '1.5px solid rgba(255,255,255,0.14)',
+    spent: 'rgba(255,255,255,0.05)',
+    spentInk: '#5a657d',
+  } : null;
 
   // ---- input ----
   const onKey = useCallback((k) => {
@@ -1112,18 +1146,21 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     // the reveal cascades category by category, only on the live transition
     // won: diagonal color sweep across the grid; lost: category-by-category reveal
     if (cat) return { ...base, background: cat.bg, color: cat.tc, border: `1.5px solid ${cat.bg}`, ...(endAnim ? { animation: won ? `cxcat .5s ease ${(r + c) * 55}ms backwards` : `cxcat .55s ease ${catIdx * 380}ms backwards` } : {}) };
-    if (green) return { ...base, background: COLORS.ink, color: T.white, border: `1.5px solid ${COLORS.ink}`, boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
-    if (lost) return { ...base, background: TILE, color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
+    // A LOCKED LETTER IS THE WIN STATE, so on the stage it takes the game's
+    // own category step. Left as near-black it would be a near-black cell on
+    // a near-black ground: the one place the fill genuinely stops working.
+    if (green) return { ...base, background: SPAL ? STAGE_C : COLORS.ink, color: SPAL ? RAMP_INK : T.white, border: `1.5px solid ${SPAL ? STAGE_C : COLORS.ink}`, boxShadow: SPAL ? 'none' : 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
+    if (lost) return { ...base, background: SPAL ? 'transparent' : TILE, color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
     if (inSel) {
       const isCursor = cursorKey === k;
       return {
         ...base,
-        background: isCursor ? '#dce9ff' : '#edf3ff',
-        color: COLORS.ember,
-        border: `2px solid ${isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)'}`,
+        background: SPAL ? (isCursor ? SPAL.selCur : SPAL.sel) : (isCursor ? '#dce9ff' : '#edf3ff'),
+        color: SPAL ? INK : COLORS.ember,
+        border: `2px solid ${SPAL ? (isCursor ? STAGE_C : SPAL.selB) : (isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)')}`,
       };
     }
-    return { ...base, background: TILE, color: COLORS.ink, border: `1.5px solid ${TILE_BORDER}`, boxShadow: 'inset 0 1px 2px rgba(28,30,36,0.07)' };
+    return { ...base, background: SPAL ? SPAL.tile : TILE, color: SPAL ? INK : COLORS.ink, border: `1.5px solid ${SPAL ? SPAL.tileB : TILE_BORDER}`, boxShadow: SPAL ? 'none' : 'inset 0 1px 2px rgba(28,30,36,0.07)' };
   }
 
   function cellLetter(r, c, info) {
@@ -1141,11 +1178,18 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   });
 
   const KB = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
-  const kbColors = { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: T.muted } };
+  // The HIT key follows the locked cell onto the category step, for the same
+  // reason. The near miss keeps its amber and the spent key keeps being the
+  // quietest thing on the board: both of those are meanings, not styling.
+  const kbColors = STAGE
+    ? { g: { bg: STAGE_C, fg: RAMP_INK }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
+    : { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: T.muted } };
 
   const lastG = g.lastGuess[sel];
   const tries = (g.guessLog || {})[sel] || (lastG ? [lastG] : []);
-  const markColor = { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
+  const markColor = STAGE
+    ? { g: { bg: STAGE_C, fg: RAMP_INK }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
+    : { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
   const rulesBody = (
@@ -1229,6 +1273,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           ladder={<StageLadder height={44} label="Words" blocks={stageBlocks} />}
         />
       )}
+      {STAGE && <style>{STAGE_BOARD_CSS}</style>}
       <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: STAGE ? '10px 38px 40px' : '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cx-a{margin:0 auto;}
@@ -1311,17 +1356,17 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
+            <div style={{ background: STAGE ? 'rgba(255,255,255,0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>Interlocking words, no clues: just four categories to guide you. Guess real words to reveal the letters.</p>
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
                 <button className="cl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -1334,20 +1379,25 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'cl-panel loft-card' : 'cl-panel'} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          <div className={STAGE ? 'cl-panel' : (LOFT ? 'cl-panel loft-card' : 'cl-panel')} style={STAGE
+            // NO CARD. The board sits on the ground, which is the whole point
+            // of the stage: a white panel here reads as a cut-out, and a dark
+            // panel reads as a second ground nobody asked for.
+            ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
+            : { background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             {!LOFT && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
               <span style={{ flex: 1, height: 5, background: 'rgba(28,30,36,0.1)', borderRadius: 3, overflow: 'hidden', minWidth: 36 }}>
                 <span style={{ display: 'block', height: '100%', width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
               </span>
-              <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.order.length}</b>/{PUZZLE.slots.length} words</span>
+              <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: INK, fontWeight: 500 }}>{g.order.length}</b>/{PUZZLE.slots.length} words</span>
             </div>
             )}
 
             {/* category clues — the headline turns into a filing prompt once
                 there are solved words waiting to be placed */}
-            <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded, marginBottom: 8 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: FADED, marginBottom: 8 }}>
               {playing && solvedUnfiled.length > 0
                 ? <>The categories &mdash; tap to file completed words</>
                 : <>The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words</>}
@@ -1411,8 +1461,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {started && slot && !allWordsSolved && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 10, flexWrap: 'wrap' }}>
               <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
-              <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.ink }}>
-                {slotLabel(sel)} <span style={{ color: COLORS.faded, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
+              <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>
+                {slotLabel(sel)} <span style={{ color: FADED, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
               </div>
               <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
               {freeHintOk && (
@@ -1436,11 +1486,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {started && tries.length > 0 && !g.solved[sel] && (
             <div style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: COLORS.faded }}>
+                <span style={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: FADED }}>
                   {tries.length === 1 ? 'Your try' : `Your ${tries.length} tries`}
                 </span>
                 {presentUnplaced ? (
-                  <span style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 700 }}>
+                  <span style={{ fontSize: 11.5, color: FADED, fontWeight: 700 }}>
                     in word: <b style={{ color: '#8a6d1a' }}>{presentUnplaced.split('').join(' ')}</b>
                   </span>
                 ) : null}
@@ -1462,7 +1512,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               on-screen keys are collapsed by default and expand on demand */}
           {started && g.left > 0 && !allWordsSolved && !mobileUi && (
             <div style={{ textAlign: 'center', marginBottom: kbdOpen ? 8 : 0 }}>
-              <button onClick={() => setKbdOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(28,30,36,0.22)', borderRadius: 8, padding: '6px 13px', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.faded }}>
+              <button onClick={() => setKbdOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(28,30,36,0.22)', borderRadius: 8, padding: '6px 13px', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: FADED }}>
                 {kbdOpen ? 'Hide keyboard' : 'Show keyboard'}
               </button>
             </div>
@@ -1473,17 +1523,17 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               {KB.map((row, ri) => (
                 <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
                   {ri === 2 && (
-                    <button className="cl-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: COLORS.ember, color: T.white, fontSize: 11.5 }}>ENTER</button>
+                    <button className="cl-key cl-kx" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: STAGE ? STAGE_C : COLORS.ember, color: STAGE ? RAMP_INK : T.white, fontSize: 11.5 }}>ENTER</button>
                   )}
                   {row.split('').map((ch) => {
                     const st = keyState[ch];
-                    const kc = st ? kbColors[st] : { bg: T.white, fg: COLORS.ink };
+                    const kc = st ? kbColors[st] : (SPAL ? { bg: SPAL.key, fg: INK } : { bg: T.white, fg: COLORS.ink });
                     return (
-                      <button key={ch} className="cl-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: kc.bg, color: kc.fg, fontSize: 15, border: st ? 'none' : '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
+                      <button key={ch} className="cl-key cl-kx" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: kc.bg, color: kc.fg, fontSize: 15, border: st ? 'none' : (SPAL ? SPAL.keyB : '1.5px solid rgba(20,22,28,0.15)') }}>{ch}</button>
                     );
                   })}
                   {ri === 2 && (
-                    <button className="cl-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: COLORS.ink, fontSize: 16 }}>&#9003;</button>
+                    <button className="cl-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>
                   )}
                 </div>
               ))}
@@ -1493,7 +1543,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* filing helper — the board is the word bank now, so this is just a
               nudge; the "Placing X" state mirrors the armed word on the grid */}
           {started && solvedUnfiled.length > 0 && (
-            <div style={{ margin: '2px 0 12px', fontSize: 13, fontWeight: 700, color: COLORS.faded, textAlign: 'center' }}>
+            <div style={{ margin: '2px 0 12px', fontSize: 13, fontWeight: 700, color: FADED, textAlign: 'center' }}>
               {pick
                 ? <>Placing <span style={{ color: COLORS.ember, fontWeight: 800 }}>{pick}</span> &mdash; tap a category above</>
                 : <>Tap a completed word on the board, then a category. <span style={{ opacity: .85 }}>Underlined words aren&rsquo;t filed yet.</span></>}
@@ -1503,7 +1553,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? COLORS.ink : COLORS.ember, color: T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
+              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'rgba(255,255,255,0.10)' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
@@ -1516,10 +1566,10 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                     <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                   </div>
                 )}
-                <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   {isTodays ? (
                     <>
-                      {countdown ? <>Next Crux in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
+                      {countdown ? <>Next Crux in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
                       {prevPuzzle && (
                         <>
                           {' '}Meanwhile:{' '}
@@ -1534,7 +1584,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                       You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                       <a href="/crux" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
                       {' · '}
-                      <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                      <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                     </>
                   )}
                 </p>
@@ -1642,15 +1692,15 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Crux to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Crux to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> — the colored-crossword tile opens today&apos;s puzzle, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The colored-crossword tile opens today&apos;s puzzle, every day.
                 </p>
               )}
@@ -1668,7 +1718,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             The daily leaderboard now renders in DailyGamesGrid's boardSlot,
             directly under the Challenge / Share actions (owner, 2026-07-23). */}
 
-        {!focusMode && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: COLORS.faded, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
+        {!focusMode && (<p style={{ textAlign: 'center', fontSize: 12, fontStyle: 'italic', fontWeight: 600, color: FADED, margin: '34px 0 0' }}>For WMM, in memoriam.</p>)}
         </div>
       </div>
 
@@ -1706,8 +1756,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="cl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1718,15 +1768,15 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
       <div>
       <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Crux</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Crux is a free daily word puzzle from Mind Loft &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category &mdash; a point per solve, a point per correct placement.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup &mdash; play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily word scramble.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup &mdash; play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily word scramble.
         </p>
       </section>
       </div>
