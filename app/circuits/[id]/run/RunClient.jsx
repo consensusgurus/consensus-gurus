@@ -37,7 +37,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useHoverStale } from '@/lib/hover-armed';
-import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
+import { ArrowRight, Pause, Play, Home, Share2, Check, RotateCcw } from 'lucide-react';
 import useAbandonFlush from '../../../quiz/[id]/useAbandonFlush';
 import JoinLeaderboardForm from '../../../quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -106,6 +106,19 @@ function recordStatFor(gameKey, num, entry) {
 function statFor(gameKey, num) {
   const s = readJson(`sot_${gameKey}_stats`);
   return (s && s.rec && s.rec[num]) || null;
+}
+
+// What a game already played today scored, for a section the run banks rather
+// than serves. The stats record is the first answer and the puzzle's own save
+// is the fallback: the save is what alreadyDone reads, so anything the run
+// treats as played has one, while the stats record can be missing (cleared
+// stats, an older client) and a missing one used to read as a score of zero on
+// the card. Both are local, so neither exists on a device that has not played.
+function bankedScore(gameKey, num) {
+  const st = statFor(gameKey, num);
+  if (st && Number.isFinite(st.s)) return st.s;
+  const sv = readJson(`sot_${gameKey}_${num}`);
+  return sv && Number.isFinite(sv.i) ? sv.i : 0;
 }
 
 // Has this game already been finished today, outside the run? The per-puzzle
@@ -190,11 +203,17 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       const banked = [];
       for (const s of sections) {
         if (!alreadyDone(s.key, s.num)) break;
-        const st = statFor(s.key, s.num);
-        banked.push({ key: s.key, score: st ? st.s : 0, total: s.questions.length, status: 'banked', secs: 0 });
+        banked.push({ key: s.key, score: bankedScore(s.key, s.num), total: s.questions.length, status: 'banked', secs: 0 });
       }
       if (banked.length) {
-        const next = { ...freshRun(), si: banked.length, results: banked };
+        // EVERY SECTION ALREADY PLAYED means the run is over before it starts,
+        // so restore the FINISHED card rather than a gate whose Start button
+        // has nothing left to serve (owner, 2026-08-30: returning to the page
+        // should show the leaderboard). It is the state a player reaches by
+        // playing the seven games on their own pages, or by coming back on
+        // another device, where there is no saved run to restore.
+        const all = banked.length === sections.length;
+        const next = { ...freshRun(), si: banked.length, results: banked, phase: all ? 'done' : 'idle' };
         rRef.current = next;
         setR(next);
       }
@@ -208,7 +227,11 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || r.practice) return;
+    // A PRACTICE PASS IS NOT PERSISTED. The save is the day's real run, and
+    // overwriting it would mean a reload showed a run that counted for nothing
+    // in place of the one that counted. Losing a practice pass to a reload is
+    // the right trade.
     writeJson(STORE_KEY, r);
   }, [r, hydrated, STORE_KEY]);
 
@@ -235,7 +258,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // dedupe key is that game's own, so the section cannot be posted twice.
   const abandon = useAbandonFlush(() => {
     const cur = rRef.current;
-    if (cur.phase !== 'playing' || !cur.sT0) return null;
+    if (cur.phase !== 'playing' || !cur.sT0 || cur.practice) return null;
     const s = sections[cur.si];
     if (!s) return null;
     const REC = `sot_${s.key}_rec_${s.num}`;
@@ -262,6 +285,18 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     setNow(t);
   }
 
+  // PLAY IT AGAIN, FOR PRACTICE (owner, 2026-08-30). The day's results are
+  // already filed and the board keeps them, so a second pass exists to play the
+  // questions again and nothing else: it posts NO result, writes NO local save,
+  // pings NO view, and files no abandon row. It also ignores the already-played
+  // skip, because skipping every game is exactly what it is here to undo.
+  function startPractice() {
+    const t = Date.now();
+    commit({ ...freshRun(), practice: true, t0: t, sT0: t, phase: 'playing', si: 0, i: 0 });
+    setQStart(t);
+    setNow(t);
+  }
+
   // Everything a finished section owes: the four local writes the solo client
   // makes, then the ordinary result post. Called exactly once per section.
   function finishSection(status, { pick = null, timedOut = false } = {}) {
@@ -274,22 +309,24 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     const secs = Math.min(36000, Math.max(1, Math.round((end - (cur.sT0 || end)) / 1000)));
 
     abandon.markFlushed();
-    writeJson(`sot_${s.key}_${s.num}`, { v: 1, i: score, status, t0: cur.sT0, tEnd: end, pick, timedOut });
-    writeJson(`sot_${s.key}_day`, { d: etToday(), done: true });
-    try { localStorage.setItem(`sot_${s.key}_rec_${s.num}`, '1'); } catch (e) {}
-    try { recordStatFor(s.key, s.num, { s: score, t: total, won: status === 'won' }); } catch (e) {}
+    if (!cur.practice) {
+      writeJson(`sot_${s.key}_${s.num}`, { v: 1, i: score, status, t0: cur.sT0, tEnd: end, pick, timedOut });
+      writeJson(`sot_${s.key}_day`, { d: etToday(), done: true });
+      try { localStorage.setItem(`sot_${s.key}_rec_${s.num}`, '1'); } catch (e) {}
+      try { recordStatFor(s.key, s.num, { s: score, t: total, won: status === 'won' }); } catch (e) {}
 
-    try {
-      fetch('/api/quiz/result', {
-        method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quizId: s.quizId, score, total, correct: score,
-          guessesUsed: score + (status === 'lost' ? 1 : 0), timeElapsed: secs,
-          email: identity?.email || undefined, anonId: getAnonId(),
-          isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
-        }),
-      }).catch(() => {});
-    } catch (e) {}
+      try {
+        fetch('/api/quiz/result', {
+          method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            quizId: s.quizId, score, total, correct: score,
+            guessesUsed: score + (status === 'lost' ? 1 : 0), timeElapsed: secs,
+            email: identity?.email || undefined, anonId: getAnonId(),
+            isMobile: isMobileDevice(), referrer: (typeof document !== 'undefined' ? document.referrer : ''),
+          }),
+        }).catch(() => {});
+      } catch (e) {}
+    }
 
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
     commit({
@@ -306,16 +343,15 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     const cur = rRef.current;
     let j = cur.si + 1;
     const banked = [];
-    while (j < N && alreadyDone(sections[j].key, sections[j].num)) {
-      const st = statFor(sections[j].key, sections[j].num);
-      banked.push({ key: sections[j].key, score: st ? st.s : 0, total: sections[j].questions.length, status: 'banked', secs: 0 });
+    while (j < N && !cur.practice && alreadyDone(sections[j].key, sections[j].num)) {
+      banked.push({ key: sections[j].key, score: bankedScore(sections[j].key, sections[j].num), total: sections[j].questions.length, status: 'banked', secs: 0 });
       j += 1;
     }
     const results = banked.length ? [...cur.results, ...banked] : cur.results;
     if (j >= N) { commit({ ...cur, si: N, phase: 'done', results }); return; }
     const t = Date.now();
     commit({ ...cur, si: j, i: 0, sT0: t, phase: 'playing', results });
-    pingView(sections[j].quizId);
+    if (!cur.practice) pingView(sections[j].quizId);
     setQStart(t);
     setNow(t);
   }
@@ -740,7 +776,10 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     in words. The ladder is the one that reads at a glance and
                     names every bank, so it is the one that stays, and it leads
                     the card. */}
-                <span className="rn-lcap">The run</span>
+                <span className="rn-lcap">
+                  {r.practice ? 'Practice run' : 'The run'}
+                  {r.practice ? <i className="rn-pchip">nothing posted</i> : null}
+                </span>
                 <GauntletLadder
                   orientation="row"
                   sections={sections}
@@ -761,7 +800,10 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                       real score was. The number right is the achievement and
                       the hero already carries it. */}
                   <div className="rn-sc-figs">
-                    <div><b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i></div>
+                    {/* A run restored from the games themselves, rather than
+                        from a saved run, has no clock to report. Zero is not
+                        the answer to "how long did it take you". */}
+                    {runSecs > 0 ? <div><b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i></div> : null}
                     {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank)
                       ? <div><b>#{boardQ.data.me.rank}</b><i>of {boardQ.data.overallField || 0}</i></div> : null}
                     {/* NO POINTS FIGURE ON A QUESTIONS-RIGHT CIRCUIT (owner,
@@ -854,12 +896,21 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     {copied ? 'Copied' : 'Share the run'}
                   </button>
                   <a className="rn-vb" href={runSummaryHref(circuitId)}>The full board</a>
+                  {/* PLAY IT AGAIN (owner, 2026-08-30). Today's result is filed
+                      and the board keeps it, so the only thing left to offer is
+                      the questions again. It posts nothing, which is what the
+                      chip says. */}
+                  <button type="button" className="rn-vb" onClick={startPractice}>
+                    <RotateCcw size={15} strokeWidth={2.8} />Try again for practice
+                  </button>
                   <a className="rn-vb" href="/"><Home size={15} strokeWidth={2.8} />Home</a>
                 </div>
                 <p className="rn-fine">
-                  {circuitScoreMode(circuitId) === 'correct'
-                    ? `Each quiz counted on its own board as you played it. The circuit board is the plain count of questions you got right across all ${N}, and the shorter clock takes a tie.`
-                    : `Each quiz counted on its own board as you played it. The circuit board ranks the combined placement across all ${N}. Each quiz pays 15 points for a win down to 1 for finishing, and the run adds the ${N} up.`}
+                  {r.practice
+                    ? `A practice run posts nothing. Today's results are already on the board above, and they are the ones that count.`
+                    : circuitScoreMode(circuitId) === 'correct'
+                      ? `Each quiz counted on its own board as you played it. The circuit board is the plain count of questions you got right across all ${N}, and the shorter clock takes a tie.`
+                      : `Each quiz counted on its own board as you played it. The circuit board ranks the combined placement across all ${N}. Each quiz pays 15 points for a win down to 1 for finishing, and the run adds the ${N} up.`}
                 </p>
               </div>
             ) : null}
@@ -939,6 +990,8 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-stage.full .rn-body{max-width:840px;margin:0 auto;}
 .rn-lcap{display:block;font-family:${MONO};font-size:9px;letter-spacing:.13em;
   text-transform:uppercase;color:#66748f;margin-bottom:12px;}
+.rn-pchip{display:inline-block;margin-left:9px;padding:2px 7px;border-radius:999px;font-style:normal;
+  background:rgba(125,211,252,.16);color:${T.blue200};letter-spacing:.1em;}
 
 /* Shared type. */
 .rn-eye{display:block;font-family:${MONO};font-size:10.5px;letter-spacing:.16em;
