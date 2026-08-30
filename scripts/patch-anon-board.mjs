@@ -38,16 +38,11 @@ function countedReplace(name, re, to, expect) {
 }
 
 // 1. the accent, one name for the whole client
-edit('accent consts',
+// ACC, ACC_DEEP, ACC_SOFT and ON_ACC are declared by patch-stage-chrome.mjs
+// for every client, so they exist even on a game whose board patch is a no-op.
+edit('ladder derivation',
   /^(\s*)const Cap = STAGE \? StageChrome : LoftCap;$/m,
   "$1const Cap = STAGE ? StageChrome : LoftCap;\n"
-  + "$1// Anon is a Word game, so on the stage its book cloth red becomes the\n"
-  + "$1// category step. ON_ACC is the ink that rides on it, which is dark here\n"
-  + "$1// and white on the Loft page, and the two must never be crossed.\n"
-  + "$1const ACC = STAGE ? STAGE_C : COLORS.accent;\n"
-  + "$1const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;\n"
-  + "$1const ACC_SOFT = STAGE ? 'rgba(125,211,252,0.16)' : COLORS.accentSoft;\n"
-  + "$1const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';\n"
   + "$1// THE LADDER: one rung per answer, two blocks, the SPINE and the free\n"
   + "$1// bank. The spine earns its own block because its initials spell the\n"
   + "$1// author, which is the payoff and the reason to keep going.\n"

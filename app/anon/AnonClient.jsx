@@ -733,7 +733,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Every box belongs to one answer below, so a letter you type appears in both halves at once.
                 There are no clues. Finish it and the first letters of the spine will have spelled out
-                <b style={{ color: COLORS.accentDeep }}> who wrote it</b>.
+                <b style={{ color: ACC_DEEP }}> who wrote it</b>.
               </p>
               {gateRules && (
                 <div style={{ marginBottom: 14 }}>

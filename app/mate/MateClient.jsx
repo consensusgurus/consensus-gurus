@@ -391,6 +391,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const LOFT = isLoft('mate');
   const STAGE = isStage('mate', searchParams);
   const STAGE_C = gameColor('mate');
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const Cap = STAGE ? StageChrome : LoftCap;
   // DEPTH ONLY. A rung lights when its ply has been PLAYED. `errors` is in
   // scope and is deliberately not read: nothing may tell a player the round
@@ -1039,7 +1041,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             {!playing && <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-              {playing ? <>mate in <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, movesLeft)}</b></> : <>mate in <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.mateIn}</b></>}
+              {playing ? <>mate in <b style={{ color: ACC, fontWeight: 500 }}>{Math.max(1, movesLeft)}</b></> : <>mate in <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.mateIn}</b></>}
             </span>
           </div>
           )}
@@ -1170,7 +1172,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
               {won ? (
                 <>
                   <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                    The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
+                    The key: <span style={{ color: ACC }}>{PUZZLE.keySan}</span>.
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
                 </>

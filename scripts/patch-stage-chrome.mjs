@@ -78,7 +78,15 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   + `  const INK = STAGE ? '#e9edf4' : COLORS.ink;\n`
   + `  const FADED = STAGE ? '#8b95a8' : COLORS.faded;\n`
   + `  const SURF = STAGE ? 'rgba(255,255,255,0.045)' : T.white;\n`
-  + `  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';`);
+  + `  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';\n`
+  // A client's identity hue. Declared for EVERY client, including the ones
+  // whose COLORS has no accent key: reading a missing key yields undefined,
+  // which is harmless, while declaring these per board patch would leave
+  // `color: ACC` undefined on any game whose board patch did not.
+  + `  const ACC = STAGE ? STAGE_C : COLORS.accent;\n`
+  + `  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;\n`
+  + `  const ACC_SOFT = STAGE ? 'rgba(255,255,255,0.10)' : COLORS.accentSoft;\n`
+  + `  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';`);
 
 // 3. the root: the stage paints its own near-black
 // The root is matched as a LINE rather than as an exact string, because the
@@ -140,6 +148,21 @@ edit('about', /(<section style=\{\{[^}]*?)display: focusMode \? 'none' : 'block'
 //    words it differently is reported rather than silently left blue.
 countedReplace('start CTA', /background: T\.cta, color: T\.white/g,
   'background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white');
+
+// 9. THE ACCENT AS TEXT. A client's identity hue reads as an off-palette
+//    stray on the stage, where the only colour is the category step. It is
+//    handled here and not per game because it is the same one-line residue
+//    everywhere: caught on Anon, whose gate still said "who wrote it" in book
+//    cloth red, and present on Mate too. Only `color:`; a `background:` of the
+//    accent is a fill and each board decides that for itself.
+//
+//    ACC is declared by the board patch when a game has one, so this converts
+//    ONLY where that name will exist. A client with no accent has none of
+//    these and the count is zero.
+if (/const ACC\b/.test(s) || /COLORS\.accent/.test(s)) {
+  countedReplace('inline accent text', /(?<![-\w])color: COLORS\.accent\b/g, 'color: ACC');
+  countedReplace('inline accentDeep text', /(?<![-\w])color: COLORS\.accentDeep\b/g, 'color: ACC_DEEP');
+}
 
 countedReplace('inline ink text', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
 countedReplace('inline faded text', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');
