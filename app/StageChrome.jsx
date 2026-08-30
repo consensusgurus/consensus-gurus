@@ -34,6 +34,7 @@
 //     lib/category-ramp.js for why the brand blue does not belong here.
 import React, { useEffect, useRef, useState } from 'react';
 import { Home } from 'lucide-react';
+import { useStageTheme } from '@/lib/stage-theme';
 import DailyBoardPanel from './quiz/[id]/DailyBoardPanel';
 import { dailyMeIdentity } from './dailyMeClient';
 import { gameColor, gameCategory, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
@@ -96,6 +97,9 @@ export default function StageChrome({
   ladder = null,
 }) {
   const [panel, setPanel] = useState(false);
+  // The switch reads the SAME store the page root reads, so the glyph and the
+  // ground can never disagree about which register is showing.
+  const [theme, setTheme] = useStageTheme();
   // Kept for callers that need the literal; the CAP reads var(--stg-acc),
   // which the client's root publishes in both registers.
   const colour = gameColor(gameKey);
@@ -141,6 +145,26 @@ export default function StageChrome({
             <path d="M4 21v-7" /><path d="M12 21V4" /><path d="M20 21v-10" />
           </svg>
           <span>Rankings</span>
+        </button>
+        <button
+          type="button"
+          className="stg-cx stg-theme"
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+          title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+        >
+          {theme === 'light' ? (
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+            </svg>
+          )}
         </button>
         <a className="stg-cx stg-home" href={homeHref} aria-label="Home" title="Home">
           <Home size={13} strokeWidth={2.4} />
@@ -220,6 +244,7 @@ const CSS = `
   border-radius:99px;padding:5px 11px;background:none;cursor:pointer;text-decoration:none;}
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
+.stg-theme{padding:5px 8px;}
 .stg-cx:hover{border-color:var(--stg-line2,rgba(255,255,255,0.17));color:var(--stg-ink,#e9edf4);}
 .stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg-acc);border-color:var(--stg-acc);}
 .stg-cx:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}

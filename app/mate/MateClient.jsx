@@ -48,6 +48,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
 import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -389,16 +390,10 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('mate');
-  // ?theme=light, read in an EFFECT for the same reason every other query
-  // read on this page is: the server has none, so deciding during render
-  // makes the first client paint disagree with the server's.
-  const [stageTheme, setStageTheme] = useState('dark');
-  useEffect(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get('theme');
-      if (q === 'light' || q === 'dark') setStageTheme(q);
-    } catch (e) {}
-  }, []);
+  // The register comes from the shared store, not from a private effect, so
+  // the switch in the cap repaints this root without a prop between them.
+  // Still resolved in an effect: the server cannot know what is stored.
+  const [stageTheme] = useStageTheme();
   const STAGE = isStage('mate', searchParams);
   // THE ACCENT AS A VARIABLE. It is only ever used as a CSS colour, so
   // every call site below themes itself and none of them had to be found.
