@@ -49,7 +49,7 @@ import LoftFinish from '../LoftFinish';
 import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
-import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -69,6 +69,13 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // !important is load-bearing rather than lazy: these elements carry INLINE
 // styles from the Loft build, and a plain rule loses to an inline one.
 const STAGE_BOARD_CSS = `
+.stage-page .cx-a{display:flex;gap:26px;align-items:stretch;}
+.stage-page .cx-gut{flex:0 0 96px;min-height:340px;}
+.stage-page .cx-a > *:not(.cx-gut){flex:1 1 auto;min-width:0;}
+@media(max-width:640px){
+  .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
+  .stage-page .cx-gut{flex:none;min-height:0;}
+}
 .stage-page .cl-key:not(.cl-kx){background:rgba(255,255,255,0.07)!important;
   color:#e9edf4!important;border:1px solid rgba(255,255,255,0.13)!important;}
 .stage-page .cl-btn{background:transparent!important;color:#e9edf4!important;
@@ -579,6 +586,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // See app/StageChrome.jsx for why a daily is a sitting rather than a page.
   const STAGE = isStage('crux', searchParams);
   const STAGE_C = gameColor('crux');
+  // One source for a category's colour, so the chips, the end-of-game grid
+  // reveal and the ladder can never disagree about which is which.
+  const catTone = (ci) => (STAGE
+    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: RAMP_INK }
+    : CAT_COLORS[ci]);
   // TEXT and FILL are different problems here, which is why there are two
   // names rather than one restyled COLORS. Near-black TEXT is invisible on
   // this ground and has to move; a near-black FILL is a perfectly good
@@ -1092,7 +1104,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // tell you that two of them are still floating.
   const stageBlocks = PUZZLE.categories.map((cat, ci) => ({
     n: cat.words.length,
-    c: STAGE_C,
+    c: STAGE ? CATEGORY_RAMP[ci % CATEGORY_RAMP.length] : STAGE_C,
     on: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] !== undefined),
     half: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] === undefined),
     w: cat.words.map((w) => 0.42 + (w.length - 4) * 0.1),
@@ -1129,7 +1141,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       for (const id of info.slots) {
         if (g.solved[id]) {
           catIdx = PUZZLE.categories.findIndex((c) => c.words.includes(SLOT[id].word));
-          cat = CAT_COLORS[catIdx];
+          cat = catTone(catIdx);
           break;
         }
       }
@@ -1270,7 +1282,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             { v: guessesUsed, k: 'guesses' },
             { v: elapsed, k: 'time' },
           ]}
-          ladder={<StageLadder height={44} label="Words" blocks={stageBlocks} />}
         />
       )}
       {STAGE && <style>{STAGE_BOARD_CSS}</style>}
@@ -1352,6 +1363,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         )}
 
         <div className="cx-a">
+        {STAGE && (
+          <div className="cx-gut">
+            <StageLadder vertical label="Words" blocks={stageBlocks} />
+          </div>
+        )}
         <div className={LOFT ? 'loft-stage' : undefined}>
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
@@ -1399,20 +1415,20 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 there are solved words waiting to be placed */}
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: FADED, marginBottom: 8 }}>
               {playing && solvedUnfiled.length > 0
-                ? <>The categories &mdash; tap to file completed words</>
-                : <>The categories &mdash; each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words</>}
+                ? <>The categories: tap to file completed words</>
+                : <>The categories: each hides {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the {PUZZLE.slots.length === 12 ? 'twelve' : 'eight'} words</>}
             </div>
             {/* No inline grid-template-columns: it beat the .cl-cats rules,
                 which is why the 430px one never fired. Columns live in CSS. */}
             <div className="cl-cats" style={{ marginBottom: 16 }}>
               {PUZZLE.categories.map((cat, ci) => {
-                const cc = CAT_COLORS[ci];
+                const cc = catTone(ci);
                 const filed = Object.keys(g.assigned).filter((w) => g.assigned[w] === ci);
                 const clickable = playing && pick;
                 return (
                   <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
-                    style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', border: '1.5px solid rgba(28,30,36,0.35)', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
-                    <div className="cl-cat-nm" style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, textShadow: '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
+                    style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', border: STAGE ? 'none' : '1.5px solid rgba(28,30,36,0.35)', boxShadow: STAGE ? 'none' : '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
+                    <div className="cl-cat-nm" style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, textShadow: STAGE ? 'none' : '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
                         const w = shown ? cat.words[i] : filed[i];
@@ -1545,7 +1561,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {started && solvedUnfiled.length > 0 && (
             <div style={{ margin: '2px 0 12px', fontSize: 13, fontWeight: 700, color: FADED, textAlign: 'center' }}>
               {pick
-                ? <>Placing <span style={{ color: COLORS.ember, fontWeight: 800 }}>{pick}</span> &mdash; tap a category above</>
+                ? <>Placing <span style={{ color: COLORS.ember, fontWeight: 800 }}>{pick}</span>: tap a category above</>
                 : <>Tap a completed word on the board, then a category. <span style={{ opacity: .85 }}>Underlined words aren&rsquo;t filed yet.</span></>}
             </div>
           )}
@@ -1770,13 +1786,13 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Crux is a free daily word puzzle from Mind Loft &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
+          Crux is a free daily word puzzle from Mind Loft, a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category &mdash; a point per solve, a point per correct placement.
+          Guess real words to reveal letters: dark tiles lock a letter into its square and every crossing, yellow tiles mean the letter belongs elsewhere in the word. The whole board shares one guess budget, and a single submit files each solved word under its category: a point per solve, a point per correct placement.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup &mdash; play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily word scramble.
+          A new Crux puzzle arrives every day, with a bigger Sunday Edition each week. No app, no signup. Play free in your browser and compare score, guesses, and time on the daily leaderboard. Prefer scrambles? Try <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily word scramble.
         </p>
       </section>
       </div>
