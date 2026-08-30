@@ -48,7 +48,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
-import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
+import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref, circuitEntryHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
 import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
@@ -680,7 +680,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   };
 
   const shelfCta = (shelf) => {
-    if (shelf.kind === 'circuit') return { label: 'Play the circuit', href: circuitPageHref(shelf.id), gold: false };
+    if (shelf.kind === 'circuit') return { label: 'Play the circuit', href: circuitEntryHref(shelf.id), gold: false };
     const paused = shelf.games.find((g) => inprog.has(g.key) && !done.has(g.key));
     if (paused) return { label: `Resume · ${paused.name}`, href: paused.href, gold: true };
     const next = shelf.games.find((g) => !done.has(g.key));
@@ -1136,7 +1136,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                     <a
                       key={c.id}
                       className={'tdy-ct' + (all ? ' done' : '')}
-                      href={circuitPageHref(c.id)}
+                      href={circuitEntryHref(c.id)}
                       style={{ '--cc': c.color }}
                       title={`${c.name}: ${c.games.map((g) => g.name).join(', ')}`}
                     >
