@@ -124,6 +124,15 @@ function statFor(gameKey, num) {
 // treats as played has one, while the stats record can be missing (cleared
 // stats, an older client) and a missing one used to read as a score of zero on
 // the card. Both are local, so neither exists on a device that has not played.
+// WHICH ANSWER ENDED IT, for a game finished on its own page today. The run
+// never saw the section, so the per-puzzle save is the only record of the pick,
+// and it is the same record the game's own page wrote.
+function bankedMiss(gameKey, num) {
+  const sv = readJson(`sot_${gameKey}_${num}`);
+  if (!sv) return {};
+  return { pick: Number.isFinite(sv.pick) ? sv.pick : null, timedOut: !!sv.timedOut };
+}
+
 function bankedScore(gameKey, num) {
   const st = statFor(gameKey, num);
   if (st && Number.isFinite(st.s)) return st.s;
@@ -236,7 +245,10 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       const banked = [];
       for (const s of sections) {
         if (!alreadyDone(s.key, s.num)) break;
-        banked.push({ key: s.key, score: bankedScore(s.key, s.num), total: s.questions.length, status: 'banked', secs: 0 });
+        banked.push({
+          key: s.key, score: bankedScore(s.key, s.num), total: s.questions.length,
+          status: 'banked', secs: 0, ...bankedMiss(s.key, s.num),
+        });
       }
       if (banked.length) {
         // EVERY SECTION ALREADY PLAYED means the run is over before it starts,
@@ -364,7 +376,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
     commit({
       ...cur, phase: 'verdict', i: score,
-      results: [...cur.results, { key: s.key, score, total, status, secs }],
+      results: [...cur.results, { key: s.key, score, total, status, secs, pick, timedOut }],
     });
     setQStart(null);
     setHold(false);

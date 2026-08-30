@@ -45,8 +45,14 @@ import { rampFor } from '@/lib/circuits';
 const PAINT_MS = 980;      // one bank owns the screen for this long
 const COUNT_MS = 560;      // its number, its ladder block and its segment
 const REPAINT_MS = 1250;   // the colours come back, the total lands
-const CLIMB_MS = 3400;     // the position falls to the player's slot
-const HOLD_MS = 1500;      // the finished frame, before the card
+const CLIMB_MS = 2600;     // the position falls to the player's slot
+const HOLD_MS = 900;       // the finished frame, before the last screen
+// WHERE EACH RUN ENDED dwells for as long as it has to be read, and no
+// longer: a run that cleared five banks has two questions on that screen, and
+// holding it for seven seconds would be seven seconds of nothing happening.
+const MISS_PER = 1250;     // per bank that actually has a miss to read
+const MISS_MIN = 4000;
+const MISS_MAX = 9000;
 
 // A dark ink for a ramp colour. Every colour in LADDER_RAMP is a high-lightness
 // pastel, so a flat scale toward black is legible on all eight without a table
@@ -117,12 +123,47 @@ export default function GauntletFinale({
     return { key: s.key, name: s.name || s.key, subject: s.subject || '', asked, got, colour, ink: inkFor(colour) };
   }), [sections, results]);
 
+  // WHERE EACH RUN ENDED. The question that finished a bank is the one at the
+  // index equal to the score: on a one-life quiz the score IS how many were
+  // answered before the miss, so questions[score] is the miss itself. Nothing
+  // new is stored anywhere; `pick` rides on the result row and on the
+  // per-puzzle save a banked game already wrote.
+  const misses = useMemo(() => sections.map((s, i) => {
+    const res = results[i] || null;
+    if (!res) return null;
+    const cleared = res.status === 'won' || (res.total > 0 && res.score === res.total);
+    if (cleared) return { cleared: true };
+    const q = (s.questions || [])[res.score] || null;
+    if (!q || !Array.isArray(q.choices)) return null;
+    const right = q.choices[q.correct];
+    // A run out of clock has no wrong answer to name, and a row saved before
+    // the pick was recorded has none either. Both say so rather than guessing.
+    const known = !res.timedOut && Number.isFinite(res.pick);
+    return {
+      cleared: false,
+      q: q.q,
+      right,
+      yours: known ? q.choices[res.pick] : null,
+      timedOut: !!res.timedOut,
+      unknown: !res.timedOut && !Number.isFinite(res.pick),
+    };
+  }), [sections, results]);
+
   const running = useMemo(() => {
     const out = [];
     let n = 0;
     banks.forEach((b) => { n += b.got; out.push(n); });
     return out;
   }, [banks]);
+
+  const missMs = useMemo(() => {
+    const n = misses.filter((m) => m && !m.cleared).length;
+    return Math.max(MISS_MIN, Math.min(MISS_MAX, MISS_PER * n));
+  }, [misses]);
+  // Read inside the schedule rather than listed as a dependency: a change would
+  // otherwise tear down the timers and restart the sequence mid-run.
+  const missRef = useRef(missMs);
+  useEffect(() => { missRef.current = missMs; }, [missMs]);
 
   const finish = () => {
     if (doneRef.current) return;
@@ -142,7 +183,8 @@ export default function GauntletFinale({
     const end = 260 + N * PAINT_MS;
     at(end, () => setStep(N));
     at(end + REPAINT_MS, () => setStep(N + 1));
-    at(end + REPAINT_MS + CLIMB_MS + HOLD_MS, finish);
+    at(end + REPAINT_MS + CLIMB_MS + HOLD_MS, () => setStep(N + 2));
+    at(end + REPAINT_MS + CLIMB_MS + HOLD_MS + missRef.current, finish);
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [N]);
@@ -158,6 +200,10 @@ export default function GauntletFinale({
   const painting = step >= 0 && step < N;
   const cur = painting ? banks[step] : null;
   const restored = step >= N;
+  // THE LAST SCREEN. The two tallies retire for it: they have said their piece,
+  // and seven questions with two answers each need the whole width, which on a
+  // phone is the difference between readable and not.
+  const ended = step >= N + 2;
   const ground = painting ? cur.colour : '#0b0f1a';
   const ink = painting ? cur.ink : '#f2f6ff';
 
@@ -171,7 +217,7 @@ export default function GauntletFinale({
 
   return (
     <div
-      className={`gfin${restored ? ' restored' : ''}`}
+      className={`gfin${restored ? ' restored' : ''}${ended ? ' ended' : ''}`}
       style={{ background: ground, color: ink }}
       onClick={finish}
       role="button"
@@ -188,7 +234,7 @@ export default function GauntletFinale({
 
       {/* THE MIDDLE. One bank at a time while the paint is up, then the total,
           then out of the way so the board owns the screen. */}
-      <div className={`gfin-mid${step === N + 1 ? ' gone' : ''}${restored ? ' up' : ''}`}>
+      <div className={`gfin-mid${step >= N + 1 ? ' gone' : ''}${restored ? ' up' : ''}`}>
         {step < 0 ? null : painting ? (
           <>
             {cur.subject ? <div className="gfin-sub">{cur.subject}</div> : null}
@@ -288,7 +334,37 @@ export default function GauntletFinale({
         </div>
       </div>
 
-      <div className="gfin-skip">tap to skip</div>
+      <div className={`gfin-miss${ended ? ' in' : ''}`}>
+        <div className="gfin-mh">where each run ended</div>
+        <div className="gfin-mrows">
+          {banks.map((b, i) => {
+            const m = misses[i];
+            if (!m) return null;
+            return (
+              <div className="gfin-mrow" key={b.key} style={{ borderLeftColor: b.colour }}>
+                <div className="gfin-mnm" style={{ color: b.colour }}>
+                  {b.name}<i>{b.got}/{b.asked}</i>
+                </div>
+                {m.cleared ? (
+                  <div className="gfin-mq cleared">Cleared. Every question.</div>
+                ) : (
+                  <>
+                    <div className="gfin-mq">{m.q}</div>
+                    <div className="gfin-mans">
+                      {m.yours ? <span className="gfin-mw">you said {m.yours}</span> : null}
+                      {m.timedOut ? <span className="gfin-mw">the clock ran out</span> : null}
+                      {m.unknown ? <span className="gfin-mw">answered wrong</span> : null}
+                      <span className="gfin-mr">{m.right}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="gfin-skip">{ended ? 'tap for your scorecard' : 'tap to skip'}</div>
     </div>
   );
 }
@@ -350,6 +426,25 @@ const CSS = `
 .gfin-row .p{opacity:.5}
 .gfin-row .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gfin-row.me{background:#7dd3fc;color:#08222e}
+.gfin.ended .gfin-lad,.gfin.ended .gfin-side{opacity:0;transition:opacity .4s ease}
+.gfin-miss{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:14px;padding:64px 46px 76px;opacity:0;
+  transition:opacity .45s ease;pointer-events:none}
+.gfin-miss.in{opacity:1}
+.gfin-mh{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;opacity:.5}
+.gfin-mrows{width:min(760px,100%);display:flex;flex-direction:column;gap:8px;
+  max-height:100%;overflow-y:auto}
+.gfin-mrow{border-left:3px solid;padding:7px 0 8px 13px}
+.gfin-mnm{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  display:flex;align-items:baseline;gap:8px}
+.gfin-mnm i{font-style:normal;font-size:11px;font-weight:600;letter-spacing:.04em;
+  color:#8ea6d6;text-transform:none;font-variant-numeric:tabular-nums}
+.gfin-mq{font-size:14.5px;font-weight:600;line-height:1.35;margin:3px 0 5px;color:#eef2fa;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gfin-mq.cleared{margin-bottom:0;color:#9fb0cd;font-weight:500}
+.gfin-mans{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12.5px;font-weight:600}
+.gfin-mw{color:#fb7185;text-decoration:line-through;text-decoration-color:rgba(251,113,133,.55)}
+.gfin-mr{color:#6ee7b7}
 .gfin-skip{position:absolute;left:0;right:0;bottom:26px;text-align:center;font-size:11px;
   font-weight:600;letter-spacing:.18em;text-transform:uppercase;opacity:.34}
 
@@ -369,6 +464,14 @@ const CSS = `
   .gfin-pos .n{font-size:62px}
   .gfin-rows{width:100%}
   .gfin-row{grid-template-columns:34px 1fr auto;gap:8px;padding:6px 10px;font-size:12.5px}
+  .gfin-miss{padding:44px 16px 60px;gap:10px}
+  .gfin-mh{font-size:10px;letter-spacing:.16em}
+  .gfin-mrows{gap:6px}
+  .gfin-mrow{padding:5px 0 6px 10px;border-left-width:2px}
+  .gfin-mnm{font-size:10.5px;gap:6px}
+  .gfin-mnm i{font-size:10px}
+  .gfin-mq{font-size:12.5px;margin:2px 0 4px}
+  .gfin-mans{font-size:11.5px;gap:4px 8px}
   .gfin-skip{bottom:18px;font-size:10px}
 }
 
