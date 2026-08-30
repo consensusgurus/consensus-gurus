@@ -959,7 +959,20 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-rrow em{font-style:normal;font-family:${MONO};font-size:14px;color:#8ea6d6;
   font-variant-numeric:tabular-nums;width:34px;text-align:right;flex:none;}
 
-.rn-go{display:inline-flex;align-items:center;gap:9px;background:${T.cta};color:#fff;border:0;
+/* THE CALL TO ACTION IS SKY, NOT THE BRAND CTA BLUE (owner, 2026-08-30).
+   This stage is near black plus exactly one family of colour, the ladder ramp:
+   sky, mint, lime, gold, orange, rose, magenta. Every one of those is a
+   high-lightness pastel carrying DARK ink. The brand CTA blue was the only
+   mid-tone saturated fill on the page and the only one carrying white, so it
+   read as a button imported from a different design rather than as part of
+   the stage.
+   It was never a contrast failure, it was a register failure.
+   Sky is LADDER_RAMP's own first step, so the primary now belongs to the same
+   palette as everything around it: #08222e on #7dd3fc is 9.85:1, and the
+   button sits at 11.48:1 against the ground, both far past where the royal
+   blue was (4.65 and 4.11). The known cost, accepted: sky is also slot one's
+   identity on the ladder above these buttons. */
+.rn-go{display:inline-flex;align-items:center;gap:9px;background:#7dd3fc;color:#08222e;border:0;
   border-radius:11px;padding:15px 22px;font-family:inherit;font-weight:800;font-size:15px;
   cursor:pointer;margin-top:24px;}
 .rn-go:hover{filter:brightness(1.1);}
@@ -1034,7 +1047,7 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-vb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 14px;font-family:inherit;
   font-weight:800;font-size:13.5px;color:#eef2fa;cursor:pointer;text-decoration:none;}
-.rn-vb.pri{background:${T.cta};border-color:${T.cta};color:#fff;}
+.rn-vb.pri{background:#7dd3fc;border-color:#7dd3fc;color:#08222e;}
 .rn-vb:hover{filter:brightness(1.1);}
 .rn-sacts{margin-top:22px;}
 
@@ -1067,7 +1080,7 @@ body:has(.rn)::before{background:${T.ground};}
   text-transform:uppercase;color:${T.blue200};margin-bottom:7px;}
 .rn-chd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
 .rn-cnm{flex:1;min-width:0;font-size:16.5px;font-weight:800;letter-spacing:-.02em;color:#fff;}
-.rn-cgo{flex:none;border:0;background:${T.cta};color:#fff;border-radius:9px;padding:11px 15px;
+.rn-cgo{flex:none;border:0;background:#7dd3fc;color:#08222e;border-radius:9px;padding:11px 15px;
   font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;}
 .rn-cgo:hover{filter:brightness(1.1);}
 .rn-ctg{font-size:12.5px;font-weight:600;line-height:1.5;color:#9aa8c4;margin:8px 0 0;}

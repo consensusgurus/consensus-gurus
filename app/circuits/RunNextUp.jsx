@@ -295,7 +295,10 @@ const CSS = `
 .rnx-pips span{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.14);}
 .rnx-cm{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .rnx-cm i{font-style:normal;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;color:#66748f;}
-.rnx-cm b{background:${T.cta};color:#fff;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;}
+/* Sky, not the brand CTA blue: see the note in RunClient's stylesheet. This
+   stage's colour family is the ladder ramp, and every hue in it is a light
+   pastel carrying dark ink. */
+.rnx-cm b{background:#7dd3fc;color:#08222e;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;}
 
 .rnx-circs.mini{grid-template-columns:repeat(3,1fr);gap:7px;}
 .rnx-circs.mini .rnx-circ{padding:10px 11px;}
@@ -321,8 +324,8 @@ const CSS = `
 .rnx-pills button i{font-style:normal;font-weight:700;font-size:9.5px;color:#66748f;
   background:rgba(255,255,255,.08);border-radius:999px;padding:1px 5px;}
 .rnx-pills button:hover{border-color:rgba(96,165,250,.5);color:#fff;}
-.rnx-pills button.on{background:${T.cta};border-color:${T.cta};color:#fff;}
-.rnx-pills button.on i{background:rgba(255,255,255,.24);color:#fff;}
+.rnx-pills button.on{background:#7dd3fc;border-color:#7dd3fc;color:#08222e;}
+.rnx-pills button.on i{background:rgba(8,34,46,.14);color:#08222e;}
 
 @media (max-width:640px){
   .rnx-tiles,.rnx-circs,.rnx-more{grid-template-columns:1fr;}
