@@ -49,7 +49,7 @@ import LoftFinish from '../LoftFinish';
 import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
-import { gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -598,8 +598,22 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // THE STAGE. When it is on, this page owns its ground and its chrome
   // outright: no Grain, no DailyChrome, no LoftCap, no footer and no tail.
   // See app/StageChrome.jsx for why a daily is a sitting rather than a page.
+  // ?theme=light, read in an EFFECT for the same reason every other query
+  // read on this page is: the server has none, so deciding during render
+  // makes the first client paint disagree with the server's.
+  const [stageTheme, setStageTheme] = useState('dark');
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('theme');
+      if (q === 'light' || q === 'dark') setStageTheme(q);
+    } catch (e) {}
+  }, []);
   const STAGE = isStage('crux', searchParams);
-  const STAGE_C = gameColor('crux');
+  // THE ACCENT AS A VARIABLE. It is only ever used as a CSS colour, so
+  // every call site below themes itself and none of them had to be found.
+  // The literals are published on the root element instead.
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('crux');
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('crux'), '--stg-acc-lt': gameColorLight('crux') };
   // One source for a category's colour, so the chips, the end-of-game grid
   // reveal and the ladder can never disagree about which is which.
   const catTone = (ci) => (STAGE
@@ -1246,7 +1260,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
-      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
       {!STAGE && <Grain />}
       {/* Shared daily chrome: home's #233a63 masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs

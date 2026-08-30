@@ -191,6 +191,11 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-mute2: #66748f;
   --stg-dim: #5a657d;
   --stg-onramp: #08222e;
+  /* The client's root publishes BOTH registers of its category step, because
+     an inline style beats a stylesheet and a root that set --stg-acc directly
+     could never be re-themed by CSS. One place decides here; every call site
+     reads var(--stg-acc) and follows. */
+  --stg-acc: var(--stg-acc-dk, #7dd3fc);
 }
 
 /* The light register, defined now so the toggle is a one-line change rather
@@ -213,4 +218,5 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-mute2: #79839a;
   --stg-dim: #9aa0ab;
   --stg-onramp: #ffffff;
+  --stg-acc: var(--stg-acc-lt, #0369a1);
 }

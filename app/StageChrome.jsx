@@ -96,6 +96,8 @@ export default function StageChrome({
   ladder = null,
 }) {
   const [panel, setPanel] = useState(false);
+  // Kept for callers that need the literal; the CAP reads var(--stg-acc),
+  // which the client's root publishes in both registers.
   const colour = gameColor(gameKey);
   const category = cat || gameCategory(gameKey) || '';
   const board = useStripBoard(quizId, boardOn);
@@ -107,7 +109,7 @@ export default function StageChrome({
   const pct = Math.max(0, Math.min(100, Math.round((Number(progress) || 0) * 100)));
 
   return (
-    <div className="stg-top" style={{ '--stg': colour }}>
+    <div className="stg-top">
       <style>{CSS}</style>
 
       <div className="stg-cap">
@@ -204,7 +206,7 @@ const CSS = `
   text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
 .stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
-  text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg);
+  text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg-acc);
   border-radius:99px;padding:3px 8px;}
 .stg-fg{display:flex;gap:20px;margin-left:22px;}
 .stg-fg>div{display:flex;flex-direction:column;}
@@ -219,23 +221,23 @@ const CSS = `
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
 .stg-cx:hover{border-color:rgba(var(--stg-lift,255,255,255),.2);color:var(--stg-ink,#e9edf4);}
-.stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg);border-color:var(--stg);}
-.stg-cx:focus-visible{outline:2px solid var(--stg);outline-offset:2px;}
+.stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg-acc);border-color:var(--stg-acc);}
+.stg-cx:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 
 .stg-prog{height:2px;background:rgba(var(--stg-lift,255,255,255),.08);}
-.stg-prog span{display:block;height:100%;background:var(--stg);transition:width .3s ease;}
+.stg-prog span{display:block;height:100%;background:var(--stg-acc);transition:width .3s ease;}
 
 .stg-strip{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
   background:rgba(var(--stg-lift,255,255,255),.03);border:0;border-bottom:1px solid rgba(var(--stg-lift,255,255,255),.09);
   padding:9px 20px;font-family:${SANS};font-size:12.5px;color:var(--stg-ink,#e9edf4);}
 .stg-strip:hover{background:rgba(var(--stg-lift,255,255,255),.055);}
 .stg-strip.on{background:rgba(var(--stg-lift,255,255,255),.07);}
-.stg-strip:focus-visible{outline:2px solid var(--stg);outline-offset:-2px;}
+.stg-strip:focus-visible{outline:2px solid var(--stg-acc);outline-offset:-2px;}
 .stg-se{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-sn{font-weight:800;}
 .stg-sf{font-family:${MONO};font-size:11.5px;color:var(--stg-ink2,#aab5c7);}
 .stg-sd{color:var(--stg-mute2,#66748f);font-size:11.5px;}
-.stg-sy{margin-left:auto;flex:none;color:var(--stg);font-family:${MONO};font-size:10px;
+.stg-sy{margin-left:auto;flex:none;color:var(--stg-acc);font-family:${MONO};font-size:10px;
   letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 
 /* IN FLOW, never over. Nothing is hidden behind it and it needs no scrim. */

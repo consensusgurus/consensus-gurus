@@ -50,7 +50,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
-import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -230,8 +230,22 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const fill = g.fill || new Array(N).fill('');
   const playing = g.status === 'playing';
   const LOFT = isLoft('anon');
+  // ?theme=light, read in an EFFECT for the same reason every other query
+  // read on this page is: the server has none, so deciding during render
+  // makes the first client paint disagree with the server's.
+  const [stageTheme, setStageTheme] = useState('dark');
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('theme');
+      if (q === 'light' || q === 'dark') setStageTheme(q);
+    } catch (e) {}
+  }, []);
   const STAGE = isStage('anon', searchParams);
-  const STAGE_C = gameColor('anon');
+  // THE ACCENT AS A VARIABLE. It is only ever used as a CSS colour, so
+  // every call site below themes itself and none of them had to be found.
+  // The literals are published on the root element instead.
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('anon');
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('anon'), '--stg-acc-lt': gameColorLight('anon') };
   const Cap = STAGE ? StageChrome : LoftCap;
   // Anon is a Word game, so on the stage its book cloth red becomes the
   // category step. ON_ACC is the ink that rides on it, which is dark here
@@ -610,7 +624,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
-      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
       {!STAGE && <Grain />}
       {!STAGE && (
       <DailyChrome slug="anon" name="Anon" collapsed={!!g.t0} loft={LOFT} />

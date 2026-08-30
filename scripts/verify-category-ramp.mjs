@@ -32,7 +32,8 @@ register('./alias-loader.mjs', import.meta.url);
 
 const {
   RAMP_ORDER, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND,
-  rampIndexFor, gameColor,
+  CATEGORY_RAMP_LIGHT, RAMP_INK_LIGHT, STAGE_GROUND_LIGHT,
+  rampIndexFor, gameColor, gameColorLight,
 } = await import('../lib/category-ramp.js');
 const { DAILY_GAMES } = await import('../lib/daily-games.js');
 
@@ -121,6 +122,35 @@ for (let i = 1; i < CATEGORY_RAMP.length; i += 1) {
       + 'bands are a separate table by owner ruling. Not a task.');
   }
 }
+
+// ── 6. THE LIGHT REGISTER, held to the same standard ──────────────────────
+// A light ramp that fails its ink is worse than no light ramp: it ships a
+// toggle that makes half the roster unreadable.
+if (CATEGORY_RAMP_LIGHT.length !== CATEGORY_RAMP.length) {
+  fail(`light ramp has ${CATEGORY_RAMP_LIGHT.length} steps against ${CATEGORY_RAMP.length} dark`);
+}
+const seenL = new Map();
+CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
+  const cat = RAMP_ORDER[i] || `step ${i}`;
+  const ink = contrast(hex, RAMP_INK_LIGHT);
+  const gnd = contrast(hex, STAGE_GROUND_LIGHT);
+  if (ink < INK_MIN) fail(`light ${cat} ${hex}: white ink is ${ink.toFixed(2)}:1, under ${INK_MIN}`);
+  if (gnd < GROUND_MIN) fail(`light ${cat} ${hex}: pale ground is ${gnd.toFixed(2)}:1, under ${GROUND_MIN}`);
+  if (seenL.has(hex)) fail(`light ${cat} repeats ${hex}, already used by ${seenL.get(hex)}`);
+  seenL.set(hex, cat);
+  // The two registers must be the SAME CATEGORY, which means the same hue. A
+  // light ramp that drifts in hue is a second colour system wearing the first
+  // one's names, and a reader who flips the toggle loses every association
+  // they had built.
+  const d = apart(hue(hex), hue(CATEGORY_RAMP[i]));
+  if (d > 25) fail(`light ${cat} is ${Math.round(d)} degrees from its dark step, so it is a different colour`);
+  if (ink >= INK_MIN && gnd >= GROUND_MIN && d <= 25) {
+    ok(`light ${cat.padEnd(17)} ${hex}  ink ${ink.toFixed(2)}:1  ground ${gnd.toFixed(2)}:1  ${Math.round(d)} deg from dark`);
+  }
+});
+const badL = DAILY_GAMES.filter((g) => !CATEGORY_RAMP_LIGHT.includes(gameColorLight(g.key)));
+if (badL.length) fail(`${badL.length} games resolve outside the light ramp`);
+else ok(`all ${DAILY_GAMES.length} games resolve to a light step`);
 
 console.log(fails ? `\n${fails} failed, ${warns} warned` : `\nramp clean, ${warns} warned`);
 process.exit(fails ? 1 : 0);

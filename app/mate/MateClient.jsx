@@ -48,7 +48,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
-import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -389,8 +389,22 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('mate');
+  // ?theme=light, read in an EFFECT for the same reason every other query
+  // read on this page is: the server has none, so deciding during render
+  // makes the first client paint disagree with the server's.
+  const [stageTheme, setStageTheme] = useState('dark');
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('theme');
+      if (q === 'light' || q === 'dark') setStageTheme(q);
+    } catch (e) {}
+  }, []);
   const STAGE = isStage('mate', searchParams);
-  const STAGE_C = gameColor('mate');
+  // THE ACCENT AS A VARIABLE. It is only ever used as a CSS colour, so
+  // every call site below themes itself and none of them had to be found.
+  // The literals are published on the root element instead.
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('mate');
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('mate'), '--stg-acc-lt': gameColorLight('mate') };
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const Cap = STAGE ? StageChrome : LoftCap;
@@ -930,7 +944,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
-      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
       {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
