@@ -117,6 +117,16 @@ edit('about', /(<section style=\{\{[^}]*?)display: focusMode \? 'none' : 'block'
 // THE LOOKBEHIND IS LOAD-BEARING. `border-color:` ends with `color:`, so a
 // bare pattern converts border colours too, which are a FILL decision and not
 // a text one. Caught on Suds, where .sd-tool.on had its border quietly moved.
+// 8. THE CTA RULE (owner, 2026-08-30). A surface that belongs to a category
+//    takes that category's ramp step with dark ink, and that is its primary.
+//    T.cta was the only mid-tone saturated fill on a stage and the only fill
+//    carrying WHITE ink, which is what made it read as a button borrowed from
+//    another design. Measured across the roster, seven of eight clients write
+//    the start button identically, so it converts generically; a client that
+//    words it differently is reported rather than silently left blue.
+countedReplace('start CTA', /background: T\.cta, color: T\.white/g,
+  'background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white');
+
 countedReplace('inline ink text', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
 countedReplace('inline faded text', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');
 countedReplace('css ink text', /(?<![-\w])color:\$\{COLORS\.ink\}/g, 'color:${INK}');
