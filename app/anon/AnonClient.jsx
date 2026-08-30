@@ -252,7 +252,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   // and white on the Loft page, and the two must never be crossed.
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
-  const ACC_SOFT = STAGE ? 'rgba(125,211,252,0.16)' : COLORS.accentSoft;
+  const ACC_SOFT = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : COLORS.accentSoft;
   const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   // THE LADDER: one rung per answer, two blocks, the SPINE and the free
   // bank. The spine earns its own block because its initials spell the
@@ -710,7 +710,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-kr button.del{display:flex;align-items:center;justify-content:center;}
           .an-kr button:active{background:${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : '#cfd6e2'};}
           .an-spine{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:0 0 14px;}
-          .an-spine i{width:22px;height:28px;border-radius:4px;background:${ACC_SOFT};border:1px solid ${STAGE ? 'rgba(125,211,252,0.45)' : '#e3b9be'};
+          .an-spine i{width:22px;height:28px;border-radius:4px;background:${ACC_SOFT};border:1px solid ${STAGE ? 'color-mix(in srgb, var(--stg-acc) 45%, transparent)' : '#e3b9be'};
             display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${ACC};}
           .an-spine i.blank{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#dcc6c9'};background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : 'var(--white)'};border-color:${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.1)'};}
         `}</style>
@@ -741,7 +741,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {preStart && (
-            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid var(--stg-line)' : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
               <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 A clueless acrostic: a passage nobody signed, in {N} letters.
               </h2>
@@ -792,12 +792,12 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               )}
 
               {(!narrow || view === 'b') && (
-                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid var(--stg-line)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                   {banksPanel}
                 </div>
               )}
               {(!narrow || view === 'q') && (
-                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid var(--stg-line)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
                   {passagePanel}
                 </div>
               )}

@@ -626,15 +626,19 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // dark chip on the board into a pale one.
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  // Every value here is a ROLE, never a fixed alpha. An empty cell is a raised
+  // surface, a spent one is inert, and the selection is a wash of whatever the
+  // accent currently is, so all three follow the register instead of assuming
+  // the ground is dark.
   const SPAL = STAGE ? {
-    tile: 'rgba(255,255,255,0.045)',
-    tileB: 'rgba(255,255,255,0.13)',
-    sel: 'rgba(125,211,252,0.14)',
-    selCur: 'rgba(125,211,252,0.26)',
-    selB: 'rgba(125,211,252,0.5)',
-    key: 'rgba(255,255,255,0.09)',
-    keyB: '1.5px solid rgba(255,255,255,0.14)',
-    spent: 'rgba(255,255,255,0.05)',
+    tile: 'var(--stg-surf)',
+    tileB: 'var(--stg-line)',
+    sel: 'color-mix(in srgb, var(--stg-acc) 14%, transparent)',
+    selCur: 'color-mix(in srgb, var(--stg-acc) 26%, transparent)',
+    selB: 'color-mix(in srgb, var(--stg-acc) 50%, transparent)',
+    key: 'var(--stg-surf2)',
+    keyB: '1.5px solid var(--stg-line)',
+    spent: 'var(--stg-panel)',
     spentInk: 'var(--stg-dim,#5a657d)',
   } : null;
 
@@ -1407,7 +1411,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
-            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : COLORS.cream, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1742,7 +1746,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Crux to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
@@ -1805,7 +1809,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>

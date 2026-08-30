@@ -216,7 +216,7 @@ const CSS = `
   text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 
 .stg-cx{display:inline-flex;align-items:center;gap:6px;font-family:${MONO};font-size:10px;
-  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
+  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid var(--stg-line);
   border-radius:99px;padding:5px 11px;background:none;cursor:pointer;text-decoration:none;}
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
@@ -228,7 +228,7 @@ const CSS = `
 .stg-prog span{display:block;height:100%;background:var(--stg-acc);transition:width .3s ease;}
 
 .stg-strip{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
-  background:var(--stg-surf,rgba(255,255,255,0.045));border:0;border-bottom:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
+  background:var(--stg-surf,rgba(255,255,255,0.045));border:0;border-bottom:1px solid var(--stg-line);
   padding:9px 20px;font-family:${SANS};font-size:12.5px;color:var(--stg-ink,#e9edf4);}
 .stg-strip:hover{background:var(--stg-surf,rgba(255,255,255,0.045));}
 .stg-strip.on{background:var(--stg-surf2,rgba(255,255,255,0.08));}
@@ -242,9 +242,9 @@ const CSS = `
 
 /* IN FLOW, never over. Nothing is hidden behind it and it needs no scrim. */
 .stg-rail{max-width:1180px;margin:0 auto;padding:14px 20px 2px;}
-.stg-panel{border-bottom:1px solid var(--stg-surf2,rgba(255,255,255,0.08));background:var(--stg-panel,#0d1220);}
+.stg-panel{border-bottom:1px solid var(--stg-line);background:var(--stg-panel,#0d1220);}
 .stg-pin{max-width:1180px;margin:0 auto;padding:16px 20px 20px;}
-.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
+.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid var(--stg-line);
   border-radius:99px;color:var(--stg-mute2,#66748f);font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;padding:6px 16px;cursor:pointer;}
 
