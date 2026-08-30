@@ -49,7 +49,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref } from '@/lib/circuits';
-import GauntletPop from './GauntletPop';
 import { catBlue } from '@/lib/home-blues';
 import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
@@ -964,12 +963,6 @@ export default function TodayClient({ onSignup = null } = {}) {
   // merge of all three passes above, so this reads the same truth the tiles
   // do, and the pop-up itself waits on `board` (the server's word) before it
   // decides anything.
-  const gauntletKeys = useMemo(() => {
-    if (!today) return [];
-    try { return circuitKeysFor('gauntlet', today) || []; } catch (e) { return []; }
-  }, [today]);
-  const gauntletUnplayed = gauntletKeys.length > 0 && !gauntletKeys.some((k) => done.has(k));
-
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
@@ -977,7 +970,11 @@ export default function TodayClient({ onSignup = null } = {}) {
   return (
     <div className="tdy">
       <style>{CSS}</style>
-      <GauntletPop ready={!!board && !!today} unplayed={gauntletUnplayed} day={today || ''} />
+      {/* THE ONCE-A-DAY POP-UP IS RETIRED (owner, 2026-08-30). It interrupted
+          the home page to advertise a thing the home page already leads with,
+          which is the shape of nudge that costs more goodwill than it buys.
+          app/today/GauntletPop.jsx is left in the tree, unmounted, so restoring
+          it is one line rather than a rebuild. */}
 
       <div className="tdy-wrap">
         <div className={'tdy-jb' + (stuck ? ' stuck' : '')} style={{ top: barTop }}>

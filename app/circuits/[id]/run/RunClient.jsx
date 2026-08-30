@@ -39,6 +39,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useHoverStale } from '@/lib/hover-armed';
 import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
 import useAbandonFlush from '../../../quiz/[id]/useAbandonFlush';
+import JoinLeaderboardForm from '../../../quiz/[id]/JoinLeaderboardForm';
+import { savedIdentity } from '@/lib/saved-identity';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
@@ -395,7 +397,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
       return res.score >= Math.ceil(res.total / 2) ? '\u{1F7E8}' : '\u{1F7E5}';
     }).join('');
     const text = [
-      `${circuitName} · ${cleared} of ${askable} questions · ${perfect} of ${N} cleared`,
+      `${circuitName} · ${cleared} of ${askable} questions`,
       bar,
       'One long quiz, one life each.',
       url,
@@ -484,6 +486,24 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     }
     return n;
   })();
+
+  // CLAIM YOUR SPOT. The ladder pays REGISTERED positions only, and a finish is
+  // where the attention is, so a guest's scorecard carries the canonical join
+  // form inline. This surface needed it twice over: dropping the site header
+  // took the only Sign Up control off the page with it. Identity is read in an
+  // effect because localStorage does not exist on the server.
+  const [guest, setGuest] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimed, setClaimed] = useState(false);
+  useEffect(() => { if (!savedIdentity().username) setGuest(true); }, []);
+
+  // THE LINE UNDER EACH GAME'S NAME. Normally the game's SUBJECT, per the note
+  // in lib/daily-games. Deep is the exception the owner asked for here
+  // (2026-08-30): its subject is the word "Trivia", which says nothing, while
+  // its day TOPIC is the whole point of it. `topic` is only set by a game whose
+  // day has one, so this reads as the subject everywhere else with no special
+  // casing by key.
+  const lineFor = (s) => s.topic || s.subject || s.cat || s.tag;
 
   const lastSec = last ? sections.find((s) => s.key === last.key) : null;
   const lastAvg = last && field && field.avg[last.key] != null ? field.avg[last.key] : null;
@@ -587,7 +607,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   {sections.map((s) => (
                     <div key={s.key} className="rn-rrow" style={{ '--acc': rampFor(s.slot != null ? s.slot : 0) }}>
                       <b>{s.name}</b>
-                      <i>{s.subject || s.cat || s.tag}</i>
+                      <i>{lineFor(s)}</i>
                       {fieldOn && field.avg[s.key] != null
                         ? <s>avg {field.avg[s.key].toFixed(1)}</s>
                         : <s />}
@@ -677,7 +697,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   <div className="rn-hand">
                     <span className="rn-he">Next up · your life resets</span>
                     <span className="rn-hn">{upNext.name}</span>
-                    <span className="rn-hs">{upNext.subject || upNext.cat || upNext.tag} · {upNext.questions.length} questions</span>
+                    <span className="rn-hs">{lineFor(upNext)} · {upNext.questions.length} questions</span>
                   </div>
                 ) : (
                   <div className="rn-hand">
@@ -713,8 +733,13 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     {cleared}<small>/{askable}</small>
                     <i>questions cleared</i>
                   </div>
+                  {/* NO "0 of 7 CLEARED" (owner, 2026-08-30). Clearing a
+                      one-life quiz of twenty-five questions is rare, so for
+                      almost everyone that figure is a zero, and a scorecard
+                      that leads with a zero reads as a failure whatever the
+                      real score was. The number right is the achievement and
+                      the hero already carries it. */}
                   <div className="rn-sc-figs">
-                    <div><b>{perfect}</b><i>of {N} cleared</i></div>
                     <div><b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i></div>
                     {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank)
                       ? <div><b>#{boardQ.data.me.rank}</b><i>of {boardQ.data.overallField || 0}</i></div> : null}
@@ -722,6 +747,41 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                       ? <div><b>{Math.round(boardQ.data.me.total * 10) / 10}</b><i>of {(boardQ.data && boardQ.data.maxTotal) || N * 15} points</i></div> : null}
                   </div>
                 </div>
+
+                {guest && !claimed ? (
+                  <div className="rn-claim">
+                    <span className="rn-clabel">Playing as a guest</span>
+                    <div className="rn-chd">
+                      <span className="rn-cnm">Claim a free name to hold your spot</span>
+                      {!claimOpen ? (
+                        <button type="button" className="rn-cgo" onClick={() => setClaimOpen(true)}>
+                          Claim my name
+                        </button>
+                      ) : null}
+                    </div>
+                    <p className="rn-ctg">
+                      Ranks and points count for registered names only. A display name is enough, no
+                      password, and every quiz you have already finished comes with you.
+                    </p>
+                    {claimOpen ? (
+                      <div className="rn-cform">
+                        <JoinLeaderboardForm
+                          heading="Claim your name"
+                          hideIcon
+                          onJoined={() => {
+                            setClaimed(true);
+                            try { window.dispatchEvent(new Event('sot:daily-updated')); } catch (e) {}
+                          }}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                {claimed ? (
+                  <div className="rn-claimed">
+                    You&rsquo;re on the board. Every finish counts under your name now.
+                  </div>
+                ) : null}
 
                 <span className="rn-lcap rn-scl">The run</span>
                 <GauntletLadder
@@ -741,7 +801,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                       <div key={sc.key} className="rn-scr" style={{ '--acc': rampFor(sc.slot != null ? sc.slot : 0) }}>
                         <b>{sc.name}</b>
                         <i>
-                          {st === 'banked' ? 'played earlier today' : (sc.subject || sc.cat || sc.tag)}
+                          {st === 'banked' ? 'played earlier today' : lineFor(sc)}
                           {st === 'lost' ? ` · out on Q${res.score + 1}` : ''}
                         </i>
                         <s>{bt != null ? `beat ${Math.round(bt * 100)}%` : ''}</s>
@@ -988,6 +1048,28 @@ const CSS = `
 .rn-pill.open{background:rgba(255,255,255,.06);color:#66748f;}
 .rn-scr em{font-style:normal;font-family:${MONO};font-size:13px;color:#dce6f7;
   font-variant-numeric:tabular-nums;width:54px;text-align:right;flex:none;}
+
+/* CLAIM YOUR SPOT, directly under the figures, because that is where the rank
+   and the points the reader is about to lose are printed.
+   The join form inks itself from --join-* custom properties. LoftFinish resets
+   them to light values because its card is white; this card is dark, so they
+   are set here for a dark ground or the heading ships black on near-black. */
+.rn-claim{margin:20px 0 0;border:2px solid rgba(96,165,250,.34);border-radius:12px;
+  background:rgba(47,111,228,.13);padding:14px 16px;
+  --join-head:#ffffff;--join-body:#c6d2e8;--join-soft:#9aa8c4;
+  --join-ok:${T.success};--join-err:#ef8577;}
+.rn-clabel{display:block;font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:${T.blue200};margin-bottom:7px;}
+.rn-chd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.rn-cnm{flex:1;min-width:0;font-size:16.5px;font-weight:800;letter-spacing:-.02em;color:#fff;}
+.rn-cgo{flex:none;border:0;background:${T.cta};color:#fff;border-radius:9px;padding:11px 15px;
+  font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;}
+.rn-cgo:hover{filter:brightness(1.1);}
+.rn-ctg{font-size:12.5px;font-weight:600;line-height:1.5;color:#9aa8c4;margin:8px 0 0;}
+.rn-cform{margin-top:14px;}
+.rn-claimed{margin:20px 0 0;border:2px solid rgba(16,185,129,.4);border-radius:12px;
+  background:rgba(16,185,129,.1);padding:12px 15px;font-weight:800;font-size:13.5px;
+  color:#6ee7b7;}
 
 .rn-board{margin-top:24px;border-top:1px solid rgba(255,255,255,.09);padding-top:16px;}
 .rn-lb{display:grid;gap:2px;}
