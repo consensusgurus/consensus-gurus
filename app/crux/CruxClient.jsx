@@ -69,9 +69,14 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // !important is load-bearing rather than lazy: these elements carry INLINE
 // styles from the Loft build, and a plain rule loses to an inline one.
 const STAGE_BOARD_CSS = `
-.stage-page .cx-a{display:flex;gap:26px;align-items:stretch;}
-.stage-page .cx-gut{flex:0 0 96px;min-height:340px;}
-.stage-page .cx-a > *:not(.cx-gut){flex:1 1 auto;min-width:0;}
+/* THE GUTTER IS A FIXED COLUMN BESIDE THE BOARD, not a stretched one.
+   align-items:stretch made it as tall as a 14 row crossword, which turned
+   twelve rungs into twelve slabs running past the fold, and flex:1 on the
+   board column pinned the pair to the left edge with the ladder adrift in
+   the margin. Centre the pair and give the ladder a height of its own. */
+.stage-page .cx-a{display:flex;gap:24px;align-items:flex-start;justify-content:center;}
+.stage-page .cx-gut{flex:0 0 88px;align-self:flex-start;height:clamp(240px,44vh,440px);}
+.stage-page .cx-a > *:not(.cx-gut){flex:0 1 660px;min-width:0;}
 @media(max-width:640px){
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
   .stage-page .cx-gut{flex:none;min-height:0;}
