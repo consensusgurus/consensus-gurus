@@ -1475,11 +1475,16 @@ body:has(.rn)::before{background:${T.ground};}
    fallback branch, so it is what renders until useGauntletField's seven board
    fetches have ALL landed; the swap to "N played today." then takes a line out
    from under the roster, the button and the fine print, and the whole gate
-   jumps up while the reader is looking at it. The floor is three lines of this
-   element's own leading (3 x 1.03), so the words change and the box does not.
-   It is in em, so the mobile font-size carries it with no second number. */
+   jumps up while the reader is looking at it. The floor is the taller of the
+   two forms, so the words change and the box does not.
+   MEASURED, not 3 x 1.03. A line carrying a <var> runs about .045em TALLER
+   than the 1.03 strut, because the mono face inside it overshoots, and the
+   fallback headline has two such lines. Read off the live page across the
+   whole clamp band, the three line form needs 3.148em at 34px and 3.18em at
+   44px, so 3.2em clears it everywhere with about a pixel to spare. It is in
+   em, so the mobile font-size carries it with no second number. */
 .rn-h1{font-size:clamp(30px,4vw,44px);font-weight:800;letter-spacing:-.04em;line-height:1.03;
-  margin:0;color:#fff;min-height:3.09em;}
+  margin:0;color:#fff;min-height:3.2em;}
 .rn-h1 var{font-style:normal;font-family:${MONO};font-weight:500;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;}
 .rn-h1 u{text-decoration:none;color:#ef8577;}
