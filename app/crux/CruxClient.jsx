@@ -46,6 +46,10 @@ import useGameAllTime from '../useGameAllTime';
 import useDayStats from '../useDayStats';
 import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
+import StageChrome from '../StageChrome';
+import StageLadder from '../StageLadder';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -554,6 +558,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const LOFT = loft || isLoft('crux');
+  // THE STAGE. When it is on, this page owns its ground and its chrome
+  // outright: no Grain, no DailyChrome, no LoftCap, no footer and no tail.
+  // See app/StageChrome.jsx for why a daily is a sitting rather than a page.
+  const STAGE = isStage('crux', searchParams);
+  const STAGE_C = gameColor('crux');
 
   // ---- input ----
   const onKey = useCallback((k) => {
@@ -1041,6 +1050,19 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // card fill the same column as the navy grid below. The board keeps its own
   // cell size (CS_FILL) and stays centered inside that wider card, so its
   // height is unchanged and it still fits on one screen.
+  // THE LADDER: one rung per word, one block per category, rung length the
+  // word's length. A word scores TWICE in Crux, once for being found and
+  // once for being filed under the right category, so a rung fills in two
+  // segments rather than switching on: half-lit is found but not yet placed,
+  // which is the one thing the figures cannot say. 6 of 12 words does not
+  // tell you that two of them are still floating.
+  const stageBlocks = PUZZLE.categories.map((cat, ci) => ({
+    n: cat.words.length,
+    c: STAGE_C,
+    on: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] !== undefined),
+    half: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] === undefined),
+    w: cat.words.map((w) => 0.42 + (w.length - 4) * 0.1),
+  }));
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
   const COLW = 640;      // matches DailyGamesGrid; board stays centered at its own size
@@ -1147,16 +1169,19 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome: home's #233a63 masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
           (owner mockup, 2026-08-04). Outside cx-wrap so the bands run full
           bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="crux" name="Crux" collapsed={started} loft={LOFT}
         stats={[{ k: 'Guesses', v: g.left },
                 { k: 'Words', v: `${PUZZLE.slots.filter((s) => g.solved[s.id]).length}/${PUZZLE.slots.length}` }]} />
-      {LOFT && (
+      )}
+      {LOFT && !STAGE && (
         <LoftCap
           name="Crux"
           cat="Word"
@@ -1178,7 +1203,33 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           ]}
         />
       )}
-      <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
+      {/* THE STRIP COMES DOWN WHILE THE CLOCK RUNS. A live figure about other
+          people does not belong over a board being worked, which is the run's
+          own rule about what may sit over a clock. */}
+      {STAGE && (
+        <StageChrome
+          gameKey="crux"
+          name="Crux"
+          dateLabel={PUZZLE.dateLabel}
+          sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
+          quizId={PUZZLE.quizId}
+          scoreWord={`of ${PUZZLE.slots.length * 2}`}
+          progress={PUZZLE.slots.length ? g.order.length / PUZZLE.slots.length : 0}
+          stripOn={!started || !playing}
+          figures={playing ? [
+            { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
+            { v: g.left, k: 'guesses left' },
+            { v: elapsed, k: 'time' },
+          ] : [
+            { v: `${endScore}/${PUZZLE.slots.length * 2}`, k: 'score' },
+            { v: `${g.order.length}/${PUZZLE.slots.length}`, k: 'words' },
+            { v: guessesUsed, k: 'guesses' },
+            { v: elapsed, k: 'time' },
+          ]}
+          ladder={<StageLadder height={44} label="Words" blocks={stageBlocks} />}
+        />
+      )}
+      <div className="cx-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: STAGE ? '10px 38px 40px' : '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           .cx-a{margin:0 auto;}
           /* FOUR ACROSS, not two by two. The card is 640 wide and the board
@@ -1268,7 +1319,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="cl-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="cl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -1661,7 +1712,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
       {/* About Crux — crawlable prose for search, server-rendered into the initial HTML */}
       <div>
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Crux</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
           Crux is a free daily word puzzle from Mind Loft &mdash; a clueless crossword. Eight hidden words (twelve in the Sunday Edition) interlock in a compact grid, and the only hints are four visible categories; working out which words belong to them is the puzzle.
@@ -1675,7 +1726,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       </section>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
