@@ -62,7 +62,18 @@ function fmtPts(x) { return x == null ? '' : `${Math.round(Number(x) * 10) / 10}
 function fmtNum(x) { return x == null ? '' : String(Math.round(Number(x) * 10) / 10); }
 function fmtTime(sec) { if (sec == null) return '—'; const m = Math.floor(sec / 60), s = sec % 60; return `${m}:${String(s).padStart(2, '0')}`; }
 
-export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, streak = null }) {
+export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, streak = null, dark = false }) {
+  // Shadowing the module tokens, which is what makes this one prop rather
+  // than an override list. Everything the stylesheet below interpolates
+  // follows automatically; only genuinely hardcoded surfaces need naming.
+  const INK = dark ? '#e9edf4' : T.ink;
+  const SLATE = dark ? '#aab5c7' : T.slate;
+  const FADED = dark ? '#8b95a8' : T.muted;
+  const NAVY = dark ? '#e9edf4' : T.accent;
+  const BLUE = dark ? '#7dd3fc' : T.blue;
+  const BORD = dark ? 'rgba(255,255,255,0.12)' : '#e7eaf1';
+  const SURF = dark ? 'rgba(255,255,255,0.05)' : 'var(--white)';
+  const SOFT = dark ? 'rgba(125,211,252,0.12)' : '#eff4fd';
   const [ident, setIdent] = useState(null);        // { email, username } from localStorage
   const [combined, setCombined] = useState(null);  // /api/quiz/daily-me payload
   const [gameData, setGameData] = useState(null);  // /api/quiz/daily-game payload (allTime + drops)
@@ -262,13 +273,13 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
   return (
     <div id="daily-leaderboard" className="dbp" style={{ maxWidth, margin: '18px auto 26px' }}>
       <style>{`
-        .dbp{font-family:${SANS};background:var(--white);border:1.5px solid rgba(20,22,28,0.12);border-radius:14px;padding:15px 16px 14px;}
+        .dbp{font-family:${SANS};background:${dark ? 'transparent' : 'var(--white)'};border:1.5px solid ${dark ? 'rgba(255,255,255,0.10)' : 'rgba(20,22,28,0.12)'};border-radius:14px;padding:15px 16px 14px;}
         .dbp-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;}
         .dbp-hd .t{font-size:16px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:8px;min-width:0;}
         .dbp-hd .t .av{width:22px;height:22px;border-radius:50%;color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
         .dbp-hd .t .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dbp-hd .s{font-family:${MONO};font-size:10.5px;letter-spacing:.04em;color:${FADED};font-weight:500;white-space:nowrap;flex-shrink:0;}
-        .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:#eff4fd;border:1px solid #cfe0fb;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+        .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:${SOFT};border:1px solid ${dark ? 'rgba(125,211,252,0.3)' : '#cfe0fb'};border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
         .dbp-signup:hover{background:#e4eefc;}
         .dbp-streak{font-family:${SANS};font-size:11.5px;font-weight:600;color:${SLATE};white-space:nowrap;flex-shrink:0;}
         .dbp-streak b{font-weight:800;color:${INK};}
@@ -278,7 +289,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
            card and this panel show the same three standings, so they now wear
            the same skin. Keep the two in sync when either changes. */
         .dbp-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
-        .dbp-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:${SANS};cursor:pointer;border:2px solid #cfdcf4;background:linear-gradient(180deg,var(--white),#eff5ff);border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:0 3px 13px rgba(20,30,60,.08);transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
+        .dbp-tile{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:${SANS};cursor:pointer;border:2px solid ${dark ? 'rgba(255,255,255,0.12)' : '#cfdcf4'};background:${dark ? 'rgba(255,255,255,0.05)' : 'linear-gradient(180deg,var(--white),#eff5ff)'};border-radius:14px;padding:15px 10px 12px;min-width:0;box-shadow:${dark ? 'none' : '0 3px 13px rgba(20,30,60,.08)'};transition:transform .12s ease,border-color .12s ease,box-shadow .12s ease;}
         /* The colored cap across the top: three deliberate cards, not three
            pale boxes. */
         .dbp-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:${BLUE};}
@@ -301,16 +312,16 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-tile-lbl{font-family:${SANS};font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${BLUE};padding:0 18px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:28px;}
         .dbp-tile-rk{font-size:43px;font-weight:800;letter-spacing:-.035em;color:${NAVY};line-height:1.02;margin-top:2px;display:block;font-variant-numeric:tabular-nums;}
         .dbp-tile-rk .prov{font-size:12px;font-weight:700;color:${FADED};}
-        .dbp-tile-rk .dash{color:#c2c8d2;}
+        .dbp-tile-rk .dash{color:${dark ? '#4a5468' : '#c2c8d2'};}
         .dbp-tile-of{font-size:12px;font-weight:700;color:${SLATE};display:block;margin-top:4px;}
         .dbp-tile-cx{position:absolute;top:9px;right:6px;color:${SLATE};transition:transform .15s ease;pointer-events:none;}
         .dbp-tile.on .dbp-tile-cx,.dbp-tile:hover .dbp-tile-cx{color:${BLUE};}
 
-        .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:var(--white);}
+        .dbp-board{border:1px solid ${BORD};border-radius:12px;padding:11px 13px 10px;margin-top:11px;background:${SURF};}
         .dbp-board.plain{padding:0;border:none;}
         .dbp-board-ti{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:${SLATE};margin-bottom:7px;}
         .dbp-lbrow{display:flex;align-items:center;gap:9px;font-size:13.5px;padding:6px 8px;border-radius:8px;}
-        .dbp-lbrow.me{background:#eff4fd;}
+        .dbp-lbrow.me{background:${SOFT};}
         .dbp-lbrow .rk{font-family:${MONO};font-size:11.5px;color:${FADED};width:30px;flex-shrink:0;}
         .dbp-lbrow .nm{font-weight:700;color:${INK};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
         .dbp-lbrow .nm .you{color:${BLUE};font-weight:800;}
@@ -336,7 +347,7 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-gh{padding:0 8px 7px;}
         .dbp-gh .h{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:${FADED};}
         .dbp-grow{padding:7px 8px;border-radius:8px;}
-        .dbp-grow.me{background:#eff4fd;}
+        .dbp-grow.me{background:${SOFT};}
         .dbp-g .rk{font-family:${MONO};font-size:11.5px;color:${FADED};}
         .dbp-g .nm{font-weight:700;color:${INK};font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dbp-g .nm .you{color:${BLUE};font-weight:800;}
@@ -357,10 +368,10 @@ export default function DailyBoardPanel({ self, quizId = null, maxWidth = 620, s
         .dbp-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
         .dbp-cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border-radius:8px;color:#c2c8d2;}
         .dbp-cal-cell.empty{background:transparent;}
-        .dbp-cal-cell.none{color:#c9cdd6;}
+        .dbp-cal-cell.none{color:${dark ? '#4a5468' : '#c9cdd6'};}
         a.dbp-cal-cell{text-decoration:none;}
-        a.dbp-cal-cell.played{background:#e8f5ec;color:var(--success-deep);border:1px solid #bfe3ca;}
-        a.dbp-cal-cell.unplayed{background:var(--white);color:${SLATE};border:1px solid ${BORD};}
+        a.dbp-cal-cell.played{background:${dark ? 'rgba(52,168,110,0.22)' : '#e8f5ec'};color:${dark ? '#7fe0ad' : 'var(--success-deep)'};border:1px solid ${dark ? 'rgba(127,224,173,0.35)' : '#bfe3ca'};}
+        a.dbp-cal-cell.unplayed{background:${SURF};color:${SLATE};border:1px solid ${BORD};}
         a.dbp-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
         a.dbp-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
         .dbp-cal-key{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;font-size:11px;color:${FADED};}

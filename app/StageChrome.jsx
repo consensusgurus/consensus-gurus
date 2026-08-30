@@ -180,7 +180,7 @@ export default function StageChrome({
       {panel ? (
         <div className="stg-panel" id="stg-rankings" role="region" aria-label="Rankings">
           <div className="stg-pin">
-            <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} />
+            <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} dark />
             <button type="button" className="stg-px" onClick={() => setPanel(false)}>Close</button>
           </div>
         </div>
