@@ -19,7 +19,7 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowRight, Share2, Trophy, Check } from 'lucide-react';
-import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref, runSummaryHref } from '@/lib/circuits';
+import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref, runSummaryHref, circuitScoreMode } from '@/lib/circuits';
 import { notifyShareCredit } from '../../ShareCreditPop';
 import { dailyMeIdentity } from '../../dailyMeClient';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -62,7 +62,13 @@ export default function CircuitLanding({ circuit, games }) {
   // scorecard proper lives on the run summary, and the first action becomes a
   // link to it the moment the run is complete.
   const me = (data && data.me) || null;
-  const maxTotal = (data && data.maxTotal) || n * 15;
+  // Does this circuit's board count QUESTIONS RIGHT rather than ladder points?
+  // Read off the circuit, not off the payload, because the copy under the run
+  // list has to be right on the first paint, before any fetch lands.
+  const byCorrect = circuitScoreMode(id) === 'correct';
+  // A questions-right circuit has no ceiling until the day's banks are known,
+  // so it shows none rather than a points figure that is not its unit.
+  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : n * 15);
   const points = me && Number.isFinite(me.total) ? Math.round(me.total * 10) / 10 : null;
   const rank = me && Number.isFinite(me.rank) && me.rank > 0 ? me.rank : null;
   // The first game they have NOT played, so the button starts where they are
@@ -222,9 +228,15 @@ export default function CircuitLanding({ circuit, games }) {
 
         <div className="clp-meta">
           <div><b>{n}</b><i>games</i></div>
-          <div><b>{n * 15}</b><i>points on offer</i></div>
+          {byCorrect
+            ? (maxTotal ? <div><b>{maxTotal}</b><i>questions on offer</i></div> : null)
+            : <div><b>{n * 15}</b><i>points on offer</i></div>}
           <div><b>{done}/{n}</b><i>played today</i></div>
-          {complete && points !== null ? <div><b>{points}</b><i>of {maxTotal} points</i></div> : null}
+          {complete && points !== null
+            ? <div><b>{points}</b><i>{byCorrect
+                ? (maxTotal ? `of ${maxTotal} right` : 'questions right')
+                : `of ${maxTotal} points`}</i></div>
+            : null}
           {complete && rank ? <div><b>{`#${rank}`}</b><i>on the circuit board</i></div> : null}
           {field ? <div><b>{field}</b><i>on it today</i></div> : null}
         </div>
@@ -256,8 +268,10 @@ export default function CircuitLanding({ circuit, games }) {
         {ordered
           ? `The last two are always the last two. The rest are shuffled fresh every day, so the run has a different shape each morning. `
           : 'Shortest first, longest last. '}
-        Each game pays 15 points for a win down to 1 for finishing, and the
-        circuit adds all {n} up. A game played on its own still counts toward it, but you need all {n} in
+        {byCorrect
+          ? `The board is the plain count of questions you get right across all ${n}, and the shorter clock takes a tie. `
+          : `Each game pays 15 points for a win down to 1 for finishing, and the circuit adds all ${n} up. `}
+        A game played on its own still counts toward it, but you need all {n} in
         the same day to take a rank on the circuit board.
       </div>
 

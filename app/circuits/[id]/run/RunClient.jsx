@@ -44,7 +44,7 @@ import { savedIdentity } from '@/lib/saved-identity';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
-import { runSummaryHref, circuitShareUrl } from '@/lib/circuits';
+import { runSummaryHref, circuitShareUrl, circuitScoreMode } from '@/lib/circuits';
 import GauntletLadder, { rampFor } from '../../GauntletLadder';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
@@ -730,7 +730,13 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     <div><b>{fmtTime(runSecs * 1000)}</b><i>on the clock</i></div>
                     {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank)
                       ? <div><b>#{boardQ.data.me.rank}</b><i>of {boardQ.data.overallField || 0}</i></div> : null}
-                    {boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.total)
+                    {/* NO POINTS FIGURE ON A QUESTIONS-RIGHT CIRCUIT (owner,
+                        2026-08-30). The board's total IS the number in the hero
+                        directly above this row, so printing it again in a
+                        different unit was the confusing half of the old
+                        scorecard: two figures for one fact. */}
+                    {boardQ.data && boardQ.data.scoreMode !== 'correct'
+                      && boardQ.data.me && Number.isFinite(boardQ.data.me.total)
                       ? <div><b>{Math.round(boardQ.data.me.total * 10) / 10}</b><i>of {(boardQ.data && boardQ.data.maxTotal) || N * 15} points</i></div> : null}
                   </div>
                 </div>
@@ -839,9 +845,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   <a className="rn-vb" href="/"><Home size={15} strokeWidth={2.8} />Home</a>
                 </div>
                 <p className="rn-fine">
-                  Each quiz counted on its own board as you played it. The circuit board ranks the
-                  combined placement across all {N}. Each quiz pays 15 points for a win down to 1
-                  for finishing, and the run adds the {N} up.
+                  {circuitScoreMode(circuitId) === 'correct'
+                    ? `Each quiz counted on its own board as you played it. The circuit board is the plain count of questions you got right across all ${N}, and the shorter clock takes a tie.`
+                    : `Each quiz counted on its own board as you played it. The circuit board ranks the combined placement across all ${N}. Each quiz pays 15 points for a win down to 1 for finishing, and the run adds the ${N} up.`}
                 </p>
               </div>
             ) : null}

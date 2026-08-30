@@ -1390,7 +1390,9 @@ export default function TodayClient({ onSignup = null } = {}) {
                 const rows = d && Array.isArray(d.overall) ? d.overall : null;
                 return (
                   <>
-                    <div className="tdy-sub">{(c && c.blurb) || ''}{d && typeof d.maxTotal === 'number' ? `${c && c.blurb ? ' · ' : ''}Best ${d.bestN} · ${d.maxTotal} pts max` : ''}</div>
+                    <div className="tdy-sub">{(c && c.blurb) || ''}{d && typeof d.maxTotal === 'number'
+                      ? `${c && c.blurb ? ' · ' : ''}${d.scoreMode === 'correct' ? `${d.maxTotal} questions max` : `Best ${d.bestN} · ${d.maxTotal} pts max`}`
+                      : ''}</div>
                     {rows === null ? (
                       <div className="tdy-empty">Loading the circuit board&hellip;</div>
                     ) : rows.length ? (

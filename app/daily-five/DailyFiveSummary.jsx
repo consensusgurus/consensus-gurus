@@ -92,7 +92,12 @@ export default function DailyFiveSummary() {
   const perGame = (me && me.perGame) || {};
   const played = run.filter((k) => perGame[k] && !perGame[k].abandoned);
   const complete = run.length > 0 && played.length === run.length;
-  const maxTotal = (data && data.maxTotal) || run.length * 15;
+  // Which unit this board is in. It comes off the payload rather than off the
+  // circuit because this page renders every circuit, and the route is the thing
+  // that decides: 'correct' is questions answered right, anything else is the
+  // 0..15 ladder summed over the roster.
+  const byCorrect = !!(data && data.scoreMode === 'correct');
+  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : run.length * 15);
 
   // ── SHARING A FINISHED RUN ────────────────────────────────────────────────
   // The result text is built by lib/circuits, so the wording and the pip grid
@@ -167,14 +172,20 @@ export default function DailyFiveSummary() {
       score: done ? p.score : null,
       total: done ? p.total : null,
       railText: done ? (scoreLine(k, p.score, p.total) || '') : 'open',
-      right: done ? `${r1(p.points)} pts` : '',
+      // The per-game ladder points, EXCEPT on a board that does not rank on
+      // them: quoting a points figure beside a run whose board counts questions
+      // is the exact confusion this rule was written to remove. The game's own
+      // score is already on the rail and its rank is already in the sub line.
+      right: done ? (byCorrect ? '' : `${r1(p.points)} pts`) : '',
       state: done ? (p.rank === 1 ? 'won' : 'done') : 'open',
       action: done ? null : { label: 'Play', href: circuitHref(k, runId) },
     };
   });
 
   const figures = [
-    { v: me ? r1(me.total) : 0, k: `of ${maxTotal} points`, big: true },
+    { v: me ? r1(me.total) : 0,
+      k: byCorrect ? (maxTotal ? `of ${maxTotal} right` : 'questions right') : `of ${maxTotal} points`,
+      big: true },
     { v: me && me.rank ? `#${me.rank}` : '—', k: `of ${(data && data.overallField) || 0} players` },
     { v: `${played.length}/${run.length}`, k: 'games played' },
   ];
@@ -213,7 +224,9 @@ export default function DailyFiveSummary() {
           limit: 10,
         }}
         boardState={state}
-        boardNote={`Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the ${run.length} up. A game played on its own still counts, but you need all ${run.length} played to take a rank on this board.`}
+        boardNote={byCorrect
+          ? `This board is the plain count of questions you get right across all ${run.length}, and the shorter clock takes a tie. A game played on its own still counts, but you need all ${run.length} played to take a rank on it.`
+          : `Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the ${run.length} up. A game played on its own still counts, but you need all ${run.length} played to take a rank on this board.`}
         actions={[
           { label: copied ? 'Copied' : 'Share this run', onClick: shareRun,
             icon: copied ? <Check size={15} strokeWidth={2.8} /> : <Share2 size={15} strokeWidth={2.8} />,

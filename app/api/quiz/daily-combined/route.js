@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadDailyResultsCached } from '@/lib/daily-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, combineDaily, guestProvisional, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix, usesLadder, dayIsFrozen, etDayEndMs, isoOfSuffix, rowsWithinDay } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, guestProvisional, rankByCorrect, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix, usesLadder, dayIsFrozen, etDayEndMs, isoOfSuffix, rowsWithinDay } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
 import { attemptsModeForQuizId, attemptsPlan, arcadeRanksForQuizId } from '@/lib/daily-games';
 import { GAME_PUZZLES, etTodayServer, suffixOfDate, gamesForSuffix } from '@/lib/daily-slate';
 import { fiveForSuffix, FIVE_SIZE } from '@/lib/daily-five';
-import { circuitKeysFor, circuitById, isMarquee } from '@/lib/circuits';
+import { circuitKeysFor, circuitById, isMarquee, circuitScoreMode } from '@/lib/circuits';
 
 // The day's slate (which puzzle each game published on a date) lives in
 // lib/daily-slate.js, shared with /api/quiz/daily-me. This route used to carry
@@ -270,6 +270,14 @@ export async function GET(request) {
   // every scoring line below cares about, while this answers "which run", which
   // is what the completion gate and the client's labels care about.
   const circuitOn = fiveOnly && !fiveFlag && !!circuitDef;
+  // ONE CIRCUIT RANKS ON QUESTIONS RIGHT (owner, 2026-08-30). The Trivia
+  // Gauntlet's seven games are seven banks of four-choice questions, so its
+  // board is the plain count of answers a player got right across the run and
+  // the shorter clock takes a tie. Everything above this line is untouched:
+  // each game is still scored by the same scoreGame and still pays the same
+  // ladder into its own board, its crown and IQ Points. Only the combined rows
+  // this payload sorts and prints are converted, by rankByCorrect below.
+  const rawScore = circuitOn && circuitScoreMode(circuitId) === 'correct';
   const games = gamesForSuffix(fiveOnly ? fiveKeys : DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
   // FROZEN: the Eastern day is over, so this board is final. Rows that landed
@@ -294,9 +302,11 @@ export async function GET(request) {
   // explainer on an archived day instead of describing today's rule.
   const ladder = usesLadder(suffix);
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
-  const maxTotal = effBestN * GAME_MAX;
+  // `let`, because a questions-right circuit replaces this with the day's own
+  // question count once the banks' totals are in hand (below).
+  let maxTotal = effBestN * GAME_MAX;
 
-  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: fiveOnly, partial: 0, frozen, maxTotal, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: fiveOnly, partial: 0, frozen, maxTotal, scoreMode: rawScore ? 'correct' : 'points', gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -379,6 +389,24 @@ export async function GET(request) {
 
     const overallFull = combineDaily(gameResults, dayBestN);
 
+    // QUESTIONS RIGHT, for the one circuit that ranks that way. The rows keep
+    // every per-game figure they already carried (each game's own points, rank
+    // and clock are all still on them); their combined `total` becomes the sum
+    // of the scores and `timeTotal` the sum of the clocks.
+    if (rawScore) {
+      rankByCorrect(overallFull, games.map((g) => g.key));
+      // The ceiling is the day's own question count, read off the banks the way
+      // scoreGame reads a game's denominator: the largest `total` any player
+      // recorded for that puzzle. A bank nobody has opened yet contributes
+      // nothing and the ceiling comes right the moment somebody plays it, which
+      // is the same self-correcting rule the per-game denominator already uses.
+      maxTotal = gameResults.reduce((sum, g) => {
+        let t = 0;
+        for (const p of g.players.values()) t = Math.max(t, Number(p.total) || 0);
+        return sum + t;
+      }, 0);
+    }
+
     // Resolve the viewer so we can always surface THEIR standing, even outside
     // the top DISPLAY. email -> account, else this browser's anon.
     let myKey = null;
@@ -400,6 +428,23 @@ export async function GET(request) {
         if (gr) guestByGame.set(g.key, gr);
       }
       if (guestByGame.size) meProvisional = guestProvisional(guestByGame, gameResults, overallFull, dayBestN);
+      // On a questions-right circuit the guest's provisional standing has to be
+      // quoted in the same unit as the board it previews, or the end card tells
+      // them registering would earn them a points figure the board never shows.
+      // Their per-game ranks above are unchanged; only the combined total and
+      // the position it would take are recomputed, against the same rows.
+      if (meProvisional && rawScore) {
+        let right = 0, secs = 0;
+        for (const entry of guestByGame.values()) {
+          const row = entry.row || entry;
+          right += Number(row.score) || 0;
+          secs += Number(row.time_elapsed) || 0;
+        }
+        meProvisional.total = right;
+        meProvisional.timeTotal = secs;
+        meProvisional.rank = overallFull.filter((r) => (r.total || 0) > right
+          || ((r.total || 0) === right && (r.timeTotal || 0) < secs)).length + 1;
+      }
     }
 
     // Per-game display boards. Rows are the registered (named) players only, but
@@ -576,6 +621,11 @@ export async function GET(request) {
       // posted since Eastern midnight is in it.
       frozen,
       maxTotal,
+      // How this board is ranked and what its numbers ARE: 'points' is the
+      // 0..15 ladder summed over the roster, 'correct' is questions answered
+      // right with the clock as the tiebreak. Every client that prints a total
+      // reads this rather than assuming a unit.
+      scoreMode: rawScore ? 'correct' : 'points',
       gameMax: GAME_MAX,
       ladder,
       bestN: effBestN,

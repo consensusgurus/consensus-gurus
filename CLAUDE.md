@@ -4811,6 +4811,45 @@ synthetic score fixture on one of those silently orders by something else and th
 proves nothing about what you meant to test. Keep one End Game case in the suite
 deliberately, with realistic solved/lost rows.
 
+## ONE CIRCUIT RANKS ON QUESTIONS RIGHT, and only one may (owner rule, 2026-08-30)
+
+The **Trivia Gauntlet**'s board is the plain count of questions a player answered right
+across the whole run, with the **combined clock as the only tiebreak**. Every other circuit,
+the marquee included, still sums the 0..15 placement ladder.
+
+The reason is the roster. The Gauntlet's seven games are seven banks of four-choice
+questions, one life each, where the score already IS the number you got right, so the ladder
+was a translation nobody asked for: a player who answered 61 correctly read a board that said
+74.5, and the only way to learn whether 74.5 was good was to go and read the scoring rules.
+
+**IT IS A BOARD RULE, NOT A SCORING CHANGE, and that is the whole safety of it.** Every game
+in it still pays the same ladder on its own board, into best-N, into the crown, into the
+trophies and into IQ Points, exactly as before. Nothing outside a `?circuit=gauntlet`
+payload changes, so no played day moves and no player's IQ total moves.
+
+- **Declared as `score: 'correct'`** on the circuit in `lib/circuits.js`, read through
+  `circuitScoreMode(id)` (default `'points'`). The conversion is `rankByCorrect` in
+  `lib/daily-combined.js`, applied by `/api/quiz/daily-combined` after `combineDaily`: a
+  row's `total` becomes the sum of its member scores, `timeTotal` the sum of the clocks,
+  and the ladder total is kept as `pointsTotal`. It **mutates in place**, because the route
+  hands the viewer their own row out of that same array by reference.
+- **The payload carries `scoreMode`**, and every surface that prints a circuit total reads
+  it rather than assuming a unit (the run's finish card, the run summary, the circuit landing
+  page, the home page's Circuits board, the share line). Do not hardcode "pts" on any of them.
+- **`maxTotal` on a questions-right board is the day's own question count**, summed from the
+  largest `total` any player recorded per bank, the same self-correcting denominator
+  `scoreGame` already uses. A bank nobody has opened contributes nothing and it comes right
+  the moment somebody plays it, so a surface must handle a zero ceiling rather than printing one.
+- **A SECOND CIRCUIT MAY ONLY TAKE THIS RULE IF ITS MEMBERS SHARE A UNIT.** Adding scores
+  across a sudoku, a crossword and a word ladder ranks whoever played the game with the
+  biggest numbers. `scripts/verify-circuits.mjs` check 12 enforces it: a circuit declaring
+  `'correct'` must hold only `RUN_GAMES` members.
+- **The rank gate is unchanged**: you still need every game in the circuit played that day to
+  take a rank on its board.
+- No reader-facing copy on this circuit describes the ladder any more ("15 points for a win
+  down to 1 for finishing" is gone from the landing page, the run's fine print and the summary's
+  board note). Say what the board counts, not what a game pays.
+
 ## A LOSS RANKS ON HOW FAR YOU GOT, not on how fast you lost (owner rule, 2026-08-09)
 
 The End Game titles are binary: you either solve the position or you do not, and a loss posts

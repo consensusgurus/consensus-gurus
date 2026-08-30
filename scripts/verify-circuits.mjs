@@ -22,7 +22,7 @@ import {
   circuitById, circuitKeysFor, isMarquee,
   circuitPageHref, circuitShareUrl, circuitShareInvite, circuitShareResult,
   SHARE_HOST_FOR_CIRCUITS, CIRCUIT_BASE,
-  RUN_GAMES, isRunnableCircuit, runHref,
+  RUN_GAMES, isRunnableCircuit, runHref, circuitScoreMode,
 } from '../lib/circuits.js';
 import { SHARE_HOST } from '../lib/site.js';
 
@@ -573,9 +573,39 @@ for (const c of ALL_CIRCUITS) {
   const src = readFileSync(runFile, 'utf8');
   // Up to the SELF-CLOSING '/>', never the first '>': the props carry a
   // 'cleared > 0' ternary, and a lazy match to '>' stops inside it.
+  // The run owns its ground outright now, so the check is that it takes NO
+  // game's hue rather than that it passes `neutral` to a cap it no longer has.
+  // A returning LoftCap must still carry `neutral`, which the second test
+  // covers if it ever comes back.
+  if (/\bcat=\{?["'`]?(Trivia|Word|Numbers|Logic|Geography|Sports|Cards|Arcade)/.test(src)) {
+    fails.push("run page: a category hue is passed to the chrome, so the run wears one game's colour");
+  }
   const tag = src.match(/<LoftCap\b[\s\S]*?\/>/);
-  if (!tag) fails.push('run page: no <LoftCap ... /> found, so its band cannot be checked');
-  else if (!/(^|[\s{])neutral([\s}=]|$)/.test(tag[0])) fails.push("run page: <LoftCap> is missing `neutral`, so the run wears one game's category hue");
+  if (tag && !/(^|[\s{])neutral([\s}=]|$)/.test(tag[0])) fails.push("run page: <LoftCap> is missing `neutral`, so the run wears one game's category hue");
+}
+
+// ── 12. a questions-right circuit holds only games scored in questions ──────
+// 'correct' adds member scores together, which is arithmetic on nothing unless
+// every member is scored in the SAME unit. RUN_GAMES is exactly that set: the
+// banks of four-choice questions the continuous run can deal, where a score is
+// the number answered right. A circuit that took this rule over a sudoku and a
+// crossword would rank whoever played the game with the biggest numbers.
+{
+  for (const c of ALL_CIRCUITS) {
+    if (!('score' in c)) continue;
+    if (c.score !== 'correct') {
+      fails.push(`${c.id}: unknown score mode "${c.score}" (only 'correct' is declarable)`);
+      continue;
+    }
+    if (circuitScoreMode(c.id) !== 'correct') fails.push(`${c.id}: declares score 'correct' but circuitScoreMode says otherwise`);
+    const keys = circuitKeysFor(c.id, todayIso);
+    const off = keys.filter((k) => !RUN_GAMES.includes(k));
+    if (off.length) fails.push(`${c.id}: ranks on questions right but holds ${off.join(', ')}, which are not scored in questions`);
+  }
+  // And the default is the ladder for everything that does not declare it.
+  for (const c of ALL_CIRCUITS) {
+    if (!('score' in c) && circuitScoreMode(c.id) !== 'points') fails.push(`${c.id}: no score mode declared but does not default to points`);
+  }
 }
 
 // ── report ──────────────────────────────────────────────────────────────────
