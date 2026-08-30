@@ -1878,6 +1878,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
     @media(min-width:641px) and (max-width:900px){
       .qzh .qcols > .mc-open{margin-left:0;margin-right:0;}
       .qzh .qcols > .catcard{border-left:1px solid ${C.line};border-right:1px solid ${C.line};border-radius:12px;}
+      .qzh .qcols > .catcard{border-left-color:var(--cc,${C.line});}
     }
     /* Hero height = 7 row-units (7 x 31px .qrow) so its bottom edge lands flush
    on a list-row gridline instead of ending mid-row; keeps quiz rows aligned
