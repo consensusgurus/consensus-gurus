@@ -121,7 +121,14 @@ for (const c of CIRCUITS) {
     // a ROTATING circuit: the cap applies to the DAY'S SELECTION, not the pool
     if (c.rotate !== MAX) fails.push(`${c.id}: rotating circuits play ${MAX} a day (rotate is ${c.rotate})`);
     if (c.keys.length <= c.rotate) fails.push(`${c.id}: a rotating pool of ${c.keys.length} is not bigger than its window`);
-  } else if (c.keys.length > MAX) fails.push(`${c.id}: ${c.keys.length} games, cap is ${MAX}`);
+  } else {
+    // A circuit may DECLARE a bigger cap in its own data (Trivia Gauntlet does,
+    // at seven). The cap is still enforced; it is just stated beside the roster
+    // rather than hidden here as a per-id exception.
+    const cap = c.cap || MAX;
+    if (c.cap && c.cap <= MAX) fails.push(`${c.id}: cap ${c.cap} is not bigger than the default ${MAX}, so it should not be declared`);
+    if (c.keys.length > cap) fails.push(`${c.id}: ${c.keys.length} games, cap is ${cap}`);
+  }
   if (circuitById(c.id) !== c) fails.push(`${c.id}: circuitById does not resolve to it`);
   // A RUNNABLE circuit is played as one continuous board, so every member has
   // to be a game the run page can deal: a bank of four-choice questions in play

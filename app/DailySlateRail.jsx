@@ -45,7 +45,7 @@ const SLATE_KEYS = [
   'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'bracket', 'lode', 'etch', 'glyph', 'hedge',
   'listed', 'mate', 'four', 'park', 'check', 'rung', 'crunch', 'taire', 'fib', 'streak',
   'feud', 'babel', 'hands', 'chain', 'turn', 'suffice', 'strata', 'redact', 'paths',
-  'deep', 'anon', 'blocks', 'chomp', 'sweep', 'docket', 'blitz', 'defend', 'barter', 'plot', 'sixes', 'niche', 'shoe', 'queen', 'towers', 'mercury', 'polka', 'atlas', 'sport', 'calc', 'encore', 'biz', 'flank', 'knight',
+  'deep', 'anon', 'blocks', 'chomp', 'sweep', 'docket', 'blitz', 'defend', 'barter', 'plot', 'sixes', 'niche', 'shoe', 'queen', 'towers', 'mercury', 'polka', 'atlas', 'sport', 'calc', 'encore', 'biz', 'flank', 'knight', 'script', 'quotes',
 // A retired game leaves the rail on its own the morning after its bank's last
 // drop (RETIRED_DAILY in lib/daily-games). Its key stays listed above so the
 // home board's order is unbroken if the bank is ever extended.

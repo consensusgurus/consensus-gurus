@@ -13,6 +13,10 @@ import { PUZZLES as sportPuzzles } from '../../../sport/puzzles';
 import { QUESTION_MAP as sportQuestions } from '../../../sport/questions';
 import { PUZZLES as bizPuzzles } from '../../../biz/puzzles';
 import { QUESTION_MAP as bizQuestions } from '../../../biz/questions';
+import { PUZZLES as scriptPuzzles } from '../../../script/puzzles';
+import { QUESTION_MAP as scriptQuestions } from '../../../script/questions';
+import { PUZZLES as quotesPuzzles } from '../../../quotes/puzzles';
+import { QUESTION_MAP as quotesQuestions } from '../../../quotes/questions';
 import { PUZZLES as streakPuzzles } from '../../../streak/puzzles';
 import { QUESTION_MAP as streakQuestions } from '../../../streak/questions';
 
@@ -38,6 +42,8 @@ const BANKS = {
   deep: { puzzles: deepPuzzles, questions: deepQuestions, tiers: ['Surface', 'Shallows', 'Midwater', 'Deep water', 'The bottom'] },
   atlas: { puzzles: atlasPuzzles, questions: atlasQuestions, tiers: ['Home ground', 'Farther out', 'Off the main roads', 'The far corners', 'Expert'] },
   sport: { puzzles: sportPuzzles, questions: sportQuestions, tiers: ['Warm-up', 'First half', 'Second half', 'Crunch time', 'Overtime'] },
+  script: { puzzles: scriptPuzzles, questions: scriptQuestions, tiers: ['Opening credits', 'First act', 'Second act', 'Third act', 'The credits roll'] },
+  quotes: { puzzles: quotesPuzzles, questions: quotesQuestions, tiers: ['Household words', 'Well known', 'Worth knowing', 'For the reader', 'Chapter and verse'] },
   biz: { puzzles: bizPuzzles, questions: bizQuestions, tiers: ['Warm-up', 'First half', 'Second half', 'Crunch time', 'Overtime'] },
   streak: { puzzles: streakPuzzles, questions: streakQuestions, tiers: ['Warm-up', 'Easy', 'Medium', 'Hard', 'Brutal'] },
 };
