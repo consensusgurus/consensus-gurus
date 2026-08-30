@@ -38,9 +38,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useHoverStale } from '@/lib/hover-armed';
 import { ArrowRight, Pause, Play, Home, Share2, Check } from 'lucide-react';
-import Grain from '../../../Grain';
-import Footer from '../../../Footer';
-import LoftCap from '../../../LoftCap';
 import useAbandonFlush from '../../../quiz/[id]/useAbandonFlush';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
@@ -454,6 +451,14 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // route already returns. Fetched once, on the gate, because the gate's own
   // headline is made of it. A bank with too small a field simply has no curve
   // and every surface below falls back to its plain form.
+  // ══ RENDER BOUNDARY ══ everything below is presentation; the run's logic is
+  // above and is never rewritten. scripts split the file here.
+
+  // ── the field ──────────────────────────────────────────────────────────
+  // Today's survival curve per bank, from the score distribution the board
+  // route already returns. Fetched once, on the gate, because the gate's own
+  // headline is made of it. A bank with too small a field simply has no curve
+  // and every surface below falls back to its plain form.
   const field = useGauntletField(sections, hydrated);
   const fieldOn = !!(field && field.any);
 
@@ -485,24 +490,40 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const lastBeaten = last && field ? field.beaten(last.key, last.score) : null;
 
   return (
-    // ONE HEADER, not two. Every other daily wears DailyChrome (the site
-    // masthead plus the stat bar) above its cap, which on this page put two
-    // full headers and a rank strip between the reader and the run. The
-    // Gauntlet is a sitting, not a page you browse to from a nav, so it keeps
-    // the cap alone and hands back the escape as a single Leave control. The
-    // loft ground and its ink rules come from LoftCap either way.
-    <div className="loft-page rn" style={{ minHeight: '100vh', background: T.ground, position: 'relative', overflowX: 'hidden' }}>
-      <Grain />
-      <LoftCap
-        neutral
-        name={circuitName}
-        cat="Trivia"
-        dateLabel={done ? (perfect === N ? 'Run cleared' : 'Run complete') : dateLabel}
-        outcome={done ? (perfect === N ? 'won' : (cleared > 0 ? 'part' : 'lost')) : null}
-        progress={askable ? Math.round((answeredSoFar / askable) * 100) : null}
-        figures={capFigures}
-      />
+    // NO SITE CHROME AT ALL. Every other daily wears DailyChrome (the site
+    // masthead plus the stat bar) over LoftCap, which on this page put two
+    // full headers and a rank strip between the reader and the run, and a
+    // footer of site links under it. The Gauntlet is a sitting rather than a
+    // page you browse to, so it is the dark screen and nothing else: its own
+    // one-line cap below, and no footer. That means this page owns its ground
+    // and its ink outright, which the stylesheet does explicitly.
+    <div className="rn" style={{ minHeight: '100vh', background: T.ground, position: 'relative', overflowX: 'hidden' }}>
       <style>{CSS}</style>
+
+      {/* THE ONLY CHROME. Not LoftCap and not the site footer: the run is a
+          sitting you sit down to, and every band above or below it was another
+          thing between the reader and the question. This is the mockup's cap,
+          which is all it ever had: what you are in, what today is, the three
+          live figures, and the way out. Dropping LoftCap also drops the
+          `loft-page` ground rules it injects, so this page paints its own
+          background and its own ink, which it was doing already. */}
+      <div className="rn-cap">
+        <div className="rn-cid">
+          <i>{done ? (perfect === N ? 'Run cleared' : 'Run complete') : `Trivia · ${dateLabel}`}</i>
+          <b>{circuitName}</b>
+        </div>
+        {capFigures.length ? (
+          <div className="rn-cf">
+            {capFigures.map((f) => (
+              <div key={f.k}><b>{f.v}</b><i>{f.k}</i></div>
+            ))}
+          </div>
+        ) : null}
+        <a className="rn-cx" href={`/circuits/${circuitId}`}>Leave</a>
+      </div>
+      <div className="rn-cprog">
+        <span style={{ width: `${askable ? Math.round((answeredSoFar / askable) * 100) : 0}%` }} />
+      </div>
 
       {/* THE CLOCK, full bleed on the stage's own top edge, so it sits in
           peripheral vision instead of competing with the question. Red under
@@ -526,7 +547,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
             <span className="rn-lcap">{done ? 'Your run' : fieldOn ? "Today's field" : 'Run'}</span>
             <GauntletLadder
               orientation="col"
-              height={520}
+              height={640}
               sections={sections}
               results={r.results}
               activeIndex={r.phase === 'playing' ? r.si : -1}
@@ -780,13 +801,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           </div>
         </div>
 
-        {/* The one way out, since the run no longer carries the site nav. */}
-        {!done ? (
-          <a className="rn-leave" href={`/circuits/${circuitId}`}>Leave the run</a>
-        ) : null}
       </div>
-
-      <Footer />
     </div>
   );
 }
@@ -805,6 +820,26 @@ const CSS = `
    the page column, and every <section>. Nothing here is a section. */
 .rn{font-family:${SANS};color:#eef2fa;}
 .rn-wrap{max-width:1120px;margin:0 auto;padding:0 20px 40px;}
+
+/* THE CAP, and the only band on the page. */
+.rn-cap{background:${T.accent};display:flex;align-items:center;gap:16px;padding:12px 20px;}
+.rn-cid{min-width:0;flex:1;}
+.rn-cid i{display:block;font-style:normal;font-family:${MONO};font-size:9.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:#9fc2ff;margin-bottom:2px;}
+.rn-cid b{display:block;font-size:16px;font-weight:800;letter-spacing:-.02em;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rn-cf{display:flex;gap:2px;flex:none;}
+.rn-cf div{width:84px;text-align:center;}
+.rn-cf div b{display:block;font-family:${MONO};font-size:16px;font-weight:500;color:#fff;
+  line-height:1;font-variant-numeric:tabular-nums;}
+.rn-cf div i{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.1em;
+  text-transform:uppercase;color:#8ea6d6;margin-top:5px;}
+.rn-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:#9fc2ff;text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:7px;
+  padding:7px 11px;}
+.rn-cx:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+.rn-cprog{height:2px;background:rgba(255,255,255,.1);}
+.rn-cprog span{display:block;height:100%;background:${T.blue400};transition:width .3s ease;}
 
 /* THE CLOCK, full bleed under the cap. It keeps its lane at every phase so the
    stage does not jump three pixels between a question and a verdict. */
@@ -966,18 +1001,39 @@ const CSS = `
 .rn-bmsg{padding:16px;text-align:center;font-size:12.5px;font-weight:600;color:#66748f;
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);border-radius:11px;}
 
-.rn-leave{display:inline-block;margin:6px 0 0;font-family:${MONO};font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;color:#66748f;text-decoration:none;}
-.rn-leave:hover{color:#9aa8c4;}
-
+/* PHONE. The vertical gutter lies down into a single condensed strip, because
+   a 640px column of rungs beside a question is most of a phone screen spent on
+   furniture. Everything here is about giving the height back: the strip is
+   26px of ladder plus its caption, the cap loses its figure columns (the same
+   numbers are in the strip and the footer line), and the stage padding halves.
+   The ladder's own media query does the flip; this trims what is around it. */
 @media (max-width:820px){
-  .rn-wrap{padding:0 14px 30px;}
+  .rn-wrap{padding:0 14px 24px;}
+  .rn-cap{padding:10px 14px;gap:10px;}
+  .rn-cid b{font-size:14px;}
+  .rn-cf{display:none;}
   .rn-stage{flex-direction:column;min-height:0;}
-  .rn-gutter{width:auto;padding:14px 0 14px;margin:0;border-right:0;
+  .rn-gutter{width:auto;padding:12px 0 10px;margin:0;border-right:0;
     border-bottom:1px solid rgba(255,255,255,.08);}
-  .rn-body{padding:18px 0 24px;max-width:none;}
-  .rn-q{font-size:21px;}
-  .rn-chm{padding:18px 16px;}
-  .rn-sc-figs{margin-left:0;gap:20px;}
+  .rn-lcap{margin-bottom:7px;}
+  .rn-body{padding:16px 0 22px;max-width:none;}
+  .rn-h1{font-size:27px;}
+  .rn-lead{font-size:13.5px;margin-top:12px;}
+  .rn-roster{margin-top:16px;}
+  .rn-rrow{gap:10px;padding:8px 0 8px 11px;}
+  .rn-rrow b{width:60px;font-size:13.5px;}
+  .rn-rrow i{font-size:11.5px;}
+  .rn-rrow s{display:none;}
+  .rn-go{width:100%;justify-content:center;margin-top:18px;}
+  .rn-q{font-size:20px;margin-bottom:16px;}
+  .rn-c{padding:13px 14px;font-size:14.5px;}
+  .rn-foot{margin-top:16px;padding-top:13px;gap:8px;}
+  .rn-tally{margin-left:0;width:100%;}
+  .rn-chm{padding:18px 15px;}
+  .rn-vfig{gap:18px;}
+  .rn-hn{font-size:34px;}
+  .rn-sc-figs{margin-left:0;gap:18px;}
+  .rn-scr s{display:none;}
+  .rn-scr b{width:58px;}
 }
 `;

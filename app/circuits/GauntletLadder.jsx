@@ -55,11 +55,9 @@ import React, { useMemo } from 'react';
 // edit separates them all. Every game keeps its own colour everywhere else it
 // appears; here the tie back to identity is the label under the block.
 //
-// COLOUR BY `slot`, NOT BY POSITION. The Gauntlet shuffles its middle every
-// day, so coming off the array index would repaint every game each morning and
-// the colour would stop meaning anything. Sections carry a `slot`, their index
-// in the circuit's canonical key list, and that is what indexes the ramp: Atlas
-// is the same colour on Tuesday as it was on Monday, wherever it lands.
+// The ramp earns its keep too. Run order is shortest first, so a monotonic hue
+// walk means the ladder reads as heat climbing across the run, which makes the
+// ordering rule visible for free.
 export const LADDER_RAMP = [
   '#7dd3fc', // sky
   '#6ee7b7', // mint
@@ -179,7 +177,14 @@ export default function GauntletLadder({
               style={{
                 '--t': `${40 + Math.round(60 * (n > 1 ? i / (n - 1) : 0))}%`,
                 '--f': alive,
-                ...(row ? null : { height: `${Math.max(1, pitch - 1)}px` }),
+                // The rung IS the pitch, with no gap subtracted: `.gl-col`
+                // sets gap 0. Measured on the live page, seven banks and 180
+                // questions give a pitch near 2.7px, and taking a 1px gap out
+                // of that left a 1px rung beside a 1px hole, which reads as a
+                // faint dotted line rather than a ladder. Contiguous rungs
+                // still show the tier ramp, because in this orientation the
+                // ramp is the rung's WIDTH.
+                ...(row ? null : { height: `${Math.max(1, pitch)}px` }),
               }}
             />
           );
@@ -196,7 +201,7 @@ export default function GauntletLadder({
               live ? 'live' : '',
             ].filter(Boolean).join(' ')}
             style={{
-              '--c': s.ladderColor || rampFor(s.slot != null ? s.slot : bi),
+              '--c': s.ladderColor || rampFor(bi),
               '--q': n,
               '--cut': `${n ? (((done + 1) / n) * 100).toFixed(2) : 0}%`,
             }}
@@ -256,7 +261,7 @@ const CSS = `
 
 /* COL, the tall gutter. Rung height comes from the derived pitch inline. */
 .gl-col{flex-direction:column;gap:${BLOCK_GAP}px}
-.gl-col .gl-rungs{flex-direction:column;gap:1px}
+.gl-col .gl-rungs{flex-direction:column;gap:0}
 .gl-col .gl-b i{width:var(--t)}
 .gl-col .gl-k{order:-1;margin:0 0 4px}
 .gl-col .gl-b.gone::after{left:0;right:0;top:var(--cut);bottom:0}
@@ -268,6 +273,23 @@ const CSS = `
    continuous shape whose silhouette is still the tier ramp and whose colour is
    still where you got to. The current rung and the fatal one keep their extra
    flex, so the two things you must be able to find stay findable. */
+/* PHONE: THE TALL GUTTER LIES DOWN. A column ladder is 640px of rungs, which
+   beside a question on a 390px screen is most of the viewport spent on
+   furniture. Under 820px it becomes the same condensed strip the row
+   orientation draws, 26px tall, and the labels go: seven names across 350px do
+   not fit, and the block you are on is named by the card beside it anyway.
+   Everything the caller set inline has to be overridden here, which is what
+   the !important marks are for: the height on the container and on every rung
+   is a literal px value from the derived pitch.
+   NO BACKTICKS IN THIS BLOCK. It is a template literal, and one closes it. */
+@media (max-width:820px){
+  .gl-col{flex-direction:row;gap:6px;align-items:flex-end;width:100%;height:26px!important}
+  .gl-col .gl-b{flex:var(--q,25) 1 0;height:100%}
+  .gl-col .gl-rungs{flex-direction:row;align-items:flex-end;height:100%;width:100%}
+  .gl-col .gl-b i{flex:1 1 0;min-width:0;width:auto!important;height:var(--t)!important}
+  .gl-col .gl-k{display:none}
+  .gl-col .gl-b.gone::after{left:var(--cut);right:0;top:0;bottom:0}
+}
 @media (max-width:640px){
   .gl-row{gap:5px}
   .gl-row .gl-rungs{height:34px}
