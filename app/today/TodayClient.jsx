@@ -50,6 +50,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref, circuitEntryHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
+import StageLadder from '../StageLadder';
 import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // The pins are the ones the old console (DailyStrip) already wrote: same
 // /api/quiz/favorites, same account column, same two-tier promotion. Nothing
@@ -971,6 +972,27 @@ export default function TodayClient({ onSignup = null } = {}) {
   // do, and the pop-up itself waits on `board` (the server's word) before it
   // decides anything.
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
+
+  // ── YOUR SUNDAY ────────────────────────────────────────────────────
+  // Behind ?stage=1 while it is reviewed. The flag is read in an EFFECT and
+  // never during render: the server has no query string to read, so deciding
+  // it during render makes the first client paint disagree with the server's
+  // and React throws. Same rule isSundayET and contestIsLive follow.
+  const [dayOn, setDayOn] = useState(false);
+  useEffect(() => {
+    try { setDayOn(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+  }, []);
+  const dayBlocks = useMemo(() => orderedShelves.map((sh) => ({
+    n: sh.games.length,
+    c: sh.color,
+    on: sh.games.map((g) => done.has(g.key)),
+    half: sh.games.map((g) => !done.has(g.key) && inprog.has(g.key)),
+  })), [orderedShelves, done, inprog]);
+  const dayPlayed = useMemo(() => orderedShelves.reduce((a, sh) => a + sh.games.filter((g) => done.has(g.key)).length, 0), [orderedShelves, done]);
+  const dayPaused = useMemo(() => orderedShelves.reduce((a, sh) => a + sh.games.filter((g) => !done.has(g.key) && inprog.has(g.key)).length, 0), [orderedShelves, done, inprog]);
+  const dayLeader = overall[0] || null;
+  const dayMyRank = meKey ? overall.findIndex((r) => r && r.userKey === meKey) + 1 : 0;
+  const dayOrd = (v) => v + (['th', 'st', 'nd', 'rd'][((v % 100) - 20) % 10] || ['th', 'st', 'nd', 'rd'][v % 100] || 'th');
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
 
@@ -1056,6 +1078,44 @@ export default function TodayClient({ onSignup = null } = {}) {
             <span className="ti">{'\u2605 My games'}</span>
             <span className="ts">{pinErr}</span>
           </div>
+        ) : null}
+
+        {dayOn ? (
+          <section className="tdy-row" id="tdy-day" style={{ scrollMarginTop: 112 }}>
+            <div className="tdy-day">
+              <div className="tdy-dayhd">
+                <h2>Your day</h2>
+                <span className="tdy-dayfig">
+                  <b>{dayPlayed}</b> played{dayPaused ? <> &middot; <b>{dayPaused}</b> paused</> : null} &middot; <b>{totalGames}</b> on the slate
+                </span>
+              </div>
+              <StageLadder height={46} blocks={dayBlocks} />
+              <div className="tdy-daykey">
+                {orderedShelves.map((sh) => (
+                  <span key={sh.name}>
+                    <i style={{ background: sh.color }} aria-hidden="true" />
+                    {sh.name} {sh.games.filter((g) => done.has(g.key)).length}/{sh.games.length}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {/* The strip SCROLLS rather than expands: the full board is already
+                at the foot of this page, and an expansion here would be the
+                same table twice. It needs a leader to be drawn at all. */}
+            {dayLeader ? (
+              <button
+                type="button"
+                className="tdy-daystrip"
+                onClick={() => { const el = document.getElementById('tdy-boards'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+              >
+                <span className="e">Today</span>
+                <b>{dayLeader.username || 'Player'}</b>
+                <s>{dayLeader.pts} pts</s>
+                <span className="d">&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</span>
+                <u>{dayMyRank ? `You ${dayOrd(dayMyRank)}` : 'Not on the board yet'} &rsaquo;</u>
+              </button>
+            ) : null}
+          </section>
         ) : null}
 
         {canPin && pinned.length ? (
@@ -1464,6 +1524,34 @@ export default function TodayClient({ onSignup = null } = {}) {
 }
 
 const CSS = `
+/* YOUR DAY. Eighty games as one picture, in the reader's own shelf order. */
+.tdy-day{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:16px 18px 14px;}
+.tdy-dayhd{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:13px;flex-wrap:wrap;}
+.tdy-dayhd h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:#e9edf4;}
+.tdy-dayfig{font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#8b95a8;}
+.tdy-dayfig b{color:#e9edf4;font-weight:500;}
+.tdy-daykey{display:flex;flex-wrap:wrap;gap:9px 15px;margin-top:12px;}
+.tdy-daykey span{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;
+  font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8b95a8;}
+.tdy-daykey i{width:9px;height:9px;border-radius:2px;display:block;flex:none;}
+.tdy-daystrip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+  margin-top:10px;padding:9px 14px;border-radius:10px;font-size:12.5px;color:#e9edf4;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);}
+.tdy-daystrip:hover{background:rgba(255,255,255,.06);}
+.tdy-daystrip .e{font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#8b95a8;}
+.tdy-daystrip b{font-weight:800;}
+.tdy-daystrip s{text-decoration:none;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#aab5c7;}
+.tdy-daystrip .d{color:#8b95a8;font-size:11.5px;}
+.tdy-daystrip u{text-decoration:none;margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7dd3fc;flex:none;}
+@media(max-width:640px){
+  .tdy-day{padding:13px 13px 12px;border-radius:12px;}
+  .tdy-dayhd h2{font-size:17px;}
+  .tdy-daystrip .d{display:none;}
+}
+
 .tdy{background:transparent;font-family:'Manrope',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;
 /* EVERY SHELF ON THE PAGE IS THE SAME HEIGHT (owner, 2026-08-26), and this is
    the one knob that keeps them so. The header band is identical on all of them,

@@ -68,6 +68,12 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 //
 // !important is load-bearing rather than lazy: these elements carry INLINE
 // styles from the Loft build, and a plain rule loses to an inline one.
+// The vertical room the STAGE reserves above the board. The Loft page kept
+// 430px for a masthead, a stat bar and a cap; the stage shows one line. Both
+// the grid's cell clamp and the ladder gutter's height read this, which is
+// what makes "the ladder matches the board" structural rather than two
+// numbers that happen to agree at one window size.
+const STAGE_VROOM = 330;
 const STAGE_BOARD_CSS = `
 /* THE GUTTER IS A FIXED COLUMN BESIDE THE BOARD, not a stretched one.
    align-items:stretch made it as tall as a 14 row crossword, which turned
@@ -75,7 +81,10 @@ const STAGE_BOARD_CSS = `
    board column pinned the pair to the left edge with the ladder adrift in
    the margin. Centre the pair and give the ladder a height of its own. */
 .stage-page .cx-a{display:flex;gap:24px;align-items:flex-start;justify-content:center;}
-.stage-page .cx-gut{flex:0 0 88px;align-self:flex-start;height:clamp(240px,44vh,440px);}
+.stage-page .cx-gut{flex:0 0 88px;align-self:flex-start;
+  /* The grid's own height budget, so the ladder and the board track each
+     other at every window size rather than agreeing at one. */
+  height:clamp(200px, calc(100vh - ${STAGE_VROOM}px), 560px);}
 .stage-page .cx-a > *:not(.cx-gut){flex:0 1 660px;min-width:0;}
 @media(max-width:640px){
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
@@ -1115,6 +1124,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     w: cat.words.map((w) => 0.42 + (w.length - 4) * 0.1),
   }));
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
+  // The vertical room the board actually has. The Loft reserved 430px for a
+  // masthead, a stat bar and a cap; the stage shows one line, so it reserves
+  // 330. The floor drops with it: 42px was chosen when a tall board could
+  // scroll under all that chrome, and on the stage it just overflows.
+  const VROOM = STAGE ? STAGE_VROOM : 430;
+  const CS_MIN = STAGE ? 30 : 42;
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
   const COLW = 640;      // matches DailyGamesGrid; board stays centered at its own size
 
@@ -1312,8 +1327,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
              untouched. The floor stops a very tall board on a short window from
              shrinking to something unreadable; past that point the page scrolls,
              which is the better trade. At 1080 tall nothing changes at all. */
-          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(42px, calc((100vh - 430px)/${ROWS})));}
-          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(42px, calc((100vh - 430px)/${ROWS})));}}
+          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - ${VROOM}px)/${ROWS})));}
+          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - ${VROOM}px)/${ROWS})));}}
           @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
           .cx-htp-s{display:none;}
