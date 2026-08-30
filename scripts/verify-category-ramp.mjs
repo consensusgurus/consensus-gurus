@@ -15,10 +15,13 @@
 //      lit rung and an unlit one are tellable at 3:1 or better.
 //   4. NO DUPLICATE STEPS. Two categories sharing a hex is the collision the
 //      ramp was created to end.
-//   5. HUE SPACING, as a WARNING not a failure. Only one category is on screen
-//      at a time on a stage, so neighbours may sit close there. It becomes a
-//      hard rule the day the home's filled shelf bands adopt these values, and
-//      lib/home-blues.js already documents that rule as >=30 degrees.
+//   5. HUE SPACING, as a WARNING and deliberately not a failure. Only one
+//      category is on screen at a time on a stage, so neighbours may sit close
+//      there and two of them do. It is NOT a pending task: the owner ruled on
+//      2026-08-30 that the home's bands (CAT_BLUE, lib/home-blues.js) and this
+//      ramp are independent systems, so the home is not adopting these values
+//      and its own >=30 degree rule does not reach them. The check stays only
+//      because it would matter if that ever changed.
 
 // The app's modules use the '@/' alias and extensionless relative imports,
 // neither of which plain node resolves. Register the shared hook first, then
@@ -114,7 +117,8 @@ for (let i = 1; i < CATEGORY_RAMP.length; i += 1) {
   const d = apart(hue(CATEGORY_RAMP[i - 1]), hue(CATEGORY_RAMP[i]));
   if (d < HUE_MIN) {
     warn(`${RAMP_ORDER[i - 1]} and ${RAMP_ORDER[i]} are ${Math.round(d)} degrees apart, under ${HUE_MIN}. `
-      + 'Fine while only one is on screen; fix before the home bands adopt these.');
+      + 'Accepted: only one category is on screen at a time on a stage, and the home '
+      + 'bands are a separate table by owner ruling. Not a task.');
   }
 }
 
