@@ -44,7 +44,7 @@ import { savedIdentity } from '@/lib/saved-identity';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../../../ShareCreditPop';
-import { runSummaryHref, circuitShareUrl, circuitScoreMode } from '@/lib/circuits';
+import { runSummaryHref, circuitShareUrl, circuitScoreMode, circuitShareResult } from '@/lib/circuits';
 import GauntletLadder, { rampFor } from '../../GauntletLadder';
 import RunNextUp from '../../RunNextUp';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
@@ -390,11 +390,33 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
   function shareRun() {
     const url = withRef(circuitShareUrl(circuitId));
-    const text = [
-      `${circuitName} · ${cleared} of ${askable} questions`,
-      'One long quiz, one life each.',
-      url,
-    ].join('\n');
+    // ONE BUILDER FOR BOTH ENDINGS (2026-08-30). /daily-five already shared
+    // through circuitShareResult and this hand-rolled two lines of its own, so
+    // the same run went out two different ways depending on which screen the
+    // player happened to press. The builder adds the rank, the field and the
+    // grid, and it takes its unit from the circuit's own board rule, so a
+    // Gauntlet share can never quote a points figure its leaderboard does not
+    // use.
+    //
+    // The grid leaks nothing: a pip says only whether that quiz was cleared,
+    // played or never reached, never what was in it. Cleared is the same test
+    // the scorecard's own figure uses, so a bank aced before the run counts.
+    const pips = sections.map((s, i) => {
+      const x = r.results[i];
+      if (!x) return '';
+      const clean = x.status === 'won' || (x.total > 0 && x.score === x.total);
+      return clean ? 'top' : 'on';
+    });
+    const me = boardQ.data && boardQ.data.me;
+    const text = circuitShareResult(circuitId, {
+      points: cleared,
+      maxTotal: askable,
+      rank: me && Number.isFinite(me.rank) ? me.rank : null,
+      field: (boardQ.data && boardQ.data.overallField) || 0,
+      done: r.results.length,
+      total: N,
+      pips,
+    }, url);
     if (notifyShareCredit(text, `https://${circuitShareUrl(circuitId)}`)) return;
     try {
       if (typeof navigator !== 'undefined' && navigator.share && isMobileDevice()) {
