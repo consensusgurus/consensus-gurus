@@ -132,11 +132,12 @@ export default function CircuitLanding({ circuit, games }) {
 
         .clp-cards{display:flex;flex-direction:column;gap:9px;}
         .clp-c{position:relative;display:flex;align-items:center;gap:13px;background:var(--white);
-               border:1.5px solid var(--border);border-radius:12px;padding:13px 15px 13px 18px;
+               border:1.5px solid var(--border);border-left-color:var(--cc,#c9d2e0);
+               border-radius:12px;padding:13px 15px 13px 18px;overflow:hidden;
                text-decoration:none;color:inherit;}
         .clp-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-                       border-radius:12px 0 0 12px;background:var(--cc,#c9d2e0);}
-        .clp-c:hover{border-color:var(--blue);}
+                       background:var(--cc,#c9d2e0);}
+        .clp-c:hover{border-color:var(--blue);border-left-color:var(--cc,#c9d2e0);}
         .clp-num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--surface-alt,#eef1f6);
                  color:var(--slate,#64748b);font-size:11px;font-weight:800;display:flex;align-items:center;
                  justify-content:center;font-variant-numeric:tabular-nums;}

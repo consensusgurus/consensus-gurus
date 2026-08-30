@@ -1,5 +1,4 @@
 import QuizHomeClient from './quizzes/QuizHomeClient';
-import WelcomeOverlay from './WelcomeOverlay';
 import InstallPrompt from './InstallPrompt';
 import { QUIZZES } from '@/lib/quizzes';
 import { getAllSources } from '@/lib/sources';
@@ -59,10 +58,15 @@ export default function HomePage() {
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
       <QuizHomeClient variant="v3" sourceCount={SOURCE_COUNT} />
-      {/* First-visit funnel + site install prompt. Both render null on the
-          server and decide everything in effects; audiences are disjoint
-          (no footprint vs engaged), so they can never stack. */}
-      <WelcomeOverlay />
+      {/* THE DAILY FIVE OVERLAY IS RETIRED (owner, 2026-08-30). It met a first
+          visit with a full-screen pitch for one run before the visitor had seen
+          anything the site actually offers, which is the shape of interstitial
+          that costs more goodwill than it buys. app/WelcomeOverlay.jsx stays in
+          the tree, unmounted, so restoring it is one line.
+
+          InstallPrompt stays: it waits on engagement rather than firing on a
+          first visit, and it was only ever paired with the overlay here because
+          their audiences are disjoint. */}
       <InstallPrompt />
     </>
   );

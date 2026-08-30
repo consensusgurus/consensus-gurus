@@ -55,6 +55,7 @@ import { fetchDayStatus, etToday, DAY_ROSTER } from '../useDayStats';
 // /api/quiz/favorites, same account column, same two-tier promotion. Nothing
 // new is stored for My games.
 import useMyGames from '../useMyGames';
+import GauntletPop from './GauntletPop';
 
 const CAT_ORDER = ['Word', 'Sudoku', 'End Game', 'Logic', 'Numbers', 'Trivia', 'Crowd Psychology', 'Geography', 'Cards', 'Arcade'];
 
@@ -958,6 +959,12 @@ export default function TodayClient({ onSignup = null } = {}) {
   const circTot = circuitShelves.length;
   const circDone = circuitShelves.filter((c) => c.games.every((g) => done.has(g.key))).length;
 
+  const gauntletKeys = useMemo(() => {
+    if (!today) return [];
+    try { return circuitKeysFor('gauntlet', today) || []; } catch (e) { return []; }
+  }, [today]);
+  const gauntletUnplayed = gauntletKeys.length > 0 && !gauntletKeys.some((k) => done.has(k));
+
   // ── the Trivia Gauntlet nudge ──
   // Unplayed means NOT ONE game of the circuit finished today. `done` is the
   // merge of all three passes above, so this reads the same truth the tiles
@@ -970,11 +977,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   return (
     <div className="tdy">
       <style>{CSS}</style>
-      {/* THE ONCE-A-DAY POP-UP IS RETIRED (owner, 2026-08-30). It interrupted
-          the home page to advertise a thing the home page already leads with,
-          which is the shape of nudge that costs more goodwill than it buys.
-          app/today/GauntletPop.jsx is left in the tree, unmounted, so restoring
-          it is one line rather than a rebuild. */}
+      <GauntletPop ready={!!board && !!today} unplayed={gauntletUnplayed} day={today || ''} />
 
       <div className="tdy-wrap">
         <div className={'tdy-jb' + (stuck ? ' stuck' : '')} style={{ top: barTop }}>
