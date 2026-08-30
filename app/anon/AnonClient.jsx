@@ -47,6 +47,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import StageLadder from '../StageLadder';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -226,6 +230,29 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const fill = g.fill || new Array(N).fill('');
   const playing = g.status === 'playing';
   const LOFT = isLoft('anon');
+  const STAGE = isStage('anon', searchParams);
+  const STAGE_C = gameColor('anon');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  // Anon is a Word game, so on the stage its book cloth red becomes the
+  // category step. ON_ACC is the ink that rides on it, which is dark here
+  // and white on the Loft page, and the two must never be crossed.
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'rgba(125,211,252,0.16)' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
+  // THE LADDER: one rung per answer, two blocks, the SPINE and the free
+  // bank. The spine earns its own block because its initials spell the
+  // author, which is the payoff and the reason to keep going.
+  const stageBlocks = STAGE ? [[0, PUZZLE.spine], [PUZZLE.spine, A.length]].map(([from, to]) => ({
+    n: to - from,
+    c: STAGE_C,
+    on: A.slice(from, to).map((a) => a.c.every((i) => !!fill[i])),
+    w: A.slice(from, to).map((a) => 0.38 + (a.w.length - 4) * 0.12),
+  })) : [];
+  const INK = STAGE ? '#e9edf4' : COLORS.ink;
+  const FADED = STAGE ? '#8b95a8' : COLORS.faded;
+  const SURF = STAGE ? 'rgba(255,255,255,0.045)' : T.white;
+  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -582,11 +609,16 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="anon" name="Anon" collapsed={!!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="anon" quizId={PUZZLE.quizId}
+          progress={N ? filledCount / N : 0}
+          ladder={STAGE ? <StageLadder height={44} label="Answers" blocks={stageBlocks} /> : null}
           name="Anon"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (nSolved > 0 ? 'part' : 'lost'))}
@@ -607,65 +639,65 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
       <div className="an-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.an-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .an-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .an-btn:hover{background:${COLORS.accentSoft};}
-          .an-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
-          .an-btn.primary:hover{background:${COLORS.accentDeep};}
+          .an-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${ACC_DEEP};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? INK : ACC_DEEP};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .an-btn:hover{background:${ACC_SOFT};}
+          .an-btn.primary{background:${ACC};border-color:${ACC};color:${ON_ACC};}
+          .an-btn.primary:hover{background:${ACC_DEEP};}
           .an-quote{display:flex;flex-wrap:wrap;gap:9px 13px;}
           .an-word{display:flex;gap:3px;}
-          .an-cell{border:1px solid rgba(28,30,36,0.18);border-bottom-width:2px;border-radius:4px;background:var(--white);
+          .an-cell{border:1px solid ${STAGE ? 'rgba(255,255,255,0.14)' : 'rgba(28,30,36,0.18)'};border-bottom-width:2px;border-radius:4px;background:${SURF};
             display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;font-size:15px;
-            color:${COLORS.ink};cursor:pointer;flex:none;transition:background 90ms,border-color 90ms;}
-          .an-cell.mine{background:${COLORS.accentSoft};border-color:#e3b9be;}
-          .an-cell.on{outline:2px solid ${COLORS.accent};outline-offset:-2px;background:#fbe4e6;}
-          .an-cell.miss{background:#fee2e2;border-color:#dc2626;color:#7f1d1d;}
+            color:${INK};cursor:pointer;flex:none;transition:background 90ms,border-color 90ms;}
+          .an-cell.mine{background:${ACC_SOFT};border-color:#e3b9be;}
+          .an-cell.on{outline:2px solid ${ACC};outline-offset:-2px;background:${ACC_SOFT};}
+          .an-cell.miss{background:${STAGE ? 'rgba(220,38,38,0.22)' : '#fee2e2'};border-color:#dc2626;color:${STAGE ? '#ffc9c9' : '#7f1d1d'};}
           .an-punc{align-self:center;color:#b6bcc7;font-weight:800;width:6px;text-align:center;}
           .an-banks{display:grid;grid-template-columns:1.25fr 1fr;gap:14px 26px;}
           @media(max-width:900px){.an-banks{grid-template-columns:1fr;}}
-          .an-bhead{font-family:${MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${COLORS.faded};
+          .an-bhead{font-family:${MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${FADED};
             margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;}
           .an-bhead span{color:#c3c8d1;}
           .an-row{border:1px solid transparent;border-radius:8px;padding:4px 6px;margin-bottom:7px;}
-          .an-row.on{border-color:#e3b9be;background:${COLORS.accentSoft};}
+          .an-row.on{border-color:#e3b9be;background:${ACC_SOFT};}
           .an-rowhead{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
-          .an-tag{font-weight:900;font-size:13px;color:${COLORS.accent};width:13px;}
+          .an-tag{font-weight:900;font-size:13px;color:${ACC};width:13px;}
           .an-cat{font-family:${MONO};font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:#4b5563;}
           .an-cat.open{color:#c3c8d1;font-style:italic;}
           .an-len{margin-left:auto;font-family:${MONO};font-size:10px;color:#c3c8d1;}
           .an-ok{font-family:${MONO};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.green};}
           .an-boxes{display:flex;gap:3px;flex-wrap:wrap;}
-          .an-seg{display:flex;border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;margin-bottom:12px;}
+          .an-seg{display:flex;border:1px solid ${STAGE ? 'rgba(255,255,255,0.14)' : 'rgba(28,30,36,0.14)'};border-radius:9px;overflow:hidden;margin-bottom:12px;}
           .an-dock{background:#0f1f2e;border-radius:8px;margin:6px 0 0;padding:8px 9px 9px;}
           .an-dockhead{display:flex;align-items:center;gap:8px;}
           .an-segd{display:flex;border:1px solid #2b4675;border-radius:7px;overflow:hidden;}
           .an-segd button{border:0;background:#16294a;color:#93a8cc;font-family:${SANS};font-weight:800;font-size:12px;padding:6px 15px;cursor:pointer;}
-          .an-segd button.on{background:${COLORS.accent};color:var(--white);}
+          .an-segd button.on{background:${ACC};color:${ON_ACC};}
           .an-nav{margin-left:auto;display:flex;gap:6px;}
           .an-nav button{width:28px;height:28px;border-radius:6px;border:1px solid #2b4675;background:#16294a;color:#dbe9ff;cursor:pointer;font-weight:800;}
           .an-dockbody{margin-top:7px;display:flex;gap:3px;overflow-x:auto;padding-bottom:2px;}
           .an-dcell{width:21px;height:26px;border-radius:4px;background:#16294a;border:1px solid #2b4675;display:flex;align-items:center;
             justify-content:center;font-weight:800;font-size:13px;color:var(--white);flex:none;}
-          .an-dcell.on{background:${COLORS.accent};border-color:#b04a55;}
+          .an-dcell.on{background:${ACC};border-color:#b04a55;}
           .an-dcell.gap{background:none;border:0;width:7px;}
-          .an-seg button{flex:1;border:0;background:var(--white);padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:#8b93a1;cursor:pointer;}
-          .an-seg button.on{background:${COLORS.accent};color:var(--white);}
-          .an-input{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#e5e8ef;
+          .an-seg button{flex:1;border:0;background:${STAGE ? 'rgba(255,255,255,0.06)' : 'var(--white)'};padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:${STAGE ? '#8b95a8' : '#8b93a1'};cursor:pointer;}
+          .an-seg button.on{background:${ACC};color:${ON_ACC};}
+          .an-input{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? '#0e131f' : '#e5e8ef'};
             border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -4px 16px rgba(20,22,28,0.12);
             padding:0 8px calc(4px + env(safe-area-inset-bottom));}
           .an-inputin{max-width:500px;margin:0 auto;}
           .an-input .an-kb{background:none;border-radius:0;padding:7px 0 4px;}
-          .an-kb{display:flex;flex-direction:column;gap:5px;background:#e5e8ef;border-radius:0 0 10px 10px;padding:7px 4px 9px;}
+          .an-kb{display:flex;flex-direction:column;gap:5px;background:${STAGE ? '#0e131f' : '#e5e8ef'};border-radius:0 0 10px 10px;padding:7px 4px 9px;}
           .an-kr{display:flex;gap:5px;justify-content:center;}
-          .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:var(--white);font-family:${SANS};
+          .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:${STAGE ? 'rgba(255,255,255,0.09)' : 'var(--white)'};color:${INK};font-family:${SANS};
             touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
             font-weight:800;font-size:15px;box-shadow:0 1px 0 #b9bfcb;cursor:pointer;}
-          .an-kr button.wide{max-width:54px;font-size:11px;background:#c9cfdb;}
+          .an-kr button.wide{max-width:54px;font-size:11px;background:${STAGE ? 'rgba(255,255,255,0.05)' : '#c9cfdb'};}
           .an-kr button.del{display:flex;align-items:center;justify-content:center;}
-          .an-kr button:active{background:#cfd6e2;}
+          .an-kr button:active{background:${STAGE ? 'rgba(255,255,255,0.16)' : '#cfd6e2'};}
           .an-spine{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:0 0 14px;}
-          .an-spine i{width:22px;height:28px;border-radius:4px;background:${COLORS.accentSoft};border:1px solid #e3b9be;
-            display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${COLORS.accent};}
-          .an-spine i.blank{color:#dcc6c9;background:var(--white);border-color:rgba(28,30,36,0.1);}
+          .an-spine i{width:22px;height:28px;border-radius:4px;background:${ACC_SOFT};border:1px solid ${STAGE ? 'rgba(125,211,252,0.45)' : '#e3b9be'};
+            display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${ACC};}
+          .an-spine i.blank{color:${STAGE ? '#5a657d' : '#dcc6c9'};background:${STAGE ? 'rgba(255,255,255,0.05)' : 'var(--white)'};border-color:${STAGE ? 'rgba(255,255,255,0.12)' : 'rgba(28,30,36,0.1)'};}
         `}</style>
 
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -694,11 +726,11 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {preStart && (
-            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+            <div style={{ background: STAGE ? 'rgba(255,255,255,0.045)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 A clueless acrostic: a passage nobody signed, in {N} letters.
               </h2>
-              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Every box belongs to one answer below, so a letter you type appears in both halves at once.
                 There are no clues. Finish it and the first letters of the spine will have spelled out
                 <b style={{ color: COLORS.accentDeep }}> who wrote it</b>.
@@ -727,13 +759,13 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           {!preStart && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0 10px', flexWrap: 'wrap' }}>
-                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {nSolved}/{TOTAL} answers &middot; {filledCount}/{N} letters &middot; {elapsed}
                 </div>
               </div>
 
               <div className="an-spine">
-                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, marginRight: 4 }}>Signed</span>
+                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED, marginRight: 4 }}>Signed</span>
                 {spineLetters.map((c, i) => <i key={i} className={c ? '' : 'blank'}>{c || '·'}</i>)}
               </div>
 
@@ -816,7 +848,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="anon" name="Anon" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="anon" name="Anon" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
               <div className="loft-report">
@@ -925,15 +958,15 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 480, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
-              <b style={{ fontSize: 17, color: COLORS.ink }}>How Anon works</b>
-              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <b style={{ fontSize: 17, color: INK }}>How Anon works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: INK, margin: '0 0 10px' }}>
               The passage arrives unsigned. Every box in it belongs to exactly one answer in the bank,
               so the two halves are the same letters seen twice and a letter typed in either one shows up
               in the other. There are no clues at all.
             </p>
-            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: INK, margin: '0 0 12px', paddingLeft: 20 }}>
               <li>The <b>spine</b> is the first {PUZZLE.spine} answers. Their first letters spell the author.</li>
               <li>The <b>free bank</b> obeys no first letter, which is where most of the categories live.</li>
               <li>A printed category is always one you can recite: it admits four words at most at that length.</li>
@@ -946,7 +979,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

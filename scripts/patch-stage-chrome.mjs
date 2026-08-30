@@ -81,10 +81,24 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   + `  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';`);
 
 // 3. the root: the stage paints its own near-black
-edit('root',
-  "    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>",
-  "    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}\n"
-  + "      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>");
+// The root is matched as a LINE rather than as an exact string, because the
+// clients drift in whitespace: Anon writes `'relative' , overflowX` with a
+// space before the comma, and an exact anchor refuses the whole file over it.
+// The guard below is what keeps that loosening honest: the line has to be the
+// one we think it is, or the patch stops rather than rewriting something else.
+{
+  const ROOT = /^ *<div className=\{LOFT \? 'loft-page' : undefined\} style=\{\{[^\n]*\}\}>$/m;
+  const hit = (s.match(ROOT) || [])[0];
+  if (!hit) throw new Error('no loft-page root element in this client');
+  for (const must of ['minHeight', 'T.surface', 'overflowX']) {
+    if (!hit.includes(must)) {
+      throw new Error(`the root line is missing ${must}, so it is not the element this patch expects: ${hit.trim()}`);
+    }
+  }
+  edit('root', ROOT,
+    "    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}\n"
+    + "      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>");
+}
 
 edit('grain', "      <Grain />", "      {!STAGE && <Grain />}", { optional: true });
 
