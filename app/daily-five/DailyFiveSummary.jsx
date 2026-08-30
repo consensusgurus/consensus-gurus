@@ -108,16 +108,8 @@ export default function DailyFiveSummary() {
   // results, an hourly leaderboard. Sharing it hands a recipient a stranger's
   // scorecard and no way in. /circuits/<id> is the same run with the games, the
   // order and a Start button, which is what somebody who has not played needs.
-  //
-  // The grid leaks nothing: a pip says only whether that game was topped,
-  // finished or left, never what was in it.
   const [copied, setCopied] = useState(false);
   function shareRun() {
-    const pips = run.map((k) => {
-      const p = perGame[k];
-      if (!p || p.abandoned) return '';
-      return p.rank === 1 ? 'top' : 'on';
-    });
     const url = withRef(circuitShareUrl(runId));
     const text = circuitShareResult(runId, {
       points: me ? me.total : 0,
@@ -126,7 +118,6 @@ export default function DailyFiveSummary() {
       field: (data && data.overallField) || 0,
       done: played.length,
       total: run.length,
-      pips,
     }, url);
     if (notifyShareCredit(text, `https://${circuitShareUrl(runId)}`)) return;
     try {
