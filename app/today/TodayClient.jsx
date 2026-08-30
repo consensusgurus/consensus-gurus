@@ -991,7 +991,13 @@ export default function TodayClient({ onSignup = null } = {}) {
   const dayPlayed = useMemo(() => orderedShelves.reduce((a, sh) => a + sh.games.filter((g) => done.has(g.key)).length, 0), [orderedShelves, done]);
   const dayPaused = useMemo(() => orderedShelves.reduce((a, sh) => a + sh.games.filter((g) => !done.has(g.key) && inprog.has(g.key)).length, 0), [orderedShelves, done, inprog]);
   const dayLeader = overall[0] || null;
-  const dayMyRank = meKey ? overall.findIndex((r) => r && r.userKey === meKey) + 1 : 0;
+  // The SERVER's rank, not an index into a list that may be truncated or
+  // renumbered around guests. Falls back to the index only if a row arrives
+  // without one.
+  const dayMyRow = meKey ? overall.find((r) => r && r.userKey === meKey) : null;
+  const dayMyRank = dayMyRow
+    ? (dayMyRow.rank || overall.indexOf(dayMyRow) + 1)
+    : 0;
   const dayOrd = (v) => v + (['th', 'st', 'nd', 'rd'][((v % 100) - 20) % 10] || ['th', 'st', 'nd', 'rd'][v % 100] || 'th');
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
@@ -1110,7 +1116,7 @@ export default function TodayClient({ onSignup = null } = {}) {
               >
                 <span className="e">Today</span>
                 <b>{dayLeader.username || 'Player'}</b>
-                <s>{dayLeader.pts != null ? dayLeader.pts : (dayLeader.points || 0)} pts</s>
+                <s>{fmtPts(dayLeader.total)} pts</s>
                 <span className="d">&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</span>
                 <u>{dayMyRank ? `You ${dayOrd(dayMyRank)}` : 'Not on the board yet'} &rsaquo;</u>
               </button>
