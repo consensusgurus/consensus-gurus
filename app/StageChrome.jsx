@@ -196,12 +196,12 @@ const MONO = "'DM Mono',ui-monospace,'SFMono-Regular',monospace";
 // the template literal and the build fails with an error pointing somewhere
 // else entirely. It has happened on this codebase before.
 const CSS = `
-.stg-top{background:var(--stg-gnd);font-family:${SANS};color:#e9edf4;}
+.stg-top{background:var(--stg-gnd);font-family:${SANS};color:var(--stg-ink,#e9edf4);}
 
 .stg-cap{display:flex;align-items:center;gap:16px;padding:12px 20px;}
 .stg-id{display:flex;flex-direction:column;gap:1px;min-width:0;}
 .stg-id i{font-family:${MONO};font-style:normal;font-size:9.5px;letter-spacing:.15em;
-  text-transform:uppercase;color:#66748f;}
+  text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
 .stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;font-weight:500;color:var(--stg-ink);background:var(--stg);
@@ -211,39 +211,39 @@ const CSS = `
 .stg-fg b{font-family:${MONO};font-size:14px;font-weight:500;line-height:1.15;
   font-variant-numeric:tabular-nums;}
 .stg-fg i{font-family:${MONO};font-style:normal;font-size:9px;letter-spacing:.12em;
-  text-transform:uppercase;color:#66748f;}
+  text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 
 .stg-cx{display:inline-flex;align-items:center;gap:6px;font-family:${MONO};font-size:10px;
-  letter-spacing:.11em;text-transform:uppercase;color:#aab5c7;border:1px solid rgba(255,255,255,.09);
+  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid rgba(var(--stg-lift,255,255,255),.09);
   border-radius:99px;padding:5px 11px;background:none;cursor:pointer;text-decoration:none;}
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
-.stg-cx:hover{border-color:rgba(255,255,255,.2);color:#e9edf4;}
+.stg-cx:hover{border-color:rgba(var(--stg-lift,255,255,255),.2);color:var(--stg-ink,#e9edf4);}
 .stg-rank.on{color:var(--stg-ink);background:var(--stg);border-color:var(--stg);}
 .stg-cx:focus-visible{outline:2px solid var(--stg);outline-offset:2px;}
 
-.stg-prog{height:2px;background:rgba(255,255,255,.08);}
+.stg-prog{height:2px;background:rgba(var(--stg-lift,255,255,255),.08);}
 .stg-prog span{display:block;height:100%;background:var(--stg);transition:width .3s ease;}
 
 .stg-strip{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
-  background:rgba(255,255,255,.03);border:0;border-bottom:1px solid rgba(255,255,255,.09);
-  padding:9px 20px;font-family:${SANS};font-size:12.5px;color:#e9edf4;}
-.stg-strip:hover{background:rgba(255,255,255,.055);}
-.stg-strip.on{background:rgba(255,255,255,.07);}
+  background:rgba(var(--stg-lift,255,255,255),.03);border:0;border-bottom:1px solid rgba(var(--stg-lift,255,255,255),.09);
+  padding:9px 20px;font-family:${SANS};font-size:12.5px;color:var(--stg-ink,#e9edf4);}
+.stg-strip:hover{background:rgba(var(--stg-lift,255,255,255),.055);}
+.stg-strip.on{background:rgba(var(--stg-lift,255,255,255),.07);}
 .stg-strip:focus-visible{outline:2px solid var(--stg);outline-offset:-2px;}
-.stg-se{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#66748f;}
+.stg-se{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-sn{font-weight:800;}
-.stg-sf{font-family:${MONO};font-size:11.5px;color:#aab5c7;}
-.stg-sd{color:#66748f;font-size:11.5px;}
+.stg-sf{font-family:${MONO};font-size:11.5px;color:var(--stg-ink2,#aab5c7);}
+.stg-sd{color:var(--stg-mute2,#66748f);font-size:11.5px;}
 .stg-sy{margin-left:auto;flex:none;color:var(--stg);font-family:${MONO};font-size:10px;
   letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 
 /* IN FLOW, never over. Nothing is hidden behind it and it needs no scrim. */
 .stg-rail{max-width:1180px;margin:0 auto;padding:14px 20px 2px;}
-.stg-panel{border-bottom:1px solid rgba(255,255,255,.09);background:#0d1220;}
+.stg-panel{border-bottom:1px solid rgba(var(--stg-lift,255,255,255),.09);background:var(--stg-panel,#0d1220);}
 .stg-pin{max-width:1180px;margin:0 auto;padding:16px 20px 20px;}
-.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid rgba(255,255,255,.09);
-  border-radius:99px;color:#66748f;font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
+.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid rgba(var(--stg-lift,255,255,255),.09);
+  border-radius:99px;color:var(--stg-mute2,#66748f);font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;padding:6px 16px;cursor:pointer;}
 
 /* LAYOUT the game lays its board into: a gutter for the ladder and the board

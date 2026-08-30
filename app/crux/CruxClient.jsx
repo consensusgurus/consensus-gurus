@@ -90,13 +90,13 @@ const STAGE_BOARD_CSS = `
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
   .stage-page .cx-gut{flex:none;min-height:0;}
 }
-.stage-page .cl-key:not(.cl-kx){background:rgba(255,255,255,0.07)!important;
-  color:#e9edf4!important;border:1px solid rgba(255,255,255,0.13)!important;}
-.stage-page .cl-btn{background:transparent!important;color:#e9edf4!important;
-  border:1.5px solid rgba(255,255,255,0.18)!important;}
-.stage-page .cl-cat{border:1px solid rgba(255,255,255,0.10);border-radius:8px;}
-.stage-page .cx-tries{color:#8b95a8;}
-.stage-page hr{border-color:rgba(255,255,255,0.10);}
+.stage-page .cl-key:not(.cl-kx){background:rgba(var(--stg-lift,255,255,255),0.07)!important;
+  color:var(--stg-ink,#e9edf4)!important;border:1px solid rgba(var(--stg-lift,255,255,255),0.13)!important;}
+.stage-page .cl-btn{background:transparent!important;color:var(--stg-ink,#e9edf4)!important;
+  border:1.5px solid rgba(var(--stg-lift,255,255,255),0.18)!important;}
+.stage-page .cl-cat{border:1px solid rgba(var(--stg-lift,255,255,255),0.10);border-radius:8px;}
+.stage-page .cx-tries{color:var(--stg-mute,#8b95a8);}
+.stage-page hr{border-color:rgba(var(--stg-lift,255,255,255),0.10);}
 `;
 
 // Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
@@ -610,8 +610,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // this ground and has to move; a near-black FILL is a perfectly good
   // object on it and stays. Conflating the two is what would turn every
   // dark chip on the board into a pale one.
-  const INK = STAGE ? '#e9edf4' : COLORS.ink;
-  const FADED = STAGE ? '#8b95a8' : COLORS.faded;
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SPAL = STAGE ? {
     tile: 'rgba(255,255,255,0.045)',
     tileB: 'rgba(255,255,255,0.13)',
@@ -621,7 +621,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     key: 'rgba(255,255,255,0.09)',
     keyB: '1.5px solid rgba(255,255,255,0.14)',
     spent: 'rgba(255,255,255,0.05)',
-    spentInk: '#5a657d',
+    spentInk: 'var(--stg-dim,#5a657d)',
   } : null;
 
   // ---- input ----
@@ -1246,7 +1246,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
-      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
       {!STAGE && <Grain />}
       {/* Shared daily chrome: home's #233a63 masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
@@ -1392,7 +1392,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
-            <div style={{ background: STAGE ? 'rgba(255,255,255,0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+            <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1589,7 +1589,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'rgba(255,255,255,0.10)' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
+              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.10)' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
@@ -1727,7 +1727,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? '#0e131f' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Crux to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
@@ -1790,7 +1790,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? '#0e131f' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>

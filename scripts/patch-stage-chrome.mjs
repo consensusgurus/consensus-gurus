@@ -75,17 +75,17 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   `$1\n`
   + `  const STAGE = isStage('${key}', searchParams);\n`
   + `  const STAGE_C = gameColor('${key}');\n`
-  + `  const INK = STAGE ? '#e9edf4' : COLORS.ink;\n`
-  + `  const FADED = STAGE ? '#8b95a8' : COLORS.faded;\n`
-  + `  const SURF = STAGE ? 'rgba(255,255,255,0.045)' : T.white;\n`
-  + `  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';\n`
+  + `  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;\n`
+  + `  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;\n`
+  + `  const SURF = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : T.white;\n`
+  + `  const SURF_B = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.13)' : 'rgba(28,30,36,0.42)';\n`
   // A client's identity hue. Declared for EVERY client, including the ones
   // whose COLORS has no accent key: reading a missing key yields undefined,
   // which is harmless, while declaring these per board patch would leave
   // `color: ACC` undefined on any game whose board patch did not.
   + `  const ACC = STAGE ? STAGE_C : COLORS.accent;\n`
   + `  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;\n`
-  + `  const ACC_SOFT = STAGE ? 'rgba(255,255,255,0.10)' : COLORS.accentSoft;\n`
+  + `  const ACC_SOFT = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.10)' : COLORS.accentSoft;\n`
   + `  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';`);
 
 // 3. the root: the stage paints its own near-black
@@ -105,7 +105,7 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   }
   edit('root', ROOT,
     "    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}\n"
-    + "      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>");
+    + "      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>");
 }
 
 edit('grain', "      <Grain />", "      {!STAGE && <Grain />}", { optional: true });

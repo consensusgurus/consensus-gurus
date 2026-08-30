@@ -165,3 +165,52 @@ button, input, textarea, select { border-radius: 8px; }
   box-shadow:0 1px 3px rgba(20,22,28,0.08),0 1px 1px rgba(20,22,28,0.05);
 }
 .dh-tile{box-shadow:0 1px 1px rgba(20,22,28,0.04);}
+
+/* ─── THE STAGE'S OWN TOKENS ───────────────────────────────────────────────
+   Scoped to .stage-page, so nothing here reaches the Loft pages or the home.
+
+   These are NOT in lib/theme.js and check-theme.mjs does not police them, on
+   purpose: they are one surface's palette rather than the brand's, and the
+   stage is the only thing that reads them.
+
+   THE LIFT IS A CHANNEL, NOT A COLOUR. Every raised surface on the stage is
+   "the ground, lifted by a", written rgba(var(--stg-lift), a). One variable
+   therefore re-grounds all ninety of them at once, which is the whole reason
+   this refactor happened before the remaining seventy-six games and not after.
+
+   Every call site passes its current value as a fallback, so a missing
+   stylesheet or a stale cache degrades to exactly what ships today. */
+.stage-page {
+  --stg-lift: 255, 255, 255;
+  --stg-ground: #0b0f1a;
+  --stg-raise: #0e131f;
+  --stg-panel: #0d1220;
+  --stg-ink: #e9edf4;
+  --stg-ink2: #aab5c7;
+  --stg-mute: #8b95a8;
+  --stg-mute2: #66748f;
+  --stg-dim: #5a657d;
+  --stg-onramp: #08222e;
+}
+
+/* The light register, defined now so the toggle is a one-line change rather
+   than an eighty-file one. NOTHING SETS THIS ATTRIBUTE YET: it is unreachable
+   until the theme control ships, and it is here so that the control is the only
+   thing that control has to add.
+
+   ONE PIECE IS STILL OWED. The category step itself (STAGE_C) is passed as a JS
+   value rather than read from a variable, and light mode needs the deeper ramp
+   for it. Until that moves, this block re-grounds the surface but not the
+   accent, which is why the toggle is not simply on. */
+.stage-page[data-stage-theme='light'] {
+  --stg-lift: 11, 15, 26;
+  --stg-ground: #f4f6f9;
+  --stg-raise: #ffffff;
+  --stg-panel: #eef2f7;
+  --stg-ink: #0b0d12;
+  --stg-ink2: #3f4757;
+  --stg-mute: #646c7a;
+  --stg-mute2: #79839a;
+  --stg-dim: #9aa0ab;
+  --stg-onramp: #ffffff;
+}
