@@ -707,7 +707,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           <span className="rn-sf">{leaderScore} {scoreWord}</span>
           <span className="rn-sd">
             &middot; {boardNow.overallField || boardRows.length}{' '}
-            {(boardNow.overallField || boardRows.length) === 1 ? 'run' : 'runs'}
+            {(boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
           </span>
           <span className="rn-sy">
             {myRow && myRow.rank ? `You ${ord(myRow.rank)}` : 'Not run yet'}
@@ -740,7 +740,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               <span>Today &middot; <b>{dateLabel}</b></span>
               <s>
                 {boardNow ? `${boardNow.overallField || boardRows.length} ` : ''}
-                {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'run' : 'runs'}
+                {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
               </s>
               <button type="button" className="rn-rx" onClick={() => setPanel(false)}>Close</button>
             </div>
@@ -849,7 +849,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                           <b className="rn-rnm">{d.winner.username}</b>
                           <span className="rn-rfg">
                             {Math.round(Number(d.winner.total) || 0)} {hist.data.scoreMode === 'correct' ? 'right' : 'pts'}
-                            <s>{` \u00B7 ${d.field} ${d.field === 1 ? 'run' : 'runs'}`}</s>
+                            <s>{` \u00B7 ${d.field} ${d.field === 1 ? 'player' : 'players'}`}</s>
                           </span>
                         </div>
                       ))}
