@@ -1327,18 +1327,18 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           .cl-key:active{transform:scale(0.94);}
           .cx-tries{display:flex;flex-direction:column;gap:4px;max-height:126px;overflow-y:auto;scrollbar-width:thin;}
           @media(max-width:560px){.cx-tries{max-height:96px;}}
-          .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:${STAGE ? 'transparent' : 'var(--white)'};color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cl-btn:hover{background:var(--accent-soft);}
           .cx-cur{position:relative;}
           .cx-cur::after{content:'';position:absolute;bottom:14%;left:22%;right:22%;height:2.5px;background:var(--blue);animation:cxcaret 1.1s step-end infinite;}
           @keyframes cxcaret{50%{opacity:0;}}
           @keyframes cxfade{from{opacity:0;}}
           @keyframes cxstamp{from{opacity:0;transform:scale(.94);}}
-          @keyframes cxflipA{from{transform:rotateX(90deg);background:var(--white);color:transparent;}}
-          @keyframes cxflipB{from{transform:rotateX(90deg);background:var(--white);color:transparent;}}
+          @keyframes cxflipA{from{transform:rotateX(90deg);background:${STAGE ? 'transparent' : 'var(--white)'};color:transparent;}}
+          @keyframes cxflipB{from{transform:rotateX(90deg);background:${STAGE ? 'transparent' : 'var(--white)'};color:transparent;}}
           @keyframes cxpulseA{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
           @keyframes cxpulseB{0%{box-shadow:0 0 0 0 rgba(37,99,235,0);}45%{transform:scale(1.18);box-shadow:0 0 0 5px rgba(37,99,235,0.4);}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(37,99,235,0);}}
-          @keyframes cxcat{from{background:var(--white);color:transparent;transform:scale(.82);}}
+          @keyframes cxcat{from{background:${STAGE ? 'transparent' : 'var(--white)'};color:transparent;transform:scale(.82);}}
         `}</style>
 
         {/* puzzle content centered: the page column is 1180, the puzzle column
@@ -1712,7 +1712,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? '#0e131f' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Crux to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
@@ -1775,7 +1775,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? '#0e131f' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid rgba(255,255,255,0.12)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>

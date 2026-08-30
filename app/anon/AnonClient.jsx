@@ -777,12 +777,12 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               )}
 
               {(!narrow || view === 'b') && (
-                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'rgba(255,255,255,0.04)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                   {banksPanel}
                 </div>
               )}
               {(!narrow || view === 'q') && (
-                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'rgba(255,255,255,0.04)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
                   {passagePanel}
                 </div>
               )}
@@ -955,7 +955,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 480, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? '#0e131f' : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 480, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
               <b style={{ fontSize: 17, color: INK }}>How Anon works</b>
