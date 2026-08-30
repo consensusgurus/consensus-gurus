@@ -265,8 +265,8 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   })) : [];
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
-  const SURF = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : T.white;
-  const SURF_B = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.13)' : 'rgba(28,30,36,0.42)';
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -660,7 +660,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-btn.primary:hover{background:${ACC_DEEP};}
           .an-quote{display:flex;flex-wrap:wrap;gap:9px 13px;}
           .an-word{display:flex;gap:3px;}
-          .an-cell{border:1px solid ${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.14)' : 'rgba(28,30,36,0.18)'};border-bottom-width:2px;border-radius:4px;background:${SURF};
+          .an-cell{border:1px solid ${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)'};border-bottom-width:2px;border-radius:4px;background:${SURF};
             display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;font-size:15px;
             color:${INK};cursor:pointer;flex:none;transition:background 90ms,border-color 90ms;}
           .an-cell.mine{background:${ACC_SOFT};border-color:#e3b9be;}
@@ -681,7 +681,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-len{margin-left:auto;font-family:${MONO};font-size:10px;color:#c3c8d1;}
           .an-ok{font-family:${MONO};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.green};}
           .an-boxes{display:flex;gap:3px;flex-wrap:wrap;}
-          .an-seg{display:flex;border:1px solid ${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.14)' : 'rgba(28,30,36,0.14)'};border-radius:9px;overflow:hidden;margin-bottom:12px;}
+          .an-seg{display:flex;border:1px solid ${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.14)'};border-radius:9px;overflow:hidden;margin-bottom:12px;}
           .an-dock{background:#0f1f2e;border-radius:8px;margin:6px 0 0;padding:8px 9px 9px;}
           .an-dockhead{display:flex;align-items:center;gap:8px;}
           .an-segd{display:flex;border:1px solid #2b4675;border-radius:7px;overflow:hidden;}
@@ -694,7 +694,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
             justify-content:center;font-weight:800;font-size:13px;color:var(--white);flex:none;}
           .an-dcell.on{background:${ACC};border-color:#b04a55;}
           .an-dcell.gap{background:none;border:0;width:7px;}
-          .an-seg button{flex:1;border:0;background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.06)' : 'var(--white)'};padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:${STAGE ? 'var(--stg-mute,#8b95a8)' : '#8b93a1'};cursor:pointer;}
+          .an-seg button{flex:1;border:0;background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};padding:10px 0;font-family:${SANS};font-weight:800;font-size:13.5px;color:${STAGE ? 'var(--stg-mute,#8b95a8)' : '#8b93a1'};cursor:pointer;}
           .an-seg button.on{background:${ACC};color:${ON_ACC};}
           .an-input{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? 'var(--stg-raise,#0e131f)' : '#e5e8ef'};
             border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -4px 16px rgba(20,22,28,0.12);
@@ -703,16 +703,16 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-input .an-kb{background:none;border-radius:0;padding:7px 0 4px;}
           .an-kb{display:flex;flex-direction:column;gap:5px;background:${STAGE ? 'var(--stg-raise,#0e131f)' : '#e5e8ef'};border-radius:0 0 10px 10px;padding:7px 4px 9px;}
           .an-kr{display:flex;gap:5px;justify-content:center;}
-          .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.09)' : 'var(--white)'};color:${INK};font-family:${SANS};
+          .an-kr button{flex:1;max-width:34px;height:42px;border:0;border-radius:6px;background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};color:${INK};font-family:${SANS};
             touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
             font-weight:800;font-size:15px;box-shadow:0 1px 0 #b9bfcb;cursor:pointer;}
-          .an-kr button.wide{max-width:54px;font-size:11px;background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.05)' : '#c9cfdb'};}
+          .an-kr button.wide{max-width:54px;font-size:11px;background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : '#c9cfdb'};}
           .an-kr button.del{display:flex;align-items:center;justify-content:center;}
-          .an-kr button:active{background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.16)' : '#cfd6e2'};}
+          .an-kr button:active{background:${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : '#cfd6e2'};}
           .an-spine{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:0 0 14px;}
           .an-spine i{width:22px;height:28px;border-radius:4px;background:${ACC_SOFT};border:1px solid ${STAGE ? 'rgba(125,211,252,0.45)' : '#e3b9be'};
             display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${ACC};}
-          .an-spine i.blank{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#dcc6c9'};background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.05)' : 'var(--white)'};border-color:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.12)' : 'rgba(28,30,36,0.1)'};}
+          .an-spine i.blank{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#dcc6c9'};background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : 'var(--white)'};border-color:${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.1)'};}
         `}</style>
 
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
@@ -741,7 +741,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {preStart && (
-            <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
               <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 A clueless acrostic: a passage nobody signed, in {N} letters.
               </h2>
@@ -792,12 +792,12 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               )}
 
               {(!narrow || view === 'b') && (
-                <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.04)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
                   {banksPanel}
                 </div>
               )}
               {(!narrow || view === 'q') && (
-                <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.04)' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
                   {passagePanel}
                 </div>
               )}

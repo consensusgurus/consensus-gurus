@@ -168,55 +168,65 @@ button, input, textarea, select { border-radius: 8px; }
 
 /* ─── THE STAGE'S OWN TOKENS ───────────────────────────────────────────────
    Scoped to .stage-page, so nothing here reaches the Loft pages or the home.
+   Not in lib/theme.js and not policed by check-theme.mjs, on purpose: this is
+   one surface's palette rather than the brand's.
 
-   These are NOT in lib/theme.js and check-theme.mjs does not police them, on
-   purpose: they are one surface's palette rather than the brand's, and the
-   stage is the only thing that reads them.
-
-   THE LIFT IS A CHANNEL, NOT A COLOUR. Every raised surface on the stage is
-   "the ground, lifted by a", written rgba(var(--stg-lift), a). One variable
-   therefore re-grounds all ninety of them at once, which is the whole reason
-   this refactor happened before the remaining seventy-six games and not after.
-
-   Every call site passes its current value as a fallback, so a missing
-   stylesheet or a stale cache degrades to exactly what ships today. */
+   FIVE SURFACE TOKENS BY ROLE, and each register defines all five for itself.
+   An earlier version had a single "lift channel", one rgb triple that every
+   raised surface used at its own alpha. It re-grounded the stage in one line
+   and it was wrong, because ALPHA IS NOT TRANSFERABLE BETWEEN REGISTERS: white
+   at 4.5% on near-black is a clearly raised cell and black at 4.5% on
+   near-white is nothing, so the light stage rendered a crossword whose empty
+   cells could not be seen. The two registers do not even agree on DIRECTION,
+   since a pale ground wants WHITE surfaces and DARK borders. No one channel
+   says that. */
 .stage-page {
-  --stg-lift: 255, 255, 255;
   --stg-ground: #0b0f1a;
   --stg-raise: #0e131f;
   --stg-panel: #0d1220;
+
+  --stg-surf: rgba(255, 255, 255, 0.045);   /* a raised surface: a cell, a card, a key */
+  --stg-surf2: rgba(255, 255, 255, 0.08);   /* more raised: a hover, a pressed key */
+  --stg-line: rgba(255, 255, 255, 0.11);    /* a hairline */
+  --stg-line2: rgba(255, 255, 255, 0.17);   /* a stronger rule */
+  --stg-line3: rgba(255, 255, 255, 0.42);   /* the strongest: a sudoku's box divisions */
+
   --stg-ink: #e9edf4;
   --stg-ink2: #aab5c7;
   --stg-mute: #8b95a8;
   --stg-mute2: #66748f;
   --stg-dim: #5a657d;
   --stg-onramp: #08222e;
+  --stg-fieldink: 255, 255, 255;
+
   /* The client's root publishes BOTH registers of its category step, because
      an inline style beats a stylesheet and a root that set --stg-acc directly
-     could never be re-themed by CSS. One place decides here; every call site
-     reads var(--stg-acc) and follows. */
+     could never be re-themed by CSS. One place decides; every call site reads
+     var(--stg-acc) and follows. */
   --stg-acc: var(--stg-acc-dk, #7dd3fc);
 }
 
-/* The light register, defined now so the toggle is a one-line change rather
-   than an eighty-file one. NOTHING SETS THIS ATTRIBUTE YET: it is unreachable
-   until the theme control ships, and it is here so that the control is the only
-   thing that control has to add.
-
-   ONE PIECE IS STILL OWED. The category step itself (STAGE_C) is passed as a JS
-   value rather than read from a variable, and light mode needs the deeper ramp
-   for it. Until that moves, this block re-grounds the surface but not the
-   accent, which is why the toggle is not simply on. */
+/* The light register. The ground goes GREY rather than white so that a raised
+   surface can be white and still read as raised, which is the same thing the
+   rest of the site does with paper and cards. */
 .stage-page[data-stage-theme='light'] {
-  --stg-lift: 11, 15, 26;
-  --stg-ground: #f4f6f9;
+  --stg-ground: #eef1f6;
   --stg-raise: #ffffff;
-  --stg-panel: #eef2f7;
+  --stg-panel: #e9edf3;
+
+  --stg-surf: #ffffff;
+  --stg-surf2: #e4e9f1;
+  --stg-line: rgba(11, 15, 26, 0.14);
+  --stg-line2: rgba(11, 15, 26, 0.24);
+  --stg-line3: rgba(11, 15, 26, 0.45);
+
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;
   --stg-mute: #646c7a;
   --stg-mute2: #79839a;
   --stg-dim: #9aa0ab;
   --stg-onramp: #ffffff;
+  --stg-fieldink: 11, 15, 26;
+
   --stg-acc: var(--stg-acc-lt, #0369a1);
 }

@@ -216,22 +216,22 @@ const CSS = `
   text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 
 .stg-cx{display:inline-flex;align-items:center;gap:6px;font-family:${MONO};font-size:10px;
-  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid rgba(var(--stg-lift,255,255,255),.09);
+  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
   border-radius:99px;padding:5px 11px;background:none;cursor:pointer;text-decoration:none;}
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
-.stg-cx:hover{border-color:rgba(var(--stg-lift,255,255,255),.2);color:var(--stg-ink,#e9edf4);}
+.stg-cx:hover{border-color:var(--stg-line2,rgba(255,255,255,0.17));color:var(--stg-ink,#e9edf4);}
 .stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg-acc);border-color:var(--stg-acc);}
 .stg-cx:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 
-.stg-prog{height:2px;background:rgba(var(--stg-lift,255,255,255),.08);}
+.stg-prog{height:2px;background:var(--stg-surf2,rgba(255,255,255,0.08));}
 .stg-prog span{display:block;height:100%;background:var(--stg-acc);transition:width .3s ease;}
 
 .stg-strip{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
-  background:rgba(var(--stg-lift,255,255,255),.03);border:0;border-bottom:1px solid rgba(var(--stg-lift,255,255,255),.09);
+  background:var(--stg-surf,rgba(255,255,255,0.045));border:0;border-bottom:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
   padding:9px 20px;font-family:${SANS};font-size:12.5px;color:var(--stg-ink,#e9edf4);}
-.stg-strip:hover{background:rgba(var(--stg-lift,255,255,255),.055);}
-.stg-strip.on{background:rgba(var(--stg-lift,255,255,255),.07);}
+.stg-strip:hover{background:var(--stg-surf,rgba(255,255,255,0.045));}
+.stg-strip.on{background:var(--stg-surf2,rgba(255,255,255,0.08));}
 .stg-strip:focus-visible{outline:2px solid var(--stg-acc);outline-offset:-2px;}
 .stg-se{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--stg-mute2,#66748f);}
 .stg-sn{font-weight:800;}
@@ -242,9 +242,9 @@ const CSS = `
 
 /* IN FLOW, never over. Nothing is hidden behind it and it needs no scrim. */
 .stg-rail{max-width:1180px;margin:0 auto;padding:14px 20px 2px;}
-.stg-panel{border-bottom:1px solid rgba(var(--stg-lift,255,255,255),.09);background:var(--stg-panel,#0d1220);}
+.stg-panel{border-bottom:1px solid var(--stg-surf2,rgba(255,255,255,0.08));background:var(--stg-panel,#0d1220);}
 .stg-pin{max-width:1180px;margin:0 auto;padding:16px 20px 20px;}
-.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid rgba(var(--stg-lift,255,255,255),.09);
+.stg-px{display:block;margin:14px auto 0;background:none;border:1px solid var(--stg-surf2,rgba(255,255,255,0.08));
   border-radius:99px;color:var(--stg-mute2,#66748f);font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;padding:6px 16px;cursor:pointer;}
 

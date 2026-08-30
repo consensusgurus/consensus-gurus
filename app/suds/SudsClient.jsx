@@ -280,8 +280,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   });
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
-  const SURF = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : T.white;
-  const SURF_B = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.13)' : 'rgba(28,30,36,0.42)';
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const [revealed, setRevealed] = useState(false);
   const [shareCta, setShareCta] = useState('Share');
   useEffect(() => {
@@ -743,8 +743,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     // Plain, peer, same digit, selected. On the stage each is a lift of the
     // ground rather than a tint of white, and the two that MEAN something
     // (your digit elsewhere, and where you are) carry the category step.
-    let bg = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.04)' : T.white;
-    if (peer) bg = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.075)' : '#f3f5f8';
+    let bg = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+    if (peer) bg = STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : '#f3f5f8';
     if (sameVal) bg = STAGE ? 'rgba(110,231,183,0.16)' : '#ffe9d8';
     if (isSel) bg = STAGE ? 'rgba(110,231,183,0.28)' : '#ffd9bd';
     return {
@@ -753,8 +753,8 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
       zIndex: isSel ? 1 : undefined,
       // The box rules have to stay the STRONGEST line on the grid, or a
       // sudoku loses its nine boxes and becomes an 81 cell square.
-      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.42)' : 'rgba(28,30,36,0.85)') : (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.12)' : 'rgba(28,30,36,0.18)')}`,
-      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.42)' : 'rgba(28,30,36,0.85)') : (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.12)' : 'rgba(28,30,36,0.18)')}`,
+      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)')}`,
+      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)')}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };
@@ -830,13 +830,13 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           .sd-user{font-weight:500;color:${STAGE ? STAGE_C : COLORS.accent};}
           .sd-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .sd-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
-          .sd-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid ${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.16)' : 'rgba(28,30,36,0.5)'};background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.08)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(28,30,36,0.4)'};}
+          .sd-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.5)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(28,30,36,0.4)'};}
           .sd-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
-          .sd-pad.done{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#c3c8cf'};box-shadow:none;background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.03)' : '#f4f5f7'};cursor:default;}
+          .sd-pad.done{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#c3c8cf'};box-shadow:none;background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : '#f4f5f7'};cursor:default;}
           .sd-pad.armed{background:${STAGE ? STAGE_C : COLORS.accent};color:${STAGE ? RAMP_INK : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.accent};box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(154,61,12,0.55)'};}
           .sd-pad.armed .sd-pad-n{color:${STAGE ? 'rgba(8,34,46,0.65)' : '#ffe0cc'};}
           .sd-pad .sd-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
-          .sd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.16)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.07)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sd-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? RAMP_INK : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
 
@@ -869,7 +869,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The grid stays sealed until then. */}
         {preStart && (
-          <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Suds is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -898,7 +898,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           {/* Both figures move UP into the cap on a loft page; printing them
               twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: `1px solid ${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.10)' : 'rgba(28,30,36,0.18)'}`, paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: `1px solid ${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)'}`, paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filledCount === FREE.length ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{FREE.length}</span>
           </div>

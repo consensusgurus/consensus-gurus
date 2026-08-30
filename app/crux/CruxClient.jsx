@@ -90,13 +90,13 @@ const STAGE_BOARD_CSS = `
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
   .stage-page .cx-gut{flex:none;min-height:0;}
 }
-.stage-page .cl-key:not(.cl-kx){background:rgba(var(--stg-lift,255,255,255),0.07)!important;
-  color:var(--stg-ink,#e9edf4)!important;border:1px solid rgba(var(--stg-lift,255,255,255),0.13)!important;}
+.stage-page .cl-key:not(.cl-kx){background:var(--stg-surf2,rgba(255,255,255,0.08))!important;
+  color:var(--stg-ink,#e9edf4)!important;border:1px solid var(--stg-line,rgba(255,255,255,0.11))!important;}
 .stage-page .cl-btn{background:transparent!important;color:var(--stg-ink,#e9edf4)!important;
-  border:1.5px solid rgba(var(--stg-lift,255,255,255),0.18)!important;}
-.stage-page .cl-cat{border:1px solid rgba(var(--stg-lift,255,255,255),0.10);border-radius:8px;}
+  border:1.5px solid var(--stg-line2,rgba(255,255,255,0.17))!important;}
+.stage-page .cl-cat{border:1px solid var(--stg-line,rgba(255,255,255,0.11));border-radius:8px;}
 .stage-page .cx-tries{color:var(--stg-mute,#8b95a8);}
-.stage-page hr{border-color:rgba(var(--stg-lift,255,255,255),0.10);}
+.stage-page hr{border-color:var(--stg-line,rgba(255,255,255,0.11));}
 `;
 
 // Editorial ink-and-paper identity (owner-approved mockup, 2026-07-11).
@@ -1407,7 +1407,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
-            <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+            <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Crux is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1604,7 +1604,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'rgba(var(--stg-lift,255,255,255),0.10)' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
+              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}

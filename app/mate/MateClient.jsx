@@ -424,8 +424,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   });
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
-  const SURF = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : T.white;
-  const SURF_B = STAGE ? 'rgba(var(--stg-lift,255,255,255),0.13)' : 'rgba(28,30,36,0.42)';
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const won = g.status === 'won';
   const errors = g.errors;
   // What the round posted. Read ONLY by the cap, and only once the round is
@@ -987,7 +987,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.mt-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .mt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:${STAGE ? 'transparent' : 'var(--white)'};color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .mt-btn:hover{background:var(--accent-soft);}
-          .mt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:${STAGE ? 'rgba(var(--stg-lift,255,255,255),0.07)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .mt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .mt-sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;}
           .mt-pc{display:block;width:86%;height:86%;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.25));}
           .mt-dot{position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(28,30,36,0.32);pointer-events:none;}
@@ -1025,7 +1025,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: STAGE ? 'rgba(var(--stg-lift,255,255,255),0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Mate is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
