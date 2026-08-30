@@ -5,7 +5,7 @@ import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
-// Quotes launched 2026-08-31. Twenty-five famous quotations questions a day in five tiers
+// Quotes launched 2026-08-30. Twenty-five famous quotations questions a day in five tiers
 // of five, one life, twenty seconds a question. The question bank is resolved
 // HERE, on the server, and only the picked day's twenty-five ship to the
 // browser, so the rest of the bank never reaches a client.
