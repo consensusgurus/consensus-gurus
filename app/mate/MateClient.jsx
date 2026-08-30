@@ -45,6 +45,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import StageLadder from '../StageLadder';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -385,6 +389,27 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('mate');
+  const STAGE = isStage('mate', searchParams);
+  const STAGE_C = gameColor('mate');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  // DEPTH ONLY. A rung lights when its ply has been PLAYED. `errors` is in
+  // scope and is deliberately not read: nothing may tell a player the round
+  // is lost while they can still play it.
+  const stageBlocks = Array.from({ length: PUZZLE.mateIn }, (_, mv) => {
+    const last = mv === PUZZLE.mateIn - 1;
+    const count = last ? 1 : 2;
+    const first = mv * 2;
+    return {
+      n: count,
+      c: STAGE_C,
+      on: Array.from({ length: count }, (_, i) => first + i < moves.length),
+      w: Array.from({ length: count }, (_, i) => ((first + i) % 2 === 0 ? 1 : 0.5)),
+    };
+  });
+  const INK = STAGE ? '#e9edf4' : COLORS.ink;
+  const FADED = STAGE ? '#8b95a8' : COLORS.faded;
+  const SURF = STAGE ? 'rgba(255,255,255,0.045)' : T.white;
+  const SURF_B = STAGE ? 'rgba(255,255,255,0.13)' : 'rgba(28,30,36,0.42)';
   const won = g.status === 'won';
   const errors = g.errors;
   // What the round posted. Read ONLY by the cap, and only once the round is
@@ -902,12 +927,15 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const fileLabels = 'abcdefgh'.split('');
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? '#e9edf4' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="mate" name="Mate" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. END GAME: the cap shows exactly what the strip showed at that moment and
           no more. The tally is kept and posted throughout but only APPEARS once
@@ -915,7 +943,9 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           the move was wrong. What is left while you play is the clock and the
           puzzle's own brief, both of which announce nothing. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="mate" quizId={PUZZLE.quizId}
+          progress={moves.length / Math.max(1, PUZZLE.mateIn * 2 - 1)}
+          ladder={STAGE ? <StageLadder height={44} label="The line" blocks={stageBlocks} /> : null}
           name="Mate"
           cat="End Game"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -940,7 +970,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.mt-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .mt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .mt-btn:hover{background:var(--accent-soft);}
-          .mt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .mt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .mt-sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;}
           .mt-pc{display:block;width:86%;height:86%;pointer-events:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,0.25));}
           .mt-dot{position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(28,30,36,0.32);pointer-events:none;}
@@ -978,17 +1008,17 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Mate is ready'}</div>
+          <div style={{ background: STAGE ? 'rgba(255,255,255,0.045)' : COLORS.cream, border: STAGE ? '1px solid rgba(255,255,255,0.10)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Mate is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>White to play and force checkmate in {PUZZLE.mateIn}. Tap a piece, tap where it goes. Only one first move works, and there is no take-back.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="mt-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="mt-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -997,17 +1027,19 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={(LOFT && !STAGE) ? 'loft-card' : undefined} style={STAGE
+          ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
+          : { background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing them
               twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             {/* Kept and posted throughout, shown only once the round is over:
                 a counter ticking up is itself a notice that the move was wrong. */}
             {!playing && <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
-            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-              {playing ? <>mate in <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, movesLeft)}</b></> : <>mate in <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.mateIn}</b></>}
+              {playing ? <>mate in <b style={{ color: COLORS.accent, fontWeight: 500 }}>{Math.max(1, movesLeft)}</b></> : <>mate in <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.mateIn}</b></>}
             </span>
           </div>
           )}
@@ -1069,15 +1101,15 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                     : `White to play, mate in ${movesLeft}.`}
             </span>
             {sanList.length > 0 && (
-              <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 12, color: COLORS.faded, fontWeight: 500 }}>
+              <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 12, color: FADED, fontWeight: 500 }}>
                 {sanList.map((s, i) => (i % 2 === 0 ? `${i / 2 + 1}. ${s}` : s)).join(' ')}
               </span>
             )}
           </div>
 
           {slowMate && (
-            <div style={{ marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.45 }}>
-              <b style={{ color: COLORS.ink, fontWeight: 800 }}>{slowMate.san}</b>{' '}
+            <div style={{ marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: FADED, lineHeight: 1.45 }}>
+              <b style={{ color: INK, fontWeight: 800 }}>{slowMate.san}</b>{' '}
               forces mate too, but in {slowMate.depth}, not {PUZZLE.mateIn}. Only a mate in
               exactly {PUZZLE.mateIn} counts here.
             </div>
@@ -1102,7 +1134,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
              reader's finger. The consequence prints below the row instead. */
           <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
                 Tap a white piece, then tap where it goes. There is no take-back.
               </span>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
@@ -1137,28 +1169,28 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                   missed it spends the puzzle for good. */}
               {won ? (
                 <>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
                     The key: <span style={{ color: COLORS.accent }}>{PUZZLE.keySan}</span>.
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}.</div>
                 </>
               ) : (
-                <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0', lineHeight: 1.5 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '8px 0 0', lineHeight: 1.5 }}>
                   We are not printing the move. The forced mate is still there in the position, so take another run at it.
                 </div>
               )}
               {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a mate in three.</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a mate in three.</div>
               )}
               {isTodays && myStats.cur >= 2 && (
                 <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Mate in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new position drops at midnight Eastern.'}
+                    {countdown ? <>Next Mate in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new position drops at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -1173,7 +1205,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/mate" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Mate &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -1232,7 +1264,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="mate" name="Mate" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="mate" name="Mate" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className="loft-report">
@@ -1259,15 +1292,15 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Mate to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Mate to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s position, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s position, every day.
                 </p>
               )}
@@ -1313,8 +1346,8 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="mt-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1322,20 +1355,20 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Mate</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Mate</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Mate is a free daily chess puzzle from Mind Loft. Every position has White to play and a forced checkmate, and your job is to find it. Tap a piece and its legal squares light up, so you never need to know chess notation to play.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Each board has exactly one first move that works, verified by two independent solvers, and the mate is in exactly the stated number of moves, never fewer. You play the line out to the end: Black answers your key move with its best defence and you have to finish. Any legal move can be played and none of them are taken back, so a move that does not force mate simply costs you one of the moves you needed.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new position drops every day at midnight Eastern, and Sundays step up to a mate in three. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: COLORS.ink, fontWeight: 800 }}>Etch</a>, our daily nonogram, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new position drops every day at midnight Eastern, and Sundays step up to a mate in three. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: INK, fontWeight: 800 }}>Etch</a>, our daily nonogram, <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
