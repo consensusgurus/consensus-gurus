@@ -1603,7 +1603,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="crux" name="Crux" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap already answers what this button opens, and it
+            answers it without being pressed, so on the stage the button is a
+            second door to one room. It also carries loft-showchrome, whose
+            only job is flipping a LoftCap page out of focus mode, and the
+            stage has no LoftCap to flip. */}
+        {!STAGE && <GamePanel self="crux" name="Crux" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           {LOFT && (
