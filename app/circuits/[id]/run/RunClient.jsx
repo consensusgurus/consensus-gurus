@@ -49,6 +49,7 @@ import GauntletLadder, { rampFor } from '../../GauntletLadder';
 import RunNextUp from '../../RunNextUp';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
+import GauntletFinale from '../../GauntletFinale';
 import useCircuitHistory from '../../useCircuitHistory';
 import { T } from '@/lib/theme';
 
@@ -180,6 +181,14 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // lands where they left off.
   const [panel, setPanel] = useState(false);
   const [tab, setTab] = useState('today');
+  // THE CURTAIN. The finale plays once, when the run finishes IN THIS
+  // SESSION. A player who comes back to a finished run, or who played the
+  // seven games on their own pages and lands on the done card, gets the card
+  // directly: the sequence is the moment a run ends, not a thing to sit
+  // through on the way to a leaderboard you have already seen.
+  const [curtain, setCurtain] = useState(false);
+  const curtainOnce = useRef(false);
+  const doneAtLoad = useRef(null);
   const lockRef = useRef(false);
   const holdRef = useRef(false);
 
@@ -190,6 +199,16 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const sec = sections[r.si] || null;
   const question = r.phase === 'playing' && sec && r.i < sec.questions.length ? sec.questions[r.i] : null;
   const done = r.phase === 'done';
+
+  useEffect(() => {
+    if (!hydrated) return;
+    // The first hydrated render decides whether this page ARRIVED finished.
+    if (doneAtLoad.current === null) doneAtLoad.current = done;
+    if (done && !doneAtLoad.current && !curtainOnce.current) {
+      curtainOnce.current = true;
+      setCurtain(true);
+    }
+  }, [hydrated, done]);
 
   // THE BOARD IS PART OF THE ENDING, not a page you go to next (owner,
   // 2026-08-28). The card used to close with "See the board", which is a link
@@ -543,6 +562,22 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // in. Hidden while a question is up, and at the finish where the scorecard
   // carries all of it at full size.
   const stripOn = hydrated && !done && r.phase !== 'playing' && !!leaderRow && leaderScore != null;
+
+  // TODAY'S AVERAGE RUN, for the mark the climb column is measured against.
+  // It is the sum of each bank's own mean, which useGauntletField already
+  // reads off the score distribution, and it is drawn ONLY when every bank
+  // has one: a sum missing a bank is a line a player can pass without having
+  // passed anything, which is worse than no line.
+  const finaleAvg = useMemo(() => {
+    if (!field || !field.avg) return null;
+    let sum = 0;
+    for (const s of sections) {
+      const a = field.avg[s.key];
+      if (!Number.isFinite(a)) return null;
+      sum += a;
+    }
+    return sum;
+  }, [field, sections]);
 
   // THE ARCHIVE, fetched only once the panel is open, and only once. Today's
   // board is already in hand; completed days are a second, cacheable read that
@@ -1187,6 +1222,22 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
         </div>
 
       </div>
+
+      {curtain ? (
+        <GauntletFinale
+          sections={sections}
+          results={r.results}
+          score={cleared}
+          total={askable}
+          avgTotal={finaleAvg}
+          leaderScore={rightUnit ? leaderScore : null}
+          rank={boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank) ? boardQ.data.me.rank : null}
+          fieldSize={(boardQ.data && boardQ.data.overallField) || null}
+          rows={(boardQ.data && boardQ.data.overall) || []}
+          meKey={(boardQ.data && boardQ.data.me && boardQ.data.me.userKey) || null}
+          onDone={() => setCurtain(false)}
+        />
+      ) : null}
     </div>
   );
 }
