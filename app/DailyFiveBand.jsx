@@ -741,11 +741,20 @@ export default function DailyFiveBand() {
         .d5-pkc{position:relative;background:rgba(255,255,255,.07);border:1px solid #1a2748;
                 border-radius:8px;padding:7px 9px 8px;cursor:pointer;overflow:hidden;text-align:left;
                 font-family:inherit;color:inherit;}
-        .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#5b8cf0;}
+        .d5-pkc:hover{background:rgba(255,255,255,.15);border-color:#5b8cf0;border-left-color:#233256;}
+        .d5-pkc.on:hover{border-left-color:var(--blue);}
+        .d5-pkc.fin:hover{border-left-color:var(--success);}
+        .d5-pkc.mq:hover{border-left-color:var(--gold);}
         .d5-pkc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#233256;}
         .d5-pkc.on::before{background:var(--blue);}
         .d5-pkc.fin::before{background:var(--success);}
         .d5-pkc.mq::before{background:var(--gold);}
+        /* and the border's left side takes the strip's colour in each state,
+           so the card border is never a hairline beside it */
+        .d5-pkc{border-left-color:#233256;}
+        .d5-pkc.on{border-left-color:var(--blue);}
+        .d5-pkc.fin{border-left-color:var(--success);}
+        .d5-pkc.mq{border-left-color:var(--gold);}
         .d5-pkc.on{background:rgba(37,99,235,.28);border-color:#5b8cf0;}
         /* The marquee takes a double-width cell in the lead position, so the
            grid says which one it is with no caption at all. */

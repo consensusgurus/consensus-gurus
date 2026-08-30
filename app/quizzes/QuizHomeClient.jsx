@@ -1789,6 +1789,7 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
        field and the three white action buttons, all one uniform treatment. */
     .qzh .qz-toolrow{position:relative;overflow:hidden;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:2px 0 16px;background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:8px 8px 8px 12px;}
     .qzh .qz-toolrow::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:${C.cta};pointer-events:none;}
+    .qzh .qz-toolrow{border-left-color:${C.cta};}
     .qzh .qz-toolsearch{position:relative;flex:1 1 320px;min-width:0;display:flex;align-items:center;gap:9px;background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:0 12px;height:42px;transition:border-color .14s ease,background .14s ease;}
     .qzh .qz-toolsearch:hover{border-color:var(--muted);}
     .qzh .qz-toolsearch:focus-within{border-color:var(--muted);background:var(--surface);}
@@ -1850,6 +1851,11 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
        --cc is the category colour, --cct its pale tint; both are set inline by
        BrowseColumn, so a card with neither simply renders no rule. */
     .qzh .catcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc,transparent);z-index:3;pointer-events:none;}
+    /* The card's own border would otherwise show as a pale hairline to the
+       left of the strip. --cc is the same value the strip is painted with, so
+       one declaration covers every category, and it falls back to the border
+       colour for a column that sets no accent. */
+    .qzh .catcard{border-left-color:var(--cc,${C.line});}
     /* Phone: the browse columns run edge to edge and stop being cards, matching
        the slate and the rails above them (owner, 2026-08-03). */
     @media(max-width:900px){

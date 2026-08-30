@@ -83,11 +83,14 @@ export default function CircuitsIndexPage() {
                    color:#bfdbfe;margin:28px 0 9px;}
           .cix-cards{display:flex;flex-direction:column;gap:9px;}
           .cix-c{position:relative;display:block;background:var(--white);border:1.5px solid var(--border);
-                 border-radius:12px;padding:14px 16px 14px 19px;text-decoration:none;color:inherit;}
+                 border-left-color:var(--blue);border-radius:12px;overflow:hidden;
+                 padding:14px 16px 14px 19px;text-decoration:none;color:inherit;}
+          .cix-c.marq{border-left-color:var(--gold);}
           .cix-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-                         border-radius:12px 0 0 12px;background:var(--blue);}
+                         background:var(--blue);}
           .cix-c.marq::before{background:var(--gold);}
-          .cix-c:hover{border-color:var(--blue);}
+          .cix-c:hover{border-color:var(--blue);border-left-color:var(--blue);}
+          .cix-c.marq:hover{border-left-color:var(--gold);}
           .cix-top{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;}
           .cix-nm{font-size:17px;font-weight:800;letter-spacing:-.35px;}
           .cix-tier{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
