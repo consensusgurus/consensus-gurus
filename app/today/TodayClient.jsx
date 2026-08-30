@@ -1089,7 +1089,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                   <b>{dayPlayed}</b> played{dayPaused ? <> &middot; <b>{dayPaused}</b> paused</> : null} &middot; <b>{totalGames}</b> on the slate
                 </span>
               </div>
-              <StageLadder height={46} blocks={dayBlocks} />
+              <StageLadder light height={46} blocks={dayBlocks} />
               <div className="tdy-daykey">
                 {orderedShelves.map((sh) => (
                   <span key={sh.name}>
@@ -1110,7 +1110,7 @@ export default function TodayClient({ onSignup = null } = {}) {
               >
                 <span className="e">Today</span>
                 <b>{dayLeader.username || 'Player'}</b>
-                <s>{dayLeader.pts} pts</s>
+                <s>{dayLeader.pts != null ? dayLeader.pts : (dayLeader.points || 0)} pts</s>
                 <span className="d">&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</span>
                 <u>{dayMyRank ? `You ${dayOrd(dayMyRank)}` : 'Not on the board yet'} &rsaquo;</u>
               </button>
@@ -1525,27 +1525,26 @@ export default function TodayClient({ onSignup = null } = {}) {
 
 const CSS = `
 /* YOUR DAY. Eighty games as one picture, in the reader's own shelf order. */
-.tdy-day{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);
-  border-radius:14px;padding:16px 18px 14px;}
+.tdy-day{background:#fff;border:1px solid #e7e9ee;border-radius:14px;padding:16px 18px 14px;}
 .tdy-dayhd{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:13px;flex-wrap:wrap;}
-.tdy-dayhd h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:#e9edf4;}
-.tdy-dayfig{font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#8b95a8;}
-.tdy-dayfig b{color:#e9edf4;font-weight:500;}
+.tdy-dayhd h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.02em;color:#1c1e24;}
+.tdy-dayfig{font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#6b7280;}
+.tdy-dayfig b{color:#1c1e24;font-weight:500;}
 .tdy-daykey{display:flex;flex-wrap:wrap;gap:9px 15px;margin-top:12px;}
 .tdy-daykey span{display:flex;align-items:center;gap:6px;font-family:'DM Mono',ui-monospace,monospace;
-  font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8b95a8;}
+  font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#6b7280;}
 .tdy-daykey i{width:9px;height:9px;border-radius:2px;display:block;flex:none;}
 .tdy-daystrip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
-  margin-top:10px;padding:9px 14px;border-radius:10px;font-size:12.5px;color:#e9edf4;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);}
-.tdy-daystrip:hover{background:rgba(255,255,255,.06);}
+  margin-top:10px;padding:9px 14px;border-radius:10px;font-size:12.5px;color:#1c1e24;
+  background:#fff;border:1px solid #e7e9ee;}
+.tdy-daystrip:hover{background:#f4f6f9;}
 .tdy-daystrip .e{font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;letter-spacing:.14em;
-  text-transform:uppercase;color:#8b95a8;}
+  text-transform:uppercase;color:#6b7280;}
 .tdy-daystrip b{font-weight:800;}
-.tdy-daystrip s{text-decoration:none;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#aab5c7;}
-.tdy-daystrip .d{color:#8b95a8;font-size:11.5px;}
+.tdy-daystrip s{text-decoration:none;font-family:'DM Mono',ui-monospace,monospace;font-size:11.5px;color:#3f4757;}
+.tdy-daystrip .d{color:#6b7280;font-size:11.5px;}
 .tdy-daystrip u{text-decoration:none;margin-left:auto;font-family:'DM Mono',ui-monospace,monospace;
-  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#7dd3fc;flex:none;}
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#2563eb;flex:none;}
 @media(max-width:640px){
   .tdy-day{padding:13px 13px 12px;border-radius:12px;}
   .tdy-dayhd h2{font-size:17px;}

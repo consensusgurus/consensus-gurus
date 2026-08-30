@@ -27,15 +27,21 @@
 // than as one shape.
 import React from 'react';
 
+// An unlit rung, by ground. White at 10% is the right dim on near-black and
+// is simply not there on a pale surface, which is what the home is.
 const DIM = 'rgba(255,255,255,0.10)';
+const DIM_LIGHT = 'rgba(11,15,26,0.11)';
 
-function fieldInk(v) {
+function fieldInk(v, light) {
   const f = Math.max(0, Math.min(1, Number(v) || 0));
-  return 'rgba(255,255,255,' + (0.07 + 0.16 * f).toFixed(3) + ')';
+  return light
+    ? 'rgba(11,15,26,' + (0.07 + 0.14 * f).toFixed(3) + ')'
+    : 'rgba(255,255,255,' + (0.07 + 0.16 * f).toFixed(3) + ')';
 }
 
 export default function StageLadder({
   blocks = [],
+  light = false,
   vertical = false,
   height = null,
   className = '',
@@ -58,9 +64,9 @@ export default function StageLadder({
               if (lit) style.background = b.c;
               else if (half) {
                 style.background = 'linear-gradient(' + (vertical ? '90deg' : '0deg')
-                  + ',' + b.c + ' 50%,' + DIM + ' 50%)';
+                  + ',' + b.c + ' 50%,' + (light ? DIM_LIGHT : DIM) + ' 50%)';
               } else {
-                style.background = b.field ? fieldInk(b.field[i]) : DIM;
+                style.background = b.field ? fieldInk(b.field[i], light) : (light ? DIM_LIGHT : DIM);
               }
               return <span className="stl-r" key={i} style={style} />;
             })}
