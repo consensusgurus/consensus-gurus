@@ -61,6 +61,7 @@
 // button and gives it a coloured left rule. The four secondary options were
 // four identical outlined boxes and read as one undifferentiated block (owner,
 // 2026-08-14); the tone is what tells them apart at a glance.
+import StageFinish from './StageFinish';
 import React, { useEffect, useState } from 'react';
 import useDailyRoster from './useDailyRoster';
 import { Brain } from 'lucide-react';
@@ -99,6 +100,15 @@ export default function LoftFinish({
   replaySub = null,    // overrides the registry's attempt-rule sentence
   dayTiles = null,     // [{ value, label }] replacing the four day tiles
 }) {
+  // THE ENDING IS A CURTAIN on the stage. Declared FIRST so hook order never
+  // changes, and RETURNED further down, after every other hook has run: an
+  // early return above them would break the rules of hooks the moment a game
+  // finishes. Read from the URL for the same reason every other stage flag is:
+  // the server cannot know it.
+  const [onStage, setOnStage] = useState(false);
+  useEffect(() => {
+    try { setOnStage(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+  }, []);
   const [showAll, setShowAll] = useState(false);
   // THE FAST RETRY GATE (owner, 2026-08-19). False until the player asks for
   // the full card, and only ever consulted on the games that are meant to be
@@ -860,6 +870,17 @@ export default function LoftFinish({
           </button>
         </div>
       </div>
+    );
+  }
+
+  // Everything above has run, so this is safe: same hooks, same order, every
+  // render. See app/StageFinish.jsx for why the ending is a band and not a card.
+  if (onStage) {
+    return (
+      <StageFinish
+        title={title} detail={detail} iq={iq} board={board} day={day} streak={streak}
+        missLabel={missLabel} gameRank={gameRank} outcome={outcome} options={options} name={name}
+      />
     );
   }
 
