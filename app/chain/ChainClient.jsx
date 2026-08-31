@@ -65,7 +65,7 @@ const COLORS = {
 
 const DOT = '#1c1e24';
 const EDGE_OLD = '#43414a';      // drawn before you picked the board up
-const EDGE_MINE = COLORS.accent; // drawn by you, this game
+const EDGE_MINE = `var(--stg-acc, ${COLORS.accent})`; // drawn by you, this game
 const EDGE_FOE = '#a8a29e';      // drawn by the engine, this game
 const BOX_MINE_BG = '#f3e3f7';
 const BOX_MINE_INK = 'var(--stg-acc, #4a044e)';
