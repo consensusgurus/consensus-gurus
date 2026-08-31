@@ -531,9 +531,9 @@ export default function StageToday() {
         {/* MY GAMES: the starred set, above everything a reader did not choose.
             Only shown when there are stars, so it never sits there empty asking
             to be filled. */}
+        {/* The SECTION's rule is neutral because this row is not a category:
+            the cards inside it carry their own categories' colours. */}
         {pinned.length ? (
-          {/* The SECTION's rule is neutral because this row is not a category:
-              the cards inside it carry their own categories' colours. */}
           <section className="sty-cat sty-mine" style={{ '--cc': 'var(--stg-ink2)' }}>
             <div className="sty-cathead">
               <h2>My games</h2>
