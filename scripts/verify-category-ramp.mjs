@@ -142,9 +142,17 @@ CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
   // light ramp that drifts in hue is a second colour system wearing the first
   // one's names, and a reader who flips the toggle loses every association
   // they had built.
+  //
+  // ONE EXEMPTION, and it is a decision rather than an oversight: LOGIC.
+  // Lime dark enough to carry white text is olive, which is inherent to a dark
+  // yellow-green, and the owner chose two clean colours over one muddy one
+  // (2026-08-31). Lime on the dark register, green on the light. Any OTHER
+  // category drifting in hue is still a failure.
+  const HUE_EXEMPT = new Set(['Logic']);
   const d = apart(hue(hex), hue(CATEGORY_RAMP[i]));
-  if (d > 25) fail(`light ${cat} is ${Math.round(d)} degrees from its dark step, so it is a different colour`);
-  if (ink >= INK_MIN && gnd >= GROUND_MIN && d <= 25) {
+  if (d > 25 && !HUE_EXEMPT.has(cat)) fail(`light ${cat} is ${Math.round(d)} degrees from its dark step, so it is a different colour`);
+  if (d > 25 && HUE_EXEMPT.has(cat)) warn(`light ${cat} is ${Math.round(d)} degrees from its dark step, by owner decision: dark lime goes olive, so this register is green instead.`);
+  if (ink >= INK_MIN && gnd >= GROUND_MIN && (d <= 25 || HUE_EXEMPT.has(cat))) {
     ok(`light ${cat.padEnd(17)} ${hex}  ink ${ink.toFixed(2)}:1  ground ${gnd.toFixed(2)}:1  ${Math.round(d)} deg from dark`);
   }
 });
