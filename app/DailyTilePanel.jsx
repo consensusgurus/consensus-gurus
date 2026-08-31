@@ -35,6 +35,9 @@ import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy,
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 import { T } from '@/lib/theme';
 import { CONTEST, contestIsLive } from '@/lib/contest';
+// gameStats/mmss moved to lib/daily-row-stats.js so the stage's leader strip
+// reads a board row the SAME way this panel does (owner, 2026-08-31).
+import { gameStats } from '@/lib/daily-row-stats';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -70,29 +73,6 @@ function etTodayISO() {
 function fmtPts(x) { const v = Math.round(Number(x) * 10) / 10; return Number.isInteger(v) ? String(v) : v.toFixed(1); }
 // m:ss, or h:mm:ss on the rare long one. A board row's timeElapsed is wall clock
 // from open to finish, so a puzzle someone left in a tab can genuinely run hours.
-function mmss(sec) {
-  const x = Math.max(0, Math.round(Number(sec) || 0));
-  if (!x) return null;
-  const h = Math.floor(x / 3600), m = Math.floor((x % 3600) / 60), s = x % 60;
-  const two = (v) => String(v).padStart(2, '0');
-  return h ? h + ':' + two(m) + ':' + two(s) : m + ':' + two(s);
-}
-// The game's own result for one board row, under the name: what they actually
-// scored, not just the 0-15 points that rank them. Every field is optional, so a
-// game that reports no guesses or no clock simply shows less.
-function gameStats(r) {
-  if (!r || r.score == null || !r.total) return null;
-  const bits = [r.score + '/' + r.total];
-  // END GAME rows report the attempt the solve landed on (owner, 2026-08-12),
-  // which is what their board ranks on; the per-run error count no longer
-  // decides anything there. `tries` is null on every other game, which falls
-  // through to the guess count exactly as before.
-  if (r.tries != null) bits.push(r.tries + (r.tries === 1 ? ' try' : ' tries'));
-  else if (r.guessesUsed > 0) bits.push(r.guessesUsed + (r.guessesUsed === 1 ? ' guess' : ' guesses'));
-  const clock = mmss(r.timeElapsed);
-  if (clock) bits.push(clock);
-  return bits.join(' \u00b7 ');
-}
 
 export default function DailyTilePanel({
   game, accent, isDone = false, inProgress = false, streak = 0,

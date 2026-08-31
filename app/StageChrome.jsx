@@ -41,6 +41,7 @@ import { LoftSheet } from './LoftCap';
 import DailyBoardPanel from './quiz/[id]/DailyBoardPanel';
 import { dailyMeIdentity } from './dailyMeClient';
 import { gameColor, gameCategory, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameStatsShort } from '@/lib/daily-row-stats';
 
 const ORD = ['th', 'st', 'nd', 'rd'];
 function ord(n) {
@@ -187,7 +188,16 @@ export default function StageChrome({
         >
           <span className="stg-se">Today</span>
           <b className="stg-sn">{leader.username || 'Guest'}</b>
-          <span className="stg-sf">{Math.round(Number(leader.score) || 0)} {scoreWord}</span>
+          {/* THE LEADER'S OWN RESULT, in the game's units. This used to render
+              the row's score with the word "points" after it, which on Suds
+              came out as "10 points" — a figure a player cannot translate back
+              into the grid they just filled (owner, 2026-08-31). gameStatsShort
+              reads the row the way the tile panel's board already does: score
+              out of the board's total, then the clock. `scoreWord` stays as the
+              fallback for a row too thin to say anything better. */}
+          <span className="stg-sf">
+            {gameStatsShort(leader) || `${Math.round(Number(leader.score) || 0)} ${scoreWord}`}
+          </span>
           <span className="stg-sd">
             {'· '}{board.field} {board.field === 1 ? 'player' : 'players'}
           </span>
@@ -287,11 +297,32 @@ const CSS = `
 .stg-play{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:center;}
 
 @media(max-width:900px){
-  .stg-fg{margin-left:auto;gap:14px;}
-  .stg-cap{gap:10px;padding:10px 13px;}
-  .stg-id b{font-size:14px;}
+  /* TWO ROWS ON A PHONE (owner, 2026-08-31: "too much stuff mashed together").
+     The cap was one flex line carrying the identity, up to four figures and
+     three icon buttons; at 390 it wrapped into a 100px block against 59 on the
+     desktop, and the wrap fell wherever it landed rather than where it means
+     something. It is a grid now, split the way the site masthead splits: row 1
+     is what the page IS and how to leave it, row 2 is how you are doing. The
+     figures get the full width to themselves and space out evenly, so four fit
+     without shrinking the title. */
+  .stg-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
+    grid-template-areas:'id rank theme home' 'fg fg fg fg';
+    align-items:center;gap:9px 8px;padding:10px 13px;}
+  .stg-id{grid-area:id;}
+  .stg-id b{font-size:15px;}
+  .stg-rank{grid-area:rank;}
+  .stg-theme{grid-area:theme;}
+  .stg-home{grid-area:home;}
+  .stg-fg{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
+    border-top:1px solid var(--stg-line,rgba(255,255,255,0.09));padding-top:8px;}
+  .stg-fg>div{min-width:0;}
   .stg-strip{padding:8px 13px;gap:8px;font-size:11.5px;}
+  /* The player count is the first thing to go: the strip's job on a phone is
+     the leader's result and your own place. */
   .stg-sd{display:none;}
+  /* A long name yields to the figure beside it rather than pushing it out. */
+  .stg-sn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+  .stg-sf{flex:none;}
   .stg-pin{padding:14px 13px 18px;}
   .stg-rail{padding:11px 13px 2px;}
 }
