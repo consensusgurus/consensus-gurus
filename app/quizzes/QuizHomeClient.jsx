@@ -477,7 +477,7 @@ function FeedbackModal({ mode, onClose }) {
 // This is the home surface only.
 const HOME_GROUND = '#e7ecf3';
 
-export default function QuizHomeClient({ variant = 'current', sourceCount = 0 }) {
+export default function QuizHomeClient({ variant = 'current', sourceCount = 0, stageDefault = true}) {
   // HOME v3, served at /home-preview only. Everything it changes is gated on
   // this one flag, so / renders byte-identically to before.
   const v3 = variant === 'v3';
@@ -672,7 +672,10 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
   // around it and the entire old home still below it. The early return below is
   // what makes the stage the page, so its condition has to match TodayClient's:
   // on by default, '?stage=0' to opt out.
-  const [stageHome, setStageHome] = useState(false);
+  // Seeded by the SERVER from the URL, so the first paint is already the right
+  // page. The effect stays as the client-side correction for a soft navigation,
+  // where the prop was computed for a different URL.
+  const [stageHome, setStageHome] = useState(stageDefault);
   useEffect(() => {
     try { setStageHome(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setStageHome(true); }
   }, []);

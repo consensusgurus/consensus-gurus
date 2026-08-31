@@ -52,11 +52,20 @@ var k=p.toString();
 window.__sotMe={key:k,promise:fetch('/api/quiz/me?'+k).then(function(r){return r.json()}).catch(function(){return null})};
 }catch(x){}})();`;
 
-export default function HomePage() {
+// THE SERVER DECIDES WHETHER THIS IS A STAGE PAGE (owner, 2026-08-31: "why does
+// the old homepage format still display for a second"). The stage flag used to
+// resolve in an EFFECT, which means the first paint is always the pre-effect
+// branch — the whole old home, rendered and then thrown away. Nothing about the
+// decision needs the browser: it comes from the URL, which the server can read,
+// so it is passed down as the state's INITIAL value and there is no flash and
+// no hydration mismatch.
+export default function HomePage({ searchParams }) {
+  const sp = searchParams || {};
+  const stageDefault = String(sp.stage ?? '') !== '0';
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: ME_PRELOAD }} />
-      <QuizHomeClient variant="v3" sourceCount={SOURCE_COUNT} />
+      <QuizHomeClient variant="v3" sourceCount={SOURCE_COUNT} stageDefault={stageDefault} />
       {/* NOTHING UNINVITED ON THE HOMEPAGE. The Daily Five overlay went on
           2026-08-30 for meeting a first visit with a full-screen pitch before
           the visitor had seen anything the site offers, and the install card

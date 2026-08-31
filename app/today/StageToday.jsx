@@ -95,6 +95,7 @@ function fmtDate(ymd) {
 // A phone shows three circuits at most; a wider screen shows however many fit
 // on one row, which is measured rather than guessed (owner, 2026-08-31).
 const CIRC_PEEK_NARROW = 3;
+const AZ_KEY = 'sot_stage_az';
 
 // ONE DRAWING PER GAME, PAINTED BY THE SURFACE. The glyph is a single stroke
 // path in currentColor, so the card's own --cc (its category step) colours it,
@@ -180,6 +181,30 @@ export default function StageToday() {
   // this player has played each category.
   const [handOrder, setHandOrder] = useState(null);
   const [reorder, setReorder] = useState(false);
+
+  // A TO Z: one flat list of every daily instead of nine category rows (owner,
+  // 2026-08-31). It is a VIEW, not an order, so it does not touch
+  // sot_cat_order — a reader who arranges their categories still finds that
+  // arrangement waiting when they switch back. Persisted under its own key so
+  // the choice survives a reload, the way a view preference should.
+  const [az, setAz] = useState(false);
+  useEffect(() => {
+    try { setAz(localStorage.getItem(AZ_KEY) === '1'); } catch (e) {}
+  }, []);
+  const toggleAz = () => {
+    setAz((v) => {
+      const next = !v;
+      try { localStorage.setItem(AZ_KEY, next ? '1' : '0'); } catch (e) {}
+      return next;
+    });
+  };
+
+  // Every live daily, by name. Each card keeps its OWN category hue, so the
+  // list still says what a game is without the rows to group them.
+  const alpha = useMemo(
+    () => cats.flatMap((c) => c.games).slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [cats],
+  );
   useEffect(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('sot_cat_order') || 'null');
@@ -622,10 +647,18 @@ export default function StageToday() {
             with a thumb and with a keyboard, and the order they write is the
             same sot_cat_order the other home reads. */}
         <div className="sty-ord">
-          <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
-            {reorder ? 'Done reordering' : 'Reorder categories'}
+          <button type="button" className={'sty-more sty-ordb' + (az ? ' on' : '')} onClick={toggleAz}>
+            {az ? 'By category' : 'A to Z'}
           </button>
-          {reorder && handOrder ? (
+          {/* Reordering categories is meaningless while the categories are not
+              being shown, so the control goes away rather than sitting there
+              inert. */}
+          {!az ? (
+            <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
+              {reorder ? 'Done reordering' : 'Reorder categories'}
+            </button>
+          ) : null}
+          {!az && reorder && handOrder ? (
             <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
           ) : null}
         </div>
@@ -666,9 +699,21 @@ export default function StageToday() {
           </section>
         ) : null}
 
-        {/* 4. THE CATEGORIES. One row each: the 4px rule carries the hue, the
-               figures carry the state, and the games are plain chips. */}
-        {orderedCats.map(({ cat, games }, ci) => {
+        {/* 4. THE GAMES, either as nine category rows or as one A-to-Z list. */}
+        {az ? (
+          <section className="sty-cat sty-az" style={{ '--cc': 'var(--stg-ink2)' }}>
+            <div className="sty-cathead">
+              <h2>All games</h2>
+              <b>{alpha.filter((g) => done.has(g.key)).length}<i>/{alpha.length}</i></b>
+            </div>
+            <div className="sty-games">
+              {alpha.map((g) => (
+                <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
+                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+              ))}
+            </div>
+          </section>
+        ) : orderedCats.map(({ cat, games }, ci) => {
           const n = games.filter((g) => done.has(g.key)).length;
           return (
             <section key={cat} id={`cat-${cat.replace(/\s+/g, '-')}`} className="sty-cat" style={{ '--cc': hueFor(cat) }}>
@@ -692,6 +737,11 @@ export default function StageToday() {
           );
         })}
 
+        {/* THE DAY'S TWO RECORDS SIT SIDE BY SIDE when there is room for them
+            (owner, 2026-08-31): the standings are who did best and the feed is
+            what is being played, and reading one usually means wanting the
+            other. Below 900px they stack, standings first. */}
+        <div className="sty-pair">
         {/* THE STANDINGS COME LAST (owner, 2026-08-31: the leaderboard does not
             need to be at the top of the page). The top of a home is for what you
             can play; where everyone finished is what you read once you have
@@ -749,6 +799,7 @@ export default function StageToday() {
           )}
         </section>
 
+        </div>
       </div>
     </div>
   );
@@ -883,8 +934,19 @@ const CSS = `
   text-transform:uppercase;color:var(--stg-mute2);width:62px;text-align:right;}
 .sty-lnone{color:var(--stg-mute);font-size:13px;font-weight:600;}
 
+/* ── the standings and the feed, paired ───────────────────────────────── */
+.sty-pair{display:grid;gap:22px;align-items:start;}
+@media (min-width:900px){
+  .sty-pair{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  /* Paired, the feed is a column rather than a shelf, so its rows go single
+     file instead of trying to tile inside half the width. */
+  .sty-pair .sty-live{grid-template-columns:minmax(0,1fr);}
+}
+
 .sty-ord{display:flex;gap:7px;}
 .sty-ordb{width:auto;margin-top:0;padding:7px 13px;}
+/* The active view reads as chosen rather than merely available. */
+.sty-ordb.on{border-color:var(--stg-acc);color:var(--stg-acc);}
 .sty-move{display:inline-flex;gap:4px;margin-left:10px;}
 .sty-move button{width:24px;height:24px;border:1px solid var(--stg-line);border-radius:6px;
   background:none;color:var(--stg-ink2);cursor:pointer;font-size:12px;line-height:1;}
