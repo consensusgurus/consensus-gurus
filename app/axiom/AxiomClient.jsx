@@ -665,7 +665,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
       lead="Work out the hidden rule."
       chips={[
-        { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: `var(--stg-surf, ${COLORS.greenSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.green})`, color: '#14532d' } },
+        { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: `var(--stg-surf, ${COLORS.greenSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.green})`, color: 'var(--stg-good, #14532d)' } },
         { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: `var(--stg-surf, ${COLORS.redSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.redInk})`, color: '#7f1d1d' } },
         { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', color: INK } },
       ]}

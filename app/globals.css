@@ -206,6 +206,12 @@ button, input, textarea, select { border-radius: 8px; }
      category family on purpose. Each register gets the legible end. */
   --stg-up: #6ee7b7;
   --stg-dn: #fb7185;
+  /* A game's own meaning scale (yes/no, cold-to-hot) used as INK on the page
+     ground. Each register gets the legible end; a literal cannot. */
+  --stg-good: #6ee7b7;
+  --stg-cool: #7dd3fc;
+  --stg-warn: #fbbf24;
+  --stg-bad: #fb7185;
   --stg-fieldink: 255, 255, 255;
 
   /* The client's root publishes BOTH registers of its category step, because
@@ -250,6 +256,10 @@ body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important
   --stg-chip: #e4e9f1;
   --stg-up: #047857;
   --stg-dn: #be123c;
+  --stg-good: #047857;
+  --stg-cool: #0369a1;
+  --stg-warn: #a16207;
+  --stg-bad: #be123c;
   --stg-fieldink: 11, 15, 26;
 
   --stg-acc: var(--stg-acc-lt, #0369a1);

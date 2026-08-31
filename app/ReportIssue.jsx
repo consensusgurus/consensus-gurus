@@ -17,8 +17,11 @@ import { T } from '@/lib/theme';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
-const INK = T.ink;
-const FADED = T.muted;
+// SHARED, and mounted on the stage: module-level literals meant the dark ink
+// of the Loft on the near-black ground. The tokens are undefined off the stage,
+// so the fallbacks keep it exactly as it was.
+const INK = `var(--stg-ink, ${T.ink})`;
+const FADED = `var(--stg-mute, ${T.muted})`;
 
 // Today's puzzle id fragment in the daily convention (M-D-YY, e.g. 7-18-26),
 // in Eastern time — the day the daily puzzles roll over.
