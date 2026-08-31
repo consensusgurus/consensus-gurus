@@ -699,7 +699,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             "Show overview and more" control it replaces ever did. */}
         {/* The strip in the cap answers what this opens, without being pressed. */}
         {!STAGE && <GamePanel self="stands" name="Stands" onShow={() => setShowChrome(true)} />}
-        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="stands" name="Stands" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -708,7 +708,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <DailyGamesGrid replay={!playing ? resetGame : null} self="stands" maxWidth={640} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="stands" quizId={PUZZLE.quizId} maxWidth={640} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
           )}
-          {mobileUi && !standalone && (
+          {!focusMode && mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: `var(--stg-acc, ${COLORS.accent})`, color: THEME.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>

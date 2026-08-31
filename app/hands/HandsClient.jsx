@@ -814,7 +814,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
             "Show overview and more" control it replaces ever did. */}
         {/* The strip in the cap answers what this opens, without being pressed. */}
         {!STAGE && <GamePanel self="hands" name="Hands" onShow={() => setShowChrome(true)} />}
-        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="hands" name="Hands" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />

@@ -989,7 +989,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           {/* The strip in the cap answers what this opens, without being pressed. */}
           {!STAGE && <GamePanel self="turn" name="Turn" onShow={() => setShowChrome(true)} />}
 
-          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0' }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="turn" name="Turn" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -1007,7 +1007,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               divider
             />
             )}
-            {mobileUi && !standalone && (
+            {!focusMode && mobileUi && !standalone && (
               <div style={{ textAlign: 'center', marginTop: 16 }}>
                 <button className="tn-tool" onClick={a2hsClick}><Smartphone size={14} /> Add to Home Screen</button>
               </div>

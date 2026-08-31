@@ -622,7 +622,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
             "Show overview and more" control it replaces ever did. */}
         {/* The strip in the cap answers what this opens, without being pressed. */}
         {!STAGE && <GamePanel self="suffice" name="Suffice" onShow={() => setShowChrome(true)} />}
-          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
+          <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="suffice" name="Suffice" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />

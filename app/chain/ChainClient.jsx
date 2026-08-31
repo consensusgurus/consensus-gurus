@@ -977,7 +977,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           {/* The strip in the cap answers what this opens, without being pressed. */}
           {!STAGE && <GamePanel self="chain" name="Chain" onShow={() => setShowChrome(true)} />}
 
-          <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+          <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0' }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="chain" name="Chain" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -995,7 +995,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               divider
             />
             )}
-            {mobileUi && !standalone && (
+            {!focusMode && mobileUi && !standalone && (
               <div style={{ textAlign: 'center', marginTop: 16 }}>
                 <button className="ch-tool" onClick={a2hsClick}><Smartphone size={14} /> Add to Home Screen</button>
               </div>

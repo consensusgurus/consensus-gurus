@@ -1055,7 +1055,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         {/* The strip in the cap answers what this opens, without being pressed. */}
         {!STAGE && <GamePanel self="span" name="Span" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
-        <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="span" name="Span" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -1072,7 +1072,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             divider
           />
           )}
-          {mobileUi && !standalone && (
+          {!focusMode && mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>

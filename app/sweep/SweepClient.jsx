@@ -863,7 +863,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        <div style={{ display: focusMode ? 'none' : 'block' }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="sweep" name="Sweep" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />

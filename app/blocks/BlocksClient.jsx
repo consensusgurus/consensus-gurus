@@ -1167,7 +1167,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-        <div style={{ display: focusMode ? 'none' : 'block' }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block' }}>
         {LOFT && (
           <div className={STAGE ? undefined : 'loft-report'}>
             <ReportIssue self="blocks" name="Blocks" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />

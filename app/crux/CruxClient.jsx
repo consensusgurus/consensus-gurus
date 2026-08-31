@@ -1765,7 +1765,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             stage has no LoftCap to flip. */}
         {!STAGE && <GamePanel self="crux" name="Crux" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
-        <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
+        <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="crux" name="Crux" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -1788,7 +1788,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         />
           )}
 
-          {mobileUi && !standalone && (
+          {!focusMode && mobileUi && !standalone && (
             <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: '#21b45e', color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
               <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
             </button>

@@ -790,7 +790,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
             "Show overview and more" control it replaces ever did. */}
           {/* The strip in the cap answers what this opens, without being pressed. */}
           {!STAGE && <GamePanel self="glyph" name="Glyph" onShow={() => setShowChrome(true)} />}
-          <div style={{ display: focusMode ? 'none' : 'block' }}>
+          <div style={{ display: (focusMode && !STAGE) ? 'none' : 'block' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="glyph" name="Glyph" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />

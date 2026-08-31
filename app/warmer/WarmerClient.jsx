@@ -697,7 +697,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           {!STAGE && <GamePanel self="warmer" name="Warmer" onShow={() => setShowChrome(true)} />}
 
           {/* keep playing + share + grid */}
-          <div style={{ margin: '30px auto 0', display: focusMode ? 'none' : 'block' }}>
+          <div style={{ margin: '30px auto 0', display: (focusMode && !STAGE) ? 'none' : 'block' }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="warmer" name="Warmer" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
@@ -706,7 +706,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
             {!LOFT && (
             <DailyGamesGrid replay={!playing ? resetGame : null} self="warmer" maxWidth={620} challengeHref={`/duel/new?quiz=${encodeURIComponent(PUZZLE.quizId)}`} share={{ label: copied ? 'Copied' : 'Share', onClick: copyShare }} light boardSlot={<DailyBoardPanel self="warmer" quizId={PUZZLE.quizId} maxWidth={620} streak={{ current: myStats.cur, best: myStats.max }} />} divider />
             )}
-            {mobileUi && !standalone && (
+            {!focusMode && mobileUi && !standalone && (
               <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: `var(--stg-acc, ${COLORS.accent})`, color: `var(--stg-onramp, ${T.white})`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9 }}>
                 <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
               </button>
