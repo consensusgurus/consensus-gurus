@@ -38,7 +38,7 @@ import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/c
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
-import { useStageTheme, useThemeQs, useThemeHint } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
@@ -149,6 +149,7 @@ function Glyph({ k, size = 20 }) {
 export default function StageToday() {
   const [stageTheme, setStageTheme] = useStageTheme();
   const tq = useThemeQs();
+  const intro = useThemeIntro();  // and, once per browser, the switch played for them
   const hint = useThemeHint();  // one pointer at the light switch, first visit only   // carries a ?theme= review override across links
   // circuitEntryHref may or may not already carry a query, so the override
   // joins with the right separator rather than always an ampersand.
@@ -620,6 +621,9 @@ export default function StageToday() {
               <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
             </svg>
           )}
+          {intro ? (
+            <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span>
+          ) : null}
         </button>
       </div>
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
@@ -629,18 +633,6 @@ export default function StageToday() {
         <section className="sty-day">
           <div className="sty-eb">The day</div>
           <StageLadder height={ladH} blocks={blocks} light={light} />
-          <div className="sty-key">
-            {cats.map(({ cat, games }) => {
-              const n = games.filter((g) => done.has(g.key)).length;
-              return (
-                <a key={cat} className="sty-kc" href={`#cat-${cat.replace(/\s+/g, '-')}`}>
-                  <span className="sty-sw" style={{ background: hueFor(cat) }} />
-                  {cat}
-                  <b>{n}<i>/{games.length}</i></b>
-                </a>
-              );
-            })}
-          </div>
         </section>
 
         {/* NO CARDS ABOVE MY GAMES (owner, 2026-08-31). The three of them —
@@ -897,14 +889,9 @@ const CSS = `
   color:var(--stg-mute);margin-bottom:9px;}
 
 /* ── the day ───────────────────────────────────────────────────────────── */
-.sty-key{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;}
-@media (max-width:640px){ .sty-key{display:none;} }
-.sty-kc{display:inline-flex;align-items:center;gap:7px;text-decoration:none;
-  font-size:12px;font-weight:700;color:var(--stg-ink2);}
-.sty-kc:hover{color:var(--stg-ink);}
-.sty-kc b{font-weight:800;font-variant-numeric:tabular-nums;color:var(--stg-ink);}
-.sty-kc b i{font-style:normal;font-weight:600;color:var(--stg-mute);}
-.sty-sw{width:9px;height:9px;border-radius:3px;flex:none;}
+/* THE LADDER IS THE WHOLE SECTION now: its legend went with the counters, and
+   its 12px top margin went with it, so the graphic ends where it ends and the
+   wrap's own 26px is the only gap below it. */
 
 /* ── up next: the one filled control on the page ───────────────────────── */
 /* ── the three cards ───────────────────────────────────────────────────── */
@@ -1078,7 +1065,7 @@ const CSS = `
 /* Played is DIM, not struck through: the day is a record, not a chore list. */
 .sty-g.done{opacity:.42;}
 .sty-g.open{border-color:var(--cc);}
-.sty-g:focus-visible,.sty-next:focus-visible,.sty-kc:focus-visible,.sty-cx:focus-visible{
+.sty-g:focus-visible,.sty-next:focus-visible,.sty-cx:focus-visible{
   outline:2px solid var(--cc, var(--stg-ink2));outline-offset:2px;}
 
 @media (max-width:560px){

@@ -34,7 +34,7 @@
 //     lib/category-ramp.js for why the brand blue does not belong here.
 import React, { useEffect, useRef, useState } from 'react';
 import { Home } from 'lucide-react';
-import { useStageTheme, useThemeQs, useThemeHint } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 // The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
 // sheet that LoftFinish depends on, so the end card rendered unstyled.
 import { LoftSheet } from './LoftCap';
@@ -108,6 +108,7 @@ export default function StageChrome({
   // and the trip back disagree about the register.
   const tq = useThemeQs();
   const hint = useThemeHint();  // one pointer at the light switch, first visit only
+  const intro = useThemeIntro();  // and, once per browser, the switch played for them
   // Kept for callers that need the literal; the CAP reads var(--stg-acc),
   // which the client's root publishes in both registers.
   const colour = gameColor(gameKey);
@@ -165,6 +166,9 @@ export default function StageChrome({
               <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
             </svg>
           )}
+          {intro ? (
+            <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span>
+          ) : null}
         </button>
         <a className="stg-cx stg-home" href={tq ? homeHref + (homeHref.includes('?') ? tq : '?' + tq.slice(1)) : homeHref} aria-label="Home" title="Home">
           <Home size={13} strokeWidth={2.4} />

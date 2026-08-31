@@ -314,3 +314,30 @@ body:has(.stage-page) .qch-bar { display: none !important; }
 
   --stg-acc: var(--stg-acc-lt, #0369a1);
 }
+
+/* THE FIRST-LOAD DEMONSTRATION of the light switch (useThemeIntro in
+   lib/stage-theme.js). The register flips under the reader once, so the class
+   is on the root ONLY while it plays: transitioning every element of a stage
+   page permanently would make every board cross-fade its own state changes,
+   which is a different and much worse page. */
+html.stg-flip,
+html.stg-flip body,
+html.stg-flip .stage-page,
+html.stg-flip .stage-page * {
+  transition: background-color .45s ease, border-color .45s ease, color .45s ease;
+}
+
+/* The register's NAME beside the glyph while it plays, so the flip reads as a
+   control being shown rather than as the page glitching. Absolutely positioned
+   off the switch: an inline chip would widen the cap for three seconds and then
+   let it snap back. Both caps draw the same chip, so it is defined once here
+   rather than in each of their stylesheets. */
+.stg-theme, .sty-tg { position: relative; }
+.stg-tlab {
+  position: absolute; top: calc(100% + 7px); right: 0; z-index: 6;
+  pointer-events: none; white-space: nowrap;
+  font-family: 'DM Mono', ui-monospace, monospace; font-size: 9px;
+  letter-spacing: .13em; text-transform: uppercase; font-weight: 700;
+  background: var(--stg-acc); color: var(--stg-onramp, #08222e);
+  padding: 4px 8px; border-radius: 7px;
+}
