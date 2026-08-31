@@ -289,14 +289,18 @@ export default function StageToday() {
   const popular = useMemo(() => {
     const bg = board && Array.isArray(board.games) ? board.games : null;
     if (!bg) return null;
+    // NEVER THE SAME GAME AS THE LEAD CARD. The busiest daily is very often the
+    // one you are mid-way through, and two cards side by side naming the same
+    // game is one card's worth of information in two cards' worth of space.
+    const skip = lead && lead.game ? lead.game.key : null;
     let best = null; let bn = -1;
     for (const b of bg) {
       const g = b && DAILY_GAME_MAP[b.key];
-      if (!g || typeof b.plays !== 'number') continue;
+      if (!g || typeof b.plays !== 'number' || g.key === skip) continue;
       if (b.plays > bn) { bn = b.plays; best = { game: g, plays: b.plays }; }
     }
     return best;
-  }, [board]);
+  }, [board, lead]);
 
   // TODAY'S BOARD. Top eight, plus your own row appended when you are outside
   // it — a leaderboard that cannot show you your own position is a scoreboard
@@ -697,9 +701,15 @@ const CSS = `
 /* ── up next: the one filled control on the page ───────────────────────── */
 /* ── the three cards ───────────────────────────────────────────────────── */
 .sty-three{display:grid;gap:9px;grid-template-columns:1.4fr 1fr 1fr;align-items:stretch;}
-.sty-card{position:relative;display:flex;flex-direction:column;gap:2px;text-decoration:none;
+/* The CTA is the LAST FLOW ITEM with margin-top:auto, not an absolutely
+   positioned one over a reserved strip of padding. The padding version put the
+   button on top of the tagline by a few pixels the moment a tagline ran long,
+   and "a few pixels" is a thing that changes with every font and every string.
+   In flow the card simply grows, and the row's cards match because the grid
+   stretches them. */
+.sty-card{display:flex;flex-direction:column;gap:2px;text-decoration:none;
   color:var(--stg-ink);background:var(--stg-surf);border:1px solid var(--stg-line);
-  border-left:4px solid var(--cc);border-radius:11px;padding:14px 16px 46px;min-width:0;}
+  border-left:4px solid var(--cc);border-radius:11px;padding:14px 16px;min-width:0;}
 .sty-card:hover{border-color:var(--stg-line2);border-left-color:var(--cc);}
 .sty-card:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 /* The LEAD card is the only filled thing on the page, as Up Next was: one
@@ -711,9 +721,9 @@ const CSS = `
 .sty-card.lead .sty-nm{font-size:24px;}
 .sty-card .sty-tag{font-size:12px;font-weight:600;color:var(--stg-mute);margin-top:1px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sty-card .sty-go{position:absolute;left:16px;bottom:13px;}
+.sty-card .sty-go{align-self:flex-start;margin-top:12px;}
 .sty-card .sty-go.ghost{background:none;color:var(--cc);border:1px solid var(--cc);}
-.sty-allin{justify-content:center;padding-bottom:14px;}
+.sty-allin{justify-content:center;}
 
 /* ── a star on every card ──────────────────────────────────────────────── */
 .sty-g{position:relative;}
@@ -862,7 +872,6 @@ const CSS = `
     border-top:1px solid var(--stg-line);padding:9px 0;min-height:44px;align-items:center;}
   .sty-figs>div{min-width:0;}
   .sty-three{grid-template-columns:1fr;}
-  .sty-card{padding-bottom:44px;}
   .sty-ord{flex-wrap:wrap;}
   .sty-wrap{padding:18px 14px 56px;gap:22px;}
   .sty-nm{font-size:21px;}
