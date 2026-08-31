@@ -494,7 +494,7 @@ export default function AtlasClient({ puzzles = [], questionsByNum = {}, forceNu
   );
 
   const scoreRow = (label, value, accent) => (
-    <span style={{ whiteSpace: 'nowrap' }}>{label} <b style={{ color: accent || COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{value}</b></span>
+    <span style={{ whiteSpace: 'nowrap' }}>{label} <b style={{ color: accent || INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{value}</b></span>
   );
 
   const choiceBtn = (qq, k, dead) => {

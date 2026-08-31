@@ -766,7 +766,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const counterStyle = (v) => ({
     fontFamily: MONO, fontSize: Math.max(10, Math.round(cellPx * 0.32)), fontWeight: 700,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: v < 0 ? `var(--stg-bad, ${COLORS.rust})` : v === 0 ? 'rgba(28,30,36,0.28)' : COLORS.ink,
+    color: v < 0 ? `var(--stg-bad, ${COLORS.rust})` : v === 0 ? 'var(--stg-dim, rgba(28,30,36,0.28))' : `var(--stg-ink, ${COLORS.ink})`,
   });
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
