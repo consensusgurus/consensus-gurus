@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { QUIZ_COUNT } from '../SiteHeader';
 import QuizCommandHeader, { jumpToQuizzes } from './QuizCommandHeader';
+import StageToday from '../today/StageToday';
 import ContestNote from '../ContestNote';
 import QrPosterForm from '../QrPosterForm';
 import DuelTile from './DuelTile';
@@ -660,6 +661,12 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
   const [view, setView] = useState('compact'); // 'compact' | 'detailed' browse layout
   const [statsById, setStatsById] = useState({}); // /api/quiz/stats keyed by quizId
   const [signupOpen, setSignupOpen] = useState(false);
+  // Read in an effect: this page is statically rendered, where useSearchParams
+  // hands back null and the flag silently reads false.
+  const [stageHome, setStageHome] = useState(false);
+  useEffect(() => {
+    try { setStageHome(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+  }, []);
   const [feedbackMode, setFeedbackMode] = useState(null); // null | 'issue' | 'manager' (the tool row's first two buttons)
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
   const [dailyLead, setDailyLead] = useState(null); // daily-board leader for the header ticker
@@ -2060,6 +2067,12 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
     played: (me && me.found && Array.isArray(me.playedIds)) ? new Set(me.playedIds) : null,
     completed: (me && me.found && Array.isArray(me.completedIds)) ? new Set(me.completedIds) : null,
   }), [me]);
+
+  // THE STAGE HOME IS THE WHOLE PAGE. Rule one of the pattern is that the page
+  // is the thing: no masthead above it and no stat bar, exactly as on a board.
+  // TodayClient's own early return was not enough, because the chrome is drawn
+  // HERE, one level up, so this returns the surface on its own.
+  if (stageHome) return <StageToday />;
 
   return (
     <QuizDoneContext.Provider value={doneCtx}>
