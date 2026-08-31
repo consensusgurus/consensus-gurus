@@ -617,6 +617,14 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // every call site below themes itself and none of them had to be found.
   // The literals are published on the root element instead.
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('crux');
+  // THE BOARD'S OWN COLORS.ink, and the reason it is not STAGE_C. Crux is a Word game,
+  // Word is step 0 of the ramp, and the puzzle's first category is drawn from
+  // step 0 too, so the accent IS the first category's colour. A solved word
+  // painted in it claims a category it may not belong to. On this board colour
+  // means category; every other state is neutral, and neutral reads as LOCKED
+  // in both registers (near-white on the dark ground, near-black on the pale).
+  const BOARD_C = STAGE ? 'var(--stg-ink)' : COLORS.ink;
+  const BOARD_ON = STAGE ? 'var(--stg-ground)' : T.white;
   const STAGE_ACC = { '--stg-acc-dk': gameColor('crux'), '--stg-acc-lt': gameColorLight('crux') };
   // One source for a category's colour, so the chips, the end-of-game grid
   // reveal and the ladder can never disagree about which is which.
@@ -637,9 +645,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const SPAL = STAGE ? {
     tile: 'var(--stg-surf)',
     tileB: 'var(--stg-line)',
-    sel: 'color-mix(in srgb, var(--stg-acc) 14%, transparent)',
-    selCur: 'color-mix(in srgb, var(--stg-acc) 26%, transparent)',
-    selB: 'color-mix(in srgb, var(--stg-acc) 50%, transparent)',
+    sel: 'color-mix(in srgb, var(--stg-ink) 10%, transparent)',
+    selCur: 'color-mix(in srgb, var(--stg-ink) 18%, transparent)',
+    selB: 'color-mix(in srgb, var(--stg-ink) 38%, transparent)',
     key: 'var(--stg-surf2)',
     keyB: '1.5px solid var(--stg-line)',
     spent: 'var(--stg-panel)',
@@ -1147,7 +1155,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // lit rung says nothing the board does not.
   const stageBlocks = [{
     n: PUZZLE.slots.length,
-    c: STAGE_C,
+    // Neutral for the same reason the board is: this rail is inches from the
+    // category chips and a coloured rung reads as one of them.
+    c: STAGE ? 'var(--stg-ink2,#aab5c7)' : STAGE_C,
     on: PUZZLE.slots.map((sl) => g.solved[sl.id] && g.assigned[sl.word] !== undefined),
     // Half-lit is found but not yet filed, which is the one thing the figures
     // cannot say: 6 of 12 words does not tell you two are still floating.
@@ -1224,7 +1234,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     // A LOCKED LETTER IS THE WIN STATE, so on the stage it takes the game's
     // own category step. Left as near-black it would be a near-black cell on
     // a near-black ground: the one place the fill genuinely stops working.
-    if (green) return { ...base, background: SPAL ? STAGE_C : COLORS.ink, color: SPAL ? RAMP_INK : T.white, border: `1.5px solid ${SPAL ? STAGE_C : COLORS.ink}`, boxShadow: SPAL ? 'none' : 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
+    if (green) return { ...base, background: SPAL ? BOARD_C : COLORS.ink, color: SPAL ? BOARD_ON : T.white, border: `1.5px solid ${SPAL ? BOARD_C : COLORS.ink}`, boxShadow: SPAL ? 'none' : 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
     if (lost) return { ...base, background: SPAL ? 'transparent' : TILE, color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
     if (inSel) {
       const isCursor = cursorKey === k;
@@ -1232,7 +1242,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         ...base,
         background: SPAL ? (isCursor ? SPAL.selCur : SPAL.sel) : (isCursor ? '#dce9ff' : '#edf3ff'),
         color: SPAL ? INK : COLORS.ember,
-        border: `2px solid ${SPAL ? (isCursor ? STAGE_C : SPAL.selB) : (isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)')}`,
+        border: `2px solid ${SPAL ? (isCursor ? BOARD_C : SPAL.selB) : (isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)')}`,
       };
     }
     return { ...base, background: SPAL ? SPAL.tile : TILE, color: SPAL ? INK : COLORS.ink, border: `1.5px solid ${SPAL ? SPAL.tileB : TILE_BORDER}`, boxShadow: SPAL ? 'none' : 'inset 0 1px 2px rgba(28,30,36,0.07)' };
@@ -1257,13 +1267,13 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // reason. The near miss keeps its amber and the spent key keeps being the
   // quietest thing on the board: both of those are meanings, not styling.
   const kbColors = STAGE
-    ? { g: { bg: STAGE_C, fg: RAMP_INK }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
+    ? { g: { bg: BOARD_C, fg: BOARD_ON }, y: { bg: 'color-mix(in srgb, var(--stg-ink) 34%, transparent)', fg: INK }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
     : { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: T.muted } };
 
   const lastG = g.lastGuess[sel];
   const tries = (g.guessLog || {})[sel] || (lastG ? [lastG] : []);
   const markColor = STAGE
-    ? { g: { bg: STAGE_C, fg: RAMP_INK }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
+    ? { g: { bg: BOARD_C, fg: BOARD_ON }, y: { bg: 'color-mix(in srgb, var(--stg-ink) 34%, transparent)', fg: INK }, x: { bg: SPAL.spent, fg: SPAL.spentInk } }
     : { g: { bg: COLORS.ink, fg: T.white }, y: { bg: '#e6b93f', fg: '#5c4a06' }, x: { bg: '#c9cdd4', fg: '#40434b' } };
 
   // Shared rules body — rendered in both the how-to-play modal and the start tile.
@@ -1271,13 +1281,18 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     <DailyRules
       lead={<><b>{PUZZLE.slots.length === 12 ? 'Twelve' : 'Eight'} words</b> interlock in the grid, with no clues.</>}
       banner={<>The <b>four categories</b> are the only hints, and each hides exactly {PUZZLE.categories[0].words.length === 3 ? 'three' : 'two'} of the words.</>}
-      chips={[
+      chips={STAGE ? [
+        // The swatches are the BOARD's own values, not a description of them,
+        // so the legend cannot drift from the grid again.
+        { label: 'Filled = right letter, right square', style: { background: BOARD_C, color: BOARD_ON, border: `1.5px solid ${BOARD_C}` } },
+        { label: 'Shaded = in the word, different square', style: { background: 'color-mix(in srgb, var(--stg-ink) 34%, transparent)', color: INK, border: '1.5px solid var(--stg-line2)' } },
+      ] : [
         { label: 'Dark = right letter, right square', style: { background: COLORS.ink, color: T.white, border: `1.5px solid ${COLORS.ink}` } },
         { label: 'Yellow = in the word, different square', style: { background: '#e6b93f', color: '#5c4a06', border: '1.5px solid #5c4a06' } },
       ]}
       steps={[
         <><b>Guess to reveal</b>: tap a slot, type a real word, hit enter. The whole board shares <b>{PUZZLE.guesses} guesses</b>.</>,
-        <>A dark letter <b>locks in</b>, and its crossings lock with it.</>,
+        <>A {STAGE ? 'filled' : 'dark'} letter <b>locks in</b>, and its crossings lock with it.</>,
         <><b>File your solves</b>: tap a word, then a category. Placements stay secret and movable.</>,
         <>One <b>submit</b> ends the puzzle.</>,
       ]}

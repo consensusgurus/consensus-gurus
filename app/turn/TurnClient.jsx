@@ -36,6 +36,9 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -225,6 +228,19 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('turn');
+  const STAGE = isStage('turn', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('turn');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('turn'), '--stg-acc-lt': gameColorLight('turn') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const won = g.status === 'won';
   const errors = g.errors;
@@ -720,9 +736,13 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   }
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="turn" name="Turn" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. END GAME: the cap shows exactly what the strip showed at that moment and
           no more. The tally is kept and posted throughout but only APPEARS once
@@ -730,7 +750,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           the move was wrong. What is left while you play is the clock and the
           puzzle's own brief, both of which announce nothing. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="turn" quizId={PUZZLE.quizId}
           name="Turn"
           cat="End Game"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -753,9 +773,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
       <div className="tn-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.tn-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .tn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accent};background:var(--white);color:${COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .tn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accent};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .tn-btn:hover{background:${COLORS.accentSoft};}
-          .tn-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
+          .tn-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
           .tn-sq{-webkit-tap-highlight-color:transparent;transition:background .12s ease;}
           .tn-disc{display:block;}
           .tn-fresh{animation:tnpop .28s ease;}
@@ -789,23 +809,23 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
           {/* LOFT: the play area sits on the navy stage, which runs full bleed
               and fills the first screen. */}
-          <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-face' : undefined}>
 
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Turn is ready'}</div>
+            <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Turn is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>{PUZZLE.empties} squares left and the game is won for you. Exactly one square keeps it. Play the wrong one and the engine, which solves this to the last disc, will not give it back.</p>
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="tn-btn" onClick={startGame} style={{ background: T.cta, color: T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="tn-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -814,19 +834,19 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           )}
 
           {!preStart && (
-            <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               {/* These figures move UP into the cap on a loft page; printing them
                   twice is the one thing to avoid. */}
               {!LOFT && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 {/* Kept and posted throughout, shown only once the board is
                     counted: a counter ticking up is itself a notice. */}
                 {!playing && <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
-                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-                  discs <b style={{ color: COLORS.ink, fontWeight: 500 }}>{view.score.mine}</b>
+                  discs <b style={{ color: INK, fontWeight: 500 }}>{view.score.mine}</b>
                   <span style={{ opacity: 0.55 }}> &ndash; </span>
-                  <b style={{ color: COLORS.faded, fontWeight: 500 }}>{view.score.theirs}</b>
+                  <b style={{ color: FADED, fontWeight: 500 }}>{view.score.theirs}</b>
                 </span>
               </div>
               )}
@@ -839,14 +859,14 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                 >
                   {squares}
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, padding: '3px 3px 0', fontFamily: MONO, fontSize: 9.5, color: COLORS.faded, textAlign: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 2, padding: '3px 3px 0', fontFamily: MONO, fontSize: 9.5, color: FADED, textAlign: 'center' }}>
                   {files.map((f) => <span key={f}>{f}</span>)}
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: endHold.held ? 15 : 13.5, fontWeight: endHold.held ? 800 : 700, color: COLORS.ink }}>{statusLine()}</div>
-                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ fontSize: endHold.held ? 15 : 13.5, fontWeight: endHold.held ? 800 : 700, color: INK }}>{statusLine()}</div>
+                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_YOU, display: 'inline-block' }} /> you
                   <span style={{ width: 9, height: 9, borderRadius: '50%', background: DISC_FOE, border: '1px solid rgba(28,30,36,0.3)', display: 'inline-block', marginLeft: 4 }} /> engine
                 </div>
@@ -864,7 +884,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                 row has nothing to sit on, and the card is meant to hold the game. */}
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 11, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every square you play is played.</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: FADED }}>No take-back. Every square you play is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button className="tn-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
                   <Eye size={14} /> {armReveal ? 'Press again' : 'Give up'}
@@ -879,42 +899,42 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           )}
 
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
             {!playing && !endHold.held && (
               <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
                 {/* The key square and the idea behind it go only to a solver, so
                     a player who lost can come back to the position intact. */}
                 {won ? (
                   <>
-                    <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                      The key: <span style={{ color: COLORS.accent }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, marginBottom: 6 }}>
+                      The key: <span style={{ color: ACC }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: FADED, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
                   </>
                 ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: FADED, lineHeight: 1.55 }}>
                     We are not naming the square. The win is still sitting in this position, so take another run at it.
                   </div>
                 )}
                 {PUZZLE.sunday && (
-                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, with two more squares to read.</div>
+                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: FADED, marginTop: 8 }}>The Sunday Edition, with two more squares to read.</div>
                 )}
                 {isTodays && myStats.cur >= 2 && (
                   <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
                 )}
-                <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: FADED, marginTop: 12, lineHeight: 1.6 }}>
                   {isTodays ? (
-                    <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
+                    <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: ACC, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
                   ) : (
-                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: ACC, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
                   )}
-                  {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
+                  {' '}<a href="/daily" style={{ color: ACC, fontWeight: 800 }}>All daily puzzles</a>
                 </p>
               </div>
             )}
           </div>
           {LOFT && !playing && !endHold.held && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && !endHold.held && (
@@ -965,11 +985,12 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="turn" name="Turn" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="turn" name="Turn" onShow={() => setShowChrome(true)} />}
 
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="turn" name="Turn" accent="#ffffff" align="center" />
               </div>
             )}
@@ -994,9 +1015,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
           {showA2hsHelp && (
             <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 380, fontFamily: SANS }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Turn to your home screen</div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.ink, lineHeight: 1.55, margin: '0 0 14px' }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 380, fontFamily: SANS }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Turn to your home screen</div>
+                <p style={{ fontSize: 13.5, fontWeight: 600, color: INK, lineHeight: 1.55, margin: '0 0 14px' }}>
                   {isIosDevice()
                     ? 'Tap the Share button in Safari, scroll down, and choose Add to Home Screen.'
                     : 'Open your browser menu and choose Install app, or Add to Home screen.'}
@@ -1035,10 +1056,10 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button type="button" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.ink, display: 'flex' }} aria-label="Close"><X size={20} /></button>
+              <div style={{ fontSize: 18, fontWeight: 800, color: INK }}>How to play</div>
+              <button type="button" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: INK, display: 'flex' }} aria-label="Close"><X size={20} /></button>
             </div>
             {rulesBody}
             <div style={{ marginTop: 16 }}>
@@ -1048,20 +1069,20 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Turn</h2>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: '0 0 9px' }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Turn</h2>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           Turn is the daily Othello endgame. Everybody has played the game once, usually badly and usually as a child, by grabbing as many discs as possible and wondering why they lost. Almost nobody plays the last ten squares, which is where the whole thing is actually decided and where it stops being a game of chance.
         </p>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: '0 0 9px' }}>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           The disc count in the middle of a game means almost nothing, because any disc can flip back. What matters is squares: how many you can still play into, and how few you leave the other side. That is why flipping the fewest discs is usually right, and it is also why a bank that rewarded it every day would be teaching a habit rather than testing a read. About a third of these boards are days where the greedy square, the one that turns the whole row, is the only move that wins.
         </p>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: 0 }}>
-          Every board is a real position reached by a real game, solved to the last disc and checked so that exactly one square still wins it. More dailies: <a href="/chain" style={{ color: COLORS.accent, fontWeight: 800 }}>Chain</a>, <a href="/four" style={{ color: COLORS.accent, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: COLORS.accent, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: COLORS.accent, fontWeight: 800 }}>Check</a>.
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: 0 }}>
+          Every board is a real position reached by a real game, solved to the last disc and checked so that exactly one square still wins it. More dailies: <a href="/chain" style={{ color: ACC, fontWeight: 800 }}>Chain</a>, <a href="/four" style={{ color: ACC, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: ACC, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: ACC, fontWeight: 800 }}>Check</a>.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

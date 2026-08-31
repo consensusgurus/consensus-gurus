@@ -168,14 +168,73 @@ countedReplace('start CTA', /background: T\.cta, color: T\.white/g,
 //    ONLY where that name will exist. A client with no accent has none of
 //    these and the count is zero.
 if (/const ACC\b/.test(s) || /COLORS\.accent/.test(s)) {
-  countedReplace('inline accent text', /(?<![-\w])color: COLORS\.accent\b/g, 'color: ACC');
-  countedReplace('inline accentDeep text', /(?<![-\w])color: COLORS\.accentDeep\b/g, 'color: ACC_DEEP');
+  belowDecl('ACC', /(?<![-\w])color: COLORS\.accent\b/g, 'color: ACC');
+  belowDecl('ACC_DEEP', /(?<![-\w])color: COLORS\.accentDeep\b/g, 'color: ACC_DEEP');
 }
 
-countedReplace('inline ink text', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
-countedReplace('inline faded text', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');
-countedReplace('css ink text', /(?<![-\w])color:\$\{COLORS\.ink\}/g, 'color:${INK}');
-countedReplace('css faded text', /(?<![-\w])color:\$\{COLORS\.faded\}/g, 'color:${FADED}');
+// THESE REPLACEMENTS ARE SCOPE-BOUND. INK / FADED / ACC are declared inside the
+// main component, and several clients define helper components ABOVE it, where
+// that const is not an ancestor scope at all. Rewriting a colour up there is not
+// a dead zone, it is ReferenceError: FADED is not defined, and esbuild parses it
+// happily. Etch had a gallery component reading two of them.
+//
+// So everything below only applies after the line that declares the name.
+const belowDecl = (id, re, to) => {
+  const at = s.split('\n').findIndex((l) => new RegExp('^\\s*const\\s+' + id + '\\s*=').test(l));
+  if (at < 0) return;
+  const lines = s.split('\n');
+  let hits = 0;
+  for (let i = at + 1; i < lines.length; i++) {
+    const next = lines[i].replace(re, to);
+    if (next !== lines[i]) { hits += 1; lines[i] = next; }
+  }
+  s = lines.join('\n');
+  n += hits;
+  console.log(`  · ${id} text (below decl): ${hits}`);
+};
+belowDecl('INK', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
+belowDecl('FADED', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');
+belowDecl('INK', /(?<![-\w])color:\$\{COLORS\.ink\}/g, 'color:${INK}');
+belowDecl('FADED', /(?<![-\w])color:\$\{COLORS\.faded\}/g, 'color:${FADED}');
+
+// 10. NO LOFT CLASS ON THE STAGE.
+//
+//     StageChrome renders LoftCap's entire .loft-* sheet, because LoftFinish
+//     carries no rules of its own and rendered as naked HTML without it. A
+//     converted client has LOFT TRUE as well as STAGE, so every loft className
+//     it still renders comes alive under the stage and applies LOFT LAYOUT to
+//     the board: .loft-stage went display:flex with a 640px max-width and
+//     collapsed .cl-panel to width 0 across the whole first batch.
+//
+//     ORDER IS LOAD-BEARING. The guarded form runs FIRST; run the ternary form
+//     first and its own output (LOFT && !STAGE ? ...) is then re-matched by the
+//     guarded rule, which yields LOFT && !STAGE && !STAGE ??. The negative
+//     lookahead is the second guard against exactly that.
+//
+//     The root's own LOFT ? 'loft-page' is rewritten back in step 3, so it is
+//     already gone and correctly untouched here.
+countedReplace('loft class (guarded)',
+  /className=\{LOFT && (?!!STAGE)((?:[^{}]|\{[^{}]*\})*loft-(?:[^{}]|\{[^{}]*\})*)\}/g,
+  'className={LOFT && !STAGE && $1}');
+countedReplace('loft class (ternary)',
+  /className=\{LOFT \?((?:[^{}]|\{[^{}]*\})*loft-(?:[^{}]|\{[^{}]*\})*)\}/g,
+  'className={LOFT && !STAGE ?$1}');
+countedReplace('loft class (bare)', /className="(loft-[a-z0-9- ]+)"/g,
+  "className={STAGE ? undefined : '$1'}");
+
+//     Anything the three shapes above did not reach is a NEW shape, and on the
+//     stage it would be live. Look at it rather than ship it.
+//
+//     The invariant this is protecting, checkable in the browser rather than by
+//     reading, is:
+//       document.querySelectorAll('.stage-page [class*="loft-"]').length === 0
+//     Anything left there belongs to LoftFinish, the subtree the sheet is for.
+{
+  const stray = s.match(/className=\{LOFT (?!&& !STAGE)[^{}]*loft-|className="loft-/g);
+  if (stray) {
+    throw new Error('ungated loft className(s) left, extend step 10: ' + [...new Set(stray)].join(' | '));
+  }
+}
 
 writeFileSync(path, s);
 console.log(`patched ${n} edits in ${path}`);
