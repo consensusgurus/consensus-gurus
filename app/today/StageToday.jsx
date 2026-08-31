@@ -520,8 +520,11 @@ const CSS = `
 .sty-gn{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:800;
   letter-spacing:-0.01em;}
 /* The glyph wears the row's hue while the name stays ink, so the colour marks
-   the category without costing the name any contrast. */
+   the category without costing the name any contrast. BUT the Up Next card is
+   FILLED with that same hue, so a glyph painted --cc there is invisible: on any
+   surface whose ground is the accent, the glyph takes the card's own ink. */
 .sty-gi{flex:none;color:var(--cc);}
+.sty-next .sty-gi{color:currentColor;opacity:.85;}
 .sty-nm{display:flex;align-items:center;gap:11px;}
 .sty-gt{display:block;font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
