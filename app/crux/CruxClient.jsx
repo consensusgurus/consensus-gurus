@@ -1138,13 +1138,21 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // segments rather than switching on: half-lit is found but not yet placed,
   // which is the one thing the figures cannot say. 6 of 12 words does not
   // tell you that two of them are still floating.
-  const stageBlocks = PUZZLE.categories.map((cat, ci) => ({
-    n: cat.words.length,
-    c: STAGE ? CATEGORY_RAMP[ci % CATEGORY_RAMP.length] : STAGE_C,
-    on: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] !== undefined),
-    half: cat.words.map((w) => PUZZLE.slots.some((s) => s.word === w && g.solved[s.id]) && g.assigned[w] === undefined),
-    w: cat.words.map((w) => 0.42 + (w.length - 4) * 0.1),
-  }));
+  // ONE BLOCK, IN SLOT ORDER, ONE COLOUR, EQUAL RUNGS. Built off slots rather
+  // than categories on purpose: this ladder reports PROGRESS and must not
+  // report IDENTITY. Grouping by category told you where a word files the
+  // moment you solved it, the per-category colour said the same thing again,
+  // and a width derived from word length leaked every category's letter counts
+  // before the first guess. Slot order is already printed on the board, so a
+  // lit rung says nothing the board does not.
+  const stageBlocks = [{
+    n: PUZZLE.slots.length,
+    c: STAGE_C,
+    on: PUZZLE.slots.map((sl) => g.solved[sl.id] && g.assigned[sl.word] !== undefined),
+    // Half-lit is found but not yet filed, which is the one thing the figures
+    // cannot say: 6 of 12 words does not tell you two are still floating.
+    half: PUZZLE.slots.map((sl) => g.solved[sl.id] && g.assigned[sl.word] === undefined),
+  }];
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
   // The vertical room the board actually has. The Loft reserved 430px for a
   // masthead, a stat bar and a cap; the stage shows one line, so it reserves
