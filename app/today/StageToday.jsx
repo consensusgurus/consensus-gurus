@@ -40,6 +40,7 @@ import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
+import MindLoftMark from '../MindLoftMark';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
@@ -543,11 +544,20 @@ export default function StageToday() {
     <div className="sty stage-page" data-stage-theme={stageTheme}>
       <style>{CSS}</style>
 
-      {/* 1. THE CAP. One line, and everything on it is either the identity or a
-             figure. The controls sit at the right edge, as on every board. */}
+      {/* 1. THE CAP. One line: the identity, then the day's figures, then the
+             controls at the right edge, as on every board. */}
       <div className="sty-cap">
+        {/* THE SAME BRAND AS EVERY BOARD (owner, 2026-08-31). The stage cap on
+            a game page carries the mark beside the words, and the home was
+            still setting the words alone, so the two surfaces disagreed about
+            what the site's own logo is. MindLoftMark is the one component; the
+            accent here is the default sky rather than a category step, because
+            the home belongs to all nine of them. */}
         <div className="sty-id">
-          <b>Mind Loft</b>
+          <span className="sty-brand">
+            <MindLoftMark size={20} ink="var(--stg-ink)" accent="var(--stg-acc)" />
+            <b>Mind <em>Loft</em></b>
+          </span>
           <span className="sty-date">{fmtDate(day)}</span>
         </div>
         <div className="sty-figs">
@@ -560,23 +570,36 @@ export default function StageToday() {
             </a>
           ) : null}
           {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
-          {/* FOUR FIGURES, in the order a player asks the questions: what did
-              today earn me, where does that put me overall, where did I finish
-              on today's board, and how much of the day is left.
+          {/* THREE FIGURES, TODAY FIRST, THEN ALL TIME (owner, 2026-08-31):
+              IQ today, rank today, rank. The day is what a player came back to
+              see, and the two figures that describe it now sit together instead
+              of with the all-time rank wedged between them. The all-time rank
+              closes the row, which is also what the arrow beside it opens.
 
-              The previous cap tried to say the first two at once — the day's
-              rank MOVEMENT with the IQ in parentheses — and broke on the common
-              case: a move of 0 rendered an em dash under a label reading "rank
-              today", with a dangling "(+130)" explaining a number that was not
-              there. A day's play very often moves nobody, so the resting state
-              of that cell was a dash. Rank and the day's gain are two figures
-              and now read as two.
+              "rank today" replaces the old "today's board" label for the same
+              reason: three cells reading IQ TODAY / RANK TODAY / RANK say how
+              they relate at a glance, where a cell named after a different noun
+              did not.
+
+              An earlier cap tried to say the first two at once — the day's rank
+              MOVEMENT with the IQ in parentheses — and broke on the common case:
+              a move of 0 rendered an em dash under a label reading "rank today",
+              with a dangling "(+130)" explaining a number that was not there. A
+              day's play very often moves nobody, so the resting state of that
+              cell was a dash. Rank and the day's gain are two figures and read
+              as two.
 
               Each is drawn only when it is real, and the movement chip appears
               only when there IS movement: no arrow means no change, which is
               the honest way to say it. */}
           {stats.todayXp ? (
             <div><b className="sty-up">+{stats.todayXp.toLocaleString()}</b><i>IQ today</i></div>
+          ) : null}
+          {stats.dayRank ? (
+            <div>
+              <b>#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>
+              <i>rank today</i>
+            </div>
           ) : null}
           {rank ? (
             <div>
@@ -591,11 +614,19 @@ export default function StageToday() {
               <i>rank</i>
             </div>
           ) : null}
-          {stats.dayRank ? (
-            <div>
-              <b>#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>
-              <i>today&rsquo;s board</i>
-            </div>
+          {/* AND THE WAY THROUGH TO THE REST. Three figures is what fits on a
+              cap; everything behind them — the trophy case, the category
+              breakdown, the activity log — is the Stat Hub, and until now
+              nothing on this page said so. Only drawn for a reader who has a
+              name, because a guest has no hub to open. */}
+          {who ? (
+            <a className="sty-all" href={withTq('/quizzes/hub')}>
+              <span>All stats</span>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+            </a>
           ) : null}
           {/* NO PLAYED COUNT HERE (owner, 2026-08-31): the ladder directly
               below is that number drawn, and every category row carries its own
@@ -851,7 +882,12 @@ const CSS = `
 .sty-cap{display:flex;align-items:center;gap:22px;padding:11px 22px;
   border-bottom:1px solid var(--stg-line);}
 .sty-id{display:flex;align-items:baseline;gap:11px;min-width:0;}
+/* The mark and the words are ONE object, so they centre on each other; the date
+   still hangs off the NAME's baseline, which is what .sty-id keeps its baseline
+   alignment for. */
+.sty-brand{display:flex;align-items:center;gap:8px;min-width:0;}
 .sty-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;}
+.sty-id b em{font-style:normal;color:var(--stg-acc);}
 .sty-date{font-family:${MONO};font-size:10.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--stg-mute);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;}
@@ -862,6 +898,14 @@ const CSS = `
 .sty-figs>div>i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--stg-mute);}
 .sty-who b{font-weight:800;}
+/* Not a figure and not a chip: a link at the end of the figures, in the
+   accent, so it reads as the continuation of the row rather than a control
+   competing with the three at the right edge. */
+.sty-all{display:inline-flex;align-items:center;align-self:center;gap:6px;flex:none;
+  text-decoration:none;color:var(--stg-acc);font-family:${MONO};font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;}
+.sty-all:hover{opacity:.78;}
+.sty-all:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
 /* The only semantic colour on this page: a climb and a slip have to read
    apart at a glance, and they are not the category family. */
 .sty-up{color:var(--stg-up);}
@@ -1086,8 +1130,9 @@ const CSS = `
   .sty-circs{grid-template-columns:minmax(0,1fr);}
 }
 @media (max-width:640px){
-  /* The name never wraps; the DATE is what gives way, onto its own line first
-     and out of the flow entirely on the narrowest screens. */
+  /* The name never wraps, and the DATE does not run on a phone at all: it was
+     costing a whole line of the cap to say what day it is, which is the one
+     thing a reader opening a daily already knows. The room goes to the mark. */
   /* TWO DELIBERATE ROWS, not three accidental ones (owner, 2026-08-31:
      "quizzes wraps to its own line on mobile"). Left to flex-wrap the cap put
      the name on line 1, five figures on line 2, and stranded the toggle and the
@@ -1101,10 +1146,13 @@ const CSS = `
     grid-template-areas:'id lb lf tg' 'fg fg fg fg';
     align-items:center;gap:0 8px;padding:0 14px;}
   .sty-id{grid-area:id;flex:none;min-width:0;padding:9px 0;}
+  .sty-brand{gap:7px;}
+  .sty-brand svg{width:17px;height:17px;}
+  .sty-all{font-size:9px;gap:5px;}
   .sty-tg{grid-area:tg;}
   .sty-lb{grid-area:lb;}
   .sty-lf{grid-area:lf;}
-  .sty-date{width:100%;order:3;}
+  .sty-date{display:none;}
   .sty-figs{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
     border-top:1px solid var(--stg-line);padding:9px 0;min-height:44px;align-items:center;}
   .sty-figs>div{min-width:0;}
@@ -1117,7 +1165,6 @@ const CSS = `
   .sty-games{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
 }
 @media (max-width:380px){
-  .sty-date{display:none;}
   .sty-figs{gap:12px;}
 }
 @media (prefers-reduced-motion:reduce){.sty-prog span{transition:none;}}
