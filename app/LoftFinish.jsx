@@ -105,9 +105,13 @@ export default function LoftFinish({
   // early return above them would break the rules of hooks the moment a game
   // finishes. Read from the URL for the same reason every other stage flag is:
   // the server cannot know it.
+  // THE ENDING FOLLOWS THE PAGE. This was '?stage=1' while the stage was a
+  // review path; once the stage went sitewide it left every finished game
+  // showing the LOFT ending on a stage page — a cream card at the foot of a
+  // near-black one. It matches lib/stage.js now: on unless '?stage=0'.
   const [onStage, setOnStage] = useState(false);
   useEffect(() => {
-    try { setOnStage(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+    try { setOnStage(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setOnStage(true); }
   }, []);
   const [showAll, setShowAll] = useState(false);
   // THE FAST RETRY GATE (owner, 2026-08-19). False until the player asks for
