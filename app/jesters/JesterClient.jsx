@@ -987,7 +987,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
             <button type="button" className="je-btn" onClick={undo} disabled={!canUndo} aria-label="Undo last move" style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}><Undo2 size={14} /> Undo</button>
             {hintOk && !g.hintUsed && (
-              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: ACC_DEEP }}>
+              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,58,237,0.5)', color: ACC_DEEP }}>
                 <Lightbulb size={14} /> Hint: seat one jester
               </button>
             )}
@@ -1020,7 +1020,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/jesters?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/jesters?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           replay yesterday&rsquo;s court &rarr;
                         </a>
                       </>
@@ -1029,7 +1029,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/jesters" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s court &rarr;</a>
+                    <a href="/jesters" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s court &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

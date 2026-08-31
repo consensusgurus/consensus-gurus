@@ -619,7 +619,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}

@@ -544,7 +544,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <DailyRules
       chips={[
-        { label: 'Gold letters feed the finale', style: { background: COLORS.gold, border: `1.5px solid ${COLORS.goldInk}`, color: COLORS.goldInk } },
+        { label: 'Gold letters feed the finale', style: { background: `var(--stg-surf, ${COLORS.gold})`, border: `1.5px solid var(--stg-line, ${COLORS.goldInk})`, color: `var(--stg-ink, ${COLORS.goldInk})` } },
       ]}
       lead="Untangle five garbled words, then the finale they feed."
       steps={[
@@ -665,7 +665,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
           {/* the finale */}
           <div onClick={() => { if (playing) { setSel('final'); setTyped(''); } }} style={{ background: STAGE ? SURF : T.white, border: `2px solid ${playing && sel === 'final' ? COLORS.ember : 'rgba(20,22,28,0.14)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, cursor: playing ? 'pointer' : 'default' }}>
-            <div style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: COLORS.goldInk, marginBottom: 4 }}>The finale</div>
+            <div style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: `var(--stg-ink, ${COLORS.goldInk})`, marginBottom: 4 }}>The finale</div>
             <div style={{ fontSize: 15.5, fontWeight: 700, fontStyle: 'italic', color: INK, marginBottom: 10 }}>&ldquo;{PUZZLE.clue}&rdquo;</div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
               {bank.map((b, i) => (
@@ -730,7 +730,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               {!isTodays && (
                 <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/garble" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Garble &rarr;</a>
+                  <a href="/garble" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Garble &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>

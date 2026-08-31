@@ -807,7 +807,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
 
           {playing && hintOk && !g.hintUsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="ck-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(22,110,90,0.5)', color: '#12543f' }}>
+              <button className="ck-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(22,110,90,0.5)', color: '#12543f' }}>
                 <Lightbulb size={14} /> Hint
               </button>
             </div>

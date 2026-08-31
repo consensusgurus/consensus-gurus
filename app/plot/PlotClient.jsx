@@ -843,7 +843,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Undo
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="pl-tool" onClick={useHint} title="Survey one plot for you (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(120,53,15,0.5)', color: ACC }}>
+                <button className="pl-tool" onClick={useHint} title="Survey one plot for you (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(120,53,15,0.5)', color: ACC }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -888,7 +888,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/plot?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/plot?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Plot &rarr;
                         </a>
                       </>
@@ -897,7 +897,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/plot" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Plot &rarr;</a>
+                    <a href="/plot" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Plot &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

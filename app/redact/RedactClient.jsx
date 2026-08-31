@@ -427,7 +427,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
     if (isRevealed(tk)) {
       const fresh = lastNorms.includes(tk.n);
       return (
-        <span key={key} style={fresh ? { background: COLORS.hitSoft, color: '#7c2d12', borderRadius: 3, padding: '0 1px' } : undefined}>{tk.t}</span>
+        <span key={key} style={fresh ? { background: `var(--stg-surf, ${COLORS.hitSoft})`, color: '#7c2d12', borderRadius: 3, padding: '0 1px' } : undefined}>{tk.t}</span>
       );
     }
     const showLen = peek === idx;
@@ -563,7 +563,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               <div className="rd-sticky">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: playing ? 8 : 0, flexWrap: 'wrap' }}>
                   <span className="rd-chip" style={{ background: COLORS.accentDeep, color: T.white }}>{PUZZLE.cat}</span>
-                  <span className="rd-chip" style={{ background: COLORS.accentSoft, color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
+                  <span className="rd-chip" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
                     <div className="rd-stat"><b>{g.guesses.length}</b><span>Guesses</span></div>
                     <div className="rd-stat"><b>{acc}%</b><span>Hit rate</span></div>
@@ -601,7 +601,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                 {TITLE_TOKENS.map((tk, i) => {
                   if (!tk.w) return <span key={i}>{tk.t}</span>;
                   if (over || FREEBIES.has(tk.n) || tk.n.length < 3 || revealedNorms.has(tk.n)) {
-                    return <span key={i} style={over && solved ? { color: COLORS.hit } : undefined}>{tk.t}</span>;
+                    return <span key={i} style={over && solved ? { color: `var(--stg-ink, ${COLORS.hit})` } : undefined}>{tk.t}</span>;
                   }
                   // Width only, never the letters: 0.85ch per character tracks the
                   // real word's width in this face without putting it in the DOM.

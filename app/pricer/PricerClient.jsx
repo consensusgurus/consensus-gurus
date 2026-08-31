@@ -938,7 +938,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
               {PUZZLE.category} &middot; {N} priced
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: `1.5px solid ${COLORS.accent}`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: `1.5px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
               <span style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
                 picked <b style={{ color: INK, fontWeight: 500 }}>{filled}</b> of {MATCHES}
                 {!playing && <> &nbsp;&middot;&nbsp; scored <b style={{ color: INK, fontWeight: 500 }}>{score}</b>/{TOTAL}</>}

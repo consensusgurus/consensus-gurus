@@ -961,13 +961,13 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                   title="Clear every number you have entered and start the grid over on the same clock"
                   style={hasEntries
                     ? (armClear
-                      ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
+                      ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: `var(--stg-ink, ${COLORS.rust})` }
                       : undefined)
                     : { opacity: 0.4, cursor: 'default' }}>
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}
                 </button>
                 {hintOk && !g.hintUsed && (
-                  <button className="ql-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
+                  <button className="ql-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(234,88,12,0.5)', color: '#9a3d0c' }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}
@@ -1015,7 +1015,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/quilt?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/quilt?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Quilt &rarr;
                         </a>
                       </>
@@ -1024,7 +1024,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/quilt" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Quilt &rarr;</a>
+                    <a href="/quilt" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Quilt &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

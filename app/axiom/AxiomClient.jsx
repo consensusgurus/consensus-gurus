@@ -665,8 +665,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
       lead="Work out the hidden rule."
       chips={[
-        { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.greenSoft, border: `1.5px solid ${COLORS.green}`, color: '#14532d' } },
-        { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.redSoft, border: `1.5px solid ${COLORS.redInk}`, color: '#7f1d1d' } },
+        { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: `var(--stg-surf, ${COLORS.greenSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.green})`, color: '#14532d' } },
+        { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: `var(--stg-surf, ${COLORS.redSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.redInk})`, color: '#7f1d1d' } },
         { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', color: INK } },
       ]}
       sub="Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it."
@@ -777,7 +777,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
-          <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
+          <div style={{ marginBottom: 4 }}><b style={{ color: `var(--stg-ink, ${COLORS.green})` }}>Green</b> means the rule is true of that word, <b style={{ color: `var(--stg-ink, ${COLORS.redInk})` }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
           <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate the revealed words cannot yet rule out costs you {UNPROVEN_COST} points when you name the answer, so keep testing until one rule is left standing.</div>
         </div>
         )}
@@ -789,7 +789,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           <span>perfect <b style={{ color: INK, fontWeight: 500 }}>{PERFECT}</b> test{PERFECT === 1 ? '' : 's'}</span>
           <span>still unproven <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing}</b> rule{standing === 1 ? '' : 's'}{standing > 0 ? '' : ' · proved'}</span>
           <span>name it now &rarr; <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
-          {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
+          {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: `var(--stg-ink, ${COLORS.rust})`, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
         </div>
         )}
 
@@ -800,7 +800,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 7px' }}>{PUZZLE.tiles.length} words below, and {PUZZLE.rules.length} candidate rules. <b>Exactly one of those rules fits every word on the board, and your job is to work out which.</b></p>
-                <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: COLORS.green }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: COLORS.redInk }}>red</b>, meaning it is false. Every other word is already green or red too, you just cannot see which yet. Spend a test to uncover one. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
+                <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: `var(--stg-ink, ${COLORS.green})` }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: `var(--stg-ink, ${COLORS.redInk})` }}>red</b>, meaning it is false. Every other word is already green or red too, you just cannot see which yet. Spend a test to uncover one. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
                 <p style={{ margin: 0 }}>You score only the rules you actually rule out, so eliminate before you name.</p>
               </div>
             )}
@@ -857,7 +857,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         )}
 
         {verdict && (
-          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.rust, margin: '10px 0 0', lineHeight: 1.45 }}>
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: `var(--stg-ink, ${COLORS.rust})`, margin: '10px 0 0', lineHeight: 1.45 }}>
             {verdict.msg}
           </div>
         )}
@@ -884,7 +884,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                   <span style={{ flex: '1 1 auto', minWidth: 0 }}>
                     <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
                   </span>
-                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: STAGE ? SURF : T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
+                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-ink, ${COLORS.green})`, background: STAGE ? SURF : T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
                 </button>
               );
             })}
@@ -897,7 +897,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="ax-btn"
               onClick={() => { if (namesLeft <= 0) { say('No names left today.'); return; } setG((cur) => ({ ...cur, naming: !cur.naming })); }}
-              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: ACC_DEEP }}
+              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(15,118,110,0.5)', color: ACC_DEEP }}
             >
               <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : `Name it for ${liveScore} of ${TOTAL}`}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
@@ -932,7 +932,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/axiom?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/axiom?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           yesterday&rsquo;s board &rarr;
                         </a>
                       </>
@@ -941,7 +941,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/axiom" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s board &rarr;</a>
+                    <a href="/axiom" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s board &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

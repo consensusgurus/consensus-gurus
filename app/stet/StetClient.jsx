@@ -578,7 +578,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 return (
                   <span key={j}>
                     <s style={{ color: found ? COLORS.accent : COLORS.rust, textDecorationThickness: 2 }}>{e.wrong}</s>
-                    {' '}<b style={{ color: COLORS.green }}>{e.fix}</b>{trail}
+                    {' '}<b style={{ color: `var(--stg-ink, ${COLORS.green})` }}>{e.fix}</b>{trail}
                   </span>
                 );
               }
@@ -586,7 +586,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
               return <span key={j} style={wasFlag ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderRadius: 3, boxShadow: '0 0 0 2px #fdeeee' } : undefined}>{t.raw}</span>;
             })}
             {sub && !it.errors.length && sub.stet && (
-              <span style={{ marginLeft: 7, fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', color: COLORS.green, border: '1px solid rgba(21,128,61,0.45)', borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>STET ✓</span>
+              <span style={{ marginLeft: 7, fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', color: `var(--stg-ink, ${COLORS.green})`, border: '1px solid rgba(21,128,61,0.45)', borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>STET ✓</span>
             )}
           </p>
           {r && (
@@ -600,7 +600,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
         {!sub && staged.length > 0 && (
           <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
             {staged.map((s) => (
-              <span key={s.tok} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12, fontWeight: 700, color: INK, background: COLORS.accentSoft, border: `1.5px solid rgba(3,105,161,0.4)`, borderRadius: 7, padding: '3px 8px' }}>
+              <span key={s.tok} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12, fontWeight: 700, color: INK, background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1.5px solid rgba(3,105,161,0.4)`, borderRadius: 7, padding: '3px 8px' }}>
                 <s>{stripTok(TOKS[i][s.tok].raw)}</s> → <b style={{ color: ACC }}>{s.fix}</b>
                 <button onClick={() => unstage(i, s.tok)} aria-label="Remove this flag" style={{ background: 'none', border: 'none', cursor: 'pointer', color: FADED, padding: 0, display: 'flex' }}><X size={13} /></button>
               </span>
@@ -810,7 +810,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
 
         {/* the brief */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: PAPER, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: PAPER, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Pencil size={12} /> one slip per sentence &mdash; maybe</span>
@@ -852,7 +852,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/stet?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/stet?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Stet &rarr;
                         </a>
                       </>
@@ -861,7 +861,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/stet" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Stet &rarr;</a>
+                    <a href="/stet" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Stet &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

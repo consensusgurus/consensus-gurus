@@ -804,7 +804,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
           <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{signed(BENCH)}</b></span>
           <span>you <b style={{ color: INK, fontWeight: 500 }}>{g.my}</b></span>
-          <span>them <b style={{ color: COLORS.foe, fontWeight: 500 }}>{g.foeScore}</b></span>
+          <span>them <b style={{ color: `var(--stg-ink, ${COLORS.foe})`, fontWeight: 500 }}>{g.foeScore}</b></span>
           <span style={{ marginLeft: 'auto' }}>{elapsed}</span>
         </div>
 
@@ -851,13 +851,13 @@ export default function BabelClient({ puzzles, forceNum }) {
                   {L}<span className="pts">{PTS[L]}</span>
                 </div>
               ))}
-              {!g.rack.length && <span style={{ fontSize: 13, fontWeight: 700, color: COLORS.green }}>Rack empty — you went out.</span>}
+              {!g.rack.length && <span style={{ fontSize: 13, fontWeight: 700, color: `var(--stg-ink, ${COLORS.green})` }}>Rack empty — you went out.</span>}
             </div>
 
             <div style={{ textAlign: 'center', minHeight: 20, fontSize: 12.5, fontWeight: 700 }}>
-              {thinking ? <span style={{ color: COLORS.foe }}>Your opponent is thinking…</span>
-                : preview && !preview.ok ? <span style={{ color: COLORS.rust }}>{preview.why}</span>
-                : preview && preview.ok ? <span style={{ color: COLORS.green }}>{preview.words.map((w) => `${w.word} ${w.score}`).join(' · ')} = {preview.score}</span>
+              {thinking ? <span style={{ color: `var(--stg-ink, ${COLORS.foe})` }}>Your opponent is thinking…</span>
+                : preview && !preview.ok ? <span style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>{preview.why}</span>
+                : preview && preview.ok ? <span style={{ color: `var(--stg-ink, ${COLORS.green})` }}>{preview.words.map((w) => `${w.word} ${w.score}`).join(' · ')} = {preview.score}</span>
                 : playing ? <span style={{ color: FADED }}>Tap a tile then a square, or click a square and type.</span>
                 : null}
             </div>
@@ -935,14 +935,14 @@ export default function BabelClient({ puzzles, forceNum }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/babel?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s position &rarr;</a>
+                        <a href={`/babel?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s position &rarr;</a>
                       </>
                     )}
                   </>
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/babel" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Babel &rarr;</a>
+                    <a href="/babel" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Babel &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

@@ -589,7 +589,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                         <button className={cls} disabled={revealed || picked !== null} onClick={() => answer(ci)}>
                           <span className="k">{CHOICE_KEYS[ci]}</span>
                           <span className={mono ? 't mono' : 't'}>{c}</span>
-                          {revealed && ci === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.green }} />}
+                          {revealed && ci === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: `var(--stg-ink, ${COLORS.green})` }} />}
                           {revealed && ci === picked && ci !== answerKey && <X size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: '#b91c1c' }} />}
                         </button>
                         <button
@@ -608,7 +608,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
                   {/* the reveal, which is where the format actually teaches */}
                   {revealed && (
-                    <div style={{ background: COLORS.accentSoft, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
+                    <div style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
                       <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite. The answer is ${CHOICE_KEYS[answerKey]}.`}
                       </div>

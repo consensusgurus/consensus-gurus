@@ -93,8 +93,8 @@ const MIN_LEN = 4;
 // the toast, the found list and the share card can never drift apart.
 const TIERS = {
   1: { label: 'Common', block: '⬜', color: `var(--stg-mute, ${COLORS.faded})` },
-  2: { label: 'Uncommon', block: '\u{1f7e8}', color: COLORS.accent },
-  3: { label: 'Rare', block: '\u{1f7e7}', color: COLORS.rust },
+  2: { label: 'Uncommon', block: '\u{1f7e8}', color: `var(--stg-ink, ${COLORS.accent})` },
+  3: { label: 'Rare', block: '\u{1f7e7}', color: `var(--stg-ink, ${COLORS.rust})` },
 };
 const PANGRAM_BLOCK = '\u{1f48e}';
 
@@ -713,7 +713,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
               <span>vein <b style={{ color: ACC, fontWeight: 500 }}>{VEIN}</b></span>
               <span>words <b style={{ color: INK, fontWeight: 500 }}>{g.found.length}</b></span>
               {pangramsFound > 0 && <span style={{ color: ACC }}>pangram &times;{pangramsFound}</span>}
-              {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score posted &mdash; sandbox mode</span>}
+              {!playing && <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})` }}>score posted &mdash; sandbox mode</span>}
             </div>
 
             {/* rank ladder */}
@@ -721,7 +721,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : COLORS.accent }}>{rank.n}</span>
                 {nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>{nextRank.at - score} to {nextRank.n}</span>}
-                {!nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.green }}>every word on the board</span>}
+                {!nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: `var(--stg-ink, ${COLORS.green})` }}>every word on the board</span>}
               </div>
               <div className="ld-track">
                 <div className="ld-fill" style={{ width: `${pct}%` }} />
@@ -861,7 +861,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/lode?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/lode?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           dig yesterday&rsquo;s board &rarr;
                         </a>
                       </>
@@ -870,7 +870,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/lode" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Lode &rarr;</a>
+                    <a href="/lode" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Lode &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

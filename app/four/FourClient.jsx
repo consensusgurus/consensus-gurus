@@ -820,7 +820,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             <div
               key={shake}
               className={`fr-board${shake ? ' shake' : ''}`}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, background: `linear-gradient(180deg, ${BOARD_BLUE}, ${BOARD_BLUE_DARK})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: 6, touchAction: 'manipulation' }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, background: `linear-gradient(180deg, ${BOARD_BLUE}, ${BOARD_BLUE_DARK})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: 6, touchAction: 'manipulation' }}
             >
               {Array.from({ length: COLS }).map((_, c) => {
                 const full = pos.heights[c] >= ROWS;
@@ -876,7 +876,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
 
           {playing && hintOk && !g.hintUsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(35,58,99,0.45)', color: '#1b3268' }}>
+              <button className="fr-tool" onClick={useHint} title="Grey out two losing columns (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(35,58,99,0.45)', color: '#1b3268' }}>
                 <Lightbulb size={14} /> Hint
               </button>
             </div>
@@ -911,7 +911,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
               </span>
             </div>
             {(armReveal || armRestart) && (
-              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.rust, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: `var(--stg-ink, ${COLORS.rust})`, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
                 {armReveal ? 'Ends the game and scores nothing.' : 'Records a loss and deals a fresh board.'}
               </div>
             )}
@@ -954,7 +954,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/four?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/four?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Four &rarr;
                         </a>
                       </>
@@ -963,7 +963,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/four" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Four &rarr;</a>
+                    <a href="/four" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Four &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

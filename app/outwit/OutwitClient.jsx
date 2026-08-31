@@ -133,7 +133,7 @@ function OutwitLiveBoard({ board }) {
   return (
     <div style={{ maxWidth: 472, margin: '0 auto 12px', background: 'var(--stg-surf, var(--white))', border: '1.5px solid var(--stg-line, rgba(28,30,36,0.18))', borderRadius: 10, padding: '13px 15px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
-        <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
+        <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: `var(--stg-ink, ${COLORS.accent})` }}>Live standings</span>
         <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: `var(--stg-mute, ${COLORS.faded})`, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
       </div>
       <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: `var(--stg-mute, ${COLORS.faded})`, lineHeight: 1.45, marginBottom: 10 }}>
@@ -639,7 +639,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 9, color: FADED, marginTop: 3 }}>
           <span>{rp.buckets[0].label.split('–')[0]}</span>
-          <span style={{ color: COLORS.rust }}>▾ target {fmtBig(rp.target)}</span>
+          <span style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>▾ target {fmtBig(rp.target)}</span>
           <span>{rp.buckets[rp.buckets.length - 1].label.split('–')[1]}</span>
         </div>
         <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 7, lineHeight: 1.5 }}>
@@ -721,7 +721,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       <div key={i} style={{ background: STAGE ? SURF : T.white, border: `1.5px solid ${rp ? (rp.pts === 2 ? 'rgba(21,128,61,0.5)' : rp.pts === 1 ? 'rgba(202,138,4,0.5)' : 'rgba(28,30,36,0.18)') : 'rgba(28,30,36,0.2)'}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{i + 1} · {pr.tag}</span>
-          {rp ? ptsChip(rp.pts) : (val != null ? <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><Crown size={14} style={{ display: 'none' }} /><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span> : null)}
+          {rp ? ptsChip(rp.pts) : (val != null ? <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})`, display: 'flex' }}><Crown size={14} style={{ display: 'none' }} /><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span> : null)}
         </div>
         <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, marginBottom: 9 }}>
           {pr.q}
@@ -847,7 +847,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the prompts go; the prompts stay sealed
             until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outwit is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -867,7 +867,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
         {/* the five prompts */}
         {!preStart && (
-        <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five prompts vs. today&rsquo;s crowd</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: INK, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
@@ -909,7 +909,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/outwit?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/outwit?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Outwit &rarr;
                         </a>
                       </>
@@ -918,7 +918,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/outwit" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outwit &rarr;</a>
+                    <a href="/outwit" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outwit &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

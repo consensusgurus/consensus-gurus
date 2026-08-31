@@ -763,7 +763,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Start over
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="cr-tool" onClick={useHint} title="Name a step that still reaches the target (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(180,83,9,0.5)', color: '#8a4008' }}>
+                <button className="cr-tool" onClick={useHint} title="Name a step that still reaches the target (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(180,83,9,0.5)', color: '#8a4008' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

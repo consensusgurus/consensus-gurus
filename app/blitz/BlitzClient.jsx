@@ -670,7 +670,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
 
           {g.status === 'lost' && deadProblem && (
             <div style={{ paddingTop: 10 }}>
-              <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: COLORS.rust, marginBottom: 4 }}>
+              <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: `var(--stg-ink, ${COLORS.rust})`, marginBottom: 4 }}>
                 {g.timedOut ? 'Time ran out.' : 'Wrong answer.'} The run ends at {score}.
               </div>
               <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q} — the one that stopped you</div>

@@ -875,7 +875,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Back to start
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: COLORS.accentTint, color: ACC_DEEP }}>
+                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: COLORS.accentTint, color: ACC_DEEP }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -932,7 +932,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/calc?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/calc?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Calc &rarr;
                         </a>
                       </>
@@ -941,7 +941,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/calc" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Calc &rarr;</a>
+                    <a href="/calc" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Calc &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

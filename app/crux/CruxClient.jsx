@@ -1235,7 +1235,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
     // own category step. Left as near-black it would be a near-black cell on
     // a near-black ground: the one place the fill genuinely stops working.
     if (green) return { ...base, background: SPAL ? BOARD_C : COLORS.ink, color: SPAL ? BOARD_ON : T.white, border: `1.5px solid ${SPAL ? BOARD_C : COLORS.ink}`, boxShadow: SPAL ? 'none' : 'inset 0 2px 4px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.5)' };
-    if (lost) return { ...base, background: SPAL ? 'transparent' : TILE, color: COLORS.rust, border: '1.5px dashed rgba(192,57,43,0.55)' };
+    if (lost) return { ...base, background: SPAL ? 'transparent' : TILE, color: `var(--stg-ink, ${COLORS.rust})`, border: '1.5px dashed rgba(192,57,43,0.55)' };
     if (inSel) {
       const isCursor = cursorKey === k;
       return {
@@ -1287,7 +1287,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         { label: 'Filled = right letter, right square', style: { background: BOARD_C, color: BOARD_ON, border: `1.5px solid ${BOARD_C}` } },
         { label: 'Shaded = in the word, different square', style: { background: 'color-mix(in srgb, var(--stg-ink) 34%, transparent)', color: INK, border: '1.5px solid var(--stg-line2)' } },
       ] : [
-        { label: 'Dark = right letter, right square', style: { background: COLORS.ink, color: T.white, border: `1.5px solid ${COLORS.ink}` } },
+        { label: 'Dark = right letter, right square', style: { background: COLORS.ink, color: T.white, border: `1.5px solid var(--stg-line, ${COLORS.ink})` } },
         { label: 'Yellow = in the word, different square', style: { background: '#e6b93f', color: '#5c4a06', border: '1.5px solid #5c4a06' } },
       ]}
       steps={[
@@ -1479,7 +1479,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             // of the stage: a white panel here reads as a cut-out, and a dark
             // panel reads as a second ground nobody asked for.
             ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
-            : { background: `var(--stg-surf, ${T.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            : { background: `var(--stg-surf, ${T.white})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             {!LOFT && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
@@ -1640,7 +1640,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {started && solvedUnfiled.length > 0 && (
             <div style={{ margin: '2px 0 12px', fontSize: 13, fontWeight: 700, color: FADED, textAlign: 'center' }}>
               {pick
-                ? <>Placing <span style={{ color: COLORS.ember, fontWeight: 800 }}>{pick}</span>: tap a category above</>
+                ? <>Placing <span style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800 }}>{pick}</span>: tap a category above</>
                 : <>Tap a completed word on the board, then a category. <span style={{ opacity: .85 }}>Underlined words aren&rsquo;t filed yet.</span></>}
             </div>
           )}
@@ -1668,7 +1668,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                       {prevPuzzle && (
                         <>
                           {' '}Meanwhile:{' '}
-                          <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                          <a href={`/crux?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                             play yesterday&rsquo;s Crux &rarr;
                           </a>
                         </>
@@ -1677,7 +1677,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                   ) : (
                     <>
                       You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                      <a href="/crux" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
+                      <a href="/crux" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Crux &rarr;</a>
                       {' · '}
                       <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                     </>

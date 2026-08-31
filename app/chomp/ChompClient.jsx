@@ -803,7 +803,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     />
   );
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
   const dockBtn = { width: 46, height: 44, borderRadius: 9, border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
   const stat = (label, value, tone) => (
     <div style={{ flex: 1, minWidth: 0 }}>

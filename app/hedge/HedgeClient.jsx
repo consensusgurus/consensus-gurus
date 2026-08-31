@@ -819,7 +819,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Undo
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="hg-tool" onClick={useHint} title="Draw one correct segment (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(8,145,178,0.5)', color: '#07647c' }}>
+                <button className="hg-tool" onClick={useHint} title="Draw one correct segment (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(8,145,178,0.5)', color: '#07647c' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -866,7 +866,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/hedge?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/hedge?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Hedge &rarr;
                         </a>
                       </>
@@ -875,7 +875,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/hedge" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Hedge &rarr;</a>
+                    <a href="/hedge" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Hedge &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

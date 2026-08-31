@@ -863,7 +863,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             })}
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginTop: 7 }}>&darr; Latest</div>
-          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Dated in {checksUsed} check{checksUsed === 1 ? '' : 's'}.</div>}
+          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: `var(--stg-ink, ${COLORS.lock})`, fontWeight: 500, marginTop: 8 }}>Dated in {checksUsed} check{checksUsed === 1 ? '' : 's'}.</div>}
 
         {/* Controls. These sit INSIDE the board card: on the navy stage a bare
             row of faded text has nothing to sit on, and the card is meant to
@@ -903,7 +903,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {PUZZLE.events.map((evt, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.plumInk, background: COLORS.plumSoft, border: '1px solid rgba(124,58,237,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 64, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{evt.y}</span>
+                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: `var(--stg-ink, ${COLORS.plumInk})`, background: `var(--stg-surf, ${COLORS.plumSoft})`, border: '1px solid rgba(124,58,237,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 64, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{evt.y}</span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: INK }}>{evt.t}</span>
                         {evt.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: FADED, marginTop: 1 }}>{evt.d}</span> : null}
@@ -915,7 +915,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               {!isTodays && (
                 <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/dating" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
+                  <a href="/dating" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>

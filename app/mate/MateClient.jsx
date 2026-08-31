@@ -1063,7 +1063,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
             <div
               key={shake}
               className={`mt-board${shake ? ' shake' : ''}`}
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gridTemplateRows: 'repeat(8, minmax(0, 1fr))', aspectRatio: '1 / 1', border: `2px solid ${COLORS.ink}`, borderRadius: 4, overflow: 'hidden', touchAction: 'manipulation' }}
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(8, minmax(0, 1fr))', gridTemplateRows: 'repeat(8, minmax(0, 1fr))', aspectRatio: '1 / 1', border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 4, overflow: 'hidden', touchAction: 'manipulation' }}
             >
               {Array.from({ length: 64 }).map((_, sq) => {
                 const r = rowOf(sq), f = fileOf(sq);
@@ -1133,7 +1133,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="mt-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(107,68,35,0.5)', color: '#5c3a1e' }}>
+                <button className="mt-tool" onClick={useHint} title="Name the piece that moves (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(107,68,35,0.5)', color: '#5c3a1e' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -1166,7 +1166,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
               </span>
             </div>
             {(armReveal || armRestart) && (
-              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.rust, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: `var(--stg-ink, ${COLORS.rust})`, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
                 {armReveal ? 'Ends the puzzle and scores nothing.' : 'Records a 0 and resets the board.'}
               </div>
             )}
@@ -1209,7 +1209,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/mate?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/mate?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Mate &rarr;
                         </a>
                       </>
@@ -1218,7 +1218,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/mate" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Mate &rarr;</a>
+                    <a href="/mate" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Mate &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

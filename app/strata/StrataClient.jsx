@@ -716,7 +716,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               </div>
 
               {stuck && (
-                <div style={{ border: `1.5px solid ${COLORS.accentDeep}`, borderRadius: 10, padding: '12px 14px', marginBottom: 14, background: COLORS.accentSoft }}>
+                <div style={{ border: `1.5px solid var(--stg-line, ${COLORS.accentDeep})`, borderRadius: 10, padding: '12px 14px', marginBottom: 14, background: `var(--stg-surf, ${COLORS.accentSoft})` }}>
                   <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: ACC_DEEP, marginBottom: 4 }}>
                     Nothing left to read. That is our fault, not yours.
                   </div>

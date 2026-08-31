@@ -752,7 +752,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     if (kind === 'start') return <span key={key} style={{ ...base, background: COLORS.ink, color: T.white }}>{name}</span>;
     if (kind === 'end') return <span key={key} style={{ ...base, background: STAGE ? SURF : T.white, color: INK, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
     if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: T.white, borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
-    return <span key={key} style={{ ...base, background: COLORS.trailSoft, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
+    return <span key={key} style={{ ...base, background: `var(--stg-surf, ${COLORS.trailSoft})`, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
   }
   const arrow = (k) => <span key={k} style={{ color: T.muted, fontWeight: 800 }}>&rarr;</span>;
 
@@ -880,7 +880,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               <b style={{ fontWeight: 800, color: '#92400e', whiteSpace: 'nowrap' }}>Sunday Edition</b>
               {sundayRule && (
                 <span style={{ whiteSpace: 'nowrap' }}>
-                  {VIA ? <>route through <b style={{ fontWeight: 800 }}>{VIA}</b>{viaDone ? <b style={{ color: COLORS.trail, fontWeight: 800 }}> &#10003;</b> : null}</> : <><b style={{ fontWeight: 800 }}>{AVOID}</b> is closed today</>}
+                  {VIA ? <>route through <b style={{ fontWeight: 800 }}>{VIA}</b>{viaDone ? <b style={{ color: `var(--stg-ink, ${COLORS.trail})`, fontWeight: 800 }}> &#10003;</b> : null}</> : <><b style={{ fontWeight: 800 }}>{AVOID}</b> is closed today</>}
                 </span>
               )}
             </div>
@@ -903,7 +903,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
             })}
             {!won && [arrow('af'), <span key="dots" style={{ color: T.muted, fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
           </div>
-          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.trail, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
+          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: `var(--stg-ink, ${COLORS.trail})`, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
         </div>
         )}
 
@@ -981,7 +981,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/span?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/span?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Span &rarr;
                         </a>
                       </>
@@ -990,7 +990,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/span" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Span &rarr;</a>
+                    <a href="/span" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Span &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

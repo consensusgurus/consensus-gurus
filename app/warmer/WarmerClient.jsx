@@ -576,7 +576,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                 </div>
                 <div className="wm-actions">
                   {hintOk && !g.hintUsed && (
-                    <button onClick={useHint} className="wm-chip" title="Reveal one warm word (one hint, first play only)" style={{ background: COLORS.accentSoft, border: '1.5px solid rgba(220,38,38,0.45)', color: '#9a1c1c' }}>
+                    <button onClick={useHint} className="wm-chip" title="Reveal one warm word (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: '1.5px solid rgba(220,38,38,0.45)', color: '#9a1c1c' }}>
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}
@@ -588,7 +588,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
             ) : (
               <div style={{ textAlign: 'center', padding: '6px 0 4px' }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED }}>The word was</div>
-                <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, letterSpacing: '-0.5px', color: COLORS.green, margin: '2px 0 4px' }}>{answerWord}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, letterSpacing: '-0.5px', color: `var(--stg-ink, ${COLORS.green})`, margin: '2px 0 4px' }}>{answerWord}</div>
                 <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 13.5, color: FADED }}>
                   {won ? <>Solved in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? ' · 1 hint' : ''}</>
                        : <>Gave up &middot; closest was #{bestRank || '—'} in {guesses.length} guess{guesses.length === 1 ? '' : 'es'}</>}
@@ -632,7 +632,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                   {isTodays ? (
                     <>
                       {countdown ? <>Next Warmer in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}
-                      {prevPuzzle && (<> {' '}Meanwhile:{' '}<a href={`/warmer?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Warmer &rarr;</a></>)}
+                      {prevPuzzle && (<> {' '}Meanwhile:{' '}<a href={`/warmer?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Warmer &rarr;</a></>)}
                     </>
                   ) : (
                     <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/warmer" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Warmer &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>

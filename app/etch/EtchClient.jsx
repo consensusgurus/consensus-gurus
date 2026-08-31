@@ -249,7 +249,7 @@ function EtchGallery({ puzzles, rec, currentNum }) {
         })}
       </div>
       <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: `var(--stg-mute, ${COLORS.faded})`, margin: '8px 0 0' }}>
-        Solve a day and its picture fills in here. Sundays develop in {'\u2009'}<span style={{ color: COLORS.accent, fontWeight: 800 }}>moss</span>.
+        Solve a day and its picture fills in here. Sundays develop in {'\u2009'}<span style={{ color: `var(--stg-ink, ${COLORS.accent})`, fontWeight: 800 }}>moss</span>.
       </div>
     </div>
   );
@@ -1100,7 +1100,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Undo
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="et-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(77,124,15,0.5)', color: '#3f6a0a' }}>
+                <button className="et-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(77,124,15,0.5)', color: '#3f6a0a' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -1158,7 +1158,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/etch?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/etch?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Etch &rarr;
                         </a>
                       </>
@@ -1167,7 +1167,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/etch" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Etch &rarr;</a>
+                    <a href="/etch" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Etch &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

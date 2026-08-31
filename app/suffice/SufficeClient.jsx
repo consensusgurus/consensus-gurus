@@ -516,7 +516,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                       <button key={c.k} className={cls} disabled={revealed || !!picked} onClick={() => answer(c.k)}>
                         <span className="k">{c.k}</span>
                         <span>{c.text}</span>
-                        {revealed && c.k === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.green }} />}
+                        {revealed && c.k === answerKey && <Check size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: `var(--stg-ink, ${COLORS.green})` }} />}
                         {revealed && c.k === picked && c.k !== answerKey && <X size={17} style={{ marginLeft: 'auto', flex: '0 0 auto', color: '#b91c1c' }} />}
                       </button>
                     );
@@ -525,7 +525,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                   {/* the reveal: which statements were enough, and the
                       counterexample that proves the ones that were not */}
                   {revealed && ex && (
-                    <div style={{ background: COLORS.accentSoft, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
+                    <div style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
                       <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite — the answer is ${answerKey}.`}
                       </div>

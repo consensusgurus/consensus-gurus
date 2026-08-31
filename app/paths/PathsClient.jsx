@@ -719,10 +719,10 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
       lead="Link every town to the depot for as little track as you can."
       chips={[
         { label: 'Open 1', tone: 'grey' },
-        { label: 'Ridge 2', style: { background: COLORS.ridge, border: `1.5px solid ${COLORS.ridgeInk}`, color: COLORS.ridgeInk } },
-        { label: 'Crossing 3', style: { background: COLORS.river, border: `1.5px solid ${COLORS.riverInk}`, color: COLORS.riverInk } },
-        ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: COLORS.railSoft, border: `1.5px solid ${COLORS.rail}`, color: COLORS.rail } }] : []),
-        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid ${COLORS.cliff}`, color: COLORS.cliffInk } }] : []),
+        { label: 'Ridge 2', style: { background: `var(--stg-surf, ${COLORS.ridge})`, border: `1.5px solid var(--stg-line, ${COLORS.ridgeInk})`, color: `var(--stg-ink, ${COLORS.ridgeInk})` } },
+        { label: 'Crossing 3', style: { background: `var(--stg-surf, ${COLORS.river})`, border: `1.5px solid var(--stg-line, ${COLORS.riverInk})`, color: `var(--stg-ink, ${COLORS.riverInk})` } },
+        ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: `var(--stg-surf, ${COLORS.railSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.rail})`, color: `var(--stg-ink, ${COLORS.rail})` } }] : []),
+        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid var(--stg-line, ${COLORS.cliff})`, color: `var(--stg-ink, ${COLORS.cliffInk})` } }] : []),
       ]}
       sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.{HAS_CLIFFS ? <> A dark bar is a <b>cliff</b>: that lane cannot be laid at any price, so route around it.</> : null}{HAS_RAILS ? <> A dashed green lane is <b>old track</b>, already on the ground: run along it and it costs you nothing.</> : null}</>}
       steps={[
@@ -951,10 +951,10 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap', fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: '#c9d0dc' }} /> open 1</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: COLORS.ridge }} /> ridge 2</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.river }} /> crossing 3</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: `var(--stg-surf, ${COLORS.ridge})` }} /> ridge 2</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: `var(--stg-surf, ${COLORS.river})` }} /> crossing 3</span>
             {HAS_RAILS && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.railSoft, borderTop: `2px dashed ${COLORS.rail}` }} /> old track 0</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: `var(--stg-surf, ${COLORS.railSoft})`, borderTop: `2px dashed ${COLORS.rail}` }} /> old track 0</span>
             )}
             {HAS_CLIFFS && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 13, borderRadius: 2, background: COLORS.cliff }} /> cliff, no way through</span>
@@ -979,7 +979,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 <Trash2 size={14} /> Clear
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="pt-tool" onClick={useHint} title="Lay one lane of a cheapest network (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(6,95,70,0.5)', color: ACC }}>
+                <button className="pt-tool" onClick={useHint} title="Lay one lane of a cheapest network (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(6,95,70,0.5)', color: ACC }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -1020,7 +1020,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 {showPar ? 'Hide the cheapest network' : 'Show a cheapest network'}
               </button>
               <div style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '8px 0 0' }}>
-                One network that costs {perfect}, marked against your own track: <b style={{ color: COLORS.green }}>green</b> is a lane you laid that it also uses, <b style={{ color: COLORS.rust }}>red</b> is a lane you laid that it does not, and <b style={{ color: '#a97c12' }}>gold</b> is a lane it uses that you never laid. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one{tiedPerfect ? ', and because your own network costs the same, a red lane of yours is an equal-cost alternative rather than a mistake' : ''}, but every ridge lane and crossing in it is forced.{HAS_RAILS ? ' Notice where it runs along the old track.' : ''}
+                One network that costs {perfect}, marked against your own track: <b style={{ color: `var(--stg-ink, ${COLORS.green})` }}>green</b> is a lane you laid that it also uses, <b style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>red</b> is a lane you laid that it does not, and <b style={{ color: '#a97c12' }}>gold</b> is a lane it uses that you never laid. Two staircases between the same dots always tie, so it is <i>a</i> cheapest network rather than the only one{tiedPerfect ? ', and because your own network costs the same, a red lane of yours is an equal-cost alternative rather than a mistake' : ''}, but every ridge lane and crossing in it is forced.{HAS_RAILS ? ' Notice where it runs along the old track.' : ''}
               </div>
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; a bigger {n}&times;{n} board with {TOWNS.length} towns and every element at once.</div>
@@ -1037,7 +1037,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/paths?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/paths?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Paths &rarr;
                         </a>
                       </>
@@ -1046,7 +1046,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/paths" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Paths &rarr;</a>
+                    <a href="/paths" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Paths &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

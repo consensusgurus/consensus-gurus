@@ -862,7 +862,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
               {playing && hintOk && !g.hintUsed && g.moves.length === 0 && (
                 <div style={{ marginTop: 10 }}>
-                  <button className="ch-tool" onClick={useHint} title="Mark three edges, one of which wins (one hint, first play only)" style={{ background: COLORS.accentSoft }}>
+                  <button className="ch-tool" onClick={useHint} title="Mark three edges, one of which wins (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})` }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 </div>

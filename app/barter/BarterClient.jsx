@@ -740,7 +740,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="bt-tool" onClick={useHint} title="One correct trade at no cost (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(190,18,60,0.5)', color: ACC }}>
+                <button className="bt-tool" onClick={useHint} title="One correct trade at no cost (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,18,60,0.5)', color: ACC }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -790,7 +790,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/barter?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/barter?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Barter &rarr;
                         </a>
                       </>
@@ -799,7 +799,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/barter" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Barter &rarr;</a>
+                    <a href="/barter" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Barter &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

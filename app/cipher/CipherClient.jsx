@@ -1141,14 +1141,14 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', marginTop: 12 }}>
               {/* No Check button by design: the board ends the day itself. */}
-              <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all, tap again' : 'Clear'}</button>
+              <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: `var(--stg-ink, ${COLORS.rust})` } : undefined}>{clearArmed ? 'Clear all, tap again' : 'Clear'}</button>
               {revealOk && (
                 <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>
               )}
             </div>
           )}
           {playing && !dockUi && (badCol || blocked) && (
-            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: COLORS.rust }}>
+            <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, textAlign: 'center', marginTop: 8, color: `var(--stg-ink, ${COLORS.rust})` }}>
               {blocked || `A column is marked ✗. Fix that column and the rest follow.`}
             </div>
           )}
@@ -1179,7 +1179,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/cipher?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/cipher?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Cipher &rarr;
                         </a>
                       </>
@@ -1188,7 +1188,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/cipher" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Cipher &rarr;</a>
+                    <a href="/cipher" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Cipher &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

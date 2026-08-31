@@ -690,7 +690,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       steps={[
         <><b>Tap a square</b> to select its word, tap it again to flip direction, then type. On a keyboard, <b>space</b> flips direction and <b>tab</b> jumps to the next clue.</>,
         <>The grid <b>checks itself</b> the moment the last square is filled. A perfect fill wins on the spot.</>,
-        <>A wrong fill marks the misses <b style={{ color: COLORS.rust }}>red</b> and counts a <b>check</b> against you.</>,
+        <>A wrong fill marks the misses <b style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>red</b> and counts a <b>check</b> against you.</>,
         <>One free <b>hint</b>, on your first ever play, reveals a letter.</>,
       ]}
       knack="Nothing is judged until the last square goes in, so read your shakiest word against its crossing clue before you fill it."
@@ -812,7 +812,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These three figures move UP into the cap on a loft page. Printing
               them in both places is the one thing to avoid: the cap exists to
               give the board this row back. */}
@@ -851,7 +851,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
               <button aria-label="Previous clue" onClick={() => stepWord(-1)} className="ec-tool" style={{ padding: '7px 8px' }}>
                 <ChevronLeft size={15} />
               </button>
-              <div onClick={() => setDir((d) => (d === 'A' ? 'D' : 'A'))} style={{ flex: '1 1 auto', background: COLORS.accentSoft, border: `1.5px solid rgba(29,78,216,0.4)`, borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+              <div onClick={() => setDir((d) => (d === 'A' ? 'D' : 'A'))} style={{ flex: '1 1 auto', background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1.5px solid rgba(29,78,216,0.4)`, borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                 <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, color: ACC, whiteSpace: 'nowrap' }}>{curWord.n}{curWord.dir === 'A' ? 'A' : 'D'}</span>
                 <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.3 }}>{curWord.clue}</span>
               </div>
@@ -880,7 +880,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="ec-tool" onClick={useHint} title="Reveal one letter (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.5)', color: '#1e3a8a' }}>
+                <button className="ec-tool" onClick={useHint} title="Reveal one letter (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(29,78,216,0.5)', color: '#1e3a8a' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -936,7 +936,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
-                      <a href={`/encore?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                      <a href={`/encore?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                         play yesterday&rsquo;s Encore &rarr;
                       </a>
                     </>
@@ -945,7 +945,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/encore" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Encore &rarr;</a>
+                  <a href="/encore" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Encore &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>

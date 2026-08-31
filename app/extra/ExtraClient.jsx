@@ -640,7 +640,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         {gameRetired && (
           <div style={{ background: STAGE ? 'var(--stg-surf2)' : '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
             Extra has retired &mdash; this archive stays playable, but no new front pages drop.{' '}
-            Meet its successor: <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
+            Meet its successor: <a href="/redact" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
           </div>
         )}
 
@@ -723,7 +723,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 <button className="ex-go" onClick={submitGuess}>Guess</button>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                <button className="ex-tool" onClick={tearOne} disabled={tears >= MAX_TEARS} title="Reveal one more word (costs a tear)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(185,28,28,0.5)', color: '#8f1d1d' }}>
+                <button className="ex-tool" onClick={tearOne} disabled={tears >= MAX_TEARS} title="Reveal one more word (costs a tear)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(185,28,28,0.5)', color: '#8f1d1d' }}>
                   <Scissors size={14} /> Tear a word free
                 </button>
                 {hintOk && !g.hintUsed && (
@@ -779,15 +779,15 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                     {gameRetired ? (
                       <>
                         Extra has retired &mdash; this was its final front page. Every past edition stays playable in{' '}
-                        <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
+                        <a href="/daily" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
                         {' '}Meet its successor:{' '}
-                        <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
+                        <a href="/redact" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
                       </>
                     ) : countdown ? <>Next Extra in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new front page drops at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/extra?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/extra?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Extra &rarr;
                         </a>
                       </>
@@ -796,7 +796,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/extra" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Extra &rarr;</a>
+                    <a href="/extra" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Extra &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

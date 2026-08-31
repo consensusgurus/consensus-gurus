@@ -675,7 +675,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
         <>Every block grows out from its <b>ringed anchor square</b>, and there is exactly one way to carve the board.</>,
         <>Pick a colour below the board, or tap its anchor, then tap squares that <b>touch that block</b> to paint them in. Tap a painted square to un-carve it.</>,
         <>Each colour chip shows its block&rsquo;s running total.</>,
-        <>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: COLORS.rust }}>red</b>, clears back to its anchor and counts as an <b>error</b>.</>,
+        <>The moment a block hits {TARGET} it is checked: a true block <b>locks in</b>, a wrong one shakes <b style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>red</b>, clears back to its anchor and counts as an <b>error</b>.</>,
       ]}
       knack="Start with the anchors hemmed in by edges or big numbers. A block with only one way to grow settles its neighbours for you."
       footer={<>No errors is a perfect 10, and every error costs a point. One free <b>hint</b>, on your first ever play, paints a correct square. Ties break on fewest errors, then fastest time. Sundays go bigger: a 7&times;7 board in nine blocks.</>}
@@ -792,7 +792,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -844,7 +844,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap' }}>
                 {hintOk && !g.hintUsed && (
-                  <button className="cv-tool" onClick={useHint} title="Paint one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(124,58,237,0.5)', color: '#5b21b6' }}>
+                  <button className="cv-tool" onClick={useHint} title="Paint one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,58,237,0.5)', color: '#5b21b6' }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}
@@ -887,7 +887,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
-                      <a href={`/carve?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                      <a href={`/carve?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                         play yesterday&rsquo;s Carve &rarr;
                       </a>
                     </>
@@ -896,7 +896,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
               ) : (
                 <>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/carve" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Carve &rarr;</a>
+                  <a href="/carve" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Carve &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>

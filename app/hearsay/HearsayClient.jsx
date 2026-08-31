@@ -613,7 +613,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           <span>on the list <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.cards.length}</b></span>
           <span>crossed off <b style={{ color: INK, fontWeight: 500 }}>{g.crossed.length}</b></span>
           <span>on the board <b style={{ color: g.wrong.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
-          {g.wrong.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrong.length}</b></span>}
+          {g.wrong.length > 0 && <span>wrong names <b style={{ color: `var(--stg-ink, ${COLORS.rust})`, fontWeight: 500 }}>{g.wrong.length}</b></span>}
         </div>
         )}
 
@@ -674,7 +674,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         )}
 
         {verdict && (
-          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.rust, margin: '10px 0 0', lineHeight: 1.45 }}>
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: `var(--stg-ink, ${COLORS.rust})`, margin: '10px 0 0', lineHeight: 1.45 }}>
             {verdict.msg}
           </div>
         )}
@@ -685,7 +685,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="hs-btn"
               onClick={() => setG((cur) => ({ ...cur, naming: !cur.naming }))}
-              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(124,45,146,0.5)', color: ACC_DEEP }}
+              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,45,146,0.5)', color: ACC_DEEP }}
             >
               <Ear size={14} /> {g.naming ? `Pick the ${PUZZLE.noun}…` : `Name the ${PUZZLE.noun}`}
             </button>
@@ -728,7 +728,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/hearsay?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/hearsay?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           yesterday&rsquo;s case &rarr;
                         </a>
                       </>
@@ -737,7 +737,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/hearsay" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s case &rarr;</a>
+                    <a href="/hearsay" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s case &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

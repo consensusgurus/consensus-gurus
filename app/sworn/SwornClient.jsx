@@ -702,7 +702,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         })}
 
         {verdict && (
-          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.rust, margin: '4px 0 10px', lineHeight: 1.45 }}>
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: `var(--stg-ink, ${COLORS.rust})`, margin: '4px 0 10px', lineHeight: 1.45 }}>
             {verdict.msg}
           </div>
         )}
@@ -710,7 +710,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '10px 0 6px' }}>
             <button type="button" className="sw-btn" onClick={clearMarks}><Eraser size={14} /> Clear marks</button>
             {hintOk && !g.hintUsed && (
-              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(190,24,93,0.5)', color: ACC_DEEP }}>
+              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,24,93,0.5)', color: ACC_DEEP }}>
                 <Lightbulb size={14} /> Hint: verify a witness
               </button>
             )}
@@ -744,7 +744,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/sworn?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/sworn?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           reopen yesterday&rsquo;s inquest &rarr;
                         </a>
                       </>
@@ -753,7 +753,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/sworn" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s inquest &rarr;</a>
+                    <a href="/sworn" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s inquest &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

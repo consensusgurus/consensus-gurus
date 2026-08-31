@@ -1005,11 +1005,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           {/* score bar */}
           {!preStart && (
             <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
-              <span style={{ fontSize: 12 }}>score <b style={{ color: COLORS.accentDk, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b><span style={{ fontSize: 11 }}>/{START}</span></span>
+              <span style={{ fontSize: 12 }}>score <b style={{ color: `var(--stg-ink, ${COLORS.accentDk})`, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b><span style={{ fontSize: 11 }}>/{START}</span></span>
               <span>placed <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b>/{SHARDS.length}</span>
               <span>misses <b style={{ color: INK, fontWeight: 500 }}>{g.misplaced}</b></span>
               <span>hints <b style={{ color: INK, fontWeight: 500 }}>{g.hintsUsed}</b>/3</span>
-              {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>solved</span>}
+              {!playing && <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})` }}>solved</span>}
             </div>
           )}
 
@@ -1126,7 +1126,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
               <>
                 <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                    <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: `var(--stg-ink, ${COLORS.green})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                     <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                       Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                     </span>
@@ -1136,7 +1136,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                   {isTodays ? (
                     <>
                       {countdown ? <>A fresh grid in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
-                      {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
+                      {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
                     </>
                   ) : (
                     <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>

@@ -621,7 +621,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         {gameRetired && (
           <div style={{ background: STAGE ? 'var(--stg-surf2)' : '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
             Circa has retired &mdash; this archive stays playable, but no new moments drop.{' '}
-            Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
+            Meet its successor: <a href="/outrank" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
           </div>
         )}
 
@@ -719,7 +719,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           {playing && !idle && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
+                <button className="cc-tool" onClick={useHint} title="Reveal the century (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(14,116,144,0.5)', color: '#155e70' }}>
                   <Lightbulb size={14} /> Hint: the century
                 </button>
               )}
@@ -754,14 +754,14 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 {isTodays ? (
                   <>
                     Circa has retired &mdash; this was its final moment. Every past puzzle stays playable in{' '}
-                    <a href="/daily" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
+                    <a href="/daily" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>the archive</a>.
                     {' '}Meet its successor:{' '}
-                    <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
+                    <a href="/outrank" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
                   </>
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/circa" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Circa &rarr;</a>
+                    <a href="/circa" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Circa &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

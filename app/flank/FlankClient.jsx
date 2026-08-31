@@ -608,7 +608,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
               <span>borders</span>
             </span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>strikes <b style={{ color: COLORS.rust, fontWeight: 500 }}>{strikes}/{STRIKES}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>strikes <b style={{ color: `var(--stg-ink, ${COLORS.rust})`, fontWeight: 500 }}>{strikes}/{STRIKES}</b></span>
           </div>
           )}
 
@@ -647,7 +647,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           )}
 
           {g.status === 'lost' && (
-            <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: COLORS.rust, marginBottom: 10 }}>
+            <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: `var(--stg-ink, ${COLORS.rust})`, marginBottom: 10 }}>
               {STRIKES} strikes. The run ends at {foundCount} of {TOTAL}; the missed borders are marked below.
             </div>
           )}
@@ -665,7 +665,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
             <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'baseline' }}>
               <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Wrong</span>
               {g.wrong.length ? g.wrong.map((code) => (
-                <span key={code} style={{ color: COLORS.rust, textDecoration: 'line-through' }}>{nameOf(code)}</span>
+                <span key={code} style={{ color: `var(--stg-ink, ${COLORS.rust})`, textDecoration: 'line-through' }}>{nameOf(code)}</span>
               )) : <span>none yet</span>}
             </div>
           )}

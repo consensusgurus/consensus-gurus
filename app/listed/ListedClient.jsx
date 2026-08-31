@@ -712,8 +712,8 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       lead={<>{N} real things, one ranking.</>}
       banner={<>Order them, {PUZZLE.hi.toLowerCase()} at the top, {PUZZLE.lo.toLowerCase()} at the bottom.</>}
       chips={[
-        { label: 'Exactly right, locks with its figure', style: { background: COLORS.lockSoft, border: `1.5px solid ${COLORS.lock}`, color: COLORS.lockInk } },
-        { label: 'Off by one place', style: { background: COLORS.nearSoft, border: `1.5px solid ${COLORS.near}`, color: COLORS.nearInk } },
+        { label: 'Exactly right, locks with its figure', style: { background: `var(--stg-surf, ${COLORS.lockSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.lock})`, color: `var(--stg-ink, ${COLORS.lockInk})` } },
+        { label: 'Off by one place', style: { background: `var(--stg-surf, ${COLORS.nearSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.near})`, color: `var(--stg-ink, ${COLORS.nearInk})` } },
         { label: 'Two or more places away', tone: 'grey' },
       ]}
       steps={[
@@ -831,7 +831,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
             {PUZZLE.cat ? (
-              <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
+              <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-ink, ${COLORS.brandInk})`, background: `var(--stg-surf, ${COLORS.brandSoft})`, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
             ) : null}
           </div>
           <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 15.5, lineHeight: 1.35, color: INK, marginBottom: 9 }}>{PUZZLE.title}</div>
@@ -865,7 +865,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
                   style={{ display: 'flex', alignItems: 'center', gap: 9, background: bg, border: bord, borderRadius: 9, padding: '9px 11px', cursor: draggable ? (dragging ? 'grabbing' : 'grab') : undefined, position: dragging ? 'relative' : undefined, zIndex: dragging ? 5 : undefined, transform: dragging ? `translateY(${drag.dy}px)` : undefined, boxShadow: dragging ? '0 8px 20px rgba(20,22,28,0.22)' : undefined, opacity: dragging ? 0.96 : undefined, touchAction: draggable ? 'none' : undefined }}>
                   <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: near ? COLORS.nearInk : COLORS.faded, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? COLORS.lockInk : COLORS.ink }}>{PUZZLE.items[it].t}</span>
-                  {near && playing ? <span title="Off by one place" style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.nearInk, background: STAGE ? 'var(--stg-surf2)' : '#fbeec4', border: `1px solid ${COLORS.near}`, borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>Off by one</span> : null}
+                  {near && playing ? <span title="Off by one place" style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-ink, ${COLORS.nearInk})`, background: STAGE ? 'var(--stg-surf2)' : '#fbeec4', border: `1px solid var(--stg-line, ${COLORS.near})`, borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>Off by one</span> : null}
                   {valChip}
                   {playing && !locked && (
                     <span style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -878,7 +878,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
             })}
           </div>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginTop: 7 }}>&darr; {PUZZLE.lo}</div>
-          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Ranked in {checksUsed} submit{checksUsed === 1 ? '' : 's'}.</div>}
+          {won && <div style={{ fontFamily: MONO, fontSize: 11, color: `var(--stg-ink, ${COLORS.lock})`, fontWeight: 500, marginTop: 8 }}>Ranked in {checksUsed} submit{checksUsed === 1 ? '' : 's'}.</div>}
 
         {/* Controls. These sit INSIDE the board card: on the navy stage a bare
             row of faded text has nothing to sit on, and the card is meant to
@@ -906,7 +906,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
                   {PUZZLE.items.map((item, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
                       <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, color: FADED, width: 16, textAlign: 'right', marginTop: 2 }}>{i + 1}</span>
-                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 74, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{item.v}</span>
+                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: `var(--stg-ink, ${COLORS.brandInk})`, background: `var(--stg-surf, ${COLORS.brandSoft})`, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 74, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{item.v}</span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: INK }}>{item.t}</span>
                         {item.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: FADED, marginTop: 1 }}>{item.d}</span> : null}
@@ -919,7 +919,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               {!isTodays && (
                 <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                  <a href="/listed" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Listed &rarr;</a>
+                  <a href="/listed" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Listed &rarr;</a>
                   {' · '}
                   <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>
@@ -998,7 +998,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               )}
             </div>
             {g.marks && nearCount > 0 && (
-              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.nearInk, marginTop: 9 }}>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: `var(--stg-ink, ${COLORS.nearInk})`, marginTop: 9 }}>
                 {nearCount} row{nearCount === 1 ? ' is' : 's are'} off by exactly one place. Nudging beats rebuilding.
               </div>
             )}

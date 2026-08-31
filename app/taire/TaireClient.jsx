@@ -787,7 +787,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Restart deal
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="ta-tool" onClick={useHint} title="Light up every card that can move (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,107,79,0.5)', color: '#155e45' }}>
+                <button className="ta-tool" onClick={useHint} title="Light up every card that can move (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(29,107,79,0.5)', color: '#155e45' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

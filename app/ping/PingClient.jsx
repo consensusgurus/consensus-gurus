@@ -792,7 +792,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             One city, no clues. Guess any world city and I&rsquo;ll tell you exactly how far away it is. Close in from there.
           </div>
           {g.hintUsed && playing && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: ACC_DEEP, background: `var(--stg-surf, ${COLORS.accentSoft})`, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
               <Lightbulb size={13} /> It&rsquo;s in {continent}.
             </div>
           )}
@@ -859,7 +859,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(2,132,199,0.5)', color: ACC_DEEP }}>
+                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(2,132,199,0.5)', color: ACC_DEEP }}>
                   <Lightbulb size={14} /> Hint: the continent
                 </button>
               )}
@@ -903,7 +903,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/ping?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/ping?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Ping &rarr;
                         </a>
                       </>
@@ -912,7 +912,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/ping" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Ping &rarr;</a>
+                    <a href="/ping" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Ping &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

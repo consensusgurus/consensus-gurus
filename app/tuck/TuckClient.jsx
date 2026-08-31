@@ -812,7 +812,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= BENCH && liveScore > 0 ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
           <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{BENCH}</b></span>
           <span>tiles <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
-          {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score submitted — sandbox mode</span>}
+          {!playing && <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})` }}>score submitted — sandbox mode</span>}
         </div>
         )}
 
@@ -930,7 +930,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/tuck?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/tuck?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s rack &rarr;
                         </a>
                       </>
@@ -939,7 +939,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/tuck" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tuck &rarr;</a>
+                    <a href="/tuck" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tuck &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

@@ -858,7 +858,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                   <RotateCcw size={14} /> Undo
                 </button>
                 {hintOk && !g.hintUsed && (
-                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(76,29,149,0.45)', color: ACC }}>
+                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(76,29,149,0.45)', color: ACC }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}
@@ -904,7 +904,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                The sign ringed in <span style={{ color: COLORS.rust }}>red</span> is the one that lied.
+                The sign ringed in <span style={{ color: `var(--stg-ink, ${COLORS.rust})` }}>red</span> is the one that lied.
               </div>
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger 6&times;6 grid.</div>
@@ -921,7 +921,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
-                        <a href={`/fib?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>
+                        <a href={`/fib?p=${prevPuzzle.num}`} style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>
                           play yesterday&rsquo;s Fib &rarr;
                         </a>
                       </>
@@ -930,7 +930,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
-                    <a href="/fib" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Fib &rarr;</a>
+                    <a href="/fib" style={{ color: `var(--stg-ink, ${COLORS.ember})`, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Fib &rarr;</a>
                     {' · '}
                     <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>

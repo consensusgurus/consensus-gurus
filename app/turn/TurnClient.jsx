@@ -856,7 +856,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                 <div
                   key={shake}
                   className={`tn-board${shake ? ' shake' : ''}`}
-                  style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gridTemplateRows: 'repeat(8, 1fr)', gap: 2, aspectRatio: '1 / 1', background: FELT_LINE, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: 3, touchAction: 'manipulation', overflow: 'hidden' }}
+                  style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gridTemplateRows: 'repeat(8, 1fr)', gap: 2, aspectRatio: '1 / 1', background: FELT_LINE, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: 3, touchAction: 'manipulation', overflow: 'hidden' }}
                 >
                   {squares}
                 </div>
@@ -875,7 +875,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
 
               {playing && hintOk && !g.hintUsed && g.moves.length === 0 && (
                 <div style={{ marginTop: 10 }}>
-                  <button className="tn-tool" onClick={useHint} title="Ring three squares, one of which wins (one hint, first play only)" style={{ background: COLORS.accentSoft }}>
+                  <button className="tn-tool" onClick={useHint} title="Ring three squares, one of which wins (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})` }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 </div>

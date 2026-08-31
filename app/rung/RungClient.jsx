@@ -753,7 +753,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Restart
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="rg-tool" onClick={useHint} title="The next word of a shortest ladder from here (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(21,94,117,0.5)', color: '#124b5e' }}>
+                <button className="rg-tool" onClick={useHint} title="The next word of a shortest ladder from here (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(21,94,117,0.5)', color: '#124b5e' }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
