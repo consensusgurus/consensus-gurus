@@ -719,10 +719,10 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
       lead="Link every town to the depot for as little track as you can."
       chips={[
         { label: 'Open 1', tone: 'grey' },
-        { label: 'Ridge 2', style: { background: `var(--stg-surf, ${COLORS.ridge})`, border: `1.5px solid var(--stg-line, ${COLORS.ridgeInk})`, color: `var(--stg-ink, ${COLORS.ridgeInk})` } },
-        { label: 'Crossing 3', style: { background: `var(--stg-surf, ${COLORS.river})`, border: `1.5px solid var(--stg-line, ${COLORS.riverInk})`, color: `var(--stg-ink, ${COLORS.riverInk})` } },
-        ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: `var(--stg-surf, ${COLORS.railSoft})`, border: `1.5px solid var(--stg-line, ${COLORS.rail})`, color: `var(--stg-ink, ${COLORS.rail})` } }] : []),
-        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid var(--stg-line, ${COLORS.cliff})`, color: `var(--stg-ink, ${COLORS.cliffInk})` } }] : []),
+        { label: 'Ridge 2', style: { background: COLORS.ridge, border: `1.5px solid ${COLORS.ridgeInk}`, color: COLORS.ridgeInk } },
+        { label: 'Crossing 3', style: { background: COLORS.river, border: `1.5px solid ${COLORS.riverInk}`, color: COLORS.riverInk } },
+        ...(HAS_RAILS ? [{ label: 'Old track 0', style: { background: COLORS.railSoft, border: `1.5px solid ${COLORS.rail}`, color: COLORS.rail } }] : []),
+        ...(HAS_CLIFFS ? [{ label: 'Cliff, no way through', style: { background: '#e5e7eb', border: `1.5px solid ${COLORS.cliff}`, color: COLORS.cliffInk } }] : []),
       ]}
       sub={<>Tan shading marks every lane that charges 2, which needs <b>both</b> ends on the ridge, so skirting the edge is free. The river is one unbroken barrier.{HAS_CLIFFS ? <> A dark bar is a <b>cliff</b>: that lane cannot be laid at any price, so route around it.</> : null}{HAS_RAILS ? <> A dashed green lane is <b>old track</b>, already on the ground: run along it and it costs you nothing.</> : null}</>}
       steps={[
@@ -951,15 +951,15 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', marginTop: 10, flexWrap: 'wrap', fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 3, borderRadius: 2, background: '#c9d0dc' }} /> open 1</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: `var(--stg-surf, ${COLORS.ridge})` }} /> ridge 2</span>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: `var(--stg-surf, ${COLORS.river})` }} /> crossing 3</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 9, borderRadius: 3, background: COLORS.ridge, boxShadow: `0 0 0 1px ${COLORS.ridgeInk}` }} /> ridge 2</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.river, boxShadow: `0 0 0 1px ${COLORS.riverInk}` }} /> crossing 3</span>
             {HAS_RAILS && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: `var(--stg-surf, ${COLORS.railSoft})`, borderTop: `2px dashed ${COLORS.rail}` }} /> old track 0</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 15, height: 5, borderRadius: 3, background: COLORS.railSoft, borderTop: `2px dashed ${COLORS.rail}` }} /> old track 0</span>
             )}
             {HAS_CLIFFS && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 13, borderRadius: 2, background: COLORS.cliff }} /> cliff, no way through</span>
             )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink }} /> depot</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink, boxShadow: `0 0 0 1px ${SURF_B}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 4, height: 4, borderRadius: 1, background: T.white }} /></span> depot</span>
           </div>
           {/* The marking's own key, printed only while the marking is up, so
               a red lane is never left for the reader to guess at. */}
