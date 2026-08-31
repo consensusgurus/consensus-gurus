@@ -433,6 +433,12 @@ const CSS = `
 .sty-cathead b{font-family:${MONO};font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--stg-ink2);}
 .sty-cathead b i{font-style:normal;color:var(--stg-mute);}
 .sty-games{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));}
+/* A grid track's automatic minimum is MIN-CONTENT, and .sty-gt is nowrap, so a
+   long tagline widens its own track and pushes the ladder off a phone instead
+   of ellipsing inside it. Measured: the ladder ran 426px wide at 390. The floor
+   has to be released on the track AND on the item. */
+.sty-g,.sty-circ{min-width:0;}
+.sty-g>*{min-width:0;max-width:100%;}
 .sty-g{display:block;text-decoration:none;background:var(--stg-surf);
   border:1px solid var(--stg-line);border-radius:9px;padding:10px 12px;color:var(--stg-ink);}
 .sty-g:hover{border-color:var(--cc);}
@@ -447,7 +453,7 @@ const CSS = `
 
 @media (max-width:560px){
   .sty-gp{display:none;}
-  .sty-circs{grid-template-columns:1fr;}
+  .sty-circs{grid-template-columns:minmax(0,1fr);}
 }
 @media (max-width:640px){
   /* The name never wraps; the DATE is what gives way, onto its own line first
@@ -460,7 +466,7 @@ const CSS = `
   .sty-nm{font-size:21px;}
   .sty-next{padding:15px 16px;gap:12px;}
   .sty-go{padding:8px 13px;font-size:13px;}
-  .sty-games{grid-template-columns:1fr 1fr;}
+  .sty-games{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
 }
 @media (max-width:380px){
   .sty-date{display:none;}
