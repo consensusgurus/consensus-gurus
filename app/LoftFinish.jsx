@@ -70,6 +70,7 @@ import { DAILY_GAMES, DAILY_GAME_MAP, attemptsMode, isArcade, wantsFastRetry, da
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
+import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -82,6 +83,19 @@ function fmtTime(s) {
 // same wherever it appears.
 function Calculating({ wide = false }) {
   return <span className={wide ? 'loft-calc wide' : 'loft-calc'}>Calculating<i>.</i><i>.</i><i>.</i></span>;
+}
+
+
+// THE NEW GLYPHS, not the old multicolour PNGs (owner, 2026-08-31). One stroke
+// drawing in currentColor, so it takes the surface's own colour instead of
+// importing a second palette. See lib/game-glyphs.js.
+function GameGlyph({ gameKey, size = 22 }) {
+  const d = GLYPHS[gameKey];
+  if (!d) return null;
+  return (
+    <svg viewBox={GLYPH_BOX} width={size} height={size} fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+  );
 }
 
 export default function LoftFinish({
@@ -941,7 +955,7 @@ export default function LoftFinish({
           <b>More {myCat}</b>
           <div className="lfc-row">
             {catNext.map((g) => (
-              <a key={g.key} href={g.href}><img src={g.img} alt="" width={22} height={22} />{g.name}</a>
+              <a key={g.key} href={g.href}><GameGlyph gameKey={g.key} size={20} />{g.name}</a>
             ))}
           </div>
         </div>
@@ -1175,7 +1189,7 @@ export default function LoftFinish({
             <div className="loft-gtiles">
               {shownGames.map((g) => (
                 <a key={g.key} href={g.href} className={g.played ? 'played' : undefined}>
-                  <img src={g.img} alt="" width={30} height={30} />
+                  <GameGlyph gameKey={g.key} size={26} />
                   <span><b>{g.name}</b><i>{g.tag}</i></span>
                   {g.played ? <em>Played</em> : null}
                 </a>

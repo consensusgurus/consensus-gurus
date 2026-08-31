@@ -19,18 +19,27 @@
 // because showing a player what they missed is the one thing they want first;
 // 'similar' comes OUT of the grid because a finisher was passing two exits
 // before reaching the one that hands them forward).
-import { useEffect, useMemo, useState } from 'react';
-import { DAILY_GAMES } from '@/lib/daily-games';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
 import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
 import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 
 // Which dailies are finished TODAY, from the breadcrumb every client writes on
 // finishing. Read once on mount: a finish page is a snapshot, not live data.
+// THE LIVE ROSTER, not DAILY_GAMES. A retired game stays in that array so its
+// archived days keep scoring, so listing from it put Circa (retired 2026-07-20)
+// back on screen (owner, 2026-08-31). Reading through liveDailyKeys fixes Extra
+// on 2026-09-29 too, without anyone remembering to come back.
+const LIVE = () => {
+  const live = new Set(liveDailyKeys());
+  return DAILY_GAMES.filter((g) => live.has(g.key));
+};
+
 function doneToday() {
   const out = new Set();
   let today = '';
   try { today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); } catch (e) { return out; }
-  for (const g of DAILY_GAMES) {
+  for (const g of LIVE()) {
     try {
       const c = JSON.parse(localStorage.getItem(`sot_${g.key}_day`) || 'null');
       if (c && c.d === today && c.done) out.add(g.key);
@@ -100,18 +109,36 @@ export default function StageFinish({
   const [played, setPlayed] = useState(() => new Set());
   useEffect(() => { setPlayed(doneToday()); }, []);
 
-  const me = useMemo(() => DAILY_GAMES.find((g) => g.name === name) || null, [name]);
+  const me = useMemo(() => LIVE().find((g) => g.name === name) || null, [name]);
   // MORE OF WHAT THEY JUST PLAYED. Unplayed first, so the row leads with
   // somewhere to actually go rather than with what they have already done.
   const sameCat = useMemo(() => {
     if (!me) return [];
-    return DAILY_GAMES
+    return LIVE()
       .filter((g) => g.cat === me.cat && g.key !== me.key)
       .sort((a, b) => (played.has(a.key) - played.has(b.key)) || a.name.localeCompare(b.name))
       .slice(0, 8);
   }, [me, played]);
+  // The arrows are only worth showing when the row actually overflows, which
+  // only the rendered row can say.
+  const catsRef = useRef(null);
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    const el = catsRef.current;
+    if (!el) return undefined;
+    const read = () => setOver(el.scrollWidth > el.clientWidth + 4);
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const nudge = (dir) => {
+    const el = catsRef.current;
+    if (el) el.scrollBy({ left: dir * Math.max(160, el.clientWidth * 0.7), behavior: 'smooth' });
+  };
+
   const catList = useMemo(() => (cat
-    ? DAILY_GAMES.filter((g) => cat === 'all' || g.cat === cat).slice().sort((a, b) => a.name.localeCompare(b.name))
+    ? LIVE().filter((g) => cat === 'all' || g.cat === cat).slice().sort((a, b) => a.name.localeCompare(b.name))
     : []), [cat]);
 
   const uncollapse = () => {
@@ -150,13 +177,25 @@ export default function StageFinish({
           is the one looking for what to play next, and this is the shortest
           route to any of eighty without going home first. Pressing one lists
           that category A to Z; pressing it again puts it away. */}
-      <div className="stf-cats">
-        {RAMP_ORDER.map((c) => (
-          <button key={c} type="button"
-            className={'stf-cat' + (cat === c ? ' on' : '')}
-            style={{ '--tc': categoryColor(c) }}
-            onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
-        ))}
+      <div className="stf-catbar">
+        <span className="stf-catlab">Play more:</span>
+        {/* ONE LINE, ALWAYS. Nine chips wrapped to a second row and left Arcade
+            stranded on its own (owner, 2026-08-31), so the row scrolls instead:
+            a flick on a phone, and arrows on a desktop where there is no
+            obvious way to swipe. The arrows only appear when there is actually
+            something out of view. */}
+        <button type="button" className="stf-catnav" aria-label="Scroll categories left"
+          onClick={() => nudge(-1)} hidden={!over}>&#8249;</button>
+        <div className="stf-cats" ref={catsRef}>
+          {RAMP_ORDER.map((c) => (
+            <button key={c} type="button"
+              className={'stf-cat' + (cat === c ? ' on' : '')}
+              style={{ '--tc': categoryColor(c) }}
+              onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
+          ))}
+        </div>
+        <button type="button" className="stf-catnav" aria-label="Scroll categories right"
+          onClick={() => nudge(1)} hidden={!over}>&#8250;</button>
       </div>
       {cat ? (
         <div className="stf-catlist">
@@ -253,7 +292,7 @@ export default function StageFinish({
               than navigating away. */}
           <button type="button" className={'stf-o' + (cat === 'all' ? ' on' : '')}
             onClick={() => setCat((v) => (v === 'all' ? null : 'all'))}>
-            <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${DAILY_GAMES.length}`}</i>
+            <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${LIVE().length}`}</i>
           </button>
         </div>
       </div>
@@ -267,7 +306,17 @@ const CSS = `
 
 /* ── the curtain ───────────────────────────────────────────────────────── */
 /* ── the category row, and the list it opens ───────────────────────────── */
-.stf-cats{display:flex;flex-wrap:wrap;gap:6px;max-width:720px;margin:0 auto 14px;padding:0 4px;}
+.stf-catbar{display:flex;align-items:center;gap:8px;max-width:720px;margin:0 auto 14px;padding:0 4px;}
+.stf-catlab{flex:none;font-family:${MONO};font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--stg-mute);}
+.stf-cats{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;}
+.stf-cats::-webkit-scrollbar{display:none;}
+.stf-cat{scroll-snap-align:start;flex:none;}
+.stf-catnav{flex:none;background:none;border:1px solid var(--stg-line);border-radius:7px;
+  color:var(--stg-ink2);cursor:pointer;font-size:14px;line-height:1;padding:5px 9px;}
+.stf-catnav:hover{border-color:var(--stg-line2);color:var(--stg-ink);}
+@media (hover:none){ .stf-catnav{display:none;} }
 .stf-cat{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
   font-weight:700;background:none;cursor:pointer;color:var(--stg-ink2);
   border:1px solid var(--stg-line);border-left:3px solid var(--tc);border-radius:7px;

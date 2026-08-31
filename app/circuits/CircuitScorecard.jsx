@@ -32,8 +32,22 @@
 // other two shapes those rules catch.
 
 import React from 'react';
+import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 
 const r1 = (n) => Math.round(Number(n) * 10) / 10;
+
+
+// THE NEW GLYPHS, not the old multicolour PNGs (owner, 2026-08-31). One stroke
+// drawing in currentColor, so it takes the surface's own colour instead of
+// importing a second palette. See lib/game-glyphs.js.
+function GameGlyph({ gameKey, size = 22 }) {
+  const d = GLYPHS[gameKey];
+  if (!d) return null;
+  return (
+    <svg viewBox={GLYPH_BOX} width={size} height={size} fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+  );
+}
 
 export default function CircuitScorecard({
   eyebrow = '',
@@ -110,7 +124,7 @@ export default function CircuitScorecard({
                 <div key={x.key}
                      className={`csc-row${x.state === 'won' ? ' won' : ''}${x.state === 'open' ? ' open' : ''}`}
                      style={{ '--acc': x.accent || 'var(--accent,#233a63)' }}>
-                  <img className="csc-ic" src={`/games/btn-${x.key}.png`} alt="" width={44} height={44} />
+                  <span className="csc-ic" style={{ color: x.accent || 'currentColor' }}><GameGlyph gameKey={x.key} size={30} /></span>
                   <div className="csc-rt">
                     {x.href
                       ? <a className="csc-rn" href={x.href}>{x.name}</a>
