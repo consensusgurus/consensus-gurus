@@ -838,9 +838,9 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                   return (
                     <button key={k} className={`cv-chip${on ? ' on' : ''}${done ? ' done' : ''}`} onClick={() => { if (!done) setCur(k); }}
                       aria-label={`carve block ${k + 1}`}
-                      style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : THEME.white) }}>
+                      style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : (STAGE ? 'var(--stg-surf)' : THEME.white)) }}>
                       <span style={{ width: 14, height: 14, borderRadius: 99, background: hue.line, display: 'inline-block' }} />
-                      <span style={{ fontSize: 10.5, fontWeight: 500, color: done ? `var(--stg-mute, ${COLORS.faded})` : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 500, color: (done || on) ? '#0b0d12' : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                         {done ? '✓' : `${sums[k]}/${TARGET}`}
                       </span>
                     </button>

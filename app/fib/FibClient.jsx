@@ -868,7 +868,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                   className="fb-btn"
                   onClick={submit}
                   disabled={!canSubmit}
-                  style={{ background: canSubmit ? COLORS.accent : T.white, color: canSubmit ? T.white : 'rgba(28,30,36,0.4)', borderColor: canSubmit ? COLORS.accent : 'rgba(28,30,36,0.25)', cursor: canSubmit ? 'pointer' : 'default', fontSize: 15, padding: '11px 26px' }}
+                  style={{ background: canSubmit ? COLORS.accent : (STAGE ? 'transparent' : T.white), color: canSubmit ? T.white : 'var(--stg-mute, rgba(28,30,36,0.4))', borderColor: canSubmit ? COLORS.accent : 'var(--stg-line2, rgba(28,30,36,0.25))', cursor: canSubmit ? 'pointer' : 'default', fontSize: 15, padding: '11px 26px' }}
                 >
                   <CheckIcon size={16} /> Submit
                 </button>
