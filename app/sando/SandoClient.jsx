@@ -822,16 +822,19 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
     const peer = sel >= 0 && !isSel && (r === selR || c === selC || b === selB);
     const val = givenFlat[idx] || cells[idx];
     const sameVal = hlVal && val === hlVal && !isSel;
-    let bg = T.white;
-    if (peer) bg = '#f3f5f8';
+    // Same conversion Sixes needed: the digits moved to the stage's ink while
+    // the cells stayed white, so the whole grid rendered pale-on-white. Tokens
+    // with the Loft value as the fallback, so the Loft render is unchanged.
+    let bg = `var(--stg-surf, ${T.white})`;
+    if (peer) bg = 'var(--stg-chip, #f3f5f8)';
     if (sameVal) bg = '#dcedef';
     if (isSel) bg = '#bde0e4';
     return {
       background: bg,
-      boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
+      boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
-      borderRight: `${c % 3 === 2 ? 2.5 : 1}px solid ${c % 3 === 2 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
-      borderBottom: `${r % 3 === 2 ? 2.5 : 1}px solid ${r % 3 === 2 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
+      borderRight: `${c % 3 === 2 ? 2.5 : 1}px solid ${c % 3 === 2 ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
+      borderBottom: `${r % 3 === 2 ? 2.5 : 1}px solid ${r % 3 === 2 ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
       borderLeft: c === 0 ? `2.5px solid rgba(28,30,36,0.85)` : undefined,
       borderTop: r === 0 ? `2.5px solid rgba(28,30,36,0.85)` : undefined,
     };

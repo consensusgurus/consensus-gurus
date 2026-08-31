@@ -30,7 +30,7 @@
 // Data comes from fetchDayStatus, the same call the existing home makes, so
 // this surface adds no new endpoint and cannot disagree with the other one
 // about what has been played.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
 import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
@@ -92,7 +92,9 @@ function fmtDate(ymd) {
   return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
 
-const CIRC_PEEK = 3;
+// A phone shows three circuits at most; a wider screen shows however many fit
+// on one row, which is measured rather than guessed (owner, 2026-08-31).
+const CIRC_PEEK_NARROW = 3;
 
 // ONE DRAWING PER GAME, PAINTED BY THE SURFACE. The glyph is a single stroke
 // path in currentColor, so the card's own --cc (its category step) colours it,
@@ -389,9 +391,21 @@ export default function StageToday() {
       const n = games.filter((g) => done.has(g.key)).length;
       // A circuit spans categories, so it wears its LEAD game's step rather
       // than inventing a tenth colour.
-      return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, hue: hueFor(games[0].cat) };
-    }).filter(Boolean);
-  }, [day, done, light]);   // eslint-disable-line react-hooks/exhaustive-deps
+      // POPULARITY IS THE SUM OF ITS GAMES' PLAYS TODAY (owner, 2026-08-31), so
+      // the shelf leads with what the site is actually playing rather than a
+      // fixed editorial order. Summed, not averaged: a circuit of five busy
+      // games IS a busier circuit than one of two.
+      const pop = games.reduce((t, g) => t + (playsOf(g.key) || 0), 0);
+      // A circuit spans categories, so it wears its LEAD game's step rather
+      // than inventing a tenth colour.
+      return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, pop, hue: hueFor(games[0].cat) };
+    }).filter(Boolean)
+      // Ties keep DISPLAY_CIRCUITS' order, which is why the sort is stable on
+      // the index rather than on pop alone.
+      .map((c, i) => [c, i])
+      .sort((a, b) => (b[0].pop - a[0].pop) || (a[1] - b[1]))
+      .map(([c]) => c);
+  }, [day, done, light, bgames]);   // eslint-disable-line react-hooks/exhaustive-deps
   // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
   // 2026-08-31: "takes up too much space"). The key is nine labelled swatches,
   // which wrap to three lines at 390 and push the first playable thing off the
@@ -407,6 +421,25 @@ export default function StageToday() {
     return () => mq.removeEventListener('change', on);
   }, []);
   const ladH = narrow ? 20 : 54;
+
+  // HOW MANY CIRCUITS FIT is a question only the rendered grid can answer, so
+  // it is read off the element's own computed columns rather than derived from
+  // a breakpoint. Re-measured on resize; falls back to three before it mounts.
+  const circRef = useRef(null);
+  const [circCols, setCircCols] = useState(3);
+  useEffect(() => {
+    const el = circRef.current;
+    if (!el) return undefined;
+    const read = () => {
+      const cols = window.getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length;
+      if (cols > 0) setCircCols(cols);
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [circuits.length]);
+  const circPeek = narrow ? CIRC_PEEK_NARROW : Math.max(1, circCols);
 
   const playedCount = done.size;
   // light=1 returns the flat `rank`; full mode nests it under ranks.xp. Both are
@@ -548,46 +581,12 @@ export default function StageToday() {
           </div>
         </section>
 
-        {/* 3. THREE CARDS, not one (owner, 2026-08-31). The single Up Next card
-               answered one question; these answer the three a reader actually
-               arrives with — what am I in the middle of, what is everyone
-               playing, and who is winning. */}
-        <div className="sty-three">
-          {lead ? (
-            <a className="sty-card lead" href={`${routeOf(lead.game)}?stage=1${tq}`} style={{ '--cc': hueFor(lead.game.cat) }}>
-              <div className="sty-eb">{lead.eyebrow}</div>
-              <div className="sty-nm"><Glyph k={lead.game.key} size={22} />{lead.game.name}</div>
-              <div className="sty-tag">{lead.game.tag}</div>
-              <span className="sty-go">{lead.cta}</span>
-            </a>
-          ) : (
-            <div className="sty-card lead sty-allin" style={{ '--cc': hueFor(cats[0] && cats[0].cat) }}>
-              <div className="sty-eb">The day</div>
-              <div className="sty-nm">All {total} played</div>
-            </div>
-          )}
-
-          {popular ? (
-            <a className="sty-card" href={`${routeOf(popular.game)}?stage=1${tq}`} style={{ '--cc': hueFor(popular.game.cat) }}>
-              <div className="sty-eb">Most played today</div>
-              <div className="sty-nm"><Glyph k={popular.game.key} size={22} />{popular.game.name}</div>
-              <div className="sty-tag">{popular.plays} {popular.plays === 1 ? 'player' : 'players'} so far</div>
-              <span className="sty-go ghost">{done.has(popular.game.key) ? 'Played' : 'Play'}</span>
-            </a>
-          ) : null}
-
-          {topRow ? (
-            <a className="sty-card" href="#sty-board" style={{ '--cc': hueFor('Trivia') }}>
-              <div className="sty-eb">Leading today</div>
-              <div className="sty-nm">{topRow.username || 'Player'}</div>
-              <div className="sty-tag">
-                {Math.round(topRow.total)} points{overall.length ? ` of ${overall.length} playing` : ''}
-              </div>
-              <span className="sty-go ghost">The board</span>
-            </a>
-          ) : null}
-        </div>
-
+        {/* NO CARDS ABOVE MY GAMES (owner, 2026-08-31). The three of them —
+               what you are mid-way through, what is most played, who is
+               leading — each restated something the page already says further
+               down, and together they pushed the reader's OWN games below the
+               fold. My games is the top section now; the day's ladder above it
+               is the only thing that outranks a reader's own choices. */}
         {/* MY GAMES: the starred set, above everything a reader did not choose.
             Only shown when there are stars, so it never sits there empty asking
             to be filled. */}
@@ -612,8 +611,8 @@ export default function StageToday() {
         {circuits.length ? (
           <section>
             <div className="sty-eb">Circuits <em>&middot; {circuits.length}</em></div>
-            <div className="sty-circs">
-              {(allCircs ? circuits : circuits.slice(0, CIRC_PEEK)).map((c) => (
+            <div className="sty-circs" ref={circRef}>
+              {(allCircs ? circuits : circuits.slice(0, circPeek)).map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
                   href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
                   {/* The count sits IN the header row, not absolutely over the
@@ -629,7 +628,7 @@ export default function StageToday() {
                 </a>
               ))}
             </div>
-            {circuits.length > CIRC_PEEK ? (
+            {circuits.length > circPeek ? (
               <button type="button" className="sty-more" onClick={() => setAllCircs((v) => !v)}>
                 {allCircs ? 'Show fewer' : `Show all ${circuits.length} circuits`}
               </button>

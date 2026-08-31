@@ -725,15 +725,18 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
     const peer = sel >= 0 && !isSel && (r === selR || c === selC);
     const val = givenFlat[idx] || cells[idx];
     const sameVal = hlVal && val === hlVal && !isSel;
-    let bg = T.white;
-    if (peer) bg = '#f3f5f8';
-    if (sameVal) bg = COLORS.accentTint;
-    if (isSel) bg = COLORS.accentPick;
+    // Same conversion Sixes needed: the digits moved to the stage's ink while
+    // the cells stayed white, so the whole grid rendered pale-on-white. Tokens
+    // with the Loft value as the fallback, so the Loft render is unchanged.
+    let bg = `var(--stg-surf, ${T.white})`;
+    if (peer) bg = 'var(--stg-chip, #f3f5f8)';
+    if (sameVal) bg = `var(--stg-surf2, ${COLORS.accentTint})`;
+    if (isSel) bg = `var(--stg-chip, ${COLORS.accentPick})`;
     const thin = '1px solid rgba(28,30,36,0.22)';
     const heavy = '2.5px solid rgba(28,30,36,0.85)';
     return {
       background: bg,
-      boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
+      boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
       borderTop: r === 0 ? heavy : undefined,
       borderLeft: c === 0 ? heavy : undefined,

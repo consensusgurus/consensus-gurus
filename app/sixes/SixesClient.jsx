@@ -729,16 +729,21 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
     const sameVal = hlVal && val === hlVal && !isSel;
     const heavyR = c % BOX_W === BOX_W - 1 && c !== N - 1;
     const heavyB = r % BOX_H === BOX_H - 1 && r !== N - 1;
-    let bg = T.white;
-    if (peer) bg = '#f3f5f8';
-    if (sameVal) bg = COLORS.accentTint;
-    if (isSel) bg = COLORS.accentPick;
+    // THE GRID NEVER CONVERTED. The digits moved to the stage's ink but the
+    // cells stayed white, so a whole board rendered near-white on white
+    // (owner, 2026-08-31: "can't read sixes"). Every fill and every rule takes
+    // a token with its Loft value as the fallback, so the Loft render is
+    // unchanged and the stage gets a dark grid under its pale ink.
+    let bg = `var(--stg-surf, ${T.white})`;
+    if (peer) bg = 'var(--stg-chip, #f3f5f8)';
+    if (sameVal) bg = `var(--stg-surf2, ${COLORS.accentTint})`;
+    if (isSel) bg = `var(--stg-chip, ${COLORS.accentPick})`;
     return {
       background: bg,
-      boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
+      boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
-      borderRight: `${heavyR ? 2.5 : 1}px solid ${heavyR ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
-      borderBottom: `${heavyB ? 2.5 : 1}px solid ${heavyB ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
+      borderRight: `${heavyR ? 2.5 : 1}px solid ${heavyR ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
+      borderBottom: `${heavyB ? 2.5 : 1}px solid ${heavyB ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };
@@ -864,7 +869,7 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
 
           {/* the 6×6 grid, heavy rules on the box edges */}
           <div style={{ maxWidth: GRID_MAX, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: '2.5px solid rgba(28,30,36,0.85)', borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: '2.5px solid var(--stg-line3, rgba(28,30,36,0.85))', borderRadius: 4, overflow: 'hidden' }}>
               {Array.from({ length: CELLS }).map((_, idx) => {
                 const given = givenFlat[idx];
                 const val = given || cells[idx];

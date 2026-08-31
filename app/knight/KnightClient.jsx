@@ -765,18 +765,21 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
     const heavyR = c % BOX_W === BOX_W - 1 && c !== N - 1;
     const heavyB = r % BOX_H === BOX_H - 1 && r !== N - 1;
     const knight = sel >= 0 && !isSel && selKnights.has(idx);
-    let bg = T.white;
-    if (peer) bg = '#f3f5f8';
+    // Same conversion Sixes needed: the digits moved to the stage's ink while
+    // the cells stayed white, so the whole grid rendered pale-on-white. Tokens
+    // with the Loft value as the fallback, so the Loft render is unchanged.
+    let bg = `var(--stg-surf, ${T.white})`;
+    if (peer) bg = 'var(--stg-chip, #f3f5f8)';
     if (knight) bg = COLORS.knightTint;
-    if (sameVal) bg = COLORS.accentTint;
-    if (isSel) bg = COLORS.accentPick;
+    if (sameVal) bg = `var(--stg-surf2, ${COLORS.accentTint})`;
+    if (isSel) bg = `var(--stg-chip, ${COLORS.accentPick})`;
     return {
       background: bg,
       boxShadow: isSel
-        ? `inset 0 0 0 2.5px ${COLORS.accent}`
+        ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})`
         : (knight ? `inset 0 0 0 1.5px ${COLORS.knightEdge}` : undefined),
-      borderRight: `${heavyR ? 2.5 : 1}px solid ${heavyR ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
-      borderBottom: `${heavyB ? 2.5 : 1}px solid ${heavyB ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
+      borderRight: `${heavyR ? 2.5 : 1}px solid ${heavyR ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
+      borderBottom: `${heavyB ? 2.5 : 1}px solid ${heavyB ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-line, rgba(28,30,36,0.18))'}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };
@@ -902,7 +905,7 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
 
           {/* the 9×9 grid, heavy rules on the box edges */}
           <div style={{ maxWidth: GRID_MAX, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: '2.5px solid rgba(28,30,36,0.85)', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: '2.5px solid var(--stg-line3, rgba(28,30,36,0.85))', borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
               {Array.from({ length: CELLS }).map((_, idx) => {
                 const given = givenFlat[idx];
                 const val = given || cells[idx];
