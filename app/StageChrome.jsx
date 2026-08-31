@@ -305,15 +305,25 @@ const CSS = `
      is what the page IS and how to leave it, row 2 is how you are doing. The
      figures get the full width to themselves and space out evenly, so four fit
      without shrinking the title. */
-  .stg-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
-    grid-template-areas:'id rank theme home' 'fg fg fg fg';
-    align-items:center;gap:9px 8px;padding:10px 13px;}
-  .stg-id{grid-area:id;}
+  .stg-cap{gap:10px;padding:10px 13px;}
   .stg-id b{font-size:15px;}
-  .stg-rank{grid-area:rank;}
-  .stg-theme{grid-area:theme;}
-  .stg-home{grid-area:home;}
-  .stg-fg{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
+  .stg-fg{margin-left:auto;gap:14px;}
+  /* The second row is spent ONLY when it buys something. A game with one or two
+     figures (Suds: time, filled) still fits beside its title, and forcing it
+     onto its own line took that cap from 52px to 100px — a taller header to
+     hold LESS. Three or more is where the one-line version starts wrapping
+     where it lands rather than where it means something, so that is where the
+     split earns its height. :has counts the figures for us. */
+  .stg-cap:has(.stg-fg>div:nth-child(3)){
+    display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
+    grid-template-areas:'id rank theme home' 'fg fg fg fg';
+    align-items:center;gap:9px 8px;}
+  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-id{grid-area:id;}
+  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-rank{grid-area:rank;}
+  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-theme{grid-area:theme;}
+  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-home{grid-area:home;}
+  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-fg{
+    grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
     border-top:1px solid var(--stg-line,rgba(255,255,255,0.09));padding-top:8px;}
   .stg-fg>div{min-width:0;}
   .stg-strip{padding:8px 13px;gap:8px;font-size:11.5px;}
