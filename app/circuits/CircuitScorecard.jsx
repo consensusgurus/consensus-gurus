@@ -123,10 +123,7 @@ export default function CircuitScorecard({
                       white, so it would have been a pastel on white. The
                       registry's `color` is the same hue at the value a light
                       card needs. */}
-                  <span className="csc-ic"
-                    style={{ color: (DAILY_GAME_MAP[x.key] || {}).color || 'var(--accent,#233a63)' }}>
-                    <GameGlyph gameKey={x.key} size={26} />
-                  </span>
+                  <span className="csc-ic"><GameGlyph gameKey={x.key} size={26} on="light" /></span>
                   <div className="csc-rt">
                     {x.href
                       ? <a className="csc-rn" href={x.href}>{x.name}</a>

@@ -173,7 +173,7 @@ export default function RunNextUp({ circuitId }) {
           <div className="rnx-tiles">
             {picks.map(({ g, why }) => (
               <a key={g.key} className="rnx-tile" href={g.href}>
-                <span className="rnx-ic" style={{ color: (DAILY_GAME_MAP[g.key] || {}).colorNavy || '#eef2fa' }}><GameGlyph gameKey={g.key} size={22} /></span>
+                <span className="rnx-ic"><GameGlyph gameKey={g.key} size={22} on="dark" /></span>
                 <span><b>{g.name}</b><i>{g.tag}</i></span>
                 <em>{why}</em>
               </a>
@@ -230,7 +230,7 @@ export default function RunNextUp({ circuitId }) {
           <div className="rnx-tiles">
             {shownGames.map((g) => (
               <a key={g.key} className={g.played ? 'rnx-tile played' : 'rnx-tile'} href={g.href}>
-                <span className="rnx-ic" style={{ color: (DAILY_GAME_MAP[g.key] || {}).colorNavy || '#eef2fa' }}><GameGlyph gameKey={g.key} size={22} /></span>
+                <span className="rnx-ic"><GameGlyph gameKey={g.key} size={22} on="dark" /></span>
                 <span><b>{g.name}</b><i>{g.tag}</i></span>
                 {g.played ? <em className="done">Played</em> : null}
               </a>

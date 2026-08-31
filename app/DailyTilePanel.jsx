@@ -268,7 +268,7 @@ export default function DailyTilePanel({
   return (
     <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
       <div className="dtp-hd">
-        <span className="dtp-ic" style={{ color: game.color || '#33415c' }}><GameGlyph gameKey={game.key} size={26} /></span>
+        <span className="dtp-ic"><GameGlyph gameKey={game.key} size={26} on="light" /></span>
         <div className="dtp-idt">
           <div className="dtp-nm">
             <span className="dtp-nmt">{game.name}</span>

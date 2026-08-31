@@ -150,7 +150,7 @@ export default function CircuitLanding({ circuit, games }) {
                  justify-content:center;font-variant-numeric:tabular-nums;}
         .clp-c.played .clp-num{background:var(--success);color:#fff;}
         .clp-ic{flex:none;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
-          justify-content:center;color:var(--cc,#33415c);background:var(--surface,#f7f8fa);}
+          justify-content:center;background:var(--surface,#f7f8fa);}
         .clp-ct{min-width:0;flex:1;}
         /* BLOCK, both of them. They are <span>s inside .clp-ct, and .clp-ct being a
            flex ITEM blockifies the box itself but NOT its children, so the two
@@ -256,7 +256,7 @@ export default function CircuitLanding({ circuit, games }) {
               href={circuitHref(g.key, marquee ? MARQUEE_ID : id)}
             >
               <span className="clp-num">{played ? '✓' : i + 1}</span>
-              <span className="clp-ic"><GameGlyph gameKey={g.key} size={22} /></span>
+              <span className="clp-ic"><GameGlyph gameKey={g.key} size={22} on="light" /></span>
               <span className="clp-ct">
                 <span className="clp-cn">{g.name}</span>
                 <span className="clp-cm">{g.subject || g.cat}</span>
