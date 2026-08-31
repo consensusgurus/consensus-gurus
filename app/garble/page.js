@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import GarbleClient from './GarbleClient';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
@@ -92,7 +93,15 @@ export default function GarblePage({ searchParams }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <GarbleClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      {/* SUSPENSE IS REQUIRED, not decoration. GarbleClient reads
+          useSearchParams (the stage flag), and Next fails the BUILD for a
+          statically rendered page that calls it outside a boundary:
+          "useSearchParams() should be wrapped in a suspense boundary". Every
+          other daily page already had this; Garble did not, because Garble
+          never read the query until the stage converter gave it a reason to. */}
+      <Suspense fallback={null}>
+        <GarbleClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
+      </Suspense>
     </>
   );
 }

@@ -106,5 +106,28 @@ for (const d of readdirSync('app', { withFileTypes: true })) {
   }
 }
 
+// ---------------------------------------------------- SUSPENSE BOUNDARIES
+//
+// A client that calls useSearchParams FAILS THE BUILD on a statically rendered
+// page unless it is inside a <Suspense>. The stage converter ADDS that hook to
+// any client that never read the query (Garble, Glyph), so it can introduce the
+// requirement into a page.js that was fine the day before. Garble broke the
+// Vercel build exactly this way, and esbuild cannot see it because it is a
+// Next rule, not a syntax error.
+for (const d of readdirSync('app', { withFileTypes: true })) {
+  if (!d.isDirectory()) continue;
+  const files = readdirSync(join('app', d.name));
+  const client = files.find((f) => /^[A-Z][A-Za-z]*Client\.jsx$/.test(f));
+  if (!client || !files.includes('page.js')) continue;
+  const csrc = readFileSync(join('app', d.name, client), 'utf8');
+  if (!/const STAGE = isStage\(/.test(csrc)) continue;       // converted only
+  if (!/useSearchParams/.test(csrc)) continue;
+  const psrc = readFileSync(join('app', d.name, 'page.js'), 'utf8');
+  if (!/Suspense/.test(psrc)) {
+    console.log(`\u2717 app/${d.name}/page.js: ${client} reads useSearchParams but the page has no <Suspense> — this fails the Next build`);
+    bad++;
+  }
+}
+
 console.log(bad ? `\n${bad} problem(s) across ${checked} converted clients` : `clean: ${checked} converted clients, every stage name imported and no dead zones`);
 process.exit(bad ? 1 : 0);
