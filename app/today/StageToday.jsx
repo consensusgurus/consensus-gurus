@@ -37,7 +37,7 @@ import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import { savedIdentity } from '@/lib/saved-identity';
-import { useStageTheme, useThemeQs } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs, useThemeHint } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
@@ -82,7 +82,8 @@ function Glyph({ k, size = 20 }) {
 
 export default function StageToday() {
   const [stageTheme, setStageTheme] = useStageTheme();
-  const tq = useThemeQs();   // carries a ?theme= review override across links
+  const tq = useThemeQs();
+  const hint = useThemeHint();  // one pointer at the light switch, first visit only   // carries a ?theme= review override across links
   // circuitEntryHref may or may not already carry a query, so the override
   // joins with the right separator rather than always an ampersand.
   const withTq = (href) => (tq ? href + (href.includes('?') ? tq : '?' + tq.slice(1)) : href);
@@ -281,7 +282,7 @@ export default function StageToday() {
         </div>
         <button
           type="button"
-          className="sty-cx sty-tg"
+          className={'sty-cx sty-tg' + (hint ? ' hint' : '')}
           onClick={() => setStageTheme(stageTheme === 'light' ? 'dark' : 'light')}
           aria-label={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
           title={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
@@ -453,6 +454,17 @@ const CSS = `
 .sty-figs b i.sty-dn{color:var(--stg-dn);}
 .sty-tg{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;
   background:none;cursor:pointer;font:inherit;}
+.sty-tg.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
+/* THE FIRST-VISIT POINTER at the light switch: a ring pulsing out of the glyph,
+   three times, then gone for good. A ring rather than a colour change, so it
+   draws the eye without the control ever looking like it is in a state it is
+   not. */
+@keyframes stg-hintring{
+  0%{box-shadow:0 0 0 0 var(--stg-acc);}
+  70%{box-shadow:0 0 0 10px transparent;}
+  100%{box-shadow:0 0 0 0 transparent;}
+}
+@media (prefers-reduced-motion: reduce){ .hint{animation:none !important;} }
 .sty-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--stg-ink2);text-decoration:none;border:1px solid var(--stg-line);
   border-radius:7px;padding:6px 10px;}

@@ -34,7 +34,7 @@
 //     lib/category-ramp.js for why the brand blue does not belong here.
 import React, { useEffect, useRef, useState } from 'react';
 import { Home } from 'lucide-react';
-import { useStageTheme, useThemeQs } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs, useThemeHint } from '@/lib/stage-theme';
 // The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
 // sheet that LoftFinish depends on, so the end card rendered unstyled.
 import { LoftSheet } from './LoftCap';
@@ -107,6 +107,7 @@ export default function StageChrome({
   // A ?theme= review override travels back to the home too, or the trip out
   // and the trip back disagree about the register.
   const tq = useThemeQs();
+  const hint = useThemeHint();  // one pointer at the light switch, first visit only
   // Kept for callers that need the literal; the CAP reads var(--stg-acc),
   // which the client's root publishes in both registers.
   const colour = gameColor(gameKey);
@@ -147,7 +148,7 @@ export default function StageChrome({
         </button>
         <button
           type="button"
-          className="stg-cx stg-theme"
+          className={'stg-cx stg-theme' + (hint ? ' hint' : '')}
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
           aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
           title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
@@ -273,6 +274,18 @@ const CSS = `
 .stg-rank{margin-left:auto;}
 .stg-home{padding:5px 8px;}
 .stg-theme{padding:5px 8px;}
+.stg-theme.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
+/* THE FIRST-VISIT POINTER at the light switch: a ring pulsing out of the glyph,
+   three times, then gone for good. Deliberately a ring rather than a colour
+   change, so it draws the eye without the control ever looking like it is in a
+   state it is not. */
+@keyframes stg-hintring{
+  0%{box-shadow:0 0 0 0 var(--stg-acc);}
+  70%{box-shadow:0 0 0 10px transparent;}
+  100%{box-shadow:0 0 0 0 transparent;}
+}
+@media (prefers-reduced-motion: reduce){ .hint{animation:none !important;} }
+
 .stg-cx:hover{border-color:var(--stg-line2,rgba(255,255,255,0.17));color:var(--stg-ink,#e9edf4);}
 .stg-rank.on{color:var(--stg-onramp,#08222e);background:var(--stg-acc);border-color:var(--stg-acc);}
 .stg-cx:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
