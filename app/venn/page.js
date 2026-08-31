@@ -17,7 +17,14 @@ export const metadata = {
   alternates: { canonical: '/venn' },
   manifest: '/api/pwa-manifest?game=venn',
   icons: {
-    icon: [{ url: '/venn-icons/favicon-32.png', sizes: '32x32', type: 'image/png' }],
+    // Favicon is the Mind Loft mark on every page, games included (owner rule, 2026-08-31).
+    // Do NOT restore a per-game favicon here, and do NOT 'simplify' this by deleting the line:
+    // ANY metadata.icons object suppresses the root app/icon.png inheritance (Next resolves the
+    // file-convention icon only `if (!resolvedMetadata.icons)`), so removing it would leave the
+    // tab on the 16px favicon.ico alone. The per-game apple-touch icon below and the .webmanifest
+    // icons are deliberately untouched, so a home-screen or installed shortcut keeps the game's
+    // own art. The now-unreferenced favicon-32.png files stay in /public.
+    icon: [{ url: '/icon.png', sizes: '512x512', type: 'image/png' }],
     apple: [{ url: '/venn-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Venn' },

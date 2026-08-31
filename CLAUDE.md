@@ -6441,3 +6441,28 @@ ships only the picked day's questions, exactly as each game's own page does, so 
 never reach a browser that is playing the fifth. Question shape, tier size and the twenty
 second clock are derived rather than restated; the name, tag and colour come out of the
 daily registry. The one thing copied is each client's `TIER_NAMES`, which is display only.
+
+---
+
+## The BROWSER FAVICON is the Mind Loft mark on every page (owner rule, 2026-08-31)
+
+Thirty daily games each carried their own tab favicon (`/<game>-icons/favicon-32.png`), so
+walking the site changed the tab icon on every navigation and nothing in the tab strip said
+Mind Loft. Every one of those now points at the site mark, `/icon.png`, the same 512px blue
+brain the homepage serves.
+
+- **One line per game, in `metadata.icons.icon`:**
+  `icon: [{ url: '/icon.png', sizes: '512x512', type: 'image/png' }]`. A NEW daily game copies
+  that line verbatim; never point a game's favicon at its own art.
+- **Do NOT "simplify" it by deleting the line.** This is the trap, and the comment block above
+  each one says so: Next resolves the root `app/icon.png` file convention only
+  `if (!resolvedMetadata.icons)` (`resolve-metadata.js`), so ANY `icons` object on a page,
+  even one carrying nothing but `apple`, suppresses the inherited icon. Deleting the `icon`
+  key leaves the tab on the 16px `favicon.ico` alone rather than falling back to the mark.
+  `/icon.png` (unhashed) is a real route, 200 `image/png`, and it is served
+  `max-age=0, must-revalidate`, so the missing build hash costs nothing.
+- **The per-game apple-touch icons and `.webmanifest` icons are deliberately UNCHANGED.** A
+  game saved to a phone home screen or installed as an app still shows its own artwork; only
+  the browser tab is unified. Do not sweep those in "for consistency" without asking.
+- **The `/public/<game>-icons/favicon-32.png` files stay in the repo, unreferenced.** Nothing
+  serves them, they cost nothing, and reverting a single game is a one-line change.
