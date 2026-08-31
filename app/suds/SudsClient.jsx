@@ -268,7 +268,14 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('suds');
   const STAGE_ACC = { '--stg-acc-dk': gameColor('suds'), '--stg-acc-lt': gameColorLight('suds') };
   const Cap = STAGE ? StageChrome : LoftCap;
-  const boxOf = (i) => Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3);
+  // NAMED boxIdx, NOT boxOf. A second `boxOf` here would shadow the
+  // module-level boxOf(r, c) for the whole component, and because this one
+  // takes a single INDEX it would silently drop the column argument at every
+  // other call site: boxOf(r, c) becomes boxOf(r), which returns the row BAND.
+  // That shipped, and it lit the entire top three rows as peers of a cell in
+  // box 2 and scrubbed pencil marks from 27 cells instead of 9. A shadow does
+  // not throw, so nothing catches it but reading the board.
+  const boxIdx = (i) => Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3);
   // NINE BLOCKS OF NINE, mirroring the grid. It used to be each box's FREE
   // cells only, so the blocks came out different widths on a board everyone
   // reads as uniform 9x9 (owner asked why). The width was reporting how many
@@ -278,7 +285,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   // A given is half-lit (it was already there) and a cell you filled is lit,
   // which is the same two-level reading the rest of the stage uses.
   const stageBlocks = Array.from({ length: 9 }, (_, b) => {
-    const inBox = Array.from({ length: 81 }, (_, i) => i).filter((i) => boxOf(i) === b);
+    const inBox = Array.from({ length: 81 }, (_, i) => i).filter((i) => boxIdx(i) === b);
     const free = new Set(FREE);
     return {
       n: inBox.length,

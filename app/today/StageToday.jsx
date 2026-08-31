@@ -397,6 +397,20 @@ export default function StageToday() {
   const myOut = myRow && !top.some((r) => r && r.userKey === meKey) ? myRow : null;
   const topRow = top[0] && top[0].total != null ? top[0] : null;
 
+  // THE DAY'S FIELD SIZE BELONGS ON THE BOARD, NOT THE FEED (owner, 2026-08-31).
+  // It used to sit in the live feed's header between plays and time played,
+  // where it read as one more traffic figure, while the board above it reported
+  // its own ROW COUNT as "10 players", which says ten people played today when
+  // ten is just how many rows fit. So the board names what it is a top ten OF.
+  // `todayPlayers` counts everyone who played today, guests included, while the
+  // board ranks registered players only; that is the same denominator the end
+  // card's "#N of M" already uses. Falls back to the row count until totals
+  // land, and whenever the field is not actually bigger than the rows shown.
+  const fieldToday = (totals && totals.todayPlayers) || 0;
+  const boardCount = fieldToday > top.length
+    ? `Top ${top.length} of ${fieldToday.toLocaleString()} players`
+    : `${overall.length} ${overall.length === 1 ? 'player' : 'players'}`;
+
   // Resolvable dailies only, most recent first, capped: a feed is a glance at
   // what is happening, not a log.
   const live = useMemo(() => {
@@ -772,7 +786,7 @@ export default function StageToday() {
             played it, so it sits under the games rather than above them. */}
         {top.length ? (
           <section id="sty-board">
-            <div className="sty-eb">Today&rsquo;s board <em>&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</em></div>
+            <div className="sty-eb">Today&rsquo;s board <em>&middot; {boardCount}</em></div>
             <table className="sty-tbl">
               <tbody>
                 {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
@@ -801,7 +815,6 @@ export default function StageToday() {
             {totals ? (
               <em>
                 {' \u00b7 '}{(totals.today || 0).toLocaleString()} plays
-                {totals.todayPlayers ? ` \u00b7 ${totals.todayPlayers.toLocaleString()} players` : ''}
                 {totals.todayTime ? ` \u00b7 ${hhmm(totals.todayTime)} played` : ''}
               </em>
             ) : null}
