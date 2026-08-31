@@ -214,6 +214,18 @@ button, input, textarea, select { border-radius: 8px; }
 /* The light register. The ground goes GREY rather than white so that a raised
    surface can be white and still read as raised, which is the same thing the
    rest of the site does with paper and cards. */
+/* THE PAGE BEHIND THE STAGE. .stage-page paints its own ground, but html and
+   body keep the site's navy, so a stage page shorter than the viewport showed
+   navy under it, and on the light register that navy is what the eye lands on
+   first. :has() is the only way to reach an ancestor from the class that knows
+   which register is showing. */
+html:has(.stage-page),
+body:has(.stage-page) { background: #0b0f1a !important; }
+/* --stg-ground is defined ON .stage-page, so html cannot read it: the register
+   has to be named here instead. */
+html:has(.stage-page[data-stage-theme='light']),
+body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
+
 .stage-page[data-stage-theme='light'] {
   --stg-ground: #eef1f6;
   --stg-raise: #ffffff;
