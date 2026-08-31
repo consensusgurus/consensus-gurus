@@ -19,7 +19,39 @@
 // because showing a player what they missed is the one thing they want first;
 // 'similar' comes OUT of the grid because a finisher was passing two exits
 // before reaching the one that hands them forward).
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { DAILY_GAMES } from '@/lib/daily-games';
+import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
+import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+
+// Which dailies are finished TODAY, from the breadcrumb every client writes on
+// finishing. Read once on mount: a finish page is a snapshot, not live data.
+function doneToday() {
+  const out = new Set();
+  let today = '';
+  try { today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); } catch (e) { return out; }
+  for (const g of DAILY_GAMES) {
+    try {
+      const c = JSON.parse(localStorage.getItem(`sot_${g.key}_day`) || 'null');
+      if (c && c.d === today && c.done) out.add(g.key);
+    } catch (e) {}
+  }
+  return out;
+}
+
+function Tile({ g, played }) {
+  const d = GLYPHS[g.key];
+  return (
+    <a className={'stf-tile' + (played ? ' done' : '')} href={g.href || `/${g.key}`}
+      style={{ '--tc': categoryColor(g.cat) }}>
+      {d ? (
+        <svg viewBox={GLYPH_BOX} width="14" height="14" fill="none" stroke="currentColor"
+          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
+      ) : null}
+      <span>{g.name}</span>
+    </a>
+  );
+}
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
@@ -61,6 +93,27 @@ export default function StageFinish({
       root.classList.remove('stf-collapse');
     };
   }, []);
+  // THE REST OF THE SITE, from the one page a reader reliably reaches (owner,
+  // 2026-08-31). Three doors, and none of them can appear before the game is
+  // over because this component only exists then.
+  const [cat, setCat] = useState(null);        // null | a category | 'all'
+  const [played, setPlayed] = useState(() => new Set());
+  useEffect(() => { setPlayed(doneToday()); }, []);
+
+  const me = useMemo(() => DAILY_GAMES.find((g) => g.name === name) || null, [name]);
+  // MORE OF WHAT THEY JUST PLAYED. Unplayed first, so the row leads with
+  // somewhere to actually go rather than with what they have already done.
+  const sameCat = useMemo(() => {
+    if (!me) return [];
+    return DAILY_GAMES
+      .filter((g) => g.cat === me.cat && g.key !== me.key)
+      .sort((a, b) => (played.has(a.key) - played.has(b.key)) || a.name.localeCompare(b.name))
+      .slice(0, 8);
+  }, [me, played]);
+  const catList = useMemo(() => (cat
+    ? DAILY_GAMES.filter((g) => cat === 'all' || g.cat === cat).slice().sort((a, b) => a.name.localeCompare(b.name))
+    : []), [cat]);
+
   const uncollapse = () => {
     const root = document.querySelector('.stage-page');
     if (root) root.classList.remove('stf-collapse');
@@ -91,6 +144,30 @@ export default function StageFinish({
   return (
     <div className={'stf' + (outcome ? ' stf-' + outcome : '')}>
       <style>{CSS}</style>
+
+      {/* THE CATEGORIES, ABOVE THE VERDICT (owner, 2026-08-31). It only ever
+          appears on a finished game, which is the point: a reader who is done
+          is the one looking for what to play next, and this is the shortest
+          route to any of eighty without going home first. Pressing one lists
+          that category A to Z; pressing it again puts it away. */}
+      <div className="stf-cats">
+        {RAMP_ORDER.map((c) => (
+          <button key={c} type="button"
+            className={'stf-cat' + (cat === c ? ' on' : '')}
+            style={{ '--tc': categoryColor(c) }}
+            onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
+        ))}
+      </div>
+      {cat ? (
+        <div className="stf-catlist">
+          <div className="stf-eb">
+            {cat === 'all' ? 'All daily puzzles' : cat} <em>&middot; {catList.length}</em>
+          </div>
+          <div className="stf-tiles">
+            {catList.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+          </div>
+        </div>
+      ) : null}
 
       {/* THE CURTAIN. The one place on the stage where the accent covers
           something rather than marking it. Edge to edge, because a band with a
@@ -131,6 +208,18 @@ export default function StageFinish({
           </a>
         ) : null}
 
+        {/* MORE OF THE SAME, directly under the one recommendation. Up next is
+            a single pick; a reader who does not want it should not have to go
+            back to the home to find its neighbours. */}
+        {sameCat.length ? (
+          <section>
+            <div className="stf-eb">More {me ? me.cat : ''}</div>
+            <div className="stf-tiles">
+              {sameCat.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+            </div>
+          </section>
+        ) : null}
+
         {rows.length ? (
           <section>
             <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}</div>
@@ -159,6 +248,13 @@ export default function StageFinish({
                   <b>{o.label}</b>{o.sub ? <i>{o.sub}</i> : null}
                 </button>
           ))}
+          {/* THE OLD BROWSE BUTTON, back in the slot the grid left empty. It
+              opens the same A-to-Z panel the category row above does, rather
+              than navigating away. */}
+          <button type="button" className={'stf-o' + (cat === 'all' ? ' on' : '')}
+            onClick={() => setCat((v) => (v === 'all' ? null : 'all'))}>
+            <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${DAILY_GAMES.length}`}</i>
+          </button>
         </div>
       </div>
     </div>
@@ -170,6 +266,29 @@ const CSS = `
 .stf *{box-sizing:border-box;}
 
 /* ── the curtain ───────────────────────────────────────────────────────── */
+/* ── the category row, and the list it opens ───────────────────────────── */
+.stf-cats{display:flex;flex-wrap:wrap;gap:6px;max-width:720px;margin:0 auto 14px;padding:0 4px;}
+.stf-cat{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:700;background:none;cursor:pointer;color:var(--stg-ink2);
+  border:1px solid var(--stg-line);border-left:3px solid var(--tc);border-radius:7px;
+  padding:6px 11px;}
+.stf-cat:hover{color:var(--stg-ink);border-color:var(--stg-line2);border-left-color:var(--tc);}
+.stf-cat.on{color:var(--tc);border-color:var(--tc);}
+.stf-catlist{max-width:720px;margin:0 auto 18px;padding:0 4px;}
+
+/* One tile shape for both lists: the A-to-Z panel and More-of-the-same. */
+.stf-tiles{display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));}
+.stf-tile{display:flex;align-items:center;gap:7px;text-decoration:none;color:var(--stg-ink);
+  background:var(--stg-surf);border:1px solid var(--stg-line);border-left:3px solid var(--tc);
+  border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:700;min-width:0;}
+.stf-tile svg{flex:none;color:var(--tc);}
+.stf-tile span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stf-tile:hover{border-color:var(--stg-line2);border-left-color:var(--tc);}
+/* Played today reads as done without leaving the list: the tile keeps its
+   colour on the rule and gives up only its fill. */
+.stf-tile.done{background:none;color:var(--stg-mute);}
+.stf-o.on{border-color:var(--stg-acc);color:var(--stg-acc);}
+
 .stf-curtain{background:var(--stg-acc);color:var(--stg-onramp,#08222e);
   margin:0 calc(50% - 50vw);padding:30px calc(50vw - 50% + 4px) 26px;}
 .stf-cin{max-width:720px;margin:0 auto;}
