@@ -35,6 +35,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Home } from 'lucide-react';
 import { useStageTheme } from '@/lib/stage-theme';
+// The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
+// sheet that LoftFinish depends on, so the end card rendered unstyled.
+import { LoftSheet } from './LoftCap';
 import DailyBoardPanel from './quiz/[id]/DailyBoardPanel';
 import { dailyMeIdentity } from './dailyMeClient';
 import { gameColor, gameCategory, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
@@ -171,6 +174,7 @@ export default function StageChrome({
         </a>
       </div>
 
+      <LoftSheet />
       <div className="stg-prog"><span style={{ width: pct + '%' }} /></div>
 
       {showStrip ? (
