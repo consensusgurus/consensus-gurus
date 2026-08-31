@@ -48,7 +48,16 @@ edit('imports', "import LoftCap from '../LoftCap';",
   "import LoftCap from '../LoftCap';\n"
   + "import StageChrome from '../StageChrome';\n"
   + "import { isStage } from '@/lib/stage';\n"
-  + "import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';");
+  // Emitted below as `const [stageTheme] = useStageTheme()`. Same lesson as
+  // gameColorLight: an emitter that does not import what it emits ships a page
+  // that throws on first render, for everyone, flag or no flag.
+  + "import { useStageTheme } from '@/lib/stage-theme';\n"
+  + "import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';");
+// gameColorLight is NOT optional here. STAGE_ACC below emits a call to it, and
+// an emitter that does not import what it emits produces a client that throws
+// ReferenceError on its FIRST RENDER, live, for every player, whether or not
+// they passed ?stage=1. Thirteen pages shipped that way. esbuild parses it
+// happily; only rendering the page catches it.
 
 // 2. the flag and the stage's palette, beside the Loft flag they will outlive.
 //    TEXT and FILL are separate names on purpose: near-black text is invisible
