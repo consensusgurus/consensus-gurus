@@ -1425,7 +1425,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             <StageLadder vertical label="Words" blocks={stageBlocks} />
           </div>
         )}
-        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}
           {preStart && (
@@ -1449,9 +1449,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
           {/* the puzzle, one card: guesses + category clues + the grid */}
           {!preStart && (
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
           <div className={STAGE ? 'cl-panel' : (LOFT ? 'cl-panel loft-card' : 'cl-panel')} style={STAGE
             // NO CARD. The board sits on the ground, which is the whole point
             // of the stage: a white panel here reads as a cut-out, and a dark
@@ -1630,7 +1630,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
             {/* result */}
             {!playing && (
               <>
@@ -1639,7 +1639,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                     <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                   </div>
                 )}
-                <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
+                <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   {isTodays ? (
                     <>
                       {countdown ? <>Next Crux in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new puzzle drops at midnight Eastern.'}
@@ -1665,7 +1665,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           </div>
@@ -1735,7 +1735,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         {/* standard quiz-page bottom: challenge + join + leaderboard (always) */}
         <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="crux" name="Crux" accent="#ffffff" align="center" />
             </div>
           )}

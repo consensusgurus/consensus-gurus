@@ -859,7 +859,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the start tile and the board sit on the navy stage, which runs
             full bleed and fills the first screen. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The grid stays sealed until then. */}
@@ -884,9 +884,9 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-        <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-        <div className={LOFT && !playing ? 'loft-face' : undefined}>
+        <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+        <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+        <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         <div className={(LOFT && !STAGE) ? 'loft-card' : undefined} style={STAGE
           ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
           : { background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
@@ -992,7 +992,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
         )}
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
@@ -1005,7 +1005,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
                     {countdown ? <>Next Suds in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new sudoku drops at midnight Eastern.'}
@@ -1032,7 +1032,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
         </div>
         </div>
@@ -1092,7 +1092,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="suds" name="Suds" accent="#ffffff" align="center" />
             </div>
           )}
