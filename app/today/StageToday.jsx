@@ -73,11 +73,15 @@ const CIRC_PEEK = 3;
 // replaced the two hand-maintained PNG sets.
 // ONE GAME CARD, used by the category rows and by My games, so a star behaves
 // the same in both and there is one place to change what a card shows.
-function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite }) {
+function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue }) {
   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
   const on = !!(favorites && favorites.includes(g.key));
+  // MY GAMES MIXES CATEGORIES, so each card carries its OWN hue rather than
+  // inheriting the section's (owner, 2026-08-31). In a category row every card
+  // is that category anyway, so passing nothing keeps the row's colour.
   return (
-    <a className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}>
+    <a className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}
+      style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
       <span className="sty-gt">{g.tag}</span>
       {canPin ? (
@@ -528,7 +532,9 @@ export default function StageToday() {
             Only shown when there are stars, so it never sits there empty asking
             to be filled. */}
         {pinned.length ? (
-          <section className="sty-cat sty-mine" style={{ '--cc': hueFor(pinned[0].cat) }}>
+          {/* The SECTION's rule is neutral because this row is not a category:
+              the cards inside it carry their own categories' colours. */}
+          <section className="sty-cat sty-mine" style={{ '--cc': 'var(--stg-ink2)' }}>
             <div className="sty-cathead">
               <h2>My games</h2>
               <b>{pinned.filter((g) => done.has(g.key)).length}<i>/{pinned.length}</i></b>
@@ -536,7 +542,8 @@ export default function StageToday() {
             <div className="sty-games">
               {pinned.map((g) => (
                 <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
-                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
+                  hue={hueFor(g.cat)} />
               ))}
             </div>
           </section>
@@ -683,7 +690,12 @@ const CSS = `
 .sty-prog{height:2px;background:var(--stg-surf2);}
 .sty-prog span{display:block;height:100%;background:var(--stg-ink2);transition:width .4s ease;}
 
-.sty-wrap{max-width:1100px;margin:0 auto;padding:26px 22px 72px;
+/* FILLS THE SCREEN (owner, 2026-08-31). The 1100px column left a third of a
+   desktop empty, and this page is a board of small tiles rather than a column
+   of prose: the grids simply deal more per row as the window grows. The one
+   thing that does NOT want the full width is the standings table, which is
+   four columns of figures and reads worse the further apart they sit. */
+.sty-wrap{max-width:none;margin:0 auto;padding:26px 22px 72px;
   display:flex;flex-direction:column;gap:26px;}
 .sty-eb{font-family:${MONO};font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--stg-mute);margin-bottom:9px;}
@@ -763,7 +775,7 @@ const CSS = `
 .sty-allin{cursor:default;}
 
 /* ── today's board ─────────────────────────────────────────────────────── */
-.sty-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.sty-tbl{width:100%;max-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums;}
 .sty-tbl td{padding:7px 6px;border-bottom:1px solid var(--stg-line);font-size:13.5px;}
 .sty-tbl tr:last-child td{border-bottom:0;}
 .sty-tbl tr.me td{background:var(--stg-chip);font-weight:800;}
