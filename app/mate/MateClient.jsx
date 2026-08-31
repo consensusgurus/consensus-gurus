@@ -1106,7 +1106,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: endHold.held ? 15 : 13, fontWeight: 800, color: playing ? COLORS.accent : (endHold.held ? COLORS.ink : COLORS.faded) }}>
+            <span style={{ fontFamily: SANS, fontSize: endHold.held ? 15 : 13, fontWeight: 800, color: playing ? `var(--stg-acc, ${COLORS.accent})` : (endHold.held ? `var(--stg-ink, ${COLORS.ink})` : FADED) }}>
               {!playing
                 ? (won ? 'Checkmate.' : g.status === 'lost' ? 'Out of moves. The mate is still there.' : 'You ended it there. The mate is still there.')
                 : awaitingReply

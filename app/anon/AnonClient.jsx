@@ -666,14 +666,14 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           @media(max-width:900px){.an-banks{grid-template-columns:1fr;}}
           .an-bhead{font-family:${MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${FADED};
             margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;}
-          .an-bhead span{color:#c3c8d1;}
+          .an-bhead span{color:var(--stg-dim, #c3c8d1);}
           .an-row{border:1px solid transparent;border-radius:8px;padding:4px 6px;margin-bottom:7px;}
           .an-row.on{border-color:#e3b9be;background:${ACC_SOFT};}
           .an-rowhead{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
           .an-tag{font-weight:900;font-size:13px;color:${ACC};width:13px;}
           .an-cat{font-family:${MONO};font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--stg-mute, #4b5563);}
-          .an-cat.open{color:#c3c8d1;font-style:italic;}
-          .an-len{margin-left:auto;font-family:${MONO};font-size:10px;color:#c3c8d1;}
+          .an-cat.open{color:var(--stg-dim, #c3c8d1);font-style:italic;}
+          .an-len{margin-left:auto;font-family:${MONO};font-size:10px;color:var(--stg-dim, #c3c8d1);}
           .an-ok{font-family:${MONO};font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:${COLORS.green};}
           .an-boxes{display:flex;gap:3px;flex-wrap:wrap;}
           .an-seg{display:flex;border:1px solid ${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.14)'};border-radius:9px;overflow:hidden;margin-bottom:12px;}

@@ -845,12 +845,12 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                 <button type="button" className="al-btn primary" onClick={accuse}><Search size={14} strokeWidth={2.6} /> Check my accusation</button>
                 <button type="button" className="al-btn" onClick={undo} disabled={!canUndo}
                   aria-label="Undo last move"
-                  style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}>
+                  style={canUndo ? undefined : { borderColor: 'var(--stg-line2, #c3c8cf)', color: 'var(--stg-dim, #c3c8cf)', cursor: 'default' }}>
                   <Undo2 size={14} /> Undo
                 </button>
                 <button type="button" className="al-btn" onClick={resetBoards}><Eraser size={14} /> Reset boards</button>
                 {g.wrong >= 3 && (
-                  <button type="button" className="al-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>
+                  <button type="button" className="al-btn" style={{ borderColor: 'var(--stg-line2, #c3c8cf)', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>
                 )}
               </div>
             )}

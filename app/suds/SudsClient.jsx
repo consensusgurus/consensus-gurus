@@ -991,7 +991,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? COLORS.accent : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : FADED }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0
