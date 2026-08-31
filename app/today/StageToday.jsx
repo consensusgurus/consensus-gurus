@@ -260,9 +260,8 @@ export default function StageToday() {
             </div>
           ) : null}
           {/* NO PLAYED COUNT HERE (owner, 2026-08-31): the ladder directly
-              below is that number drawn, and every category row carries its
-              own n/N. The cap says what the day has EARNED you; what is left
-              to play is the rest of the page's whole job. */}
+              below is that number drawn, and every category row carries its own
+              n/N. The cap says what the day has EARNED you. */}
         </div>
         <button
           type="button"
@@ -284,7 +283,6 @@ export default function StageToday() {
             </svg>
           )}
         </button>
-        <a className="sty-cx sty-qz" href={withTq('/quizzes')}>Quizzes</a>
       </div>
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
 
@@ -304,6 +302,8 @@ export default function StageToday() {
                 </a>
               );
             })}
+          </div>
+        </section>
 
         {/* 3. UP NEXT. One card, in its own category's colour, and the only
                filled control on the page. */}
@@ -324,6 +324,8 @@ export default function StageToday() {
             </div>
           </div>
         )}
+
+
 
         {circuits.length ? (
           <section>
@@ -373,8 +375,8 @@ export default function StageToday() {
         })}
 
         {/* THE STANDINGS COME LAST (owner, 2026-08-31: the leaderboard does not
-            need to be at the top of the page). The top of a home is for what
-            you can play; where everyone finished is what you read once you have
+            need to be at the top of the page). The top of a home is for what you
+            can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
         {top.length ? (
           <section>
@@ -393,9 +395,6 @@ export default function StageToday() {
             </table>
           </section>
         ) : null}
-
-          </div>
-        </section>
       </div>
     </div>
   );
