@@ -82,7 +82,15 @@ export default function StageLadder({
               // full width, because those carry the progress; only the empties
               // shrink to a stub, and the graphic stops competing with the
               // board it is meant to annotate.
-              const off = !lit && !half && !(b.field && b.field[i]);
+              // A field-inked but unfilled cell is still an EMPTY rung, so it
+              // ticks too: on Crux every gutter rung carries a field ink, and
+              // excluding them left the slab exactly as it was.
+              const off = !lit && !half;
+              // THE WIDTH IS SET INLINE, not in the stylesheet. This component
+              // already writes `width` inline for the tier scale, and an inline
+              // style beats a rule — the CSS version of this looked right and
+              // changed nothing on the page.
+              if (off && vertical) style.width = '30%';
               return <span className={off ? 'stl-r off' : 'stl-r'} key={i} style={style} />;
             })}
           </div>
