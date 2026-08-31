@@ -608,9 +608,29 @@ export default function StageToday() {
           </section>
         ) : null}
 
+        {/* THE ORDER IS THE READER'S. Arrows rather than dragging: they work
+            with a thumb and with a keyboard, and the order they write is the
+            same sot_cat_order the other home reads. */}
+        <div className="sty-ord">
+          <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
+            {reorder ? 'Done reordering' : 'Reorder categories'}
+          </button>
+          {reorder && handOrder ? (
+            <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
+          ) : null}
+        </div>
+
         {circuits.length ? (
-          <section>
-            <div className="sty-eb">Circuits <em>&middot; {circuits.length}</em></div>
+          /* THE SAME OBJECT AS EVERY OTHER SECTION (owner, 2026-08-31): the 4px
+             left rule and the head with a count, so Circuits stops being the one
+             block on the page wearing a bare eyebrow. Its rule is neutral for
+             the reason My games' is: a circuit spans categories, so there is no
+             single hue that would be honest here. */
+          <section className="sty-cat sty-circsec" style={{ '--cc': 'var(--stg-ink2)' }}>
+            <div className="sty-cathead">
+              <h2>Circuits</h2>
+              <b>{circuits.filter((c) => c.n === c.games.length).length}<i>/{circuits.length}</i></b>
+            </div>
             <div className="sty-circs" ref={circRef}>
               {(allCircs ? circuits : circuits.slice(0, circPeek)).map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
@@ -635,18 +655,6 @@ export default function StageToday() {
             ) : null}
           </section>
         ) : null}
-
-        {/* THE ORDER IS THE READER'S. Arrows rather than dragging: they work
-            with a thumb and with a keyboard, and the order they write is the
-            same sot_cat_order the other home reads. */}
-        <div className="sty-ord">
-          <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
-            {reorder ? 'Done reordering' : 'Reorder categories'}
-          </button>
-          {reorder && handOrder ? (
-            <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
-          ) : null}
-        </div>
 
         {/* 4. THE CATEGORIES. One row each: the 4px rule carries the hue, the
                figures carry the state, and the games are plain chips. */}
@@ -899,6 +907,9 @@ const CSS = `
 
 /* ── circuits ──────────────────────────────────────────────────────────── */
 .sty-circs{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
+/* Circuits is a .sty-cat now, so its head carries the title and the grid sits
+   under it exactly as a category's games do. */
+.sty-circsec .sty-circs{margin-top:0;}
 .sty-more{display:block;width:100%;margin-top:7px;background:var(--stg-surf);
   border:1px solid var(--stg-line);border-radius:9px;padding:9px;cursor:pointer;
   font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
