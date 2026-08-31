@@ -1167,7 +1167,14 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const stageRoom = useStageRoom(gridRef, STAGE);
   const CS_MIN = STAGE ? 30 : 42;
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
-  const COLW = 640;      // matches DailyGamesGrid; board stays centered at its own size
+  // The board's own column, matching DailyGamesGrid, so it stays centred at
+  // its own size. GUT_W and GUT_GAP mirror the .cx-gut rule in the stage
+  // stylesheet: on the stage the rail is ADDED to the column rather than taken
+  // out of it, or the ladder is paid for with the board's width and the board
+  // comes out ~18% narrower than the same board on the Loft.
+  const GUT_W = 88;
+  const GUT_GAP = 24;
+  const COLW = STAGE ? 640 + GUT_W + GUT_GAP : 640;
 
   // Board-driven filing overlays: the word you've picked up glows (cx-armed),
   // solved-but-unfiled words are underlined (cx-unfiled), and each filed word
