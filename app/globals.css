@@ -246,6 +246,14 @@ body:has(.stage-page) { background: #0b0f1a !important; }
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 
+/* THE OLD MASTHEAD DOES NOT APPEAR ABOVE A STAGE PAGE (owner, 2026-08-31). The
+   stage draws its own cap and the site header above it was a second, louder
+   one in a different palette. It is hidden rather than removed from the tree
+   because /today/page.js is a SERVER component and cannot know which register
+   is rendering: :has() is what lets the class that does know reach up to it. */
+body:has(.stage-page) .qchm,
+body:has(.stage-page) .qch-bar { display: none !important; }
+
 .stage-page[data-stage-theme='light'] {
   --stg-ground: #eef1f6;
   --stg-raise: #ffffff;

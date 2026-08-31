@@ -36,6 +36,7 @@ import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circui
 import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
+import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
@@ -70,6 +71,33 @@ const CIRC_PEEK = 3;
 // path in currentColor, so the card's own --cc (its category step) colours it,
 // and it flips with the register for free. See lib/game-glyphs.js for why these
 // replaced the two hand-maintained PNG sets.
+// ONE GAME CARD, used by the category rows and by My games, so a star behaves
+// the same in both and there is one place to change what a card shows.
+function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite }) {
+  const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
+  const on = !!(favorites && favorites.includes(g.key));
+  return (
+    <a className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}>
+      <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
+      <span className="sty-gt">{g.tag}</span>
+      {canPin ? (
+        <button
+          type="button"
+          className={'sty-star' + (on ? ' on' : '')}
+          aria-label={on ? `Unstar ${g.name}` : `Star ${g.name}`}
+          title={on ? 'Remove from My games' : 'Add to My games'}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(g.key); }}
+        >
+          <svg viewBox="0 0 24 24" width="13" height="13" fill={on ? 'currentColor' : 'none'}
+            stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+            <path d="M12 4l2.4 5 5.6.8-4 3.9 1 5.5-5-2.7-5 2.7 1-5.5-4-3.9 5.6-.8z" />
+          </svg>
+        </button>
+      ) : null}
+    </a>
+  );
+}
+
 function Glyph({ k, size = 20 }) {
   const d = GLYPHS[k];
   if (!d) return null;
@@ -101,6 +129,37 @@ export default function StageToday() {
   // 2026-08-31). The three are DISPLAY_CIRCUITS' own lead order, which is
   // deliberate and lives in lib/circuits.js.
   const [allCircs, setAllCircs] = useState(false);
+
+  // PINS LIVE ON THE ACCOUNT, via the hook the other home already uses, so a
+  // star set on either surface is the same star. Nothing here keeps its own
+  // copy of the list.
+  const { favorites, canPin, toggleFavorite } = useMyGames();
+
+  // How many of each game's archive this player has done, which is what "your
+  // most played" means and what the default category order sorts by. It rides
+  // on the fetchDayStatus payload the day state already reads, so it costs no
+  // request.
+  const [archive, setArchive] = useState(null);
+
+  // THE HAND ORDER lives on this browser, under the SAME key the other home
+  // writes (sot_cat_order), so a reader who dragged their categories there
+  // finds them in that order here. Null means the default, which is how much
+  // this player has played each category.
+  const [handOrder, setHandOrder] = useState(null);
+  const [reorder, setReorder] = useState(false);
+  useEffect(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('sot_cat_order') || 'null');
+      if (Array.isArray(raw) && raw.length) setHandOrder(raw);
+    } catch (e) {}
+  }, []);
+  const saveOrder = (next) => {
+    setHandOrder(next);
+    try {
+      if (next) localStorage.setItem('sot_cat_order', JSON.stringify(next));
+      else localStorage.removeItem('sot_cat_order');
+    } catch (e) {}
+  };
   const [board, setBoard] = useState(null);
   // THE OVERALL RANK comes from /api/quiz/me, the same place the site header
   // reads it. daily-status computes the identical figure internally (posNow) but
@@ -152,6 +211,7 @@ export default function StageToday() {
       }
       setDone(d);
       setInprog(p);
+      if (data.archive) setArchive(data.archive);
     }).catch(() => {});
     return () => { alive = false; };
   }, []);
@@ -164,6 +224,80 @@ export default function StageToday() {
 
   const total = useMemo(() => cats.reduce((n, c) => n + c.games.length, 0), [cats]);
 
+  // THE ORDER OF THE CATEGORY ROWS. A hand order wins; otherwise they sort by
+  // how much of each category this player has actually played, so the page
+  // opens on what they use. A category the stored order does not name (a new
+  // one, most likely) keeps its ramp position at the end rather than vanishing.
+  const orderedCats = useMemo(() => {
+    if (handOrder && handOrder.length) {
+      const rank = new Map(handOrder.map((c, i) => [c, i]));
+      return [...cats].sort((a, b) =>
+        (rank.has(a.cat) ? rank.get(a.cat) : 99) - (rank.has(b.cat) ? rank.get(b.cat) : 99));
+    }
+    if (!archive) return cats;
+    const played = (c) => c.games.reduce((n, g) => n + ((archive[g.key] && archive[g.key].played) || 0), 0);
+    return [...cats].map((c, i) => [c, i])
+      .sort((a, b) => (played(b[0]) - played(a[0])) || (a[1] - b[1]))
+      .map(([c]) => c);
+  }, [cats, handOrder, archive]);
+
+  const moveCat = (cat, dir) => {
+    const cur = orderedCats.map((c) => c.cat);
+    const i = cur.indexOf(cat);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= cur.length) return;
+    const next = [...cur];
+    next[i] = cur[j]; next[j] = cur[i];
+    saveOrder(next);
+  };
+
+  // MY GAMES: the starred set, in the order they were starred. Games only, so a
+  // pin on something that has since retired simply drops out.
+  const pinned = useMemo(() => {
+    if (!favorites || !favorites.length) return [];
+    return favorites.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+  }, [favorites]);
+
+  // THE THREE CARDS. Each answers a different question, and each falls back to
+  // the best thing it can say with what has loaded (owner, 2026-08-31), because
+  // a card that renders empty while a fetch settles is worse than one that
+  // starts general and sharpens.
+  //
+  //   1  YOURS      the game you are mid-way through, else the one you have
+  //                 played most and have not played today, else the next unplayed.
+  //   2  EVERYONE'S the most played daily on the site today.
+  //   3  THE BOARD  who is winning, and a way down to the standings.
+  const mostPlayedMine = useMemo(() => {
+    if (!archive) return null;
+    const pool = DAILY_GAMES.filter((g) => !done.has(g.key));
+    let best = null; let bn = 0;
+    for (const g of pool) {
+      const n = (archive[g.key] && archive[g.key].played) || 0;
+      if (n > bn) { bn = n; best = g; }
+    }
+    return bn > 0 ? best : null;
+  }, [archive, done]);
+
+  const lead = useMemo(() => {
+    const open = DAILY_GAMES.find((g) => inprog.has(g.key));
+    if (open) return { game: open, eyebrow: 'Finish', cta: 'Resume' };
+    if (mostPlayedMine) return { game: mostPlayedMine, eyebrow: 'Your most played', cta: 'Play' };
+    const fresh = DAILY_GAMES.find((g) => !done.has(g.key));
+    return fresh ? { game: fresh, eyebrow: 'Up next', cta: 'Play' } : null;
+  }, [inprog, done, mostPlayedMine]);
+
+  const popular = useMemo(() => {
+    const bg = board && Array.isArray(board.games) ? board.games : null;
+    if (!bg) return null;
+    let best = null; let bn = -1;
+    for (const b of bg) {
+      const g = b && DAILY_GAME_MAP[b.key];
+      if (!g || typeof b.plays !== 'number') continue;
+      if (b.plays > bn) { bn = b.plays; best = { game: g, plays: b.plays }; }
+    }
+    return best;
+  }, [board]);
+
   // TODAY'S BOARD. Top eight, plus your own row appended when you are outside
   // it — a leaderboard that cannot show you your own position is a scoreboard
   // for other people.
@@ -172,6 +306,7 @@ export default function StageToday() {
   const top = overall.slice(0, 8);
   const myRow = meKey ? overall.find((r) => r && r.userKey === meKey) : null;
   const myOut = myRow && !top.some((r) => r && r.userKey === meKey) ? myRow : null;
+  const topRow = top[0] && top[0].total != null ? top[0] : null;
 
   // CIRCUITS. The set is DISPLAY_CIRCUITS and the membership is
   // circuitKeysFor(id, day), which is the call that owns rotation — reading
@@ -238,6 +373,14 @@ export default function StageToday() {
           <span className="sty-date">{fmtDate(day)}</span>
         </div>
         <div className="sty-figs">
+          {/* NO NAME, NO FIGURES: a reader without an account has nothing to
+              put in this bar, so it offers them the one thing that would fill
+              it rather than sitting empty (owner, 2026-08-31). */}
+          {!who ? (
+            <a className="sty-signup" href="/quizzes?signup=1">
+              <b>Sign up</b><i>keep your scores</i>
+            </a>
+          ) : null}
           {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
           {/* FOUR FIGURES, in the order a player asks the questions: what did
               today earn me, where does that put me overall, where did I finish
@@ -280,6 +423,21 @@ export default function StageToday() {
               below is that number drawn, and every category row carries its own
               n/N. The cap says what the day has EARNED you. */}
         </div>
+        {/* TWO MORE WAYS OUT, beside the light switch: down to today's standings
+            and across to the activity feed (owner, 2026-08-31). On a phone
+            these are the row-one controls and the figures take row two. */}
+        <a className="sty-cx sty-lb" href="#sty-board" aria-label="Today's board" title="Today's board">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+            strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 21v-6M12 21V4M20 21v-10" />
+          </svg>
+        </a>
+        <a className="sty-cx sty-lf" href="/feed" aria-label="Live feed" title="Live feed">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+            strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            <path d="M4 12h3l2.5-6 4 13 2.5-7H21" />
+          </svg>
+        </a>
         <button
           type="button"
           className={'sty-cx sty-tg' + (hint ? ' hint' : '')}
@@ -322,27 +480,63 @@ export default function StageToday() {
           </div>
         </section>
 
-        {/* 3. UP NEXT. One card, in its own category's colour, and the only
-               filled control on the page. */}
-        {next ? (
-          <a className="sty-next" href={`${routeOf(next)}?stage=1${tq}`} style={{ '--cc': hueFor(next.cat) }}>
-            <div>
-              <div className="sty-eb">{inprog.has(next.key) ? 'Finish' : 'Up next'}</div>
-              <div className="sty-nm"><Glyph k={next.key} size={26} />{next.name}</div>
-              <div className="sty-tag">{next.tag}</div>
-            </div>
-            <span className="sty-go">{inprog.has(next.key) ? 'Resume' : 'Play'}</span>
-          </a>
-        ) : (
-          <div className="sty-next sty-allin" style={{ '--cc': hueFor(cats[0] && cats[0].cat) }}>
-            <div>
+        {/* 3. THREE CARDS, not one (owner, 2026-08-31). The single Up Next card
+               answered one question; these answer the three a reader actually
+               arrives with — what am I in the middle of, what is everyone
+               playing, and who is winning. */}
+        <div className="sty-three">
+          {lead ? (
+            <a className="sty-card lead" href={`${routeOf(lead.game)}?stage=1${tq}`} style={{ '--cc': hueFor(lead.game.cat) }}>
+              <div className="sty-eb">{lead.eyebrow}</div>
+              <div className="sty-nm"><Glyph k={lead.game.key} size={22} />{lead.game.name}</div>
+              <div className="sty-tag">{lead.game.tag}</div>
+              <span className="sty-go">{lead.cta}</span>
+            </a>
+          ) : (
+            <div className="sty-card lead sty-allin" style={{ '--cc': hueFor(cats[0] && cats[0].cat) }}>
               <div className="sty-eb">The day</div>
-              <div className="sty-nm">All eighty played</div>
+              <div className="sty-nm">All {total} played</div>
             </div>
-          </div>
-        )}
+          )}
 
+          {popular ? (
+            <a className="sty-card" href={`${routeOf(popular.game)}?stage=1${tq}`} style={{ '--cc': hueFor(popular.game.cat) }}>
+              <div className="sty-eb">Most played today</div>
+              <div className="sty-nm"><Glyph k={popular.game.key} size={22} />{popular.game.name}</div>
+              <div className="sty-tag">{popular.plays} {popular.plays === 1 ? 'player' : 'players'} so far</div>
+              <span className="sty-go ghost">{done.has(popular.game.key) ? 'Played' : 'Play'}</span>
+            </a>
+          ) : null}
 
+          {topRow ? (
+            <a className="sty-card" href="#sty-board" style={{ '--cc': hueFor('Trivia') }}>
+              <div className="sty-eb">Leading today</div>
+              <div className="sty-nm">{topRow.username || 'Player'}</div>
+              <div className="sty-tag">
+                {Math.round(topRow.total)} points{overall.length ? ` of ${overall.length} playing` : ''}
+              </div>
+              <span className="sty-go ghost">The board</span>
+            </a>
+          ) : null}
+        </div>
+
+        {/* MY GAMES: the starred set, above everything a reader did not choose.
+            Only shown when there are stars, so it never sits there empty asking
+            to be filled. */}
+        {pinned.length ? (
+          <section className="sty-cat sty-mine" style={{ '--cc': hueFor(pinned[0].cat) }}>
+            <div className="sty-cathead">
+              <h2>My games</h2>
+              <b>{pinned.filter((g) => done.has(g.key)).length}<i>/{pinned.length}</i></b>
+            </div>
+            <div className="sty-games">
+              {pinned.map((g) => (
+                <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
+                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {circuits.length ? (
           <section>
@@ -372,26 +566,39 @@ export default function StageToday() {
           </section>
         ) : null}
 
+        {/* THE ORDER IS THE READER'S. Arrows rather than dragging: they work
+            with a thumb and with a keyboard, and the order they write is the
+            same sot_cat_order the other home reads. */}
+        <div className="sty-ord">
+          <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
+            {reorder ? 'Done reordering' : 'Reorder categories'}
+          </button>
+          {reorder && handOrder ? (
+            <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
+          ) : null}
+        </div>
+
         {/* 4. THE CATEGORIES. One row each: the 4px rule carries the hue, the
                figures carry the state, and the games are plain chips. */}
-        {cats.map(({ cat, games }) => {
+        {orderedCats.map(({ cat, games }, ci) => {
           const n = games.filter((g) => done.has(g.key)).length;
           return (
             <section key={cat} id={`cat-${cat.replace(/\s+/g, '-')}`} className="sty-cat" style={{ '--cc': hueFor(cat) }}>
               <div className="sty-cathead">
                 <h2>{cat}</h2>
                 <b>{n}<i>/{games.length}</i></b>
+                {reorder ? (
+                  <span className="sty-move">
+                    <button type="button" onClick={() => moveCat(cat, -1)} disabled={ci === 0} aria-label={`Move ${cat} up`}>&uarr;</button>
+                    <button type="button" onClick={() => moveCat(cat, 1)} disabled={ci === orderedCats.length - 1} aria-label={`Move ${cat} down`}>&darr;</button>
+                  </span>
+                ) : null}
               </div>
               <div className="sty-games">
-                {games.map((g) => {
-                  const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
-                  return (
-                    <a key={g.key} className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}>
-                      <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
-                      <span className="sty-gt">{g.tag}</span>
-                    </a>
-                  );
-                })}
+                {games.map((g) => (
+                  <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
+                    canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+                ))}
               </div>
             </section>
           );
@@ -402,7 +609,7 @@ export default function StageToday() {
             can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
         {top.length ? (
-          <section>
+          <section id="sty-board">
             <div className="sty-eb">Today&rsquo;s board <em>&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</em></div>
             <table className="sty-tbl">
               <tbody>
@@ -488,6 +695,52 @@ const CSS = `
 .sty-sw{width:9px;height:9px;border-radius:3px;flex:none;}
 
 /* ── up next: the one filled control on the page ───────────────────────── */
+/* ── the three cards ───────────────────────────────────────────────────── */
+.sty-three{display:grid;gap:9px;grid-template-columns:1.4fr 1fr 1fr;align-items:stretch;}
+.sty-card{position:relative;display:flex;flex-direction:column;gap:2px;text-decoration:none;
+  color:var(--stg-ink);background:var(--stg-surf);border:1px solid var(--stg-line);
+  border-left:4px solid var(--cc);border-radius:11px;padding:14px 16px 46px;min-width:0;}
+.sty-card:hover{border-color:var(--stg-line2);border-left-color:var(--cc);}
+.sty-card:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
+/* The LEAD card is the only filled thing on the page, as Up Next was: one
+   control carries the accent, everything else marks with it. */
+.sty-card.lead{background:var(--cc);border-color:transparent;color:var(--stg-onramp,#08222e);}
+.sty-card.lead .sty-eb,.sty-card.lead .sty-tag{color:inherit;opacity:.78;}
+.sty-card.lead .sty-gi{color:currentColor;}
+.sty-card .sty-nm{font-size:20px;font-weight:800;letter-spacing:-0.015em;line-height:1.15;}
+.sty-card.lead .sty-nm{font-size:24px;}
+.sty-card .sty-tag{font-size:12px;font-weight:600;color:var(--stg-mute);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sty-card .sty-go{position:absolute;left:16px;bottom:13px;}
+.sty-card .sty-go.ghost{background:none;color:var(--cc);border:1px solid var(--cc);}
+.sty-allin{justify-content:center;padding-bottom:14px;}
+
+/* ── a star on every card ──────────────────────────────────────────────── */
+.sty-g{position:relative;}
+.sty-star{position:absolute;top:6px;right:6px;display:flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border:0;border-radius:6px;background:none;cursor:pointer;
+  color:var(--stg-mute2);opacity:0;transition:opacity .12s;}
+.sty-g:hover .sty-star,.sty-star:focus-visible,.sty-star.on{opacity:1;}
+.sty-star.on{color:var(--cc);}
+.sty-star:hover{background:var(--stg-chip);color:var(--cc);}
+/* A touch screen has no hover, so the star is always there. */
+@media (hover:none){ .sty-star{opacity:1;} }
+.sty-mine .sty-cathead h2{letter-spacing:-0.01em;}
+
+/* ── reordering ────────────────────────────────────────────────────────── */
+.sty-signup{display:flex;flex-direction:column;text-decoration:none;color:var(--stg-onramp,#08222e);
+  background:var(--stg-acc);border-radius:8px;padding:5px 12px;}
+.sty-signup b{font-size:13px;font-weight:800;line-height:1.2;}
+.sty-signup i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.11em;
+  text-transform:uppercase;opacity:.8;}
+.sty-ord{display:flex;gap:7px;}
+.sty-ordb{width:auto;margin-top:0;padding:7px 13px;}
+.sty-move{display:inline-flex;gap:4px;margin-left:10px;}
+.sty-move button{width:24px;height:24px;border:1px solid var(--stg-line);border-radius:6px;
+  background:none;color:var(--stg-ink2);cursor:pointer;font-size:12px;line-height:1;}
+.sty-move button:hover:not(:disabled){border-color:var(--cc);color:var(--cc);}
+.sty-move button:disabled{opacity:.3;cursor:default;}
+
 .sty-next{display:flex;align-items:center;gap:18px;text-decoration:none;
   background:var(--cc);color:var(--stg-onramp, ${RAMP_INK});
   border-radius:12px;padding:18px 20px;}
@@ -593,16 +846,24 @@ const CSS = `
      the name on line 1, five figures on line 2, and stranded the toggle and the
      Quizzes link alone on line 3. Row 1 is the identity and the two controls,
      row 2 is the figures, and nothing is left over. */
-  .sty-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
-    grid-template-areas:'id tg qz' 'fg fg fg';
-    align-items:center;gap:9px 10px;padding:10px 14px;}
-  .sty-id{grid-area:id;flex:none;min-width:0;}
+  /* TWO BARS OF THE SAME HEIGHT (owner, 2026-08-31). Bar one is what this page
+     is and how to move around it: the name, the date, and the three controls.
+     Bar two is who you are and how the day is going — or, for a reader with no
+     account, the one thing worth offering them. */
+  .sty-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
+    grid-template-areas:'id lb lf tg' 'fg fg fg fg';
+    align-items:center;gap:0 8px;padding:0 14px;}
+  .sty-id{grid-area:id;flex:none;min-width:0;padding:9px 0;}
   .sty-tg{grid-area:tg;}
-  .sty-qz{grid-area:qz;}
+  .sty-lb{grid-area:lb;}
+  .sty-lf{grid-area:lf;}
   .sty-date{width:100%;order:3;}
   .sty-figs{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
-    border-top:1px solid var(--stg-line);padding-top:8px;}
+    border-top:1px solid var(--stg-line);padding:9px 0;min-height:44px;align-items:center;}
   .sty-figs>div{min-width:0;}
+  .sty-three{grid-template-columns:1fr;}
+  .sty-card{padding-bottom:44px;}
+  .sty-ord{flex-wrap:wrap;}
   .sty-wrap{padding:18px 14px 56px;gap:22px;}
   .sty-nm{font-size:21px;}
   .sty-next{padding:15px 16px;gap:12px;}
