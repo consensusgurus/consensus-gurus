@@ -50,6 +50,7 @@ import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { useStageRoom } from '@/lib/stage-fit';
 import { gameColorLight, gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
@@ -85,7 +86,7 @@ const STAGE_BOARD_CSS = `
 .stage-page .cx-gut{flex:0 0 88px;align-self:flex-start;
   /* The grid's own height budget, so the ladder and the board track each
      other at every window size rather than agreeing at one. */
-  height:clamp(200px, calc(100vh - ${STAGE_VROOM}px), 560px);}
+  height:clamp(200px, calc(100vh - var(--cx-room, ${STAGE_VROOM}px)), 560px);}
 .stage-page .cx-a > *:not(.cx-gut){flex:0 1 660px;min-width:0;}
 @media(max-width:640px){
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
@@ -97,6 +98,14 @@ const STAGE_BOARD_CSS = `
   border:1.5px solid var(--stg-line2,rgba(255,255,255,0.17))!important;}
 .stage-page .cl-cat{border:1px solid var(--stg-line,rgba(255,255,255,0.11));border-radius:8px;}
 .stage-page .cx-tries{color:var(--stg-mute,#8b95a8);}
+/* The category strip is the second biggest block on the page after the board,
+   and it is a row of labels, not a panel. Trimmed to read closer to the
+   ladder's weight, which is what buys the board its rows back. */
+.stage-page .cl-cats{gap:6px;}
+.stage-page .cl-cat{padding:6px 9px !important;gap:3px;}
+.stage-page .cl-cat-nm{font-size:11px !important;}
+.stage-page .cl-cat-ws{gap:4px !important;}
+.stage-page .cl-cat-ws > *{padding:1px 9px !important;font-size:11.5px !important;}
 .stage-page hr{border-color:var(--stg-line,rgba(255,255,255,0.11));}
 `;
 
@@ -1142,6 +1151,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // 330. The floor drops with it: 42px was chosen when a tall board could
   // scroll under all that chrome, and on the stage it just overflows.
   const VROOM = STAGE ? STAGE_VROOM : 430;
+  // Measured, not guessed. See lib/stage-fit.js for why this cannot loop.
+  const gridRef = useRef(null);
+  const stageRoom = useStageRoom(gridRef, STAGE);
   const CS_MIN = STAGE ? 30 : 42;
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
   const COLW = 640;      // matches DailyGamesGrid; board stays centered at its own size
@@ -1260,7 +1272,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
       data-stage-theme={STAGE ? stageTheme : undefined}
-      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      style={{ ...(STAGE ? STAGE_ACC : null), ...(stageRoom ? { '--cx-room': stageRoom + 'px' } : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
       {!STAGE && <Grain />}
       {/* Shared daily chrome: home's #233a63 masthead + #16307a stat bar +
           the #eef3ff slate rail, collapsing to one line once the clock runs
@@ -1341,8 +1353,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
              untouched. The floor stops a very tall board on a short window from
              shrinking to something unreadable; past that point the page scrolls,
              which is the better trade. At 1080 tall nothing changes at all. */
-          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - ${VROOM}px)/${ROWS})));}
-          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - ${VROOM}px)/${ROWS})));}}
+          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px))/${ROWS})));}
+          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px))/${ROWS})));}}
           @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
           .cx-htp-s{display:none;}
@@ -1463,7 +1475,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                   <div key={ci} className="cl-cat" onClick={clickable ? () => fileWord(pick, ci) : undefined}
                     style={{ background: cc.bg, borderRadius: 8, padding: '10px 12px', border: STAGE ? 'none' : '1.5px solid rgba(28,30,36,0.35)', boxShadow: STAGE ? 'none' : '2px 2px 0 rgba(28,30,36,0.10)', cursor: clickable ? 'pointer' : 'default', outline: clickable ? `2.5px dashed ${cc.tc}` : 'none', outlineOffset: 2 }}>
                     <div className="cl-cat-nm" style={{ color: cc.tc, fontWeight: 800, fontSize: 12.5, textTransform: 'uppercase', letterSpacing: '.03em', lineHeight: 1.25, textShadow: STAGE ? 'none' : '0 1px 0 rgba(255,255,255,0.35)' }}>{cat.name}</div>
-                    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                    <div className="cl-cat-ws" style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       {cat.words.map((_, i) => {
                         const w = shown ? cat.words[i] : filed[i];
                         if (!w) return <span key={i} style={{ background: 'rgba(255,255,255,0.28)', color: cc.tc, borderRadius: 6, padding: '3px 14px', fontWeight: 800, fontSize: 12.5 }}>?</span>;
@@ -1482,7 +1494,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
-              <div className="cl-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3 }}>
+              <div className="cl-grid" ref={gridRef} style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, var(--cs))`, gridTemplateRows: `repeat(${ROWS}, var(--cs))`, gap: 3 }}>
               {[...CELLS.entries()].map(([k, info]) => {
                 const [r, c] = k.split(',').map(Number);
                 let st = cellStyle(r, c, info);
