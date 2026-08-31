@@ -188,6 +188,22 @@ export default function StageToday() {
       return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, hue: hueFor(games[0].cat) };
     }).filter(Boolean);
   }, [day, done, light]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
+  // 2026-08-31: "takes up too much space"). The key is nine labelled swatches,
+  // which wrap to three lines at 390 and push the first playable thing off the
+  // screen — and every one of those counts is repeated on its own category row
+  // further down. The graphic itself still says which categories are done,
+  // because that is what its colour is for; it just says it in less height.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const on = () => setNarrow(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  const ladH = narrow ? 20 : 54;
+
   const playedCount = done.size;
   // light=1 returns the flat `rank`; full mode nests it under ranks.xp. Both are
   // the IQ board's position, so read either.
@@ -290,7 +306,7 @@ export default function StageToday() {
         {/* 2. THE DAY. The page's one graphic. */}
         <section className="sty-day">
           <div className="sty-eb">The day</div>
-          <StageLadder height={54} blocks={blocks} light={light} />
+          <StageLadder height={ladH} blocks={blocks} light={light} />
           <div className="sty-key">
             {cats.map(({ cat, games }) => {
               const n = games.filter((g) => done.has(g.key)).length;
@@ -451,6 +467,7 @@ const CSS = `
 
 /* ── the day ───────────────────────────────────────────────────────────── */
 .sty-key{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;}
+@media (max-width:640px){ .sty-key{display:none;} }
 .sty-kc{display:inline-flex;align-items:center;gap:7px;text-decoration:none;
   font-size:12px;font-weight:700;color:var(--stg-ink2);}
 .sty-kc:hover{color:var(--stg-ink);}
