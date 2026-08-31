@@ -663,9 +663,18 @@ export default function QuizHomeClient({ variant = 'current', sourceCount = 0 })
   const [signupOpen, setSignupOpen] = useState(false);
   // Read in an effect: this page is statically rendered, where useSearchParams
   // hands back null and the flag silently reads false.
+  // THE STAGE REPLACES THIS PAGE, it does not sit inside it (owner,
+  // 2026-08-31: "grey slab surround both above and to the sides").
+  //
+  // TodayClient's own default was flipped to the stage first, and this one was
+  // missed — so `/` kept rendering the whole quiz-home shell and the stage came
+  // up INSIDE .dhx-marquee: 1512px wide, inset 197px, with .qzloft painting grey
+  // around it and the entire old home still below it. The early return below is
+  // what makes the stage the page, so its condition has to match TodayClient's:
+  // on by default, '?stage=0' to opt out.
   const [stageHome, setStageHome] = useState(false);
   useEffect(() => {
-    try { setStageHome(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+    try { setStageHome(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setStageHome(true); }
   }, []);
   const [feedbackMode, setFeedbackMode] = useState(null); // null | 'issue' | 'manager' (the tool row's first two buttons)
   const [duels, setDuels] = useState([]); // last few completed duels, for the header ticker
