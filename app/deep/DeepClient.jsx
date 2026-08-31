@@ -768,7 +768,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="deep" name="Deep" accent="#ffffff" align="center" />
+              <ReportIssue self="deep" name="Deep" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

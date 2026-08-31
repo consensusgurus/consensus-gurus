@@ -1114,7 +1114,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="suds" name="Suds" accent="#ffffff" align="center" />
+              <ReportIssue self="suds" name="Suds" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
 

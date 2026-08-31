@@ -792,7 +792,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="blitz" name="Blitz" accent="#ffffff" align="center" />
+              <ReportIssue self="blitz" name="Blitz" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

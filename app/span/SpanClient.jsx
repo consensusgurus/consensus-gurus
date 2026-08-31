@@ -1058,7 +1058,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="span" name="Span" accent="#ffffff" align="center" />
+              <ReportIssue self="span" name="Span" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

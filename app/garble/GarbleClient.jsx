@@ -797,7 +797,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         {/* daily-page bottom group: challenge + share + other puzzles + archive, divider below */}
         {LOFT && (
           <div className={STAGE ? undefined : 'loft-report'}>
-            <ReportIssue self="garble" name="Garble" accent="#ffffff" align="center" />
+            <ReportIssue self="garble" name="Garble" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
           </div>
         )}
         {!focusMode && !LOFT && (<DailyGamesGrid replay={ended ? resetGame : null}

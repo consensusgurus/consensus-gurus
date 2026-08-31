@@ -765,7 +765,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="streak" name="Streak" accent="#ffffff" align="center" />
+              <ReportIssue self="streak" name="Streak" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

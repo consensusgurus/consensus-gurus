@@ -793,7 +793,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           <div style={{ display: focusMode ? 'none' : 'block' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="glyph" name="Glyph" accent="#ffffff" align="center" />
+              <ReportIssue self="glyph" name="Glyph" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

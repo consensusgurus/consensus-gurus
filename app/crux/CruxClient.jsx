@@ -1768,7 +1768,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         <div style={{ display: focusMode ? 'none' : 'block', maxWidth: 640, margin: '36px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="crux" name="Crux" accent="#ffffff" align="center" />
+              <ReportIssue self="crux" name="Crux" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
 

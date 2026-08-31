@@ -11,7 +11,7 @@
 // the display `name`, and an `accent` for the send button.
 
 import React, { useState, useEffect } from 'react';
-import { Flag, Check } from 'lucide-react';
+import { Flag, Check, HelpCircle } from 'lucide-react';
 import { savedIdentity } from '@/lib/saved-identity';
 import { T } from '@/lib/theme';
 
@@ -33,7 +33,9 @@ function etTodayId() {
   return `${Number(m)}-${Number(d)}-${String(Number(y) % 100)}`;
 }
 
-export default function ReportIssue({ self, name, accent = T.accent, align = 'center' }) {
+// onHelp: the daily's own rules modal. Passed by all 80 game clients, and by
+// nothing else, so the end card and the games grid render the flag alone.
+export default function ReportIssue({ self, name, accent = T.accent, align = 'center', onHelp = null }) {
   // The send button sits on a white sheet and prints white text, so a light
   // accent would make it invisible. Measure the accent and fall back to ink.
   const btnAccent = (() => {
@@ -88,6 +90,8 @@ export default function ReportIssue({ self, name, accent = T.accent, align = 'ce
         .ri-wrap{margin-top:10px;font-family:${SANS};}
         .ri-link{background:none;border:none;cursor:pointer;font-family:${MONO};font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:${FADED};display:inline-flex;align-items:center;gap:5px;padding:4px 6px;}
         .ri-link:hover{color:${INK};}
+        .ri-chips{display:inline-flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;}
+        .ri-how{color:${INK};font-weight:700;}
         .ri-form{max-width:400px;margin:6px auto 0;text-align:left;}
         .ri-h{font-size:12.5px;font-weight:800;color:${INK};margin:0 0 7px;text-align:center;}
         .ri-form textarea,.ri-form input{width:100%;box-sizing:border-box;font-family:${SANS};font-size:13px;color:${INK};border:1.5px solid #d4d9e0;border-radius:8px;padding:9px 10px;outline:none;background:var(--white);}
@@ -131,9 +135,16 @@ export default function ReportIssue({ self, name, accent = T.accent, align = 'ce
           </div>
         </div>
       ) : (
-        <button type="button" className="ri-link" onClick={() => setOpen(true)}>
-          <Flag size={11} strokeWidth={2.2} /> Report an issue
-        </button>
+        <span className="ri-chips">
+          {onHelp ? (
+            <button type="button" className="ri-link ri-how" onClick={onHelp}>
+              <HelpCircle size={11} strokeWidth={2.2} /> How to play
+            </button>
+          ) : null}
+          <button type="button" className="ri-link" onClick={() => setOpen(true)}>
+            <Flag size={11} strokeWidth={2.2} /> Report an issue
+          </button>
+        </span>
       )}
     </div>
   );

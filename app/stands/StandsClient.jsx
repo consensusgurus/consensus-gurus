@@ -702,7 +702,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="stands" name="Stands" accent="#ffffff" align="center" />
+              <ReportIssue self="stands" name="Stands" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

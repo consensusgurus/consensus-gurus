@@ -700,7 +700,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           <div style={{ margin: '30px auto 0', display: focusMode ? 'none' : 'block' }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
-                <ReportIssue self="warmer" name="Warmer" accent="#ffffff" align="center" />
+                <ReportIssue self="warmer" name="Warmer" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
               </div>
             )}
             {!LOFT && (

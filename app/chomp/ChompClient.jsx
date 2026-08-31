@@ -1050,7 +1050,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
 
         {LOFT && (
           <div className={STAGE ? undefined : 'loft-report'}>
-            <ReportIssue self="chomp" name="Chomp" accent="#ffffff" align="center" />
+            <ReportIssue self="chomp" name="Chomp" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
           </div>
         )}
         {!LOFT && (

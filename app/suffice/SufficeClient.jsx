@@ -625,7 +625,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
-                <ReportIssue self="suffice" name="Suffice" accent="#ffffff" align="center" />
+                <ReportIssue self="suffice" name="Suffice" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
               </div>
             )}
             {!LOFT && (

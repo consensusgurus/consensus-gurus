@@ -1008,7 +1008,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="babel" name="Babel" accent="#ffffff" align="center" />
+              <ReportIssue self="babel" name="Babel" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

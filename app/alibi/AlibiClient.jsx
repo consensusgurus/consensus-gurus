@@ -957,7 +957,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="alibi" name="Alibi" accent="#ffffff" align="center" />
+              <ReportIssue self="alibi" name="Alibi" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (

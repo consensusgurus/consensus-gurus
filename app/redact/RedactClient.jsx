@@ -701,7 +701,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
               <div className={STAGE ? undefined : 'loft-report'}>
-                <ReportIssue self="redact" name="Redact" accent="#ffffff" align="center" />
+                <ReportIssue self="redact" name="Redact" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
               </div>
             )}
             {!LOFT && (

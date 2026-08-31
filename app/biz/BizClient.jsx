@@ -775,7 +775,7 @@ export default function BizClient({ puzzles = [], questionsByNum = {}, forceNum 
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className={STAGE ? undefined : 'loft-report'}>
-              <ReportIssue self="biz" name="Biz" accent="#ffffff" align="center" />
+              <ReportIssue self="biz" name="Biz" accent="#ffffff" align="center" onHelp={() => setShowHelp(true)} />
             </div>
           )}
           {!LOFT && (
