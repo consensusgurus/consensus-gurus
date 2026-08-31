@@ -243,6 +243,24 @@ html:has(.stage-page),
 body:has(.stage-page) { background: #0b0f1a !important; }
 /* --stg-ground is defined ON .stage-page, so html cannot read it: the register
    has to be named here instead. */
+/* A FINISHED BOARD IS A RESULT, NOT A BOARD (owner, 2026-08-31). Once a daily
+   is over, the page was still showing the grid, the leader strip and the play
+   figures above an ending that already states all three — so the verdict sat
+   most of a screen down, under things nobody reads again.
+
+   When a stage page carries a finish card, the ending IS the page: the strip
+   and the figure row come off the chrome, and the element that directly holds
+   the card hides everything else it holds (which is the game's whole body,
+   board and all). Written once here rather than in 79 clients, and keyed on the
+   card's own class so a game that has not finished is untouched.
+
+   Every way back — replay, the board, the next game — is on the card itself,
+   which is why hiding the body costs the reader nothing. */
+.stage-page:has(.stf) .stg-strip,
+.stage-page:has(.stf) .stg-fg { display: none; }
+.stage-page *:has(> .stf) { display: flex; flex-direction: column; }
+.stage-page *:has(> .stf) > *:not(.stf) { display: none; }
+
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 
