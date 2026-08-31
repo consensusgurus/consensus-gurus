@@ -63,6 +63,8 @@ function fmtDate(ymd) {
   return dt.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
 
+const CIRC_PEEK = 3;
+
 export default function StageToday() {
   const [stageTheme, setStageTheme] = useStageTheme();
   const tq = useThemeQs();   // carries a ?theme= review override across links
@@ -78,6 +80,11 @@ export default function StageToday() {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [day, setDay] = useState('');
+  // Seventeen circuit cards is a wall on a page whose job is today's puzzles,
+  // so the shelf opens on its lead three and the rest are one tap away (owner,
+  // 2026-08-31). The three are DISPLAY_CIRCUITS' own lead order, which is
+  // deliberate and lives in lib/circuits.js.
+  const [allCircs, setAllCircs] = useState(false);
   const [board, setBoard] = useState(null);
   // THE OVERALL RANK comes from /api/quiz/me, the same place the site header
   // reads it. daily-status computes the identical figure internally (posNow) but
@@ -259,7 +266,7 @@ export default function StageToday() {
             </svg>
           )}
         </button>
-        <a className="sty-cx" href="/quizzes">Quizzes</a>
+        <a className="sty-cx sty-qz" href={withTq('/quizzes')}>Quizzes</a>
       </div>
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
 
@@ -322,9 +329,9 @@ export default function StageToday() {
 
         {circuits.length ? (
           <section>
-            <div className="sty-eb">Circuits</div>
+            <div className="sty-eb">Circuits <em>&middot; {circuits.length}</em></div>
             <div className="sty-circs">
-              {circuits.map((c) => (
+              {(allCircs ? circuits : circuits.slice(0, CIRC_PEEK)).map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
                   href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
                   <div className="sty-cn">{c.name}</div>
@@ -334,6 +341,11 @@ export default function StageToday() {
                 </a>
               ))}
             </div>
+            {circuits.length > CIRC_PEEK ? (
+              <button type="button" className="sty-more" onClick={() => setAllCircs((v) => !v)}>
+                {allCircs ? 'Show fewer' : `Show all ${circuits.length} circuits`}
+              </button>
+            ) : null}
           </section>
         ) : null}
 
@@ -445,6 +457,12 @@ const CSS = `
 
 /* ── circuits ──────────────────────────────────────────────────────────── */
 .sty-circs{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
+.sty-more{display:block;width:100%;margin-top:7px;background:var(--stg-surf);
+  border:1px solid var(--stg-line);border-radius:9px;padding:9px;cursor:pointer;
+  font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--stg-ink2);}
+.sty-more:hover{border-color:var(--stg-line2);color:var(--stg-ink);}
+.sty-more:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 .sty-circ{position:relative;display:block;text-decoration:none;color:var(--stg-ink);
   background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:10px;
   padding:12px 14px 13px 16px;overflow:hidden;}
@@ -500,10 +518,21 @@ const CSS = `
 @media (max-width:640px){
   /* The name never wraps; the DATE is what gives way, onto its own line first
      and out of the flow entirely on the narrowest screens. */
-  .sty-cap{flex-wrap:wrap;gap:10px 16px;padding:10px 14px;}
-  .sty-id{flex:none;}
+  /* TWO DELIBERATE ROWS, not three accidental ones (owner, 2026-08-31:
+     "quizzes wraps to its own line on mobile"). Left to flex-wrap the cap put
+     the name on line 1, five figures on line 2, and stranded the toggle and the
+     Quizzes link alone on line 3. Row 1 is the identity and the two controls,
+     row 2 is the figures, and nothing is left over. */
+  .sty-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto;
+    grid-template-areas:'id tg qz' 'fg fg fg';
+    align-items:center;gap:9px 10px;padding:10px 14px;}
+  .sty-id{grid-area:id;flex:none;min-width:0;}
+  .sty-tg{grid-area:tg;}
+  .sty-qz{grid-area:qz;}
   .sty-date{width:100%;order:3;}
-  .sty-figs{margin-left:auto;gap:16px;}
+  .sty-figs{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
+    border-top:1px solid var(--stg-line);padding-top:8px;}
+  .sty-figs>div{min-width:0;}
   .sty-wrap{padding:18px 14px 56px;gap:22px;}
   .sty-nm{font-size:21px;}
   .sty-next{padding:15px 16px;gap:12px;}

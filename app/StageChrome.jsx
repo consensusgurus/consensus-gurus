@@ -132,14 +132,6 @@ export default function StageChrome({
           </b>
         </div>
 
-        {figures.length ? (
-          <div className="stg-fg">
-            {figures.map((f, i) => (
-              <div key={f.k || i}><b>{f.v}</b><i>{f.k}</i></div>
-            ))}
-          </div>
-        ) : null}
-
         <button
           type="button"
           className={'stg-cx stg-rank' + (panel ? ' on' : '')}
@@ -211,6 +203,21 @@ export default function StageChrome({
         </button>
       ) : null}
 
+      {/* YOUR OWN NUMBERS, UNDER THE FIELD'S (owner, 2026-08-31). They used to
+          ride on the cap's title line, which put your score above the name of
+          the person beating you and made the cap carry two unrelated jobs at
+          once. The order now reads down: what this page is, who is winning it,
+          how you are doing. It also frees the cap to be one line at every
+          width, so the phone no longer needs the two-row split this row was
+          invented to survive. */}
+      {figures.length ? (
+        <div className="stg-fg">
+          {figures.map((f, i) => (
+            <div key={f.k || i}><b>{f.v}</b><i>{f.k}</i></div>
+          ))}
+        </div>
+      ) : null}
+
       {/* THE LADDER, as a full-width RAIL rather than a gutter.
           The run puts it in a 136px gutter because a question is one line of
           text with acres of space beside it. A board that already fills the
@@ -252,7 +259,8 @@ const CSS = `
 .stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg-acc);
   border-radius:99px;padding:3px 8px;}
-.stg-fg{display:flex;gap:20px;margin-left:22px;}
+.stg-fg{display:flex;gap:26px;padding:9px 20px;
+  border-bottom:1px solid var(--stg-line);}
 .stg-fg>div{display:flex;flex-direction:column;}
 .stg-fg b{font-family:${MONO};font-size:14px;font-weight:500;line-height:1.15;
   font-variant-numeric:tabular-nums;}
@@ -310,24 +318,10 @@ const CSS = `
      without shrinking the title. */
   .stg-cap{gap:10px;padding:10px 13px;}
   .stg-id b{font-size:15px;}
-  .stg-fg{margin-left:auto;gap:14px;}
-  /* The second row is spent ONLY when it buys something. A game with one or two
-     figures (Suds: time, filled) still fits beside its title, and forcing it
-     onto its own line took that cap from 52px to 100px — a taller header to
-     hold LESS. Three or more is where the one-line version starts wrapping
-     where it lands rather than where it means something, so that is where the
-     split earns its height. :has counts the figures for us. */
-  .stg-cap:has(.stg-fg>div:nth-child(3)){
-    display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
-    grid-template-areas:'id rank theme home' 'fg fg fg fg';
-    align-items:center;gap:9px 8px;}
-  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-id{grid-area:id;}
-  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-rank{grid-area:rank;}
-  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-theme{grid-area:theme;}
-  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-home{grid-area:home;}
-  .stg-cap:has(.stg-fg>div:nth-child(3)) .stg-fg{
-    grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
-    border-top:1px solid var(--stg-line,rgba(255,255,255,0.09));padding-top:8px;}
+  /* The cap is ONE line again at every width. The two-row split that used to
+     live here existed only to hold the figures, and the figures now have a row
+     of their own below the leader strip. */
+  .stg-fg{gap:0;justify-content:space-between;padding:8px 13px;}
   .stg-fg>div{min-width:0;}
   .stg-strip{padding:8px 13px;gap:8px;font-size:11.5px;}
   /* The player count is the first thing to go: the strip's job on a phone is
