@@ -334,10 +334,16 @@ export default function StageToday() {
               {(allCircs ? circuits : circuits.slice(0, CIRC_PEEK)).map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
                   href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
-                  <div className="sty-cn">{c.name}</div>
+                  {/* The count sits IN the header row, not absolutely over the
+                      card: floating it top-right meant a long name ran
+                      underneath it, which "Trivia Gauntlet" did on every
+                      width (owner, 2026-08-31). */}
+                  <div className="sty-chead">
+                    <div className="sty-cn">{c.name}</div>
+                    <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
+                  </div>
                   <div className="sty-cb">{c.blurb}</div>
                   <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
-                  <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
                 </a>
               ))}
             </div>
@@ -490,13 +496,18 @@ const CSS = `
   padding:12px 14px 13px 16px;overflow:hidden;}
 .sty-circ::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
 .sty-circ:hover{border-color:var(--cc);}
-.sty-cn{font-size:15px;font-weight:800;letter-spacing:-0.01em;}
-.sty-cb{font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;line-height:1.4;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sty-chead{display:flex;align-items:baseline;gap:10px;}
+.sty-cn{font-size:15px;font-weight:800;letter-spacing:-0.01em;min-width:0;}
+.sty-cnum{margin-left:auto;flex:none;}
+/* THREE lines, not two. Every circuit blurb is a full sentence and the two
+   line clamp cut the longest of them off mid-clause; the cards share a grid
+   row, so letting them run to three costs one line across the shelf and clips
+   nothing. */
+.sty-cb{font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:3px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .sty-cbar{height:4px;border-radius:2px;background:var(--stg-surf2);margin-top:10px;overflow:hidden;}
 .sty-cbar span{display:block;height:100%;background:var(--cc);}
-.sty-cnum{position:absolute;top:12px;right:14px;font-family:${MONO};font-size:11.5px;
-  font-weight:700;color:var(--stg-ink2);}
+.sty-cnum{font-family:${MONO};font-size:11.5px;font-weight:700;color:var(--stg-ink2);}
 .sty-cnum i{font-style:normal;color:var(--stg-mute);}
 /* A finished circuit is MARKED, not dimmed. The ladder dims a played rung
    because a rung is a graphic; a card carries prose, and half-strength prose on
