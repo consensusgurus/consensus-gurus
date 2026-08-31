@@ -34,7 +34,7 @@
 //     lib/category-ramp.js for why the brand blue does not belong here.
 import React, { useEffect, useRef, useState } from 'react';
 import { Home } from 'lucide-react';
-import { useStageTheme } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs } from '@/lib/stage-theme';
 // The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
 // sheet that LoftFinish depends on, so the end card rendered unstyled.
 import { LoftSheet } from './LoftCap';
@@ -104,6 +104,9 @@ export default function StageChrome({
   // The switch reads the SAME store the page root reads, so the glyph and the
   // ground can never disagree about which register is showing.
   const [theme, setTheme] = useStageTheme();
+  // A ?theme= review override travels back to the home too, or the trip out
+  // and the trip back disagree about the register.
+  const tq = useThemeQs();
   // Kept for callers that need the literal; the CAP reads var(--stg-acc),
   // which the client's root publishes in both registers.
   const colour = gameColor(gameKey);
@@ -170,7 +173,7 @@ export default function StageChrome({
             </svg>
           )}
         </button>
-        <a className="stg-cx stg-home" href={homeHref} aria-label="Home" title="Home">
+        <a className="stg-cx stg-home" href={tq ? homeHref + (homeHref.includes('?') ? tq : '?' + tq.slice(1)) : homeHref} aria-label="Home" title="Home">
           <Home size={13} strokeWidth={2.4} />
         </a>
       </div>

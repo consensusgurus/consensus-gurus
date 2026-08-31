@@ -36,7 +36,7 @@ import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circui
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import { savedIdentity } from '@/lib/saved-identity';
-import { useStageTheme } from '@/lib/stage-theme';
+import { useStageTheme, useThemeQs } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
@@ -65,6 +65,10 @@ function fmtDate(ymd) {
 
 export default function StageToday() {
   const [stageTheme, setStageTheme] = useStageTheme();
+  const tq = useThemeQs();   // carries a ?theme= review override across links
+  // circuitEntryHref may or may not already carry a query, so the override
+  // joins with the right separator rather than always an ampersand.
+  const withTq = (href) => (tq ? href + (href.includes('?') ? tq : '?' + tq.slice(1)) : href);
   // The day's own numbers, from the hook the site header already uses, so this
   // cap and that one cannot disagree. Name resolves after mount because it
   // reads localStorage.
@@ -281,7 +285,7 @@ export default function StageToday() {
         {/* 3. UP NEXT. One card, in its own category's colour, and the only
                filled control on the page. */}
         {next ? (
-          <a className="sty-next" href={`${routeOf(next)}?stage=1`} style={{ '--cc': hueFor(next.cat) }}>
+          <a className="sty-next" href={`${routeOf(next)}?stage=1${tq}`} style={{ '--cc': hueFor(next.cat) }}>
             <div>
               <div className="sty-eb">{inprog.has(next.key) ? 'Finish' : 'Up next'}</div>
               <div className="sty-nm">{next.name}</div>
@@ -322,7 +326,7 @@ export default function StageToday() {
             <div className="sty-circs">
               {circuits.map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
-                  href={circuitEntryHref(c.id)} style={{ '--cc': c.hue }}>
+                  href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
                   <div className="sty-cn">{c.name}</div>
                   <div className="sty-cb">{c.blurb}</div>
                   <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
@@ -347,7 +351,7 @@ export default function StageToday() {
                 {games.map((g) => {
                   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
                   return (
-                    <a key={g.key} className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1`}>
+                    <a key={g.key} className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}>
                       <span className="sty-gn">{g.name}</span>
                       <span className="sty-gt">{g.tag}</span>
                     </a>

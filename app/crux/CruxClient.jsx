@@ -90,7 +90,12 @@ const STAGE_BOARD_CSS = `
 .stage-page .cx-a > *:not(.cx-gut){flex:0 1 660px;min-width:0;}
 @media(max-width:640px){
   .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
-  .stage-page .cx-gut{flex:none;min-height:0;}
+  /* HEIGHT, not min-height. The desktop rule above sets height: to a clamp
+     whose FLOOR is 200px, so resetting min-height undid a property that rule
+     never set: a phone reserved 200px of column for a ladder that renders 37px
+     tall, and the board opened 222px down the page (owner, 2026-08-31: "a huge
+     gap at the top"). Undo the property that was actually set. */
+  .stage-page .cx-gut{flex:none;min-height:0;height:auto;}
 }
 .stage-page .cl-key:not(.cl-kx){background:var(--stg-surf2,rgba(255,255,255,0.08))!important;
   color:var(--stg-ink,#e9edf4)!important;border:1px solid var(--stg-line,rgba(255,255,255,0.11))!important;}
