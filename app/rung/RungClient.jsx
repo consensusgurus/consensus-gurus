@@ -650,7 +650,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           .rg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .rg-btn:hover{background:var(--accent-soft);}
           .rg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .rg-in{font-family:${SANS};font-weight:800;font-size:20px;letter-spacing:0.28em;text-transform:uppercase;text-align:center;width:100%;max-width:230px;padding:10px 8px;border-radius:8px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);}
+          .rg-in{font-family:${SANS};font-weight:800;font-size:20px;letter-spacing:0.28em;text-transform:uppercase;text-align:center;width:100%;max-width:230px;padding:10px 8px;border-radius:8px;border:2px solid var(--blue-deep);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:var(--blue-deep);}
           .rg-in:focus{outline:none;border-color:${COLORS.accent};}
           .rg-ladder{max-height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;padding:2px 0;}
           .rg-shake{animation:rgshake .34s ease;}

@@ -581,7 +581,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           @keyframes ccstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes ccrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.cc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cc-ttl h1{font-size:21px;letter-spacing:0.02em;}.cc-ttl .cc-ttl-dt{font-size:15px;}.cc-ttl-dot{display:none;}}
-          .cc-inp{font-family:${MONO};font-weight:500;font-size:30px;letter-spacing:0.14em;text-align:center;width:150px;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 6px;background:var(--white);color:${INK};outline:none;}
+          .cc-inp{font-family:${MONO};font-weight:500;font-size:30px;letter-spacing:0.14em;text-align:center;width:150px;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .cc-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(14,116,144,0.18);}
           .cc-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:58px;}
           .cc-go:active{transform:translateY(1px);}
@@ -619,14 +619,14 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {gameRetired && (
-          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
+          <div style={{ background: STAGE ? 'var(--stg-surf2)' : '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
             Circa has retired &mdash; this archive stays playable, but no new moments drop.{' '}
             Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
           </div>
         )}
 
         {/* the moment */}
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -661,7 +661,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
           {g.hintUsed && playing && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: '#9a3d0c', background: '#fff7ed', border: '1.5px solid rgba(234,88,12,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 6 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: '#9a3d0c', background: STAGE ? 'var(--stg-surf2)' : '#fff7ed', border: '1.5px solid rgba(234,88,12,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 6 }}>
               <Lightbulb size={13} /> It happened in {centuryLabel}.
             </div>
           )}

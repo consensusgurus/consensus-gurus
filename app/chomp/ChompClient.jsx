@@ -803,8 +803,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     />
   );
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
-  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: `1px solid ${COLORS.line}`, background: '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
   const stat = (label, value, tone) => (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94a3b8' }}>{label}</div>
@@ -867,7 +867,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chomp is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -886,7 +886,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-          <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14 }}>
+          <div style={{ background: STAGE ? SURF : '#fff', border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14 }}>
             {/* the cast, in eating order, with the next one lit */}
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center', marginBottom: 11 }}>
               {CAST.map((m, i) => {
@@ -911,7 +911,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               {stat('Moves', nf(g.moves))}
               {stat('Board', `${fillPct}%`)}
               {stat('Clock', fmtTime(elapsed))}
-              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: FADED, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <HelpCircle size={15} />
               </button>
             </div>

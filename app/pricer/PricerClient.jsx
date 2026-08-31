@@ -747,7 +747,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
         />
       )}
       {preview && (
-        <div style={{ background: '#fef9c3', borderBottom: '2px solid #ca8a04', padding: '10px 24px', textAlign: 'center', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#92400e', letterSpacing: '.02em' }}>
+        <div style={{ background: STAGE ? 'var(--stg-surf2)' : '#fef9c3', borderBottom: '2px solid #ca8a04', padding: '10px 24px', textAlign: 'center', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: '#92400e', letterSpacing: '.02em' }}>
           🔍 PREVIEW MODE — this play is not recorded and won't appear on the leaderboard
         </div>
       )}
@@ -758,7 +758,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-btn:hover{background:var(--accent-soft);}
           /* ---- the arena: a bracket zoomed all the way in ---- */
           .pr-arena{position:relative;display:grid;grid-template-columns:150px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
-                    background:var(--white);border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}
+                    background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}
           .pr-lane{position:relative;display:flex;flex-direction:column;justify-content:center;min-width:0;padding-top:12px;}
           .pr-lanehd{position:absolute;top:-2px;left:0;right:0;font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa5b4;}
           .pr-hist{gap:10px;}
@@ -771,10 +771,10 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-bout{gap:10px;padding-right:14px;}
           .pr-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:14px;border-right:2px solid ${COLORS.line};
                           border-top:2px solid ${COLORS.line};border-bottom:2px solid ${COLORS.line};border-radius:0 8px 8px 0;}
-          .pr-card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:var(--white);
+          .pr-card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};
                    border:2px solid ${COLORS.line};border-radius:9px;padding:9px 13px;cursor:pointer;min-height:54px;text-align:left;width:100%;
                    font-family:${SANS};transition:border-color .12s,background .12s,transform .12s,box-shadow .12s,opacity .25s;}
-          .pr-card:hover:not(:disabled){border-color:${COLORS.accent};background:#f5fdf7;transform:translateX(4px);box-shadow:0 6px 16px rgba(21,128,61,.13);}
+          .pr-card:hover:not(:disabled){border-color:${COLORS.accent};background:${STAGE ? 'var(--stg-surf2)' : '#f5fdf7'};transform:translateX(4px);box-shadow:0 6px 16px rgba(21,128,61,.13);}
           .pr-card .nm{font-size:18px;font-weight:900;line-height:1.15;letter-spacing:-.015em;color:${INK};}
           .pr-card .sub{margin-top:3px;font-family:${MONO};font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;}
           .pr-card.won{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:inset 0 0 0 2px ${COLORS.accent};transform:translateX(8px);}
@@ -788,10 +788,10 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-nrow{display:flex;align-items:center;min-height:27px;padding:4px 8px;font-size:11.5px;font-weight:800;line-height:1.2;
                    border-bottom:1px solid ${COLORS.line};color:#a9b3c1;transition:background .3s,color .3s;}
           .pr-nrow:last-child{border-bottom:none;}
-          .pr-nrow.filled{color:${INK};background:var(--white);}
+          .pr-nrow.filled{color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-nrow.target{box-shadow:inset 3px 0 0 ${COLORS.accent};}
           .pr-nrow.landing{background:${COLORS.accentSoft};color:${COLORS.accentDeep};}
-          .pr-trophy{border:1.5px solid ${COLORS.gold};background:#fffbeb;border-radius:8px;padding:8px 8px;text-align:center;}
+          .pr-trophy{border:1.5px solid ${COLORS.gold};background:${STAGE ? 'var(--stg-surf2)' : '#fffbeb'};border-radius:8px;padding:8px 8px;text-align:center;}
           .pr-trophy .lbl{font-family:${MONO};font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:${COLORS.gold};}
           .pr-flyer{position:absolute;z-index:9;background:${COLORS.accentSoft};border:2px solid ${COLORS.accent};border-radius:9px;
                     display:flex;align-items:center;padding:0 10px;font-weight:900;color:${COLORS.accentDeep};overflow:hidden;white-space:nowrap;
@@ -804,7 +804,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-mapcell{position:relative;flex:1;display:flex;align-items:stretch;min-height:var(--pr-cell,26px);}
           .pr-dot{flex:1;position:relative;background:none;border:none;padding:0;cursor:pointer;border-radius:4px;}
           .pr-dot::before{content:'';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:10px;border-radius:3px;
-                          border:1.5px solid ${COLORS.line};background:var(--white);transition:.12s;}
+                          border:1.5px solid ${COLORS.line};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};transition:.12s;}
           .pr-dot:hover:not(:disabled)::before{border-color:${COLORS.accent};height:13px;}
           .pr-dot:focus-visible{outline:2px solid ${COLORS.accent};outline-offset:1px;}
           .pr-dot.done::before{background:${COLORS.accent};border-color:${COLORS.accent};}
@@ -823,7 +823,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                              border-left:1px solid ${COLORS.line};border-top:1px solid ${COLORS.line};border-bottom:1px solid ${COLORS.line};}
           .pr-tround.first .pr-tmatch::before{display:none;}
           .pr-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid ${COLORS.line};}
-          .pr-tbox{width:100%;border:1px solid ${COLORS.line};border-radius:7px;overflow:hidden;background:var(--white);}
+          .pr-tbox{width:100%;border:1px solid ${COLORS.line};border-radius:7px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-tbox.jump{cursor:pointer;transition:box-shadow .12s,border-color .12s;}
           .pr-tbox.jump:hover,.pr-tbox.jump:focus-visible{border-color:${COLORS.accent};box-shadow:0 0 0 2px ${COLORS.accentSoft};outline:none;}
           .pr-trow{display:flex;align-items:center;gap:5px;padding:4px 7px;font-size:11.5px;font-weight:700;border-bottom:1px solid ${COLORS.line};line-height:1.25;}
@@ -837,7 +837,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
                    border-radius:4px;padding:1px 5px;text-decoration:none;white-space:nowrap;}
           .pr-shop:hover{background:${COLORS.accent};color:${T.white};}
           .pr-shopbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid ${COLORS.line};border-radius:10px;
-                      background:var(--white);padding:10px 13px;margin:12px 0 0;max-width:560px;}
+                      background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:10px 13px;margin:12px 0 0;max-width:560px;}
           .pr-shopbar .lbl{font-family:${MONO};font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};}
           .pr-shopbar a{font-family:${SANS};font-size:12px;font-weight:800;color:${COLORS.accentDeep};background:${COLORS.accentSoft};
                         border:1px solid ${COLORS.accent};border-radius:7px;padding:5px 10px;text-decoration:none;}
@@ -849,7 +849,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-trow.bust{background:${COLORS.redSoft};color:#7f1d1d;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
           .pr-trow.bust .n{text-decoration:line-through;}
           .pr-tchamp{display:flex;flex-direction:column;justify-content:center;flex:0 0 140px;}
-          .pr-champ{border:1.5px solid ${COLORS.gold};background:#fffbeb;border-radius:9px;padding:10px 10px;text-align:center;}
+          .pr-champ{border:1.5px solid ${COLORS.gold};background:${STAGE ? 'var(--stg-surf2)' : '#fffbeb'};border-radius:9px;padding:10px 10px;text-align:center;}
           .pr-stack{display:none;}
           .pr-srh{font-family:${MONO};font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};margin:15px 0 7px;padding-bottom:5px;border-bottom:1px solid var(--border);}
           .pr-stack .pr-tbox{margin-bottom:7px;}
@@ -870,7 +870,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-guess-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
           .pr-guess-dollar{font-family:${MONO};font-size:18px;font-weight:500;color:${COLORS.accent};}
           .pr-guess-input{font-family:${MONO};font-size:18px;font-weight:500;border:1.5px solid ${COLORS.accent};border-radius:6px;
-                          padding:8px 10px;width:170px;max-width:100%;outline:none;color:${INK};background:var(--white);}
+                          padding:8px 10px;width:170px;max-width:100%;outline:none;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-guess-input:focus{border-color:${COLORS.accentDeep};box-shadow:0 0 0 3px rgba(21,128,61,.2);}
           .pr-guess-btns{display:flex;gap:10px;flex-wrap:wrap;}
           .pr-guess-skip{font-family:${SANS};font-size:14px;font-weight:700;background:transparent;border:1.5px solid ${COLORS.line};
@@ -909,7 +909,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column', maxWidth: 760 }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column', maxWidth: 760 }}>
             <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: ACC_DEEP, fontWeight: 500, marginBottom: 5 }}>
               Today&rsquo;s field &middot; {PUZZLE.category}
             </div>
@@ -1102,7 +1102,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           {!playing && (
             <>
               <div style={{ maxWidth: 560, margin: '14px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? <>A perfect bracket. Nothing busted.</> : <>{champion.name} took it at {fmtValue(champion.value, PUZZLE.unit)}.</>}

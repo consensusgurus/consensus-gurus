@@ -497,10 +497,10 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           .bk-grid{border-collapse:separate;border-spacing:3px;font-family:${SANS};}
           .bk-grid th{font-size:10.5px;font-weight:800;color:${FADED};padding:2px 4px;text-align:left;white-space:nowrap;}
           .bk-grid th.col{writing-mode:vertical-rl;transform:rotate(180deg);height:64px;text-align:right;}
-          .bk-cell{width:38px;height:34px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.18);background:var(--white);font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${INK};}
+          .bk-cell{width:38px;height:34px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.18);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${INK};}
           .bk-cell.W{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
-          .bk-cell.D{background:#fef3c7;border-color:#b45309;color:#78350f;}
-          .bk-cell.L{background:#fee2e2;border-color:#b91c1c;color:#7f1d1d;}
+          .bk-cell.D{background:${STAGE ? 'var(--stg-surf2)' : '#fef3c7'};border-color:#b45309;color:#78350f;}
+          .bk-cell.L{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;}
           .bk-cell.self{background:${COLORS.paper};border-color:transparent;cursor:default;}
           .bk-cell.mirror{cursor:default;opacity:0.72;}
           .bk-tbl{width:100%;border-collapse:collapse;font-family:${SANS};font-size:12.5px;}
@@ -508,7 +508,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           .bk-tbl th:first-child{text-align:left;}
           .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${INK};border-top:1px solid rgba(28,30,36,0.09);}
           .bk-tbl td:first-child{text-align:left;font-weight:800;}
-          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
+          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -538,7 +538,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The record is sealed'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>

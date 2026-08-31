@@ -269,9 +269,23 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const STAGE_ACC = { '--stg-acc-dk': gameColor('suds'), '--stg-acc-lt': gameColorLight('suds') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const boxOf = (i) => Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3);
+  // NINE BLOCKS OF NINE, mirroring the grid. It used to be each box's FREE
+  // cells only, so the blocks came out different widths on a board everyone
+  // reads as uniform 9x9 (owner asked why). The width was reporting how many
+  // GIVENS each box happens to have, which is true but is not what a ladder is
+  // for, and it made the rail look broken.
+  //
+  // A given is half-lit (it was already there) and a cell you filled is lit,
+  // which is the same two-level reading the rest of the stage uses.
   const stageBlocks = Array.from({ length: 9 }, (_, b) => {
-    const inBox = FREE.filter((i) => boxOf(i) === b);
-    return { n: inBox.length, c: STAGE_C, on: inBox.map((i) => !!cells[i]) };
+    const inBox = Array.from({ length: 81 }, (_, i) => i).filter((i) => boxOf(i) === b);
+    const free = new Set(FREE);
+    return {
+      n: inBox.length,
+      c: STAGE_C,
+      on: inBox.map((i) => free.has(i) && !!cells[i]),
+      half: inBox.map((i) => !free.has(i)),
+    };
   });
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -889,7 +903,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
         <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         <div className={(LOFT && !STAGE) ? 'loft-card' : undefined} style={STAGE
           ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
-          : { background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+          : { background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* Both figures move UP into the cap on a loft page; printing them
               twice is the one thing to avoid. */}
           {!LOFT && (

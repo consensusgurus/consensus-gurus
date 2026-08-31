@@ -408,15 +408,15 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           .sf-btn:hover{background:${COLORS.accentSoft};}
           .sf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sf-btn.primary:hover{background:${COLORS.accentDeep};}
-          .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
+          .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
           .sf-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .sf-choice:disabled{cursor:default;}
           .sf-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
           .sf-choice.right{border-color:${COLORS.green};background:#dcfce7;}
           .sf-choice.right .k{background:${COLORS.green};color:var(--white);}
-          .sf-choice.wrong{border-color:#b91c1c;background:#fee2e2;}
+          .sf-choice.wrong{border-color:#b91c1c;background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};}
           .sf-choice.wrong .k{background:#b91c1c;color:var(--white);}
-          .sf-stmt{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
+          .sf-stmt{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
           .sf-stmt .n{font-family:${MONO};font-weight:700;color:${COLORS.accentDeep};flex:0 0 auto;}
           .sf-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .sf-pip.on{background:${COLORS.accent};}
@@ -450,7 +450,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
           {/* start tile: full rules for a first-timer, compact card otherwise */}
           {preStart && (
-            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+            <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
               <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 {TOTAL} questions you do not have to answer.
               </h2>
@@ -499,7 +499,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                   <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, fontWeight: 700, marginBottom: 6 }}>
                     Item {idx + 1}
                   </div>
-                  <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 11, padding: '14px 16px', marginBottom: 10 }}>
+                  <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 11, padding: '14px 16px', marginBottom: 10 }}>
                     <div style={{ fontSize: 14, color: FADED, fontWeight: 600, marginBottom: 5 }}>{item.stem}</div>
                     <div style={{ fontSize: 17.5, fontWeight: 800, color: INK, lineHeight: 1.4 }}>{item.ask}</div>
                   </div>
@@ -548,7 +548,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
               )}
 
               {!playing && (
-                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
+                <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
                   <div style={{ fontSize: 20, fontWeight: 900, color: INK, marginBottom: 8 }}>{score}/{TOTAL} &middot; {elapsed}</div>
                   {ITEMS.map((it, i) => (
                     <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '5px 0', borderTop: i ? '1px solid rgba(28,30,36,0.08)' : 'none', fontSize: 13.5 }}>
@@ -664,7 +664,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? SURF : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
               <b style={{ fontSize: 17, color: INK }}>How Suffice works</b>

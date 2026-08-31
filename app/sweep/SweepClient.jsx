@@ -619,7 +619,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
@@ -678,7 +678,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sweep is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -697,7 +697,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-          <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14 }}>
+          <div style={{ background: STAGE ? SURF : '#fff', border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
                 Depth <b style={{ color: INK }}>{nf(depth)}</b>
@@ -717,7 +717,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 className="sw-view"
                 style={{
                   flex: 1, minWidth: 0, maxWidth: 360, height: VIEW_ROWS * 38,
-                  overflowY: 'auto', overflowX: 'hidden', background: '#eef1f6',
+                  overflowY: 'auto', overflowX: 'hidden', background: STAGE ? 'var(--stg-panel)' : '#eef1f6',
                   border: `1px solid ${COLORS.line}`, borderRadius: 10, padding: 3,
                 }}
               >
@@ -926,7 +926,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? SURF : COLORS.cream, borderRadius: 12, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>

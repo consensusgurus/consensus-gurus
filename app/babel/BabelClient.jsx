@@ -721,7 +721,7 @@ export default function BabelClient({ puzzles, forceNum }) {
       )}
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
-          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sc-btn:hover{background:${COLORS.paper};}
           .sc-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sc-btn.primary:hover{background:#0f3d21;}
@@ -733,9 +733,9 @@ export default function BabelClient({ puzzles, forceNum }) {
              the green ground. The launch version used a pale cream on a pale
              board and the letters washed out, so the tile is warmer, the letter
              is near-black at full weight, and every tile carries a hard edge. */
-          .sc-cell.tile{background:#f0dfba;border:1px solid rgba(86,58,16,0.55);color:#12141a;text-shadow:0 1px 0 rgba(255,255,255,0.5);box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
+          .sc-cell.tile{background:${STAGE ? 'var(--stg-surf2)' : '#f0dfba'};border:1px solid rgba(86,58,16,0.55);color:#12141a;text-shadow:0 1px 0 rgba(255,255,255,0.5);box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
           .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 rgba(20,83,45,0.45);}
-          .sc-cell.foeplay{background:#f3cdb2;border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
+          .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
           .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:${COLORS.accent};}
@@ -745,7 +745,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-tile.used{opacity:0.25;box-shadow:none;}
           .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}
           .sc-bag{display:flex;flex-wrap:wrap;gap:3px;}
-          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${FADED};}
+          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${FADED};}
           .sc-bag span b{color:${INK};font-weight:800;margin-right:2px;}
           .sc-log{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1.75;}
         `}</style>
@@ -778,7 +778,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 460, margin: '0 auto 4px' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 460, margin: '0 auto 4px' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Babel is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -918,7 +918,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           {!playing && !endHold.held && (
             <>
               <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : beat ? COLORS.gold : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : beat ? `You beat them by ${spread}. The benchmark was ${signed(BENCH)}, and greedy play gets ${signed(PUZZLE.greedy)}.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}

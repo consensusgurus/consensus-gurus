@@ -847,7 +847,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
                 <div
                   key={shake}
                   className={`ch-board${shake ? ' shake' : ''}`}
-                  style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, aspectRatio: boardAspect, background: COLORS.paper, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: 10, touchAction: 'manipulation' }}
+                  style={{ display: 'grid', gridTemplateColumns: gridCols, gridTemplateRows: gridRows, aspectRatio: boardAspect, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: 10, touchAction: 'manipulation' }}
                 >
                   {cells}
                 </div>

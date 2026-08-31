@@ -553,7 +553,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           .sh-act{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.02em;border:2px solid rgba(255,255,255,0.9);background:rgba(255,255,255,0.94);color:${INK};border-radius:9px;padding:12px 0;flex:1 1 0;cursor:pointer;}
           .sh-act:active{transform:translateY(1px);}
           .sh-act:disabled{opacity:0.35;cursor:default;}
-          .sh-act.gold{background:#f4d98d;border-color:#e8b43a;color:#5b4104;}
+          .sh-act.gold{background:${STAGE ? 'var(--stg-surf2)' : '#f4d98d'};border-color:#e8b43a;color:#5b4104;}
           .sh-act.deal{background:${COLORS.accentSoft};border-color:rgba(255,255,255,0.9);color:${COLORS.accent};}
           .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--white);}
           .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);margin-top:11px;flex-wrap:wrap;}

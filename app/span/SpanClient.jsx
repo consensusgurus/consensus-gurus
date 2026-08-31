@@ -750,7 +750,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   function chip(name, kind, key) {
     const base = { display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontWeight: 800, fontSize: 13.5, borderRadius: 8, padding: '7px 11px', border: '1.5px solid rgba(28,30,36,0.35)' };
     if (kind === 'start') return <span key={key} style={{ ...base, background: COLORS.ink, color: T.white }}>{name}</span>;
-    if (kind === 'end') return <span key={key} style={{ ...base, background: T.white, color: INK, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
+    if (kind === 'end') return <span key={key} style={{ ...base, background: STAGE ? SURF : T.white, color: INK, borderStyle: 'dashed' }}><Flag size={13} /> {name}</span>;
     if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: T.white, borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
     return <span key={key} style={{ ...base, background: COLORS.trailSoft, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
   }
@@ -815,8 +815,8 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           .sp-shake{animation:spshake .45s ease;}
           @keyframes spfade{from{opacity:0;}}
           @keyframes spstamp{from{opacity:0;transform:scale(.94);}}
-          .sp-sug{display:block;width:100%;text-align:left;background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${INK};padding:9px 13px;cursor:pointer;}
-          .sp-sug:hover{background:#eef4ff;}
+          .sp-sug{display:block;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${INK};padding:9px 13px;cursor:pointer;}
+          .sp-sug:hover{background:${STAGE ? 'var(--stg-surf2)' : '#eef4ff'};}
           @media(max-width:520px){.sp-htp-f{display:none;}.sp-htp-s{display:inline;}}
           @media(max-width:560px){.sp-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sp-ttl h1{font-size:21px;letter-spacing:0.02em;}.sp-ttl .sp-ttl-dt{font-size:15px;}.sp-ttl-dot{display:none;}}
           .sp-htp-s{display:none;}
@@ -874,9 +874,9 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
 
         {/* the assignment */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {isSundayEd && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#8a6d1a', background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1px solid rgba(230,185,63,0.6)', borderRadius: 7, padding: '6px 10px', marginBottom: 11, flexWrap: 'wrap' }}>
               <b style={{ fontWeight: 800, color: '#92400e', whiteSpace: 'nowrap' }}>Sunday Edition</b>
               {sundayRule && (
                 <span style={{ whiteSpace: 'nowrap' }}>
@@ -919,10 +919,10 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (suggestions.length === 1) addCountry(suggestions[0]); else addCountry(typed); } }}
                   placeholder={`Next stop from ${head}…`}
                   autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck={false}
-                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontWeight: 700, fontSize: 15, color: INK, background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 9, padding: '11px 13px', outline: 'none' }}
+                  style={{ width: '100%', boxSizing: 'border-box', fontFamily: SANS, fontWeight: 700, fontSize: 15, color: INK, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 9, padding: '11px 13px', outline: 'none' }}
                 />
                 {suggestions.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: T.white, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 9, marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 20px rgba(20,22,28,0.14)' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: STAGE ? SURF : T.white, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 9, marginTop: 4, overflow: 'hidden', boxShadow: '0 8px 20px rgba(20,22,28,0.14)' }}>
                     {suggestions.map((c) => (
                       <button key={c} className="sp-sug" onMouseDown={(e) => { e.preventDefault(); addCountry(c); }}>{c}</button>
                     ))}
@@ -939,7 +939,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               )}
               {hintOk && !g.hintUsed && (
                 <button className="sp-btn" onClick={useHint} title="Take one step down a shortest road (one hint, first play only)"
-                  style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
+                  style={{ background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

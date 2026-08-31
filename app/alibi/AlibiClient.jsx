@@ -660,21 +660,21 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.al-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .al-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .al-btn:hover{background:var(--accent-soft);}
-          .al-btn:disabled:hover{background:var(--white);}
+          .al-btn:disabled:hover{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .al-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .al-btn.primary:hover{background:#761a26;}
-          .al-clue{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${INK};}
+          .al-clue{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${INK};}
           .al-clue b{color:${COLORS.accent};}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
-          .al-tbl{border-collapse:collapse;background:var(--white);border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
+          .al-tbl{border-collapse:collapse;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${FADED};text-align:left;padding:0 0 6px 2px;caption-side:top;}
-          .al-tbl th{font-size:11px;padding:6px 4px;background:#efece6;font-weight:700;color:${INK};}
-          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;font-size:12px;font-weight:700;color:${FADED};background:#faf8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
+          .al-tbl th{font-size:11px;padding:6px 4px;background:${STAGE ? 'var(--stg-surf2)' : '#efece6'};font-weight:700;color:${INK};}
+          .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;font-size:12px;font-weight:700;color:${FADED};background:${STAGE ? 'var(--stg-surf2)' : '#faf8f4'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
           @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
-          .al-td{height:34px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:var(--white);}
-          .al-td:hover{background:#faf6ee;}
+          .al-td{height:34px;border:1px solid rgba(28,30,36,0.12);text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
+          .al-td:hover{background:${STAGE ? 'var(--stg-surf2)' : '#faf6ee'};}
           .al-td.x{color:#b9b2a6;}
           .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
@@ -723,7 +723,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the boards go; the case file stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Alibi is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -743,7 +743,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
 
         {/* the story */}
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 5 ? 'Five' : 'Four'} guests &mdash; {PUZZLE.suspects.slice(0, -1).join(', ')} and {PUZZLE.suspects[N - 1]} &mdash; were each alone in a different room, each left at a different hour, and each was carrying one curious item. Work out who was where, when they left, and what they carried. Every statement below is true.
         </div>
         )}
@@ -865,7 +865,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '8px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'

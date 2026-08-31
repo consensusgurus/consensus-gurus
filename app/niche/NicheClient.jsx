@@ -632,18 +632,18 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .nc-btn:hover{background:${COLORS.accentSoft};}
           .nc-head{display:flex;align-items:center;justify-content:center;text-align:center;font-family:${SANS};font-weight:800;color:${COLORS.accentDeep};background:${COLORS.accentSoft};border:1.5px solid ${COLORS.accentTint};border-radius:8px;padding:6px 4px;line-height:1.22;min-height:44px;}
-          .nc-cell{position:relative;border:1.5px solid rgba(28,30,36,0.22);border-radius:8px;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
+          .nc-cell{position:relative;border:1.5px solid rgba(28,30,36,0.22);border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
           .nc-cell.filled{border-color:${COLORS.accentTint};background:${COLORS.accentSoft};cursor:default;}
           .nc-cell.rare{border-color:${COLORS.gold};background:${COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
           .nc-cell.sel{border-color:${COLORS.accent};box-shadow:0 0 0 2.5px rgba(17,94,89,0.25);}
-          .nc-cell.miss{background:#fafbfc;}
+          .nc-cell.miss{background:${STAGE ? 'var(--stg-surf2)' : '#fafbfc'};}
           .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${INK};overflow-wrap:anywhere;}
           .nc-rar{font-family:${MONO};font-size:9.5px;color:${FADED};}
           .nc-rar.gold{color:#8a6415;font-weight:500;}
           .nc-plus{font-size:19px;font-weight:600;color:#c3c8d1;}
           .nc-ex{font-size:10.5px;line-height:1.25;color:#9aa0ab;font-style:italic;text-align:center;}
           .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:transparent;}
-          .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--white);border:1.5px solid rgba(28,30,36,0.2);border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
+          .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.2);border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
           .nc-dd button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:9px 12px;font-family:${SANS};font-size:13.5px;font-weight:700;color:${INK};cursor:pointer;}
           .nc-dd button.hot{background:${COLORS.accentSoft};color:${COLORS.accentDeep};}
           .nc-dd button .nc-sub{margin-left:auto;font-family:${MONO};font-size:10px;color:${FADED};font-weight:400;}
@@ -764,7 +764,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           {/* the answer bar */}
           {playing && (
             <div style={{ position: 'relative', marginTop: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2px solid ${sel >= 0 ? COLORS.accent : 'rgba(28,30,36,0.25)'}`, borderRadius: 10, padding: '9px 12px', background: T.white }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, border: `2px solid ${sel >= 0 ? COLORS.accent : 'rgba(28,30,36,0.25)'}`, borderRadius: 10, padding: '9px 12px', background: STAGE ? SURF : T.white }}>
                 <input
                   ref={inputRef}
                   className="nc-input"

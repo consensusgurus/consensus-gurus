@@ -496,7 +496,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       <div key={i} onClick={() => { if (playing && !g.solved[i]) { setSel(i); setTyped(''); } }} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, cursor: playing && !g.solved[i] ? 'pointer' : 'default', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', gap: 4 }}>
           {w.scramble.split('').map((ch, j) => (
-            <span key={j} style={{ ...cellBase, width: 32, height: 32, fontSize: 16, background: COLORS.paper, color: FADED }}>{ch}</span>
+            <span key={j} style={{ ...cellBase, width: 32, height: 32, fontSize: 16, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, color: FADED }}>{ch}</span>
           ))}
         </div>
         <span style={{ color: '#c3c8cf', fontWeight: 800 }}>&rarr;</span>
@@ -534,9 +534,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
       {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: COLORS.ember, color: T.white, fontSize: 11.5 }}>ENTER</button>}
       {row.split('').map((ch) => (
-        <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: T.white, color: INK, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
+        <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: STAGE ? SURF : T.white, color: INK, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
       ))}
-      {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>}
+      {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>}
     </div>
   ));
 
@@ -635,7 +635,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
 
           {/* start tile — the words stay sealed until Start begins the clock */}
           {preStart && (
-            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 16 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Garble is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -664,7 +664,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           <div style={{ marginBottom: 6 }}>{PUZZLE.words.map((w, i) => wordRow(w, i))}</div>
 
           {/* the finale */}
-          <div onClick={() => { if (playing) { setSel('final'); setTyped(''); } }} style={{ background: T.white, border: `2px solid ${playing && sel === 'final' ? COLORS.ember : 'rgba(20,22,28,0.14)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, cursor: playing ? 'pointer' : 'default' }}>
+          <div onClick={() => { if (playing) { setSel('final'); setTyped(''); } }} style={{ background: STAGE ? SURF : T.white, border: `2px solid ${playing && sel === 'final' ? COLORS.ember : 'rgba(20,22,28,0.14)'}`, borderRadius: 12, padding: '14px 16px', marginBottom: 16, cursor: playing ? 'pointer' : 'default' }}>
             <div style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: COLORS.goldInk, marginBottom: 4 }}>The finale</div>
             <div style={{ fontSize: 15.5, fontWeight: 700, fontStyle: 'italic', color: INK, marginBottom: 10 }}>&ldquo;{PUZZLE.clue}&rdquo;</div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -854,7 +854,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           useRailClearance: it used to be bottom padding on gb-wrap, which a Loft
           page zeroes with !important, and the keys covered the board. */}
       {started && mobileUi && (
-        <div ref={rail.ref} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
+        <div ref={rail.ref} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: STAGE ? SURF : COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth: 470, margin: '0 auto' }}>
             {keyboardRows}
           </div>

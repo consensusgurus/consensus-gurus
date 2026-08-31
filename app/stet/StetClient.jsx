@@ -549,7 +549,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
       ? (r.pts === r.value ? 'rgba(21,128,61,0.5)' : r.pts > 0 ? 'rgba(202,138,4,0.5)' : 'rgba(192,57,43,0.5)')
       : 'rgba(28,30,36,0.2)';
     return (
-      <div key={i} style={{ background: T.white, border: `1.5px solid ${borderCol}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+      <div key={i} style={{ background: STAGE ? SURF : T.white, border: `1.5px solid ${borderCol}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
           <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, flex: '0 0 auto' }}>{i + 1}</span>
           <p style={{ margin: 0, fontFamily: SANS, fontSize: 16.5, fontWeight: 600, lineHeight: 1.65, color: INK }}>
@@ -583,7 +583,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 );
               }
               const wasFlag = (sub.staged || []).some((s) => s.tok === j);
-              return <span key={j} style={wasFlag ? { background: '#fdeeee', borderRadius: 3, boxShadow: '0 0 0 2px #fdeeee' } : undefined}>{t.raw}</span>;
+              return <span key={j} style={wasFlag ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderRadius: 3, boxShadow: '0 0 0 2px #fdeeee' } : undefined}>{t.raw}</span>;
             })}
             {sub && !it.errors.length && sub.stet && (
               <span style={{ marginLeft: 7, fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', color: COLORS.green, border: '1px solid rgba(21,128,61,0.45)', borderRadius: 4, padding: '1px 6px', whiteSpace: 'nowrap' }}>STET ✓</span>
@@ -748,7 +748,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           .st-w:hover{background:${COLORS.accentSoft};box-shadow:0 0 0 2px ${COLORS.accentSoft};}
           .st-w-on{background:${COLORS.accentSoft};box-shadow:0 0 0 2px ${COLORS.accent};border-radius:4px;}
           .st-w-staged{background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(3,105,161,0.35);border-radius:4px;text-decoration:line-through;}
-          .st-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 12px;background:var(--white);color:${INK};outline:none;}
+          .st-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .st-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(3,105,161,0.16);}
           .st-go{font-family:${SANS};font-weight:800;font-size:13.5px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 18px;cursor:pointer;}
           .st-go:active{transform:translateY(1px);}
@@ -834,7 +834,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: perfect ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {perfect ? 'A clean desk — every call was right.' : misses === 0 ? 'Sharp eyes — a fix or two got away.' : `${misses} mis-flag${misses === 1 ? '' : 's'} on the desk today.`}

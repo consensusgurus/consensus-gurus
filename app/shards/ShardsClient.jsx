@@ -924,7 +924,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-btn.primary:hover{background:${COLORS.accentDk};}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
-          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:#fbfdfc;}
+          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:${STAGE ? 'var(--stg-surf2)' : '#fbfdfc'};}
           .sh-cell.block{background:${COLORS.ink};border-color:${COLORS.ink};}
           .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
           .sh-cell.filled:active{cursor:grabbing;}
@@ -934,11 +934,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-cell.wrong{outline:3px solid ${COLORS.rust};outline-offset:-3px;z-index:2;}
           .sh-cell.home{box-shadow:inset 0 0 0 3px ${COLORS.accent};}
           .sh-cell.hover{background:${COLORS.accentSoft};}
-          .sh-cell.hoverbad{background:#f6dcda;}
+          .sh-cell.hoverbad{background:${STAGE ? 'var(--stg-surf2)' : '#f6dcda'};}
           .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
           .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:${TRAYMAX}px;}
-          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
           .sh-piece:active{cursor:grabbing;}
           .sh-piece.dragging{opacity:0.3;}
           .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}
@@ -952,7 +952,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-status.muted{color:${FADED};}
           .sh-hintbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
           .sh-hint{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${COLORS.accent};color:${COLORS.accentDk};background:${COLORS.accentSoft};border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${FADED};background:#eef2f1;}
+          .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${FADED};background:${STAGE ? 'var(--stg-surf2)' : '#eef2f1'};}
         `}</style>
 
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -984,7 +984,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
           {/* start tile */}
           {preStart && (
-            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Shards is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1125,7 +1125,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             {!playing && (
               <>
                 <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                     <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                     <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                       Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>

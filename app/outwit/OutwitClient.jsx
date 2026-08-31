@@ -131,7 +131,7 @@ function OutwitLiveBoard({ board }) {
   const top = Array.isArray(board.top) ? board.top : [];
   const youShown = top.some((r) => r.you);
   return (
-    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px' }}>
+    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: 'var(--stg-surf, var(--white))', border: '1.5px solid var(--stg-line, rgba(28,30,36,0.18))', borderRadius: 10, padding: '13px 15px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
         <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
         <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
@@ -612,7 +612,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           return (
             <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ flex: '0 0 108px', fontFamily: SANS, fontSize: 12, fontWeight: you ? 800 : 600, color: you ? COLORS.ink : COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{opt}</span>
-              <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
+              <div style={{ flex: '1 1 auto', height: 16, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
                 <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? '#94a3b8' : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
               </div>
               <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>
@@ -667,7 +667,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             return (
               <div key={oi} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ flex: '0 0 108px', fontFamily: SANS, fontSize: 12, fontWeight: you ? 800 : 600, color: you ? COLORS.ink : COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'right' }}>{opt}</span>
-                <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
+                <div style={{ flex: '1 1 auto', height: 16, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
                   <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? COLORS.green : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
                 </div>
                 <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>
@@ -718,7 +718,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
     const rp = result ? result.prompts[i] : null;
     const val = g.ans[i];
     return (
-      <div key={i} style={{ background: T.white, border: `1.5px solid ${rp ? (rp.pts === 2 ? 'rgba(21,128,61,0.5)' : rp.pts === 1 ? 'rgba(202,138,4,0.5)' : 'rgba(28,30,36,0.18)') : 'rgba(28,30,36,0.2)'}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+      <div key={i} style={{ background: STAGE ? SURF : T.white, border: `1.5px solid ${rp ? (rp.pts === 2 ? 'rgba(21,128,61,0.5)' : rp.pts === 1 ? 'rgba(202,138,4,0.5)' : 'rgba(28,30,36,0.18)') : 'rgba(28,30,36,0.2)'}`, borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{i + 1} · {pr.tag}</span>
           {rp ? ptsChip(rp.pts) : (val != null ? <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><Crown size={14} style={{ display: 'none' }} /><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span> : null)}
@@ -803,10 +803,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ow-btn:hover{background:var(--accent-soft);}
-          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
+          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
           .ow-opt:hover{border-color:${COLORS.accent};}
           .ow-opt-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
-          .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:var(--white);color:${INK};outline:none;}
+          .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .ow-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(31,41,55,0.14);}
           .ow-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .ow-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
@@ -893,7 +893,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           {!playing && result && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {sharp ? 'You outwitted the crowd.' : score >= 4 ? 'You held your own against the crowd.' : 'The crowd got you today.'}

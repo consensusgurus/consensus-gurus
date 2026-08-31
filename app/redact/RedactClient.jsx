@@ -484,16 +484,16 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           .rd-btn.primary:hover{background:#000;}
           .rd-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:3px;color:#e4e4e7;font-family:${MONO};font-size:11px;line-height:1.5;text-align:center;cursor:pointer;vertical-align:baseline;user-select:none;}
           .rd-slab:hover{background:#3f3f46;}
-          .rd-article{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${INK};}
+          .rd-article{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${INK};}
           .rd-article p{margin:0 0 14px;}
           .rd-article p:last-child{margin-bottom:0;}
           .rd-title-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:4px;color:transparent;user-select:none;-webkit-user-select:none;}
           .rd-chip{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;border-radius:5px;padding:3px 8px;}
-          .rd-guess{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:12px;border-radius:6px;padding:2px 8px;border:1px solid rgba(28,30,36,0.14);background:var(--white);}
+          .rd-guess{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:12px;border-radius:6px;padding:2px 8px;border:1px solid rgba(28,30,36,0.14);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .rd-guess.hit{border-color:${COLORS.hit};background:${COLORS.hitSoft};color:#7c2d12;font-weight:700;}
           .rd-guess.zero{color:${FADED};}
           .rd-sticky{position:sticky;top:0;z-index:30;background:${T.surface};padding:8px 0 10px;border-bottom:1px solid rgba(28,30,36,0.1);}
-          .rd-input{flex:1;min-width:0;font-family:${SANS};font-weight:700;font-size:16px;border:2px solid ${COLORS.accentDeep};border-radius:9px;padding:10px 13px;background:var(--white);color:${INK};outline:none;}
+          .rd-input{flex:1;min-width:0;font-family:${SANS};font-weight:700;font-size:16px;border:2px solid ${COLORS.accentDeep};border-radius:9px;padding:10px 13px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .rd-input::placeholder{color:${FADED};font-weight:600;}
           .rd-stat{display:flex;flex-direction:column;align-items:center;min-width:56px;}
           .rd-stat b{font-family:${MONO};font-size:15px;color:${INK};}
@@ -527,7 +527,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
           {/* start tile */}
           {preStart && (
-            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+            <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
               <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 An entire article, blacked out. Name its subject.
               </h2>
@@ -631,7 +631,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               )}
 
               {over && (
-                <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '16px 20px', margin: '16px 0 0' }}>
+                <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '16px 20px', margin: '16px 0 0' }}>
                   <div style={{ fontSize: 19, fontWeight: 900, color: INK, marginBottom: 4 }}>
                     {solved ? `Named in ${g.guesses.length} guesses.` : `The subject was ${DAY.answer}.`}
                   </div>
@@ -739,7 +739,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
       {confirmGiveUp && (
         <div onClick={() => setConfirmGiveUp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 400, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? SURF : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 400, fontFamily: SANS }}>
             <b style={{ fontSize: 16, color: INK }}>Reveal the article?</b>
             <p style={{ fontSize: 13.5, lineHeight: 1.6, color: FADED, margin: '8px 0 14px' }}>
               This ends the day. Your result posts as {pct}% uncovered, and the streak resets.
@@ -753,7 +753,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? SURF : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accentDeep} />
               <b style={{ fontSize: 17, color: INK }}>How Redact works</b>

@@ -772,7 +772,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           .fb-btn:hover{background:var(--accent-soft);}
           .fb-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .fb-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
-          .fb-key{font-family:${MONO};font-weight:500;font-size:20px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:8px;height:46px;min-width:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+          .fb-key{font-family:${MONO};font-weight:500;font-size:20px;border:1.5px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;height:46px;min-width:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
           .fb-key:hover{background:${COLORS.paper};}
           .fb-key.note{color:${COLORS.accent};}
         `}</style>

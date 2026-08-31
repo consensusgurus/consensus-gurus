@@ -667,7 +667,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       chips={[
         { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.greenSoft, border: `1.5px solid ${COLORS.green}`, color: '#14532d' } },
         { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.redSoft, border: `1.5px solid ${COLORS.redInk}`, color: '#7f1d1d' } },
-        { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', color: INK } },
+        { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', color: INK } },
       ]}
       sub="Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it."
       steps={[
@@ -727,7 +727,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-btn:hover{background:var(--accent-soft);}
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
-          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:var(--white);color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
+          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
           .ax-tile:hover:not(:disabled){border-color:${COLORS.accent};}
           .ax-tile:disabled{cursor:default;}
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
@@ -737,7 +737,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-tile.marked:hover:not(:disabled){opacity:1;}
           .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
           .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
-          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
+          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
           .ax-rule.struck .ax-rule-t{text-decoration:line-through;}
           .ax-rule.dead{opacity:0.42;}
@@ -775,7 +775,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {!preStart && (
-        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
+        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
           <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
           <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate the revealed words cannot yet rule out costs you {UNPROVEN_COST} points when you name the answer, so keep testing until one rule is left standing.</div>
@@ -795,7 +795,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the board stays sealed until the clock starts */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The board is covered'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -884,7 +884,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                   <span style={{ flex: '1 1 auto', minWidth: 0 }}>
                     <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
                   </span>
-                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
+                  {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: STAGE ? SURF : T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
                 </button>
               );
             })}
@@ -915,7 +915,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'

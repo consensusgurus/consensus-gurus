@@ -528,7 +528,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
         return (
           <React.Fragment key={i}>
             <span style={{ whiteSpace: 'nowrap' }}>
-              <span style={fresh ? { background: '#fdeeb8', borderRadius: 3, padding: '0 2px', animation: 'exflash 1.2s ease' } : undefined}>{core}</span>{punct}
+              <span style={fresh ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeb8', borderRadius: 3, padding: '0 2px', animation: 'exflash 1.2s ease' } : undefined}>{core}</span>{punct}
             </span>{' '}
           </React.Fragment>
         );
@@ -598,9 +598,9 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           .ex-btn:hover{background:var(--accent-soft);}
           @keyframes exfade{from{opacity:0;}}
           @keyframes exstamp{from{opacity:0;transform:scale(.94);}}
-          @keyframes exflash{from{background:#f9d34c;}}
+          @keyframes exflash{from{background:${STAGE ? 'var(--stg-surf2)' : '#f9d34c'};}}
           @media(max-width:560px){.ex-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ex-ttl h1{font-size:21px;letter-spacing:0.02em;}.ex-ttl .ex-ttl-dt{font-size:15px;}.ex-ttl-dot{display:none;}}
-          .ex-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:12px 14px;background:var(--white);color:${INK};outline:none;}
+          .ex-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:12px 14px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .ex-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(185,28,28,0.14);}
           .ex-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 20px;cursor:pointer;height:50px;flex:0 0 auto;}
           .ex-go:active{transform:translateY(1px);}
@@ -638,7 +638,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {gameRetired && (
-          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
+          <div style={{ background: STAGE ? 'var(--stg-surf2)' : '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
             Extra has retired &mdash; this archive stays playable, but no new front pages drop.{' '}
             Meet its successor: <a href="/redact" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Redact, the daily uncover-the-story puzzle &rarr;</a>
           </div>
@@ -667,7 +667,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
 
         {/* the front page */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -744,7 +744,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
               {g.wrong.length > 0 && (
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 9 }}>
                   {g.wrong.map((w, i) => (
-                    <span key={i} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, background: '#f1f2f5', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 6, padding: '3px 9px', textDecoration: 'line-through' }}>{w}</span>
+                    <span key={i} style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, background: STAGE ? 'var(--stg-surf2)' : '#f1f2f5', border: '1px solid rgba(28,30,36,0.14)', borderRadius: 6, padding: '3px 9px', textDecoration: 'line-through' }}>{w}</span>
                   ))}
                 </div>
               )}

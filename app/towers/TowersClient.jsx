@@ -828,9 +828,9 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-user{font-weight:500;color:${COLORS.accent};}
           .tw-notes{display:grid;grid-template-rows:repeat(2,1fr);width:100%;height:100%;padding:3px;box-sizing:border-box;}
           .tw-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;line-height:1;color:#8a93a3;}
-          .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:var(--white);font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
+          .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .tw-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
-          .tw-pad.done{color:#c3c8cf;box-shadow:none;background:#f4f5f7;cursor:default;}
+          .tw-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
           .tw-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 ${COLORS.accentDeep};}
           .tw-pad.armed .tw-pad-n{color:${COLORS.accentTint};}
           .tw-pad .tw-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
@@ -969,7 +969,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
                   title="Clear every number you have entered and start the grid over on the same clock"
                   style={hasEntries
                     ? (armClear
-                      ? { background: '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
+                      ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
                       : undefined)
                     : { opacity: 0.4, cursor: 'default' }}>
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}

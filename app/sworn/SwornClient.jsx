@@ -586,13 +586,13 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           .sw-btn:hover{background:var(--accent-soft);}
           .sw-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sw-btn.primary:hover{background:${COLORS.accentDeep};}
-          .sw-card{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:8px;}
+          .sw-card{display:flex;align-items:center;gap:12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:8px;}
           .sw-card b{color:${COLORS.accentDeep};}
-          .sw-mark{flex:0 0 auto;width:38px;height:38px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.25);background:var(--white);font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
+          .sw-mark{flex:0 0 auto;width:38px;height:38px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.25);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
           .sw-mark.truth{background:#dcfce7;border-color:var(--success-deep);color:var(--success-deep);}
-          .sw-mark.lie{background:#fee2e2;border-color:#b91c1c;color:#b91c1c;}
+          .sw-mark.lie{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#b91c1c;}
           .sw-accuse{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(190,24,93,0.55);background:${COLORS.accentSoft};color:${COLORS.accentDeep};border-radius:8px;padding:8px 11px;cursor:pointer;}
-          .sw-accuse:hover{background:#fbcfe8;}
+          .sw-accuse:hover{background:${STAGE ? 'var(--stg-surf2)' : '#fbcfe8'};}
           .sw-accuse:disabled{opacity:0.4;cursor:not-allowed;text-decoration:line-through;}
         `}</style>
 
@@ -626,7 +626,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
 
         {/* the story — hidden behind the start tile until the player begins */}
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 6 ? 'Six' : 'Five'} locals were sworn in, and one of them is the thief. Each gave exactly one statement &mdash; but <b style={{ fontStyle: 'normal' }}>exactly {PUZZLE.k} of the {N} are lying</b>. Liars&rsquo; statements are false; everyone else&rsquo;s are true. Find the thief.
         </div>
         )}
@@ -644,7 +644,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the board goes; the testimony stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The court is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -687,7 +687,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
                     </span>
                   )}
                   {g.accusedWrong.includes(i) && (
-                    <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: FADED, background: COLORS.paper, borderRadius: 4, padding: '2px 6px' }}>cleared</span>
+                    <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: FADED, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, borderRadius: 4, padding: '2px 6px' }}>cleared</span>
                   )}
                 </div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: INK, lineHeight: 1.45, marginTop: 2 }}>{stmtText(PUZZLE.statements[i], i)}</div>
@@ -727,7 +727,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '8px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'

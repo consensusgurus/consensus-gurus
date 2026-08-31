@@ -591,19 +591,19 @@ export default function GlyphClient({ puzzles, forceNum }) {
         <style>{`
           .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .gl-btn:disabled{opacity:0.4;cursor:default;}
-          .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:var(--white);}
+          .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .gl-cell.blk{background:${COLORS.ink};border-color:${COLORS.ink};cursor:default;}
           .gl-cell.sel{background:#dbeafe;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .gl-cell.kin{background:${COLORS.accentSoft};}
-          .gl-cell.bad{background:#fdecea;box-shadow:inset 0 0 0 2px ${COLORS.rust};}
+          .gl-cell.bad{background:${STAGE ? 'var(--stg-surf2)' : '#fdecea'};box-shadow:inset 0 0 0 2px ${COLORS.rust};}
           .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:#2f3644;font-weight:700;}
           .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${INK};line-height:1;}
           .gl-ltr.given{color:${COLORS.accent};}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
-          .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:var(--white);padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
+          .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
           .gl-keycap.used{background:${COLORS.paper};color:#a4abb8;text-decoration:line-through;}
           .gl-keycap:disabled{cursor:default;}
-          .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:var(--white);padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
+          .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
           .gl-chip.on{border-color:${COLORS.accent};background:#dbeafe;}
           .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${INK};}
           .gl-card{padding:13px 15px 15px;}
@@ -668,7 +668,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           )}
 
           {!preStart && (
-            <div className="gl-card" style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            <div className="gl-card" style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>

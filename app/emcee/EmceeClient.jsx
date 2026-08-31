@@ -736,17 +736,17 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           .mc-btn:hover{background:var(--accent-soft);}
           @keyframes mcshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
           @media(max-width:560px){.mc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.mc-ttl h1{font-size:21px;letter-spacing:0.02em;}.mc-ttl .mc-ttl-dt{font-size:15px;}.mc-ttl-dot{display:none;}}
-          .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:var(--white);}
+          .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
-          .mc-cell.mc-crossword{background:#fdf6fe;}
+          .mc-cell.mc-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#fdf6fe'};}
           .mc-cell.mc-inword{background:${COLORS.accentSoft};}
-          .mc-cell.mc-sel{background:#f6d9f9;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
+          .mc-cell.mc-sel{background:${STAGE ? 'var(--stg-surf2)' : '#f6d9f9'};box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
           .mc-cell.mc-wrongmark{animation:mcshake .3s ease;}
           .mc-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
           .mc-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .mc-cluerow:hover{background:${COLORS.paper};}
-          .mc-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:var(--white);color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .mc-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .mc-key:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
           .mc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .mc-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
@@ -782,7 +782,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the grid and clues stay sealed until Start begins the clock */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Emcee is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>

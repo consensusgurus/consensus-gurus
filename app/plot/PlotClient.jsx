@@ -796,7 +796,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               onPointerDown={onGridDown}
               onPointerMove={onGridMove}
               onPointerUp={onGridUp}
-              style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', touchAction: 'none', userSelect: 'none', cursor: playing ? 'crosshair' : 'default', background: T.white, border: '2px solid rgba(28,30,36,0.75)', boxSizing: 'border-box' }}
+              style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', touchAction: 'none', userSelect: 'none', cursor: playing ? 'crosshair' : 'default', background: STAGE ? SURF : T.white, border: '2px solid rgba(28,30,36,0.75)', boxSizing: 'border-box' }}
             >
               {/* the empty grid */}
               <div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: `repeat(${N}, 1fr)`, gridTemplateRows: `repeat(${N}, 1fr)` }}>

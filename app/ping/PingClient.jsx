@@ -652,7 +652,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       chips={[
         { label: `Cold ${fmtDistIn(2500, unit)}+`, style: { background: '#eef2f7', border: '1.5px solid #475569', color: '#475569' } },
         { label: 'Cool', style: { background: '#eef2f7', border: '1.5px solid #0a1730', color: '#0a1730' } },
-        { label: 'Warm', style: { background: '#fef3c7', border: '1.5px solid #92610b', color: '#92610b' } },
+        { label: 'Warm', style: { background: STAGE ? 'var(--stg-surf2)' : '#fef3c7', border: '1.5px solid #92610b', color: '#92610b' } },
         { label: `Hot, within ${fmtDistIn(200, unit)}`, style: { background: '#fee2e2', border: '1.5px solid #9a3d0c', color: '#9a3d0c' } },
       ]}
       steps={[
@@ -707,12 +707,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           @keyframes pgfade{from{opacity:0;}}
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
-          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:var(--white);color:${INK};outline:none;}
+          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .pg-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(2,132,199,0.18);}
           .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
           .pg-go:active{transform:translateY(1px);}
-          .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--white);border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
-          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:10px 13px;cursor:pointer;}
+          .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
+          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:10px 13px;cursor:pointer;}
           .pg-sug button:last-child{border-bottom:none;}
           .pg-sug button:hover,.pg-sug button.on{background:${COLORS.accentSoft};}
           .pg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -749,7 +749,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
 
         {/* start gate — the hunt stays sealed until Start begins the clock */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 220, display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 220, display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Ping is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -768,7 +768,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         )}
         {/* the hunt */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (

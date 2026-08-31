@@ -427,8 +427,8 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-rounds{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
           .bk-col{flex:0 0 auto;width:168px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
           .bk-rh{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${FADED};margin-bottom:2px;}
-          .bk-m{border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;background:var(--white);}
-          .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
+          .bk-m{border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
+          .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
           .bk-s:last-child{border-bottom:none;}
           .bk-s:hover:not(:disabled){background:${COLORS.accentSoft};}
           .bk-s:disabled{cursor:default;color:var(--muted);}
@@ -465,7 +465,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column', maxWidth: 760 }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column', maxWidth: 760 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The field is sealed'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -532,7 +532,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
               })}
               <div className="bk-col" style={{ width: 132 }}>
                 <div className="bk-rh">Winner</div>
-                <div className="bk-m" style={{ borderColor: COLORS.gold, background: '#fffbeb' }}>
+                <div className="bk-m" style={{ borderColor: COLORS.gold, background: STAGE ? 'var(--stg-surf2)' : '#fffbeb' }}>
                   <div style={{ padding: '10px 9px', fontSize: 13, fontWeight: 800, color: playing ? COLORS.faded : COLORS.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Trophy size={13} />
                     {playing ? (g.picks[MATCHES - 1] >= 0 ? PUZZLE.items[g.picks[MATCHES - 1]].name : 'your call') : champion.name}
@@ -558,7 +558,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 560, margin: '14px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? <>A perfect bracket. Nothing busted.</> : <>{champion.name} took it at {fmtValue(champion.value, PUZZLE.unit)}.</>}

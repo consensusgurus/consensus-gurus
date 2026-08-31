@@ -960,7 +960,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
           .cf-op{width:26px;font-size:22px;font-weight:800;color:${FADED};text-align:center;flex:0 0 auto;}
-          .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.14);background:var(--white);padding:0;font-family:${SANS};}
+          .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.14);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;font-family:${SANS};}
           .cf-cell:hover{background:${COLORS.accentSoft};}
           .cf-cell.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
           .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
@@ -980,7 +980,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              box and players read those numerals as the letter's digit. The pad
              keys below carry the same information one number to a box. */
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
-          .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
+          .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
           .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:${COLORS.accent};font-weight:800;letter-spacing:0.02em;}
           .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
@@ -991,10 +991,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           /* Pad key states. A digit already owned by another letter, a 0 under a
              leading letter, or a digit crossed off in Notes now READS as such on
              the key itself, which is what the letter rack used to be for. */
-          .cf-pk.taken{background:#f3f4f6;color:rgba(28,30,36,0.32);}
+          .cf-pk.taken{background:${STAGE ? 'var(--stg-surf2)' : '#f3f4f6'};color:rgba(28,30,36,0.32);}
           .cf-pk.xed{color:rgba(28,30,36,0.28);text-decoration:line-through;}
           .cf-pk:disabled{opacity:0.32;cursor:default;}
-          .cf-pk:disabled:hover{background:var(--white);}
+          .cf-pk:disabled:hover{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .cf-wrap button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
           /* A long Sunday equation can be wider than a phone column; let the
              equation scroll sideways instead of bleeding out of the card. */
@@ -1010,14 +1010,14 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              Garble uses) and the equation scrolls behind it. The rack is
              retired on mobile: its job (which digits are still open) is now
              carried by the pad key states plus the per-letter count. */
-          .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
+          .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
           .cf-dock.notes{background:${COLORS.accentSoft};border-top:2px solid ${COLORS.accent};}
           .cf-dk{max-width:470px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
           .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${FADED};}
           .cf-say.bad{color:${COLORS.rust};}
           .cf-say.good{color:${COLORS.green};}
           .cf-strip{display:grid;gap:3px;}
-          .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:var(--white);padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
+          .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${INK};line-height:1;}
           .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
           /* An unassigned letter shows a DOT, never a number. The count of
@@ -1027,7 +1027,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              that signal worth keeping, and it is not a numeral. */
           .cf-sc .d.dim{color:rgba(28,30,36,0.30);}
           .cf-sc.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
-          .cf-dock.notes .cf-sc{background:var(--white);}
+          .cf-dock.notes .cf-sc{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:${COLORS.accent};}
           .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d{color:var(--white);}
           .cf-dock.notes .cf-sc.on .d.dim{color:rgba(255,255,255,0.75);}
@@ -1037,7 +1037,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock .cf-pk{height:46px;font-size:20px;}
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
           .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
-          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
+          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
           .cf-db.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
           .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
@@ -1077,7 +1077,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the board goes; the equation stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Cipher is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1097,7 +1097,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
         {/* the equation */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '18px 20px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12, maxWidth: 472, marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '18px 20px 16px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12, maxWidth: 472, marginLeft: 'auto', marginRight: 'auto' }}>
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.14)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>every letter is a digit · {opWord}</span>
@@ -1162,7 +1162,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'

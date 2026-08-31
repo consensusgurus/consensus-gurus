@@ -558,15 +558,15 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.hs-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .hs-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .hs-btn:hover{background:var(--accent-soft);}
-          .hs-row{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 12px;margin-bottom:7px;flex-wrap:wrap;}
+          .hs-row{display:flex;align-items:center;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 12px;margin-bottom:7px;flex-wrap:wrap;}
           .hs-key{font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:${COLORS.accentDeep};flex:0 0 auto;min-width:86px;}
           .hs-card{font-family:${SANS};font-weight:800;font-size:13px;border-radius:8px;padding:8px 11px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:${COLORS.cream};color:${INK};}
           .hs-card:hover:not(:disabled){border-color:${COLORS.accent};}
           .hs-card.off{opacity:0.4;text-decoration:line-through;}
-          .hs-card.wrong{background:#fee2e2;border-color:#b91c1c;color:#7f1d1d;text-decoration:line-through;}
+          .hs-card.wrong{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;text-decoration:line-through;}
           .hs-card.win{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .hs-card:disabled{cursor:default;}
-          .hs-say{display:flex;align-items:flex-start;gap:11px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:9px;padding:11px 13px;margin-bottom:7px;}
+          .hs-say{display:flex;align-items:flex-start;gap:11px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-radius:9px;padding:11px 13px;margin-bottom:7px;}
           .hs-num{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:${COLORS.accent};color:var(--white);font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;}
         `}</style>
 
@@ -600,7 +600,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           One {PUZZLE.noun} on {PUZZLE.listLabel} is the secret one. {PUZZLE.who.map((w, i) => (
             <span key={w}><b style={{ fontStyle: 'normal' }}>{w}</b> has been told only its {PUZZLE.attrs[i]}{i === PUZZLE.who.length - 1 ? '. ' : i === PUZZLE.who.length - 2 ? ', and ' : ', '}</span>
           ))}
@@ -618,7 +618,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         )}
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Nobody has spoken yet'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -703,7 +703,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'
@@ -713,7 +713,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
                   </span>
                 </div>
               </div>
-              <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 10, padding: '12px 14px', margin: '0 0 12px', maxWidth: 472 }}>
+              <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 10, padding: '12px 14px', margin: '0 0 12px', maxWidth: 472 }}>
                 <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 8 }}>How the list collapsed</div>
                 {PUZZLE.script.map((st, i) => (
                   <div key={i} style={{ fontSize: 12.5, fontWeight: 600, color: INK, lineHeight: 1.5, marginBottom: 4 }}>

@@ -769,9 +769,9 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           .ls-btn:disabled{opacity:.45;cursor:default;}
           @keyframes lsshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .ls-shake{animation:lsshake .45s ease;}
-          .ls-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+          .ls-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
           .ls-arrow:hover{background:${COLORS.brandSoft};border-color:${COLORS.brand};color:${COLORS.brand};}
-          .ls-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${INK};}
+          .ls-arrow:disabled{opacity:.25;cursor:default;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:560px){.ls-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ls-ttl h1{font-size:21px;letter-spacing:0.02em;}.ls-ttl .ls-ttl-dt{font-size:15px;}.ls-ttl-dot{display:none;}}
           @media(max-width:430px){.ls-mh-tile{width:34px !important;height:34px !important;font-size:20px !important;}}
         `}</style>
@@ -828,7 +828,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
             {PUZZLE.cat ? (
               <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
@@ -865,7 +865,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
                   style={{ display: 'flex', alignItems: 'center', gap: 9, background: bg, border: bord, borderRadius: 9, padding: '9px 11px', cursor: draggable ? (dragging ? 'grabbing' : 'grab') : undefined, position: dragging ? 'relative' : undefined, zIndex: dragging ? 5 : undefined, transform: dragging ? `translateY(${drag.dy}px)` : undefined, boxShadow: dragging ? '0 8px 20px rgba(20,22,28,0.22)' : undefined, opacity: dragging ? 0.96 : undefined, touchAction: draggable ? 'none' : undefined }}>
                   <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: near ? COLORS.nearInk : COLORS.faded, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? COLORS.lockInk : COLORS.ink }}>{PUZZLE.items[it].t}</span>
-                  {near && playing ? <span title="Off by one place" style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.nearInk, background: '#fbeec4', border: `1px solid ${COLORS.near}`, borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>Off by one</span> : null}
+                  {near && playing ? <span title="Off by one place" style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.nearInk, background: STAGE ? 'var(--stg-surf2)' : '#fbeec4', border: `1px solid ${COLORS.near}`, borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>Off by one</span> : null}
                   {valChip}
                   {playing && !locked && (
                     <span style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -986,7 +986,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               </button>
               {hintOk && !g.hintUsed && (
                 <button className="ls-btn" onClick={useHint} title="Reveal the figure of the item furthest from home (one hint, first play only)"
-                  style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
+                  style={{ background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

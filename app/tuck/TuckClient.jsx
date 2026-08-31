@@ -739,9 +739,9 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           .tk-btn.primary:hover{background:#7c3609;}
           .tk-btn:disabled{opacity:0.45;cursor:default;}
           .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:#dfd8cb;border:2px solid ${COLORS.ink};border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .tk-cell{position:relative;aspect-ratio:1;background:#fbf9f4;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid rgba(28,30,36,0.08);}
+          .tk-cell{position:relative;aspect-ratio:1;background:${STAGE ? 'var(--stg-surf2)' : '#fbf9f4'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid rgba(28,30,36,0.08);}
           .tk-cell.filled{background:${COLORS.tile};border-color:rgba(146,64,14,0.35);box-shadow:inset 0 -2px 0 rgba(146,64,14,0.18);}
-          .tk-cell.badword{background:#fbe3e0;border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
+          .tk-cell.badword{background:${STAGE ? 'var(--stg-surf2)' : '#fbe3e0'};border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
           .tk-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:${COLORS.accent};}
           .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
@@ -749,7 +749,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:${COLORS.accent};}
           .tk-tile.used{opacity:0.28;box-shadow:none;}
           .tk-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:1px;}
-          .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
+          .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .tk-wtag.invalid{color:${COLORS.rust};border-color:rgba(192,57,43,0.4);}
           .tk-status{font-size:12.5px;font-weight:700;min-height:18px;}
           .tk-status.bad{color:${COLORS.rust};}
@@ -788,7 +788,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the board goes; the rack stays sealed
             until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 432, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 432, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Tuck is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -914,7 +914,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '16px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? `Beat the benchmark of ${BENCH} — the desk tips its cap.` : `Submitted against a benchmark of ${BENCH}.`}

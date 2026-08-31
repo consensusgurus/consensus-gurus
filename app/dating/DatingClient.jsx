@@ -757,9 +757,9 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           .dt-shake{animation:dtshake .45s ease;}
           @keyframes dtfade{from{opacity:0;}}
           @keyframes dtstamp{from{opacity:0;transform:scale(.94);}}
-          .dt-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+          .dt-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
           .dt-arrow:hover{background:${COLORS.plumSoft};border-color:${COLORS.plum};color:${COLORS.plum};}
-          .dt-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${INK};}
+          .dt-arrow:disabled{opacity:.25;cursor:default;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:520px){.dt-htp-f{display:none;}.dt-htp-s{display:inline;}}
           @media(max-width:560px){.dt-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.dt-ttl h1{font-size:21px;letter-spacing:0.02em;}.dt-ttl .dt-ttl-dt{font-size:15px;}.dt-ttl-dot{display:none;}}
           .dt-htp-s{display:none;}
@@ -817,7 +817,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -877,7 +877,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               </button>
               {hintOk && !g.hintUsed && (
                 <button className="dt-btn" onClick={useHint} title="Reveal the year of your most misplaced event (one hint, first play only)"
-                  style={{ background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
+                  style={{ background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

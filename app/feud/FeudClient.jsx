@@ -139,7 +139,7 @@ function FeudLiveBoard({ board, total }) {
   const top = Array.isArray(board.top) ? board.top : [];
   const youShown = top.some((r) => r.you);
   return (
-    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px' }}>
+    <div style={{ maxWidth: 472, margin: '0 auto 12px', background: 'var(--stg-surf, var(--white))', border: '1.5px solid var(--stg-line, rgba(28,30,36,0.18))', borderRadius: 10, padding: '13px 15px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
         <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
         <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
@@ -597,7 +597,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       const rows = rv.board || [];
       const maxV = Math.max(1, ...rows.map((r) => r.count));
       return (
-        <div key={p} style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
+        <div key={p} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
             <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACC }}>Prompt {p + 1}</span>
             <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: FADED, marginLeft: 'auto' }}>+{rv.pts} pts</span>
@@ -614,7 +614,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                     </span>
                     <span style={{ fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>{r.pct}%</span>
                   </div>
-                  <div style={{ height: 7, background: COLORS.paper, borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
+                  <div style={{ height: 7, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
                     <div style={{ width: `${Math.round((r.count / maxV) * 100)}%`, height: '100%', background: r.yours ? COLORS.gold : '#e6a5b6', borderRadius: 4, minWidth: r.count ? 4 : 0 }} />
                   </div>
                 </div>
@@ -684,7 +684,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.fd-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .fd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .fd-btn:hover{background:var(--accent-soft);}
-          .fd-input{font-family:${SANS};font-weight:700;font-size:15px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:9px;padding:10px 12px;width:100%;outline:none;}
+          .fd-input{font-family:${SANS};font-weight:700;font-size:15px;border:2px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:10px 12px;width:100%;outline:none;}
           .fd-input:focus{border-color:${COLORS.accent};}
           .fd-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .fd-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
@@ -724,7 +724,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the prompts stay sealed until Start begins the clock */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Feud is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -756,7 +756,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
               const row = g.entries[p] || [];
               const done = row.some((t) => t && t.trim());
               return (
-                <div key={p} style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
+                <div key={p} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{p + 1} of {P}</span>
                     {done && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
@@ -805,7 +805,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
           {!playing && result && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     You matched <b>{result.pctCrowd}%</b> of the crowd{sharp ? ' — you read the room.' : score >= winBar(TOTAL) / 2 ? ' — a respectable read.' : ' — the crowd surprised you.'}

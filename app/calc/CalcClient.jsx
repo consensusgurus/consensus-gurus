@@ -742,7 +742,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           .cl-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .cl-key{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;padding:0;min-width:0;border-radius:50%;transition:transform .09s ease,background .12s ease,color .12s ease;}
           .cl-num{background:${COLORS.accentSoft};color:${COLORS.accentDeep};border:1.5px solid ${COLORS.accentTint};}
-          .cl-op{background:var(--white);color:${FADED};border:1.5px dashed rgba(28,30,36,0.22);}
+          .cl-op{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${FADED};border:1.5px dashed rgba(28,30,36,0.22);}
           .cl-key.on{background:${COLORS.accent};color:var(--white);border:1.5px solid ${COLORS.accent};}
           .cl-key.head{background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};box-shadow:0 0 0 4px ${COLORS.accentTint};}
           .cl-key.reach{border:1.5px solid ${COLORS.accent};}
@@ -751,9 +751,9 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           .cl-key.term{border-radius:14px;}
           .cl-key.solved{background:${COLORS.green};border-color:${COLORS.green};color:var(--white);}
           .cl-flag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-family:${MONO};font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:${COLORS.ink};color:var(--white);padding:1px 5px;border-radius:99px;font-weight:500;pointer-events:none;}
-          .cl-goal{border:2px solid rgba(28,30,36,0.16);border-radius:11px;padding:6px 16px 8px;text-align:center;min-width:104px;background:var(--white);cursor:pointer;font-family:${SANS};}
+          .cl-goal{border:2px solid rgba(28,30,36,0.16);border-radius:11px;padding:6px 16px 8px;text-align:center;min-width:104px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};cursor:pointer;font-family:${SANS};}
           .cl-goal.act{border-color:${COLORS.accent};box-shadow:0 0 0 3px ${COLORS.accentTint};}
-          .cl-goal.got{border-color:${COLORS.green};background:#f2fbf6;cursor:default;}
+          .cl-goal.got{border-color:${COLORS.green};background:${STAGE ? 'var(--stg-surf2)' : '#f2fbf6'};cursor:default;}
           .cl-goal .k{font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};}
           .cl-goal .v{font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-.03em;color:${INK};font-variant-numeric:tabular-nums;}
           .cl-goal.got .v{color:${COLORS.green};}
@@ -830,7 +830,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           </div>
 
           {/* the running tape */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: COLORS.cream, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 9, padding: '9px 12px', marginBottom: 12, minHeight: 44, overflowX: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 9, padding: '9px 12px', marginBottom: 12, minHeight: 44, overflowX: 'auto' }}>
             <span style={{ fontFamily: MONO, fontSize: 13.5, color: FADED, whiteSpace: 'nowrap', flex: 1 }}>{tapeText}</span>
             <b style={{ fontFamily: SANS, fontWeight: 800, fontSize: 21, fontVariantNumeric: 'tabular-nums', flex: 'none', paddingLeft: 10, borderLeft: '2px solid rgba(28,30,36,0.14)', color: atEnd ? (total === TARGETS[g.slot].target ? COLORS.green : COLORS.rust) : COLORS.ink }}>
               {atNumber ? total : '–'}

@@ -634,7 +634,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-btn.primary:hover{background:${COLORS.accentDeep};}
           .ld-btn:disabled{opacity:0.45;cursor:default;}
           .ld-row{display:flex;gap:10px;justify-content:center;}
-          .ld-tile{width:58px;height:58px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:900;font-size:25px;color:${INK};background:var(--white);border:2px solid rgba(28,30,36,0.16);cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(28,30,36,0.14);transition:transform .08s;}
+          .ld-tile{width:58px;height:58px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:900;font-size:25px;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:2px solid rgba(28,30,36,0.16);cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(28,30,36,0.14);transition:transform .08s;}
           .ld-tile:active{transform:translateY(2px);box-shadow:none;}
           .ld-tile.core{background:${COLORS.accent};border-color:${COLORS.accentDeep};color:var(--white);box-shadow:0 2px 0 ${COLORS.accentDeep};}
           @media(max-width:420px){.ld-tile{width:46px;height:46px;font-size:21px;}.ld-row{gap:7px;}}
@@ -642,10 +642,10 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-entry::placeholder{letter-spacing:0.02em;font-size:14px;font-weight:700;color:#b6bcc6;text-transform:none;}
           .ld-shake{animation:ldshake .3s;}
           @keyframes ldshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-          .ld-track{position:relative;height:10px;border-radius:999px;background:#e4e7ec;overflow:hidden;}
+          .ld-track{position:relative;height:10px;border-radius:999px;background:${STAGE ? 'var(--stg-surf2)' : '#e4e7ec'};overflow:hidden;}
           .ld-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,${COLORS.accent},#d99a1a);border-radius:999px;transition:width .35s;}
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
-          .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
+          .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
           .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
           .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
@@ -687,7 +687,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the seam stays sealed until the player begins */}
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 440, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 440, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Lode is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -845,7 +845,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '18px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: struck ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {struck ? `${rank.n} — you struck the vein at ${VEIN}.` : `${rank.n}, against a vein of ${VEIN}.`}

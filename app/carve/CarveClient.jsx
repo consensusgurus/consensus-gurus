@@ -722,7 +722,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       <div className="cv-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cv-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .cv-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cv-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cv-btn:hover{background:var(--accent-soft);}
           @keyframes cvfade{from{opacity:0;}}
           @keyframes cvstamp{from{opacity:0;transform:scale(.94);}}
@@ -730,14 +730,14 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           @keyframes cvbounce{0%,100%{transform:scale(1);}50%{transform:scale(0.9);}}
           @media(max-width:560px){.cv-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cv-ttl h1{font-size:21px;letter-spacing:0.02em;}.cv-ttl .cv-ttl-dt{font-size:15px;}.cv-ttl-dot{display:none;}}
           .cv-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;transition:background .12s;}
-          .cv-cell.cv-wrongflash{background:#fdecec !important;animation:cvshake .32s ease;}
+          .cv-cell.cv-wrongflash{background:${STAGE ? 'var(--stg-surf2)' : '#fdecec'} !important;animation:cvshake .32s ease;}
           .cv-cell.cv-bounce{animation:cvbounce .3s ease;}
           .cv-seed-ring{position:absolute;inset:14%;border-radius:99px;pointer-events:none;}
-          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:var(--white);box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);min-width:0;}
+          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);min-width:0;}
           .cv-chip:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
           .cv-chip.on{border-width:2.5px;}
           .cv-chip.done{opacity:.55;box-shadow:none;cursor:default;}
-          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -772,7 +772,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
         {/* start tile — sits where the board goes; the board stays hidden until
             the player presses Start, which begins the clock. */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Carve is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -1045,7 +1045,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? SURF : COLORS.cream, borderRadius: 12, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>

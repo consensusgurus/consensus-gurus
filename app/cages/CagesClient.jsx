@@ -908,9 +908,9 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
           .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
           @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}
-          .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:var(--white);font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
+          .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .cg-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
-          .cg-pad.done{color:#c3c8cf;box-shadow:none;background:#f4f5f7;cursor:default;}
+          .cg-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
           .cg-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 rgba(55,20,110,0.55);}
           .cg-pad.armed .cg-pad-n{color:#ded2fb;}
           .cg-pad .cg-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
@@ -1052,7 +1052,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
                   title="Clear every number you have entered and start the grid over on the same clock"
                   style={hasEntries
                     ? (armClear
-                      ? { background: '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
+                      ? { background: STAGE ? 'var(--stg-surf2)' : '#fdeeee', borderColor: 'rgba(192,57,43,0.5)', color: COLORS.rust }
                       : undefined)
                     : { opacity: 0.4, cursor: 'default' }}>
                   <Trash2 size={14} /> {armClear ? 'Tap again to clear' : 'Clear'}

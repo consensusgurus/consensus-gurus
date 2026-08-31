@@ -640,7 +640,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           .cr-tile{width:76px;height:76px;border-radius:10px;border:2px solid ${TILE_EDGE};background:${TILE_FACE};color:${INK};font-family:${MONO};font-weight:500;font-size:27px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -4px 0 rgba(28,30,36,0.13), 0 2px 0 rgba(28,30,36,0.22);transition:transform .12s ease;}
           .cr-tile:active{transform:translateY(1px);}
           .cr-tile.on{background:${COLORS.accentSoft};outline:3px solid ${COLORS.accent};outline-offset:2px;}
-          .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid var(--blue-deep);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:var(--blue-deep);font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .cr-op.on{background:${COLORS.ink};color:var(--white);}
           .cr-op:disabled{opacity:0.35;cursor:default;}
           .cr-rack.shake{animation:crshake .34s ease;}
@@ -813,7 +813,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
                     : `It was reachable. An exact answer needed ${need} of the six.`}
               </div>
               {Array.isArray(PUZZLE.example) && PUZZLE.example.length > 0 && (
-                <div style={{ marginTop: 12, background: COLORS.cream, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 9, padding: '10px 12px' }}>
+                <div style={{ marginTop: 12, background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 9, padding: '10px 12px' }}>
                   <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: FADED, fontWeight: 500, marginBottom: 5 }}>One way there</div>
                   {PUZZLE.example.map((st, i) => (
                     <div key={i} style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: INK, fontVariantNumeric: 'tabular-nums' }}>{st[0]} {OPL[st[1]]} {st[2]} = {st[3]}</div>

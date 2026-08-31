@@ -487,7 +487,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,#dc2626);}
           .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};}
           .wm-inputrow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px;}
-          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${INK};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:var(--white);}
+          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${INK};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .wm-input:focus{border-color:${COLORS.accent};}
           .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-go:disabled{opacity:.5;cursor:default;}
@@ -496,10 +496,10 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           .wm-chip{font-family:${SANS};font-weight:800;font-size:12px;border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .wm-actions{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
           .wm-list{display:flex;flex-direction:column;gap:6px;}
-          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:var(--white);border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
+          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
           .wm-row.pinned{border-width:2px;box-shadow:0 2px 0 rgba(28,30,36,0.06);}
           .wm-word{font-family:${SANS};font-weight:800;font-size:15px;color:${INK};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-          .wm-track{height:9px;border-radius:99px;background:#eef0f3;overflow:hidden;}
+          .wm-track{height:9px;border-radius:99px;background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};overflow:hidden;}
           .wm-fill{display:block;height:100%;border-radius:99px;transition:width .35s ease;}
           .wm-band{font-family:${SANS};font-weight:800;font-size:11.5px;text-align:right;letter-spacing:.01em;}
           .wm-rank{font-family:${MONO};font-weight:500;font-size:13px;color:${INK};text-align:right;font-variant-numeric:tabular-nums;}
@@ -538,7 +538,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
           {/* start gate — the puzzle card stays sealed until Start begins the clock */}
           {preStart && (
-            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Warmer is ready'}</div>
               {gateRules ? rulesBody : (
                 <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -557,7 +557,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           )}
           {/* the puzzle card */}
           {!preStart && (
-          <div style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 14 }}>
+          <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 16px 16px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 14 }}>
             <div className="wm-spectrum">
               <div className="wm-grad" aria-hidden="true" />
               <div className="wm-scale"><span>Cold &middot; far</span><span>Cool</span><span>Warm</span><span>Hot &middot; close</span></div>

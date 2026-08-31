@@ -376,7 +376,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       lead={`File every ${noun} where it belongs.`}
       chips={PUZZLE.rules.map((r, i) => ({
         label: `${String.fromCharCode(65 + i)}: ${ruleLabel(r, PUZZLE.domain)}`,
-        style: { padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] },
+        style: { padding: '6px 10px', background: STAGE ? SURF : T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] },
       }))}
       steps={[
         <>Tap a word, then tap the region it belongs in. Tap a filed word to pick it back up, or tap its <b>&times;</b> to send it straight to the tray.</>,
@@ -435,7 +435,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.vn-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .vn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .vn-btn:hover{background:var(--accent-soft);}
-          .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${INK};}
+          .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};}
           .vn-chip:hover{border-color:${COLORS.accent};}
           .vn-chip.held{background:${COLORS.accentSoft};border-color:${COLORS.accent};color:${COLORS.accentDeep};}
           .vn-zone{position:absolute;transform:translate(-50%,-50%);width:76px;min-height:34px;border-radius:8px;border:1.5px dashed rgba(28,30,36,0.3);background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;padding:3px;cursor:pointer;z-index:1;}
@@ -443,7 +443,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           .vn-zone.ready{border-style:solid;border-color:${COLORS.green};background:${COLORS.greenSoft};}
           .vn-zone.over{border-color:${COLORS.rust};}
           .vn-zone .n{font-family:${MONO};font-size:9px;font-weight:500;color:${FADED};text-align:center;}
-          .vn-zone .w{display:flex;align-items:center;gap:2px;width:100%;box-sizing:border-box;min-height:17px;padding:1px 2px 1px 3px;border:1px solid rgba(28,30,36,0.14);border-radius:5px;background:var(--white);font-family:${SANS};font-size:8.5px;font-weight:800;letter-spacing:0.01em;color:${INK};line-height:1.2;cursor:pointer;}
+          .vn-zone .w{display:flex;align-items:center;gap:2px;width:100%;box-sizing:border-box;min-height:17px;padding:1px 2px 1px 3px;border:1px solid rgba(28,30,36,0.14);border-radius:5px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${SANS};font-size:8.5px;font-weight:800;letter-spacing:0.01em;color:${INK};line-height:1.2;cursor:pointer;}
           .vn-zone .w:hover{border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .vn-zone .w .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
           .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:rgba(28,30,36,0.08);color:${FADED};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
@@ -485,7 +485,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The sheet is face down'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
@@ -511,7 +511,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: factNote ? 6 : 10 }}>
               {PUZZLE.rules.map((r, i) => (
-                <span key={i} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '6px 10px', background: T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] }}>
+                <span key={i} style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 800, borderRadius: 7, padding: '6px 10px', background: STAGE ? SURF : T.white, border: `2px solid ${circleColor[i]}`, color: circleColor[i] }}>
                   {String.fromCharCode(65 + i)}: {ruleLabel(r, PUZZLE.domain)}
                 </span>
               ))}
@@ -582,7 +582,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done' ? (won ? <>Filed clean on the first sheet.</> : <>Filed after {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'}.</>) : <>The sheet beat you. The correct filing is shown above.</>}
