@@ -1,6 +1,6 @@
 import { renderGauntletCard, renderQuizCard } from '@/lib/og-brand-card';
 import { circuitById, isMarquee } from '@/lib/circuits';
-import { gauntletBanks, askedTotal, spell, etTodayServer } from './gauntlet-card';
+import { gauntletBanks, gauntletCardProps, etTodayServer } from './gauntlet-card';
 
 export const runtime = 'nodejs';
 // Static per route, so it covers every circuit rather than naming one.
@@ -17,10 +17,11 @@ export { size, contentType } from '@/lib/og-brand-card';
 // root layout's default card, which is the home page. The thing being shared
 // looked like the site rather than like itself.
 //
-// A runnable circuit draws the ladder, the same object the run itself is drawn
-// on, so a reader who follows the link meets it again. Every other circuit
-// gets the ordinary quiz card with its own name and its own line, which is
-// still its own card rather than the site's.
+// A runnable circuit draws THE GATE, the screen the link opens onto, so a
+// reader who follows it meets the same thing again (owner, 2026-08-31: the
+// card "should be dark and match styling of our gameplay page"). Every other
+// circuit gets the ordinary quiz card with its own name and its own line,
+// which is still its own card rather than the site's.
 export default async function Image({ params }) {
   const id = decodeURIComponent((params && params.id) || '');
   const c = circuitById(id);
@@ -34,13 +35,5 @@ export default async function Image({ params }) {
     });
   }
 
-  return renderGauntletCard({
-    title: `${spell(banks.length)} quizzes. One life each.`,
-    // The landing answers "what is this", where the run card answers "you are
-    // about to start". So this one says what the run is made of and the run's
-    // says how it plays.
-    sub: 'Every daily trivia quiz, back to back as one long run. Twenty seconds a question, and one wrong answer ends that quiz.',
-    banks,
-    asked: askedTotal(banks),
-  });
+  return renderGauntletCard(gauntletCardProps(c, banks));
 }

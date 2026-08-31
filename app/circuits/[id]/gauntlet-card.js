@@ -34,27 +34,19 @@ const DAYS = {
   script: scriptPuzzles, quotes: quotesPuzzles, streak: streakPuzzles,
 };
 
-// Spelled, for the same reason the landing page spells it: this is the
-// headline on the card, and "7 quizzes" reads as a spec sheet where "Seven"
-// reads as a sentence. Keep the two in step.
-const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
-  'eight', 'nine', 'ten'];
-export function spell(n) {
-  const w = WORDS[n] || String(n);
-  return w.charAt(0).toUpperCase() + w.slice(1);
-}
-
 export function etTodayServer() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
 }
 
-function askedBy(key, today) {
+// Today's live day for a bank, or null. The card needs more than the count off
+// it (Deep's day TOPIC is the line under its name), so this returns the day
+// rather than a number.
+function dayOf(key, today) {
   const bank = DAYS[key];
-  if (!bank) return 0;
+  if (!bank) return null;
   const open = bank.filter((p) => p.live <= today);
-  const day = open[open.length - 1];
-  return day && Array.isArray(day.qids) ? day.qids.length : 0;
+  return open[open.length - 1] || null;
 }
 
 // Today's banks for a runnable circuit, in run order, each with the colour its
@@ -65,12 +57,49 @@ function askedBy(key, today) {
 export function gauntletBanks(id, today) {
   const day = today || etTodayServer();
   if (!isRunnableCircuit(id)) return [];
-  return circuitKeysFor(id, day).map((k) => ({
-    key: k,
-    name: (DAILY_GAME_MAP[k] || {}).name || k,
-    asked: askedBy(k, day),
-    color: rampFor(circuitSlotFor(id, k)),
-  })).filter((b) => b.asked > 0);
+  return circuitKeysFor(id, day).map((k) => {
+    const g = DAILY_GAME_MAP[k] || {};
+    const p = dayOf(k, day);
+    return {
+      key: k,
+      name: g.name || k,
+      // THE LINE UNDER THE NAME, by the gate's own rule (lineFor in
+      // RunClient): the game's SUBJECT, except that a game whose day carries a
+      // TOPIC prints the topic. That is Deep, whose subject is the word
+      // "Trivia" and whose topic is the whole point of it, and it reads as the
+      // subject everywhere else with no special casing by key.
+      sub: (p && p.topic) || g.subject || g.cat || g.tag || '',
+      asked: p && Array.isArray(p.qids) ? p.qids.length : 0,
+      color: rampFor(circuitSlotFor(id, k)),
+    };
+  }).filter((b) => b.asked > 0);
 }
 
 export const askedTotal = (banks) => banks.reduce((a, b) => a + (b.asked || 0), 0);
+
+// THE CARD'S PROPS, in one place, because BOTH routes draw the same card.
+// They used to differ only in a line of prose under the headline, which is a
+// distinction no reader of a link preview can act on: the landing and the run
+// are the same sitting, one click apart. Since the card is now the gate itself
+// (see renderGauntletCard), its headline is the gate's headline and its
+// figures are the gate's figures, so there is nothing left to vary and a
+// second copy of the props would only be a second thing to forget.
+export function gauntletCardProps(circuit, banks) {
+  const name = (circuit && circuit.name) || 'Trivia Gauntlet';
+  const asked = askedTotal(banks);
+  return {
+    name,
+    eyebrow: 'MIND LOFT · TRIVIA',
+    gateEyebrow: (name + ' · one long quiz').toUpperCase(),
+    // The gate's own two lines, counted rather than written down, so a roster
+    // change can never leave a figure on the card that nothing else agrees
+    // with. That is not hypothetical: the bank map held five banks while the
+    // run had seven, and the card advertised 130 questions for a 180 question
+    // run until it was caught.
+    line1: `${asked} questions, ${banks.length} quizzes.`,
+    line2: 'One life each.',
+    cta: 'Take your run',
+    banks,
+    asked,
+  };
+}
