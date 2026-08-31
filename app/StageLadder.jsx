@@ -75,7 +75,15 @@ export default function StageLadder({
               } else {
                 style.background = b.field ? fieldInk(b.field[i], light) : (light ? DIM_LIGHT : DIM);
               }
-              return <span className="stl-r" key={i} style={style} />;
+              // AN UNLIT RUNG IS A TICK, NOT A BLOCK. In the vertical gutter
+              // each rung spans the full column, so eight unplayed ones stack
+              // into a grey slab down the side of the board (owner, 2026-08-31:
+              // "grey panels on the sides"). Lit and half-lit rungs keep the
+              // full width, because those carry the progress; only the empties
+              // shrink to a stub, and the graphic stops competing with the
+              // board it is meant to annotate.
+              const off = !lit && !half && !(b.field && b.field[i]);
+              return <span className={off ? 'stl-r off' : 'stl-r'} key={i} style={style} />;
             })}
           </div>
         ))}
@@ -95,6 +103,9 @@ const CSS = `
 .stl.v{flex-direction:column;align-items:stretch;height:100%;gap:5px;}
 .stl.v .stl-b{flex-direction:column;align-items:stretch;height:auto;width:100%;}
 .stl.v .stl-r{width:100%;}
+/* Only in the VERTICAL gutter: horizontally the ladder is a wide strip and its
+   empties already read as a baseline rather than a panel. */
+.stl.v .stl-r.off{width:30%;}
 .stl-wrap.v .stl{flex:1 1 auto;}
 @media(max-width:640px){
   .stl-b{gap:0;}
