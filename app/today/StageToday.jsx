@@ -387,7 +387,7 @@ export default function StageToday() {
   // for other people.
   const overall = board && Array.isArray(board.overall) ? board.overall : [];
   const meKey = board && board.me ? board.me.userKey : null;
-  const top = overall.slice(0, 8);
+  const top = overall.slice(0, 10);
   const myRow = meKey ? overall.find((r) => r && r.userKey === meKey) : null;
   const myOut = myRow && !top.some((r) => r && r.userKey === meKey) ? myRow : null;
   const topRow = top[0] && top[0].total != null ? top[0] : null;
@@ -401,7 +401,7 @@ export default function StageToday() {
       const game = gameOfQuizId(f && f.quizId);
       if (!game || f.total == null) continue;
       out.push({ ...f, game });
-      if (out.length >= 14) break;
+      if (out.length >= 10) break;
     }
     return out;
   }, [feed]);
@@ -711,8 +711,13 @@ export default function StageToday() {
             </div>
             <div className="sty-games">
               {alpha.map((g) => (
+                // A TO Z MIXES CATEGORIES exactly as My games does, so each card
+                // carries its own hue: the list loses the rows that grouped the
+                // games, and the colour is the only thing left saying what a
+                // game IS (owner, 2026-08-31).
                 <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
-                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
+                  hue={hueFor(g.cat)} />
               ))}
             </div>
           </section>

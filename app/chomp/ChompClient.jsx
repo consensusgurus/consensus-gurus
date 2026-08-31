@@ -808,7 +808,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const stat = (label, value, tone) => (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94a3b8' }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em', color: tone || COLORS.ink, lineHeight: 1.2 }}>{value}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em', color: tone || INK, lineHeight: 1.2 }}>{value}</div>
     </div>
   );
 
@@ -895,8 +895,12 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                   <div key={m} style={{
                     display: 'flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 3px', borderRadius: 20,
                     fontSize: 10.5, fontWeight: 800, letterSpacing: '0.02em',
-                    background: next ? COLORS.accentSoft : done ? 'transparent' : '#f4f6f8',
-                    color: next ? `var(--stg-acc, ${COLORS.accent})` : '#94a3b8',
+                    // THE CAST CHIPS. The pending fill and its ink were both
+                    // Loft values, so on the stage the row read as dark grey on
+                    // dark (owner, 2026-08-31). The NEXT chip keeps the accent,
+                    // which is the one thing the row has to say.
+                    background: next ? `var(--stg-chip, ${COLORS.accentSoft})` : done ? 'transparent' : 'var(--stg-surf2, #f4f6f8)',
+                    color: next ? `var(--stg-acc, ${COLORS.accent})` : 'var(--stg-ink2, #94a3b8)',
                     opacity: done ? 0.4 : 1,
                   }}>
                     <img src={`/games/chomp/${m}.png`} alt="" width={18} height={18} style={{ display: 'block' }} />
