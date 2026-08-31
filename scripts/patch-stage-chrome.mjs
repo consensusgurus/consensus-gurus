@@ -93,6 +93,8 @@ if (spLine > loftLine) {
     + 'Reading it there is a temporal dead zone: move the declaration up before converting.');
 }
 
+// What this client calls the theme module. Usually T; Stands aliases it.
+const themeName = (s.match(/^import \{[^}]*\bT as ([A-Za-z_$][\w$]*)[^}]*\} from '@\/lib\/theme';/m) || [])[1] || 'T';
 edit('flag', /^(\s*const LOFT = .*;)$/m,
   `$1\n`
   + `  const STAGE = isStage('${key}', searchParams);\n`
@@ -103,7 +105,11 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   + `  const [stageTheme] = useStageTheme();\n`
   + `  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;\n`
   + `  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;\n`
-  + `  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;\n`
+  // THE THEME'S LOCAL NAME, not the letter T. Stands imports it as
+  // `{ T as THEME }` because T is already PUZZLE.teams there, so emitting
+  // T.white gave it PUZZLE.teams.white AND a temporal dead zone, and the
+  // page threw 'Cannot access T before initialization' on render.
+  + `  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : ${themeName}.white;\n`
   + `  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';\n`
   // A client's identity hue. Declared for EVERY client, including the ones
   // whose COLORS has no accent key: reading a missing key yields undefined,

@@ -50,5 +50,61 @@ for (const d of readdirSync('app', { withFileTypes: true })) {
     }
   }
 }
-console.log(bad ? `\n${bad} undefined name(s) across ${checked} converted clients` : `clean: ${checked} converted clients, every stage name imported`);
+// -------------------------------------------------------- TEMPORAL DEAD ZONE
+//
+// The second way a codemod breaks a client at runtime while parsing fine: it
+// inserts a const whose initializer reads a name declared LOWER in the same
+// component. Stands imports the theme as `{ T as THEME }` because T is already
+// PUZZLE.teams, so an emitted `T.white` was both the wrong object and a dead
+// zone, and the page threw 'Cannot access T before initialization'.
+//
+// Scoped to COMPONENT-TOP-LEVEL consts (two-space indent) on both sides, which
+// is where a codemod inserts and is what keeps this quiet enough to be read.
+// Function-valued initializers are skipped: their body runs later.
+for (const d of readdirSync('app', { withFileTypes: true })) {
+  if (!d.isDirectory()) continue;
+  for (const f of readdirSync(join('app', d.name))) {
+    if (!/^[A-Z][A-Za-z]*Client\.jsx$/.test(f)) continue;
+    const rel = join('app', d.name, f);
+    const src = readFileSync(rel, 'utf8');
+    if (!/const STAGE = isStage\(/.test(src)) continue;
+    const lines = src.split('\n');
+    // Names that are a PARAMETER somewhere live in another scope, so a
+    // component const reading one is not reading the later declaration.
+    const params = new Set();
+    for (const m of src.matchAll(/(?:function\s*[\w$]*\s*|\)\s*=>|\()\(?([^()]*)\)\s*(?:\{|=>)/g)) {
+      for (const n of (m[1] || '').split(',')) {
+        const nm = n.trim().replace(/[={[\]}].*/, '').trim();
+        if (/^[A-Za-z_$][\w$]*$/.test(nm)) params.add(nm);
+      }
+    }
+    const at = {};
+    lines.forEach((l, i) => {
+      const m = l.match(/^  const ([A-Za-z_$][\w$]*)\s*=/);
+      if (m && at[m[1]] === undefined) at[m[1]] = i;
+    });
+    lines.forEach((l, i) => {
+      const m = l.match(/^  const ([A-Za-z_$][\w$]*)\s*=\s*(.*)$/);
+      if (!m) return;
+      if (/=>|\bfunction\b|use(?:Ref|Memo|Callback|State)\(/.test(m[2])) return;
+      // Strip STRINGS before scanning, or 'var(--stg-acc)' reads as the
+      // identifier `acc`, and object KEYS, or { pts: ... } reads as `pts`.
+      const init = m[2]
+        .replace(/'(?:\\.|[^'\\])*'/g, "''")
+        .replace(/"(?:\\.|[^"\\])*"/g, '""')
+        .replace(/`(?:\\.|\$\{[^}]*\}|[^`\\])*`/g, '``')
+        .replace(/\/\/[^\n]*/g, ' ')            // and COMMENTS: `// radians, per jaw`
+        .replace(/([A-Za-z_$][\w$]*)\s*:/g, ' ');
+      for (const id of new Set([...init.matchAll(/(?<![.\w$'"])([A-Za-z_$][\w$]*)/g)].map((x) => x[1]))) {
+        if (params.has(id)) continue;
+        if (at[id] !== undefined && at[id] > i) {
+          console.log(`\u2717 ${rel}: const ${m[1]} (line ${i + 1}) reads ${id}, declared at line ${at[id] + 1}`);
+          bad++;
+        }
+      }
+    });
+  }
+}
+
+console.log(bad ? `\n${bad} problem(s) across ${checked} converted clients` : `clean: ${checked} converted clients, every stage name imported and no dead zones`);
 process.exit(bad ? 1 : 0);
