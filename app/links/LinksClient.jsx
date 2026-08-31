@@ -620,7 +620,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           helpTop={13}
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
-          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; More traps</span>}
+          sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.ember})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; More traps</span>}
           blocks={'LINKS'.split('').map((ch, i) => (
               <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -694,7 +694,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
             <button className="lk-btn" onClick={submit} disabled={selWords.length !== 4}
-              style={selWords.length === 4 ? { background: COLORS.ember, color: T.white, borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
+              style={selWords.length === 4 ? { background: `var(--stg-acc, ${COLORS.ember})`, color: `var(--stg-onramp, ${T.white})`, borderColor: COLORS.ember } : { opacity: 0.45, cursor: 'default' }}>
               Submit four
             </button>
             <button className="lk-btn" onClick={doShuffle} style={{ borderColor: '#c3c8cf', color: FADED }}><Shuffle size={14} /> Shuffle</button>

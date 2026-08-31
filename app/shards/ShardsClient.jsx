@@ -967,7 +967,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             blockGap={5}
             helpTop={10}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
             blocks={'SHARDS'.split('').map((ch, i) => (
                 <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
               ))}
@@ -1101,7 +1101,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       <button type="button" className="sh-btn" onClick={undo} disabled={!histRef.current.length}><Undo2 size={14} /> Undo</button>
                       <button type="button" className="sh-btn" onClick={clearBoard} disabled={placedCount === 0}><Trash2 size={14} /> Clear</button>
                       {g.wet != null && (
-                        <button type="button" className="sh-btn" onClick={commitWet} style={{ background: COLORS.accent, color: T.white, borderColor: COLORS.ink }}><CheckCircle2 size={14} /> Lock in</button>
+                        <button type="button" className="sh-btn" onClick={commitWet} style={{ background: `var(--stg-acc, ${COLORS.accent})`, color: `var(--stg-onramp, ${T.white})`, borderColor: COLORS.ink }}><CheckCircle2 size={14} /> Lock in</button>
                       )}
                     </div>
                     <div className="sh-hintbar">
@@ -1217,7 +1217,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             />
             )}
             {mobileUi && !standalone && (
-              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: COLORS.accent, color: T.white, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
+              <button onClick={a2hsClick} style={{ marginTop: 10, width: '100%', fontFamily: SANS, fontSize: 13.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 800, height: 54, borderRadius: 10, border: 'none', background: `var(--stg-acc, ${COLORS.accent})`, color: `var(--stg-onramp, ${T.white})`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 9, whiteSpace: 'nowrap' }}>
                 <Smartphone size={15} strokeWidth={2.5} /> Add to Home Screen
               </button>
             )}

@@ -510,7 +510,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
             blockGap={4}
             helpTop={8}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accentDeep, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; A Harder Subject</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accentDeep})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; A Harder Subject</span>}
             blocks={'REDACT'.split('').map((ch, i) => (
               <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.hit : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
@@ -562,7 +562,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               {/* sticky score block + input (typed dailies pin these to the top) */}
               <div className="rd-sticky">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: playing ? 8 : 0, flexWrap: 'wrap' }}>
-                  <span className="rd-chip" style={{ background: COLORS.accentDeep, color: T.white }}>{PUZZLE.cat}</span>
+                  <span className="rd-chip" style={{ background: `var(--stg-acc, ${COLORS.accentDeep})`, color: `var(--stg-onramp, ${T.white})` }}>{PUZZLE.cat}</span>
                   <span className="rd-chip" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
                     <div className="rd-stat"><b>{g.guesses.length}</b><span>Guesses</span></div>

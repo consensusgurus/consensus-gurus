@@ -662,7 +662,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           marginBottom={16}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && (
-            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 6px' }}>
+            <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>
               Sunday Edition &middot; denser field
             </span>
           )}

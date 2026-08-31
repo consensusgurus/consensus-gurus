@@ -507,7 +507,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             let letter = '';
             if (solvedRow || ended) {
               letter = ch;
-              if (marked) { bg = COLORS.gold; fg = COLORS.goldInk; border = `1.5px solid ${COLORS.gold}`; }
+              if (marked) { bg = `var(--stg-acc, ${COLORS.gold})`; fg = `var(--stg-onramp, ${COLORS.goldInk})`; border = `1.5px solid ${COLORS.gold}`; }
               else { bg = solvedRow ? COLORS.ink : T.white; fg = solvedRow ? T.white : COLORS.rust; border = solvedRow ? `1.5px solid ${COLORS.ink}` : '1.5px dashed rgba(192,57,43,0.55)'; }
             } else if (isSel) {
               letter = typed[j] || '';
@@ -532,7 +532,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   // above can scroll freely without the keys ever covering them.
   const keyboardRows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map((row, ri) => (
     <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
-      {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: COLORS.ember, color: T.white, fontSize: 11.5 }}>ENTER</button>}
+      {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: `var(--stg-acc, ${COLORS.ember})`, color: `var(--stg-onramp, ${T.white})`, fontSize: 11.5 }}>ENTER</button>}
       {row.split('').map((ch) => (
         <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: STAGE ? SURF : T.white, color: INK, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
       ))}
@@ -615,7 +615,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             helpTop={13}
             marginBottom={16}
             onHelp={() => setShowHelp(true)}
-            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.ember, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6 letters</span>}
+            sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.ember})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 6 letters</span>}
             blocks={'GARBLE'.split('').map((ch, i) => {
                 const gold = i === 0 || i === 5;
                 return (
