@@ -42,6 +42,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -281,6 +285,19 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('dating');
+  const STAGE = isStage('dating', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('dating');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('dating'), '--stg-acc-lt': gameColorLight('dating') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const won = g.status === 'won';
   const checksUsed = g.rows.length;
   const checksLeft = MAX_CHECKS - checksUsed;
@@ -697,17 +714,21 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="dating" name="Dating" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. The day's theme is free text, not a figure, so it stays in the card as a
           prompt line. Dating scores a partly-right order, so the cap can go amber. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="dating" quizId={PUZZLE.quizId}
           name="Dating"
           cat="Trivia"
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
@@ -729,16 +750,16 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       <div className="dt-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.dt-wrap{padding-left:14px !important;padding-right:14px !important;}}
-          .dt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .dt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .dt-btn:hover{background:var(--accent-soft);}
           .dt-btn:disabled{opacity:.45;cursor:default;}
           @keyframes dtshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .dt-shake{animation:dtshake .45s ease;}
           @keyframes dtfade{from{opacity:0;}}
           @keyframes dtstamp{from{opacity:0;transform:scale(.94);}}
-          .dt-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+          .dt-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
           .dt-arrow:hover{background:${COLORS.plumSoft};border-color:${COLORS.plum};color:${COLORS.plum};}
-          .dt-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${COLORS.ink};}
+          .dt-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:520px){.dt-htp-f{display:none;}.dt-htp-s{display:inline;}}
           @media(max-width:560px){.dt-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.dt-ttl h1{font-size:21px;letter-spacing:0.02em;}.dt-ttl .dt-ttl-dt{font-size:15px;}.dt-ttl-dot{display:none;}}
           .dt-htp-s{display:none;}
@@ -768,25 +789,25 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The shuffled events stay sealed until then. */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Dating is ready'}</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Dating is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Five moments from history, shuffled. Put them in order, earliest to latest.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="dt-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="dt-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -796,12 +817,12 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>{PUZZLE.theme ? <>today: <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.theme}</b></> : <b style={{ color: COLORS.ink, fontWeight: 500 }}>five moments</b>}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>{PUZZLE.theme ? <>today: <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.theme}</b></> : <b style={{ color: INK, fontWeight: 500 }}>five moments</b>}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>checks <b style={{ color: checksUsed > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checksUsed}/{MAX_CHECKS}</b> &middot; placed <b style={{ color: lockedCount > 0 ? COLORS.lock : COLORS.ink, fontWeight: 500 }}>{lockedCount}/{N}</b></span>
           </div>
           )}
@@ -809,12 +830,12 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               control), not a figure, so it belongs with the board rather
               than in the cap. Restyled off the retired mono texture. */}
           {LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span>{PUZZLE.theme ? <>Today: <b style={{ color: COLORS.ink, fontWeight: 800 }}>{PUZZLE.theme}</b></> : 'Five moments, earliest first'}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span>{PUZZLE.theme ? <>Today: <b style={{ color: INK, fontWeight: 800 }}>{PUZZLE.theme}</b></> : 'Five moments, earliest first'}</span>
           </div>
           )}
 
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; Earliest{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag cards or use the arrows</span> : null}</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 7 }}>&uarr; Earliest{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag cards or use the arrows</span> : null}</div>
           <div className={shake ? 'dt-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7, userSelect: drag ? 'none' : undefined }}>
             {g.order.map((ev, slot) => {
               const locked = lockedSlots[slot];
@@ -828,7 +849,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               return (
                 <div key={ev} ref={(el) => { rowRefs.current[slot] = el; }} onPointerDown={draggable ? (e) => startDrag(slot, e) : undefined} title={draggable ? 'Drag to reorder' : undefined}
                   style={{ display: 'flex', alignItems: 'center', gap: 9, background: locked ? COLORS.lockSoft : dropHere ? COLORS.plumSoft : T.white, border: locked ? '1.5px solid rgba(21,128,61,0.5)' : dropHere ? `1.5px solid ${COLORS.plum}` : '1.5px solid rgba(28,30,36,0.32)', borderRadius: 9, padding: '9px 11px', cursor: draggable ? (dragging ? 'grabbing' : 'grab') : undefined, position: dragging ? 'relative' : undefined, zIndex: dragging ? 5 : undefined, transform: dragging ? `translateY(${drag.dy}px)` : undefined, boxShadow: dragging ? '0 8px 20px rgba(20,22,28,0.22)' : undefined, opacity: dragging ? 0.96 : undefined, touchAction: draggable ? 'none' : undefined }}>
-                  <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: COLORS.faded, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
+                  <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: FADED, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? '#14532d' : COLORS.ink }}>{PUZZLE.events[ev].t}</span>
                   {yearChip}
                   {playing && !locked && (
@@ -841,7 +862,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
               );
             })}
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 7 }}>&darr; Latest</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginTop: 7 }}>&darr; Latest</div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Dated in {checksUsed} check{checksUsed === 1 ? '' : 's'}.</div>}
 
         {/* Controls. These sit INSIDE the board card: on the navy stage a bare
@@ -873,37 +894,37 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         )}
 
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The timeline</div>
+                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 7 }}>The timeline</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {PUZZLE.events.map((evt, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
                       <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.plumInk, background: COLORS.plumSoft, border: '1px solid rgba(124,58,237,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 64, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{evt.y}</span>
                       <span style={{ minWidth: 0 }}>
-                        <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: COLORS.ink }}>{evt.t}</span>
-                        {evt.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: COLORS.faded, marginTop: 1 }}>{evt.d}</span> : null}
+                        <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: INK }}>{evt.t}</span>
+                        {evt.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: FADED, marginTop: 1 }}>{evt.d}</span> : null}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
               {!isTodays && (
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                   <a href="/dating" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Dating &rarr;</a>
                   {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>
               )}
             </>
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -955,11 +976,12 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="dating" name="Dating" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="dating" name="Dating" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="dating" name="Dating" accent="#ffffff" align="center" />
             </div>
           )}
@@ -982,16 +1004,16 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Dating to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Dating to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the plum timeline tile opens today&apos;s puzzle, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The plum timeline tile opens today&apos;s puzzle, every day.
                 </p>
               )}
@@ -1043,10 +1065,10 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="dt-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1055,20 +1077,20 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Dating — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Dating</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Dating</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Dating is a free daily history puzzle from Mind Loft. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The fun is in the near-misses: history is full of events that happened far earlier, or far later, than they feel like they should have. Oxford was teaching students before the Aztecs had a capital; London had a subway before anyone had a car. Every puzzle ends with the full dated timeline, a one-line story for each moment, and one fact worth keeping.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

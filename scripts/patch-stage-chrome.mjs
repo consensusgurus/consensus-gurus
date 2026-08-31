@@ -70,6 +70,19 @@ edit('imports', "import LoftCap from '../LoftCap';",
 // and it fails only when it runs. This codebase has shipped that bug twice.
 // So the ordering is asserted here instead, and a client that does not satisfy
 // it fails the build rather than the render.
+// SOME CLIENTS NEVER READ THE QUERY (Garble, Glyph). Give them the hook rather
+// than refusing them, declared directly ABOVE LOFT so the ordering guard below
+// is satisfied by construction rather than by luck.
+if (!/^\s*const searchParams\s*=/m.test(s)) {
+  if (!/from 'next\/navigation'/.test(s)) {
+    s = s.replace(/^(import .*from '@\/lib\/loft';)$/m,
+      "import { useSearchParams } from 'next/navigation';\n$1");
+  } else if (!/useSearchParams/.test(s)) {
+    s = s.replace(/^(import \{)([^}]*)(\} from 'next\/navigation';)$/m,
+      (m0, a, names, c) => a + ' useSearchParams,' + names + c);
+  }
+  s = s.replace(/^(\s*)(const LOFT = isLoft\()/m, "$1const searchParams = useSearchParams();\n$1$2");
+}
 const spLine = s.split('\n').findIndex((l) => /^\s*const searchParams\s*=/.test(l));
 const loftLine = s.split('\n').findIndex((l) => /^\s*const LOFT\s*=/.test(l));
 if (spLine < 0) throw new Error('no `const searchParams` in this client; the stage flag has nothing to read');
@@ -111,18 +124,57 @@ edit('flag', /^(\s*const LOFT = .*;)$/m,
   const ROOT = /^ *<div className=\{LOFT \? 'loft-page' : undefined\} style=\{\{[^\n]*\}\}>$/m;
   const hit = (s.match(ROOT) || [])[0];
   if (!hit) throw new Error('no loft-page root element in this client');
-  for (const must of ['minHeight', 'T.surface', 'overflowX']) {
+  // Only what the transform needs. It used to demand T.surface, which is one
+  // client's spelling of "the page background" and made the converter refuse
+  // Carve (THEME.surface) and Sweep (COLORS.cream) outright.
+  for (const must of ['minHeight', 'background:']) {
     if (!hit.includes(must)) {
       throw new Error(`the root line is missing ${must}, so it is not the element this patch expects: ${hit.trim()}`);
     }
   }
+  // The client's OWN background expression, kept for the non-stage branch. Ends
+  // at the next comma at paren depth zero, because rgba(28,30,36,0.5) has three
+  // commas of its own.
+  const bgAt = hit.indexOf('background:') + 'background:'.length;
+  let depth = 0;
+  let bgEnd = hit.length;
+  for (let i = bgAt; i < hit.length; i++) {
+    const c = hit[i];
+    if (c === '(' || c === '[' || c === '{') depth++;
+    else if (c === ')' || c === ']' || c === '}') { if (depth === 0) { bgEnd = i; break; } depth--; }
+    else if (c === ',' && depth === 0) { bgEnd = i; break; }
+  }
+  const bg = hit.slice(bgAt, bgEnd).trim();
+  // Everything else in the style object, minus the background and any overflowX
+  // (which is re-emitted so the stage gets it too).
+  const inner = hit.slice(hit.indexOf('style={{') + 'style={{'.length, hit.lastIndexOf('}}'));
+  const kept = [];
+  {
+    let d = 0, start = 0;
+    const parts = [];
+    for (let i = 0; i <= inner.length; i++) {
+      const c = inner[i];
+      if (i === inner.length || (c === ',' && d === 0)) { parts.push(inner.slice(start, i)); start = i + 1; }
+      else if (c === '(' || c === '[' || c === '{') d++;
+      else if (c === ')' || c === ']' || c === '}') d--;
+    }
+    for (const p of parts) {
+      const t = p.trim();
+      if (!t) continue;
+      if (/^background\s*:/.test(t)) continue;
+      if (/^overflowX\s*:/.test(t)) continue;
+      if (/^color\s*:/.test(t)) continue;
+      kept.push(t);
+    }
+  }
+  const style = ["...(STAGE ? STAGE_ACC : null)", ...kept,
+    `background: STAGE ? 'var(--stg-ground)' : ${bg}`,
+    "color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined",
+    "overflowX: (STAGE || LOFT) ? 'hidden' : undefined"].join(', ');
   edit('root', ROOT,
     "    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}\n"
-    // The ground is a VARIABLE, never the STAGE_GROUND constant: a constant
-    // cannot repaint when the register changes, which is what made every
-    // converted game dark-only.
     + "      data-stage-theme={STAGE ? stageTheme : undefined}\n"
-    + "      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>");
+    + `      style={{ ${style} }}>`);
 }
 
 edit('grain', "      <Grain />", "      {!STAGE && <Grain />}", { optional: true });
@@ -143,11 +195,23 @@ edit('capconst', /^(\s*const STAGE_C = .*;)$/m,
   `$1\n  const Cap = STAGE ? StageChrome : LoftCap;`);
 
 // 6. the tail: a stage ends where its content ends
+// Chomp renders no GamePanel at all, so this is optional. A client without one
+// is not a client shaped wrongly, it is a client without that furniture.
 edit('gamepanel', /^( *)<GamePanel (self=[\s\S]*?\/>)$/m,
   '$1{/* The strip in the cap answers what this opens, without being pressed. */}\n'
-  + '$1{!STAGE && <GamePanel $2}');
-edit('footer', /<div style=\{\{ ([^}]*?)display: focusMode \? 'none' : 'block'([^}]*?) \}\}><Footer \/><\/div>/,
-  "<div style={{ $1display: (focusMode || STAGE) ? 'none' : 'block'$2 }}><Footer /></div>");
+  + '$1{!STAGE && <GamePanel $2}', { optional: true });
+// The footer is usually inside a focus-mode wrapper. Chomp renders it bare, so
+// there are two shapes and exactly one of them must match: a client with no
+// footer at all would be a real anomaly and still throws.
+{
+  const wrapped = /<div style=\{\{ ([^}]*?)display: focusMode \? 'none' : 'block'([^}]*?) \}\}><Footer \/><\/div>/;
+  if (wrapped.test(s)) {
+    edit('footer', wrapped,
+      "<div style={{ $1display: (focusMode || STAGE) ? 'none' : 'block'$2 }}><Footer /></div>");
+  } else {
+    edit('footer (bare)', /^( *)<Footer \/>$/m, '$1{!STAGE && <Footer />}');
+  }
+}
 edit('about', /(<section style=\{\{[^}]*?)display: focusMode \? 'none' : 'block'/,
   "$1display: (focusMode || STAGE) ? 'none' : 'block'", { optional: true });
 
@@ -188,7 +252,7 @@ if (/const ACC\b/.test(s) || /COLORS\.accent/.test(s)) {
 // happily. Etch had a gallery component reading two of them.
 //
 // So everything below only applies after the line that declares the name.
-const belowDecl = (id, re, to) => {
+function belowDecl(id, re, to) {
   const at = s.split('\n').findIndex((l) => new RegExp('^\\s*const\\s+' + id + '\\s*=').test(l));
   if (at < 0) return;
   const lines = s.split('\n');
@@ -200,7 +264,7 @@ const belowDecl = (id, re, to) => {
   s = lines.join('\n');
   n += hits;
   console.log(`  · ${id} text (below decl): ${hits}`);
-};
+}
 belowDecl('INK', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
 belowDecl('FADED', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');
 belowDecl('INK', /(?<![-\w])color:\$\{COLORS\.ink\}/g, 'color:${INK}');

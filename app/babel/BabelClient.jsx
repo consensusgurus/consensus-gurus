@@ -47,6 +47,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -259,6 +263,19 @@ export default function BabelClient({ puzzles, forceNum }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('babel');
+  const STAGE = isStage('babel', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('babel');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('babel'), '--stg-acc-lt': gameColorLight('babel') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const focusMode = playing && !showChrome;
   const ready = !!engineLex && !!dict;
@@ -671,14 +688,18 @@ export default function BabelClient({ puzzles, forceNum }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', fontFamily: SANS, position: 'relative', background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="babel" name="Babel" collapsed={playing && !!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="babel" quizId={PUZZLE.quizId}
           name="Babel"
           cat="Word"
           outcome={playing ? null : verdictTone}
@@ -700,13 +721,13 @@ export default function BabelClient({ puzzles, forceNum }) {
       )}
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
-          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${COLORS.ink};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:var(--white);border:1.5px solid rgba(28,30,36,0.28);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sc-btn:hover{background:${COLORS.paper};}
           .sc-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${COLORS.ink};cursor:pointer;user-select:none;background:#dfe7e0;}
+          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:#dfe7e0;}
           .sc-cell .pl{font-family:${MONO};font-size:clamp(6px,1.7vw,9px);font-weight:500;letter-spacing:-0.02em;opacity:0.95;}
           /* Laid tiles have to read at a glance against the premium colours and
              the green ground. The launch version used a pale cream on a pale
@@ -719,13 +740,13 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
           .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:${COLORS.accent};}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
-          .sc-tile{position:relative;width:42px;height:46px;background:${COLORS.tile};border:1.5px solid rgba(120,80,20,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${COLORS.ink};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
+          .sc-tile{position:relative;width:42px;height:46px;background:${COLORS.tile};border:1.5px solid rgba(120,80,20,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}
           .sc-tile.used{opacity:0.25;box-shadow:none;}
           .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}
           .sc-bag{display:flex;flex-wrap:wrap;gap:3px;}
-          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${COLORS.faded};}
-          .sc-bag span b{color:${COLORS.ink};font-weight:800;margin-right:2px;}
+          .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:5px;padding:2px 5px;color:${FADED};}
+          .sc-bag span b{color:${INK};font-weight:800;margin-right:2px;}
           .sc-log{font-family:${MONO};font-size:11.5px;font-weight:500;line-height:1.75;}
         `}</style>
 
@@ -750,26 +771,26 @@ export default function BabelClient({ puzzles, forceNum }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 460, margin: '0 auto 4px' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Babel is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 460, margin: '0 auto 4px' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Babel is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>The bag is empty and there are {START_RACK.length} tiles on your rack. The benchmark is <b>{signed(BENCH)}</b>. The board waits until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>
+              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>
                 {ready ? 'Start' : dictErr ? 'Dictionary failed to load' : 'Loading the dictionary…'}
               </button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -779,10 +800,10 @@ export default function BabelClient({ puzzles, forceNum }) {
 
         {!preStart && (
         <>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
-          <span>benchmark <b style={{ color: COLORS.accent, fontWeight: 500 }}>{signed(BENCH)}</b></span>
-          <span>you <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.my}</b></span>
+          <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{signed(BENCH)}</b></span>
+          <span>you <b style={{ color: INK, fontWeight: 500 }}>{g.my}</b></span>
           <span>them <b style={{ color: COLORS.foe, fontWeight: 500 }}>{g.foeScore}</b></span>
           <span style={{ marginLeft: 'auto' }}>{elapsed}</span>
         </div>
@@ -837,7 +858,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               {thinking ? <span style={{ color: COLORS.foe }}>Your opponent is thinking…</span>
                 : preview && !preview.ok ? <span style={{ color: COLORS.rust }}>{preview.why}</span>
                 : preview && preview.ok ? <span style={{ color: COLORS.green }}>{preview.words.map((w) => `${w.word} ${w.score}`).join(' · ')} = {preview.score}</span>
-                : playing ? <span style={{ color: COLORS.faded }}>Tap a tile then a square, or click a square and type.</span>
+                : playing ? <span style={{ color: FADED }}>Tap a tile then a square, or click a square and type.</span>
                 : null}
             </div>
 
@@ -861,7 +882,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               the puzzle. Handing over their rack was the launch version's
               mistake, and it made the deduction ornamental. */}
           <div style={{ flex: '1 1 190px', minWidth: 180 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 6 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 6 }}>
               The bag &middot; {BAG_SIZE} tiles
             </div>
             <div className="sc-bag">
@@ -869,17 +890,17 @@ export default function BabelClient({ puzzles, forceNum }) {
                 <span key={L}><b>{L}</b>{n}</span>
               ))}
             </div>
-            <div style={{ fontSize: 11.5, color: COLORS.faded, fontWeight: 600, marginTop: 7, lineHeight: 1.55 }}>
-              No blanks. Nothing left to draw, so their <b style={{ color: COLORS.ink }}>{foeRack.length} tiles</b> are whatever this bag has left once you subtract the board and your own rack.
+            <div style={{ fontSize: 11.5, color: FADED, fontWeight: 600, marginTop: 7, lineHeight: 1.55 }}>
+              No blanks. Nothing left to draw, so their <b style={{ color: INK }}>{foeRack.length} tiles</b> are whatever this bag has left once you subtract the board and your own rack.
             </div>
 
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '16px 0 6px' }}>Moves</div>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '16px 0 6px' }}>Moves</div>
             <div className="sc-log">
               {g.log.length ? g.log.map((m, i) => (
                 <div key={i} style={{ color: m.who === 'you' ? COLORS.ink : COLORS.foe }}>
                   {m.who === 'you' ? 'You' : 'Them'} &middot; {m.word.toLowerCase()} {m.score ? <b>{m.score}</b> : ''}
                 </div>
-              )) : <span style={{ color: COLORS.faded }}>No plays yet.</span>}
+              )) : <span style={{ color: FADED }}>No plays yet.</span>}
               {g.status === 'done' && g.adj !== 0 && (
                 <div style={{ color: g.adj > 0 ? COLORS.green : COLORS.rust, marginTop: 4 }}>
                   racks &middot; {signed(g.adj)}
@@ -893,24 +914,24 @@ export default function BabelClient({ puzzles, forceNum }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {!playing && !endHold.held && (
             <>
               <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : beat ? COLORS.gold : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : beat ? `You beat them by ${spread}. The benchmark was ${signed(BENCH)}, and greedy play gets ${signed(PUZZLE.greedy)}.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>
                       {g.over === 'you-out' ? 'You went out first.' : g.over === 'foe-out' ? 'They went out first.' : 'The board closed out.'} {elapsed}
                     </span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>A fresh endgame in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh endgame lands at midnight Eastern.'}
+                    {countdown ? <>A fresh endgame in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh endgame lands at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -923,7 +944,7 @@ export default function BabelClient({ puzzles, forceNum }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/babel" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Babel &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -932,7 +953,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           </div>
           <EndHoldNote show={LOFT} note={endHold.note} />
           {LOFT && !playing && !endHold.held && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && !endHold.held && (
@@ -982,10 +1003,11 @@ export default function BabelClient({ puzzles, forceNum }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="babel" name="Babel" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="babel" name="Babel" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="babel" name="Babel" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1008,16 +1030,16 @@ export default function BabelClient({ puzzles, forceNum }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Babel to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Babel to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s endgame, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>).
                 </p>
               )}
@@ -1058,10 +1080,10 @@ export default function BabelClient({ puzzles, forceNum }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="sc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1069,20 +1091,20 @@ export default function BabelClient({ puzzles, forceNum }) {
         </div>
       )}
 
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Babel</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Babel</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Babel is a free daily word puzzle from Mind Loft: a word tile game picked up at the very end. The bag is empty, you hold five tiles and your opponent holds the rest, and the last few plays decide everything. Because nothing is left to draw, their rack is not a mystery. It is the bag minus the board minus your own tiles, which is exactly the arithmetic tournament players do on a tracking sheet. Babel prints the bag and leaves the subtraction to you.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           You are scored on spread: your points from here minus your opponent&rsquo;s. Going out first is the prize, because their leftover tiles come off their score and land on yours. That makes the real question a familiar one to any endgame player: race, or block the lane they need and make them sit on a tile they cannot play. Every position ships with a benchmark computed by the same solver that plays the defence, so it is always reachable and never a guess.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          The bag is 65 tiles, weighted toward the common letters, with the Q in and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed on the page rather than left for you to remember. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: COLORS.ink, fontWeight: 800 }}>Lode</a>, where rare words pay.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          The bag is 65 tiles, weighted toward the common letters, with the Q in and no blanks. It is smaller than a full-size set because the board is 11 by 11, and it is printed on the page rather than left for you to remember. A fresh endgame lands every day at midnight Eastern, and the Sunday Edition deals six tiles a side instead of five. No app, no signup, play free in your browser and race the daily leaderboard. More dailies: <a href="/tuck" style={{ color: INK, fontWeight: 800 }}>Tuck</a>, our tile-tucking word puzzle, <a href="/mate" style={{ color: INK, fontWeight: 800 }}>Mate</a>, our daily chess finish, and <a href="/lode" style={{ color: INK, fontWeight: 800 }}>Lode</a>, where rare words pay.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

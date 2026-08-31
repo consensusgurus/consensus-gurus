@@ -40,6 +40,10 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -243,6 +247,19 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
   const guessesUsed = filled + g.misses;
   const guessesLeft = Math.max(0, GUESSES - guessesUsed);
   const LOFT = isLoft('niche');
+  const STAGE = isStage('niche', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('niche');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('niche'), '--stg-acc-lt': gameColorLight('niche') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const [revealed, setRevealed] = useState(false);
   const [shareCta, setShareCta] = useState('Share');
   useEffect(() => {
@@ -579,11 +596,15 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="niche" name="Niche" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="niche" quizId={PUZZLE.quizId}
           name="Niche"
           cat="Trivia"
           outcome={playing ? null : (won ? 'won' : (filled > 0 ? 'part' : 'lost'))}
@@ -608,7 +629,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
       <div className="nc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.nc-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .nc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .nc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .nc-btn:hover{background:${COLORS.accentSoft};}
           .nc-head{display:flex;align-items:center;justify-content:center;text-align:center;font-family:${SANS};font-weight:800;color:${COLORS.accentDeep};background:${COLORS.accentSoft};border:1.5px solid ${COLORS.accentTint};border-radius:8px;padding:6px 4px;line-height:1.22;min-height:44px;}
           .nc-cell{position:relative;border:1.5px solid rgba(28,30,36,0.22);border-radius:8px;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
@@ -616,16 +637,16 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-cell.rare{border-color:${COLORS.gold};background:${COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
           .nc-cell.sel{border-color:${COLORS.accent};box-shadow:0 0 0 2.5px rgba(17,94,89,0.25);}
           .nc-cell.miss{background:#fafbfc;}
-          .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${COLORS.ink};overflow-wrap:anywhere;}
-          .nc-rar{font-family:${MONO};font-size:9.5px;color:${COLORS.faded};}
+          .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${INK};overflow-wrap:anywhere;}
+          .nc-rar{font-family:${MONO};font-size:9.5px;color:${FADED};}
           .nc-rar.gold{color:#8a6415;font-weight:500;}
           .nc-plus{font-size:19px;font-weight:600;color:#c3c8d1;}
           .nc-ex{font-size:10.5px;line-height:1.25;color:#9aa0ab;font-style:italic;text-align:center;}
-          .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${COLORS.ink};background:transparent;}
+          .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:transparent;}
           .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:var(--white);border:1.5px solid rgba(28,30,36,0.2);border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
-          .nc-dd button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:9px 12px;font-family:${SANS};font-size:13.5px;font-weight:700;color:${COLORS.ink};cursor:pointer;}
+          .nc-dd button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:9px 12px;font-family:${SANS};font-size:13.5px;font-weight:700;color:${INK};cursor:pointer;}
           .nc-dd button.hot{background:${COLORS.accentSoft};color:${COLORS.accentDeep};}
-          .nc-dd button .nc-sub{margin-left:auto;font-family:${MONO};font-size:10px;color:${COLORS.faded};font-weight:400;}
+          .nc-dd button .nc-sub{margin-left:auto;font-family:${MONO};font-size:10px;color:${FADED};font-weight:400;}
           .nc-dd button.used{opacity:0.45;cursor:default;}
           .nc-pips{display:flex;gap:4px;align-items:center;}
           .nc-pip{width:9px;height:9px;border-radius:50%;background:${COLORS.accent};}
@@ -651,20 +672,20 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
         />
         )}
 
-        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Niche is ready'}</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Niche is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Today&apos;s universe: <b>{U.name}</b>. Fill every cell with a {U.noun} that fits both its row and its column, in {GUESSES} guesses. The rarer your answers, the bigger the brag.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="nc-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="nc-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -673,15 +694,15 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-        <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-        <div className={LOFT && !playing ? 'loft-face' : undefined}>
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+        <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+        <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === CELLS ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filled}</b>/{CELLS}</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guesses left <b style={{ color: COLORS.ink, fontWeight: 500 }}>{guessesLeft}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guesses left <b style={{ color: INK, fontWeight: 500 }}>{guessesLeft}</b></span>
           </div>
           )}
 
@@ -781,7 +802,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
               faded text has nothing to sit on. */}
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+              <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
                 {sel >= 0 ? 'Suggestions only offer answers from the universe. Wrong fits still cost a guess.' : 'Tap an empty cell to answer it.'}
               </span>
               {filled + g.misses > 0 && (
@@ -793,21 +814,21 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {!playing && (
             <div style={{ margin: '0 auto' }}>
               {PUZZLE.sunday && (
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; sixteen cells on the Countries universe.</div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '10px 0 0' }}>The Sunday Edition &mdash; sixteen cells on the Countries universe.</div>
               )}
               {isTodays && myStats.cur >= 2 && (
                 <div style={{ fontSize: 13, fontWeight: 800, margin: '12px 0 0', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Niche in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
+                    {countdown ? <>Next Niche in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -822,7 +843,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/niche" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Niche &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -830,7 +851,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
         </div>
         </div>
@@ -886,10 +907,11 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="niche" name="Niche" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="niche" name="Niche" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="niche" name="Niche" accent="#ffffff" align="center" />
             </div>
           )}
@@ -912,16 +934,16 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Niche to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Niche to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens the day&apos;s grid, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens the day&apos;s grid, every day.
                 </p>
               )}
@@ -964,10 +986,10 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="nc-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -976,20 +998,20 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Niche — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Niche</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Niche</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Niche is a free daily trivia grid from Mind Loft. Each day gives you a 3x3 grid whose rows and columns are broad categories from one universe, and every cell wants an answer that fits both at once: a country that is landlocked AND borders France, an animal that lays eggs AND lives in the water. Twelve guesses cover the nine cells, every attempt spends one, and an answer can only be used once per board.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The universe changes with the day of the week: Countries on Sunday, US States on Monday, Animals on Tuesday, Movies on Wednesday, TV Shows on Thursday, Pro Sports Teams on Friday, and Musicians on Saturday. The score is cells filled, but the real flex is rarity: after every correct pick you see what share of today&apos;s players chose the same answer, and a pick almost nobody found is the one worth sharing.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and Sundays step up to a 4x4 Edition on the Countries universe. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. For more trivia, try <a href="/deep" style={{ color: COLORS.ink, fontWeight: 800 }}>Deep</a>, one subject and fifteen questions, <a href="/listed" style={{ color: COLORS.ink, fontWeight: 800 }}>Listed</a>, rank eight real things, or <a href="/redact" style={{ color: COLORS.ink, fontWeight: 800 }}>Redact</a>, uncover the story.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new grid drops every day at midnight Eastern, and Sundays step up to a 4x4 Edition on the Countries universe. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. For more trivia, try <a href="/deep" style={{ color: INK, fontWeight: 800 }}>Deep</a>, one subject and fifteen questions, <a href="/listed" style={{ color: INK, fontWeight: 800 }}>Listed</a>, rank eight real things, or <a href="/redact" style={{ color: INK, fontWeight: 800 }}>Redact</a>, uncover the story.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

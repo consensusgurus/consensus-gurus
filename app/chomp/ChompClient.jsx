@@ -61,6 +61,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
@@ -313,6 +317,19 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const holdEnd = endHold.hold;
   const releaseEnd = endHold.release;
   const LOFT = isLoft('chomp');  const iq = useIqStanding({ game: 'chomp', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const STAGE = isStage('chomp', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('chomp');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('chomp'), '--stg-acc-lt': gameColorLight('chomp') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'chomp', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'chomp', active: LOFT && !playing });
@@ -786,8 +803,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     />
   );
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: COLORS.accent, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
-  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: `1px solid ${COLORS.line}`, background: '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
   const stat = (label, value, tone) => (
     <div style={{ flex: 1, minWidth: 0 }}>
       <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94a3b8' }}>{label}</div>
@@ -796,11 +813,15 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', fontFamily: SANS, background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="chomp" name="Chomp" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="chomp" quizId={PUZZLE.quizId}
           name="Chomp"
           cat="Logic"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -839,24 +860,24 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chomp is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chomp is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Eat today&apos;s {NPEL} mascots in order. Every square you touch stays yours for the rest of the run, so your trail and the bolted-down bleachers are all that stand in your way. Replay is free.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
               <button onClick={startGame} style={{ ...btn, background: T.cta, borderColor: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -890,7 +911,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
               {stat('Moves', nf(g.moves))}
               {stat('Board', `${fillPct}%`)}
               {stat('Clock', fmtTime(elapsed))}
-              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: COLORS.faded, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+              <button onClick={() => setShowHelp(true)} aria-label="How to play" style={{ border: `1px solid ${COLORS.line}`, background: '#fff', color: FADED, borderRadius: 7, width: 30, height: 28, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 <HelpCircle size={15} />
               </button>
             </div>
@@ -918,7 +939,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             {engaged && (
               <div style={{ marginTop: 12, paddingTop: 11, borderTop: `1px solid ${COLORS.line}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+                  <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
                     {playing ? 'Where you have been is a wall. There is no take-back.' : 'Your result is recorded. Play it again as often as you like.'}
                   </span>
                   <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14 }}>
@@ -948,7 +969,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                       <button
                         onClick={tryAgain}
                         title="Play this board again. Your recorded result stands."
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: COLORS.accent, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: ACC, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <RotateCcw size={13} style={{ flexShrink: 0 }} /> Try again
                       </button>
@@ -973,7 +994,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && !endHold.held && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && !endHold.held && (
@@ -1024,7 +1045,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         )}
 
         {LOFT && (
-          <div className="loft-report">
+          <div className={STAGE ? undefined : 'loft-report'}>
             <ReportIssue self="chomp" name="Chomp" accent="#ffffff" align="center" />
           </div>
         )}
@@ -1040,8 +1061,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         />
         )}
 
-        <section style={{ maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
-          <h2 style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Chomp</h2>
+        <section style={{ maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: FADED }}>
+          <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Chomp</h2>
           <p style={{ margin: '0 0 9px' }}>
             Chomp is a daily route puzzle. A handful of mascots sit on a small board and have to be eaten in order,
             and every square you touch belongs to you for the rest of the run. Nothing chases you and nothing is on a timer.
@@ -1056,9 +1077,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             day; Sundays field the whole cast and spread it further apart.
           </p>
           <p style={{ margin: 0 }}>
-            More daily puzzles: <a href="/parker" style={{ color: COLORS.accent }}>Parker</a>,{' '}
-            <a href="/etch" style={{ color: COLORS.accent }}>Etch</a>,{' '}
-            <a href="/hedge" style={{ color: COLORS.accent }}>Hedge</a>.
+            More daily puzzles: <a href="/parker" style={{ color: ACC }}>Parker</a>,{' '}
+            <a href="/etch" style={{ color: ACC }}>Etch</a>,{' '}
+            <a href="/hedge" style={{ color: ACC }}>Hedge</a>.
           </p>
         </section>
       </div>
@@ -1087,10 +1108,10 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
         >
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ ...btn, marginTop: 14, background: COLORS.ink, borderColor: COLORS.ink, color: T.white }}>Play</button>
@@ -1121,7 +1142,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         }
       `}</style>
 
-      <Footer />
+      {!STAGE && <Footer />}
     </div>
   );
 }

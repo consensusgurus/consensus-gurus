@@ -35,6 +35,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -185,6 +189,19 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('venn');
+  const STAGE = isStage('venn', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('venn');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('venn'), '--stg-acc-lt': gameColorLight('venn') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -382,14 +399,18 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
   const trayItems = PUZZLE.items.map((w, i) => ({ w, i })).filter(({ i }) => !g.place[i]);
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="venn" name="Venn" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="venn" quizId={PUZZLE.quizId}
           name="Venn"
           cat="Logic"
           outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
@@ -412,20 +433,20 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       <div className="vn-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.vn-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .vn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .vn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .vn-btn:hover{background:var(--accent-soft);}
-          .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${COLORS.ink};}
+          .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${INK};}
           .vn-chip:hover{border-color:${COLORS.accent};}
           .vn-chip.held{background:${COLORS.accentSoft};border-color:${COLORS.accent};color:${COLORS.accentDeep};}
           .vn-zone{position:absolute;transform:translate(-50%,-50%);width:76px;min-height:34px;border-radius:8px;border:1.5px dashed rgba(28,30,36,0.3);background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;padding:3px;cursor:pointer;z-index:1;}
           .vn-zone:hover,.vn-zone:focus-within{z-index:6;}
           .vn-zone.ready{border-style:solid;border-color:${COLORS.green};background:${COLORS.greenSoft};}
           .vn-zone.over{border-color:${COLORS.rust};}
-          .vn-zone .n{font-family:${MONO};font-size:9px;font-weight:500;color:${COLORS.faded};text-align:center;}
-          .vn-zone .w{display:flex;align-items:center;gap:2px;width:100%;box-sizing:border-box;min-height:17px;padding:1px 2px 1px 3px;border:1px solid rgba(28,30,36,0.14);border-radius:5px;background:var(--white);font-family:${SANS};font-size:8.5px;font-weight:800;letter-spacing:0.01em;color:${COLORS.ink};line-height:1.2;cursor:pointer;}
+          .vn-zone .n{font-family:${MONO};font-size:9px;font-weight:500;color:${FADED};text-align:center;}
+          .vn-zone .w{display:flex;align-items:center;gap:2px;width:100%;box-sizing:border-box;min-height:17px;padding:1px 2px 1px 3px;border:1px solid rgba(28,30,36,0.14);border-radius:5px;background:var(--white);font-family:${SANS};font-size:8.5px;font-weight:800;letter-spacing:0.01em;color:${INK};line-height:1.2;cursor:pointer;}
           .vn-zone .w:hover{border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .vn-zone .w .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
-          .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:rgba(28,30,36,0.08);color:${COLORS.faded};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
+          .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:rgba(28,30,36,0.08);color:${FADED};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
           .vn-zone .w .x:hover{background:${COLORS.rust};color:${T.white};}
           /* A filed item gets about 48px of the 76px tray once the padding and
              the send-back button are taken out, which is ~9 characters at
@@ -457,24 +478,24 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The sheet is face down'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The sheet is face down'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>{N} words, three overlapping circles, and every one of the seven regions is used. The counts tell you the shape of the answer.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="vn-btn" onClick={startRun} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Turn the sheet over</button>
+              <button className="vn-btn" onClick={startRun} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Turn the sheet over</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
               </div>
             </div>
           </div>
@@ -482,8 +503,8 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
         {!preStart && (
           <>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
-              <span>filed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b> of {N}</span>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
+              <span>filed <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b> of {N}</span>
               <span>counts <b style={{ color: countsMatch ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{countsMatch ? 'match' : 'off'}</b></span>
               <span>on the board <b style={{ color: g.rejected ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
             </div>
@@ -496,7 +517,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
               ))}
             </div>
             {factNote && (
-              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginBottom: 10 }}>{factNote}</div>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginBottom: 10 }}>{factNote}</div>
             )}
 
             <div style={{ position: 'relative', width: 320, height: 300, margin: '0 auto 12px' }}>
@@ -531,12 +552,12 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
 
             {playing && (
               <>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>{held == null ? 'The tray' : 'Now tap a region'}</div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 7 }}>{held == null ? 'The tray' : 'Now tap a region'}</div>
                 <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', minHeight: 34, marginBottom: 10 }}>
                   {trayItems.map(({ w, i }) => (
                     <button key={w} type="button" className={`vn-chip${held === i ? ' held' : ''}`} onClick={() => liftFrom(i)}>{w}</button>
                   ))}
-                  {!trayItems.length && <span style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>Tray empty. Check your counts, then file the sheet.</span>}
+                  {!trayItems.length && <span style={{ fontSize: 12.5, fontWeight: 700, color: FADED }}>Tray empty. Check your counts, then file the sheet.</span>}
                 </div>
               </>
             )}
@@ -551,37 +572,37 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
               <Circle size={14} /> File the sheet
             </button>
             {placedCount > 0 && <button type="button" className="vn-btn" onClick={clearAll}><Eraser size={14} /> Clear all</button>}
-            {g.rejected >= 2 && <button type="button" className="vn-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>}
+            {g.rejected >= 2 && <button type="button" className="vn-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>}
           </div>
         )}
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done' ? (won ? <>Filed clean on the first sheet.</> : <>Filed after {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'}.</>) : <>The sheet beat you. The correct filing is shown above.</>}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
-                  <>{countdown ? <>A new sheet lands in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new sheet lands at midnight Eastern.'}
+                  <>{countdown ? <>A new sheet lands in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new sheet lands at midnight Eastern.'}
                     {prevPuzzle && <>{' '}Meanwhile: <a href={`/venn?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>yesterday&rsquo;s sheet &rarr;</a></>}</>
                 ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/venn" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s sheet &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/venn" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s sheet &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
                 )}
               </p>
             </>
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -632,10 +653,11 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="venn" name="Venn" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="venn" name="Venn" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="venn" name="Venn" accent="#ffffff" align="center" />
             </div>
           )}
@@ -650,14 +672,14 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Venn to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Venn to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b> &mdash; the tile opens today&apos;s sheet, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s sheet, every day.</p>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s sheet, every day.</p>
               )}
               <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
@@ -683,10 +705,10 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
       )}
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="vn-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -694,19 +716,19 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Venn</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Venn</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Venn is a free daily logic puzzle from Mind Loft. Three overlapping circles, each one a plain property of a word, and a tray of words that between them fill every region of the diagram, including the sliver in the middle where all three are true at once.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The counts are what turn sorting into deduction. Each region tells you how many words belong in it, so a word in the wrong place is never just a wrong answer, it is a number that refuses to add up. Work the shortfalls and the board corrects itself.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new sheet lands every day at midnight Eastern, and Sundays withhold two of the counts. More dailies: <a href="/axiom" style={{ color: COLORS.ink, fontWeight: 800 }}>Axiom</a>, our hidden-rule puzzle, <a href="/bracket" style={{ color: COLORS.ink, fontWeight: 800 }}>Bracket</a>, our results-table reconstruction, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our four hidden threads.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new sheet lands every day at midnight Eastern, and Sundays withhold two of the counts. More dailies: <a href="/axiom" style={{ color: INK, fontWeight: 800 }}>Axiom</a>, our hidden-rule puzzle, <a href="/bracket" style={{ color: INK, fontWeight: 800 }}>Bracket</a>, our results-table reconstruction, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our four hidden threads.
         </p>
       </section>
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 

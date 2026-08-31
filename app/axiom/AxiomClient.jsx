@@ -44,6 +44,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -382,6 +386,19 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('axiom');
+  const STAGE = isStage('axiom', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('axiom');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('axiom'), '--stg-acc-lt': gameColorLight('axiom') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -650,7 +667,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       chips={[
         { label: 'EFFORT', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.greenSoft, border: `1.5px solid ${COLORS.green}`, color: '#14532d' } },
         { label: 'FALSE', style: { fontSize: 12, letterSpacing: '0.04em', background: COLORS.redSoft, border: `1.5px solid ${COLORS.redInk}`, color: '#7f1d1d' } },
-        { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', color: COLORS.ink } },
+        { label: 'TRAIL', style: { fontSize: 12, letterSpacing: '0.04em', background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', color: INK } },
       ]}
       sub="Green: the rule is true of that word. Red: it is not. Grey: already one or the other, but you have not uncovered it."
       steps={[
@@ -674,14 +691,18 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="axiom" name="Axiom" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="axiom" quizId={PUZZLE.quizId}
           name="Axiom"
           cat="Logic"
           outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
@@ -702,19 +723,19 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       <div className="ax-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ax-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ax-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ax-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ax-btn:hover{background:var(--accent-soft);}
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
-          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:var(--white);color:${COLORS.ink};text-align:center;overflow:hidden;text-overflow:ellipsis;}
+          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:var(--white);color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
           .ax-tile:hover:not(:disabled){border-color:${COLORS.accent};}
           .ax-tile:disabled{cursor:default;}
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .ax-tile.no{background:${COLORS.redSoft};border-color:${COLORS.redInk};color:#7f1d1d;}
           .ax-tile.given{box-shadow:inset 0 0 0 2px rgba(28,30,36,0.28);}
-          .ax-tile.marked{background:${COLORS.paper};border-style:dashed;border-color:rgba(28,30,36,0.32);color:${COLORS.faded};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
+          .ax-tile.marked{background:${COLORS.paper};border-style:dashed;border-color:rgba(28,30,36,0.32);color:${FADED};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
           .ax-tile.marked:hover:not(:disabled){opacity:1;}
-          .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
+          .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
           .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
           .ax-rule{display:flex;align-items:flex-start;gap:10px;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
@@ -722,7 +743,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-rule.dead{opacity:0.42;}
           .ax-rule.dead .ax-rule-t{text-decoration:line-through;}
           .ax-rule.win{border-color:${COLORS.green};border-left-color:${COLORS.green};background:${COLORS.greenSoft};}
-          .ax-chip{flex:0 0 auto;width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.25);background:${COLORS.cream};font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;color:${COLORS.faded};}
+          .ax-chip{flex:0 0 auto;width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.25);background:${COLORS.cream};font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;color:${FADED};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -747,14 +768,14 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {!preStart && (
-        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: COLORS.ink }}>
+        <div style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, lineHeight: 1.55, background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           <div style={{ fontSize: 15.5, fontWeight: 800, marginBottom: 5 }}>Find the one rule that fits every word on the board.</div>
           <div style={{ marginBottom: 4 }}><b style={{ color: COLORS.green }}>Green</b> means the rule is true of that word, <b style={{ color: COLORS.redInk }}>red</b> means it is false. All {PUZZLE.tiles.length} words are already one or the other; grey just means you have not uncovered it yet. The {PUZZLE.rules.length} candidates sit below the board, and exactly one of them is true of every green word and false of every red one.</div>
           <div>Spend a test to uncover another word. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it. Every candidate the revealed words cannot yet rule out costs you {UNPROVEN_COST} points when you name the answer, so keep testing until one rule is left standing.</div>
@@ -763,9 +784,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {/* status bar */}
         {started && (
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span>tests left <b style={{ color: testsLeft <= 1 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
-          <span>perfect <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PERFECT}</b> test{PERFECT === 1 ? '' : 's'}</span>
+          <span>perfect <b style={{ color: INK, fontWeight: 500 }}>{PERFECT}</b> test{PERFECT === 1 ? '' : 's'}</span>
           <span>still unproven <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing}</b> rule{standing === 1 ? '' : 's'}{standing > 0 ? '' : ' · proved'}</span>
           <span>name it now &rarr; <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
           {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
@@ -774,19 +795,19 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the board stays sealed until the clock starts */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The board is covered'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The board is covered'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 7px' }}>{PUZZLE.tiles.length} words below, and {PUZZLE.rules.length} candidate rules. <b>Exactly one of those rules fits every word on the board, and your job is to work out which.</b></p>
                 <p style={{ margin: '0 0 7px' }}>Three words start <b style={{ color: COLORS.green }}>green</b>, meaning the hidden rule is true of them, and two start <b style={{ color: COLORS.redInk }}>red</b>, meaning it is false. Every other word is already green or red too, you just cannot see which yet. Spend a test to uncover one. You have {PUZZLE.budget}, and {PERFECT} well chosen will settle it.</p>
                 <p style={{ margin: 0 }}>You score only the rules you actually rule out, so eliminate before you name.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="ax-btn" onClick={startRun} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Uncover the board</button>
+              <button className="ax-btn" onClick={startRun} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Uncover the board</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -798,7 +819,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded }}>The board</div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED }}>The board</div>
               {playing && (
                 <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
                   <button type="button" className={`ax-tool${mode === 'mark' ? ' on' : ''}`} onClick={() => setMode('mark')} title="Cross tiles out as notes. Free, and it changes nothing on the board.">
@@ -845,8 +866,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
           <>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, margin: '18px 0 8px' }}>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded }}>The candidates</div>
-              {playing && <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded }}>{g.naming ? 'Pick the one that fits every tile' : 'Tap to cross one out, free'}</div>}
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED }}>The candidates</div>
+              {playing && <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED }}>{g.naming ? 'Pick the one that fits every tile' : 'Tap to cross one out, free'}</div>}
             </div>
             {PUZZLE.rules.map((r, i) => {
               const dead = !playing && i !== ANSWER;
@@ -861,7 +882,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                 >
                   <span className="ax-chip">{String.fromCharCode(65 + i)}</span>
                   <span style={{ flex: '1 1 auto', minWidth: 0 }}>
-                    <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
+                    <span className="ax-rule-t" style={{ display: 'block', fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.4 }}>{ruleLabel(r)}</span>
                   </span>
                   {winner && <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.green, background: T.white, borderRadius: 4, padding: '3px 7px' }}>the rule</span>}
                 </button>
@@ -876,38 +897,38 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="ax-btn"
               onClick={() => { if (namesLeft <= 0) { say('No names left today.'); return; } setG((cur) => ({ ...cur, naming: !cur.naming })); }}
-              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: COLORS.accentDeep }}
+              style={g.naming ? { background: COLORS.accent, borderColor: COLORS.accent, color: T.white } : { background: COLORS.accentSoft, borderColor: 'rgba(15,118,110,0.5)', color: ACC_DEEP }}
             >
               <FlaskConical size={14} /> {g.naming ? 'Picking a rule…' : `Name it for ${liveScore} of ${TOTAL}`}{g.wrongPicks.length ? ` (${namesLeft} left)` : ''}
             </button>
             {(g.struck.length > 0 || (g.marks || []).length > 0) && <button type="button" className="ax-btn" onClick={clearNotes}><Eraser size={14} /> Clear notes</button>}
             {(testsLeft === 0 || g.wrongPicks.length >= MAX_WRONG) && (
-              <button type="button" className="ax-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
+              <button type="button" className="ax-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>
             )}
           </div>
         )}
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'
                       ? (won ? <>Named at perfect on {testsUsed} test{testsUsed === 1 ? '' : 's'}.</> : <>Named it on {testsUsed} test{testsUsed === 1 ? '' : 's'}{g.wrongPicks.length ? ` and ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}.</>)
                       : <>The board beat you. The rule: <b>{answerLabel.toLowerCase()}</b>.</>}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>A new board goes up in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board goes up at midnight Eastern.'}
+                    {countdown ? <>A new board goes up in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new board goes up at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -922,7 +943,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/axiom" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s board &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -930,7 +951,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -981,10 +1002,11 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="axiom" name="Axiom" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="axiom" name="Axiom" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="axiom" name="Axiom" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1007,16 +1029,16 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Axiom to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Axiom to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s board, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s board, every day.
                 </p>
               )}
@@ -1058,10 +1080,10 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ax-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1070,20 +1092,20 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Axiom — crawlable prose for search, server-rendered */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Axiom</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Axiom</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Axiom is a free daily logic puzzle from Mind Loft, built on the oldest experiment in reasoning: find the hidden rule. A board of ordinary words is split by a rule you cannot see. A few tiles are flipped for you, a short list of candidate rules sits underneath, and a small budget of tests is all you get to tell them apart.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The trap is the one every scientist knows. Most tiles confirm what you already believe, and confirmation costs a test and teaches nothing. The tiles worth spending on are the ones where two surviving rules disagree. Every board is generated and machine-verified so that exactly one candidate fits it, and so that no single test can settle the question on its own.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new board goes up every day at midnight Eastern, with a wider candidate field on Sundays. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More dailies: <a href="/hearsay" style={{ color: COLORS.ink, fontWeight: 800 }}>Hearsay</a>, our puzzle of what other people don&rsquo;t know, <a href="/sworn" style={{ color: COLORS.ink, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new board goes up every day at midnight Eastern, with a wider candidate field on Sundays. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More dailies: <a href="/hearsay" style={{ color: INK, fontWeight: 800 }}>Hearsay</a>, our puzzle of what other people don&rsquo;t know, <a href="/sworn" style={{ color: INK, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, and <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 

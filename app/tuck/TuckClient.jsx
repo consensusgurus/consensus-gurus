@@ -53,6 +53,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -247,6 +251,19 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('tuck');
+  const STAGE = isStage('tuck', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('tuck');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('tuck'), '--stg-acc-lt': gameColorLight('tuck') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
   const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -683,14 +700,18 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="tuck" name="Tuck" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="tuck" quizId={PUZZLE.quizId}
           name="Tuck"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -712,28 +733,28 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <div className="tk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.tk-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .tk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .tk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .tk-btn:hover{background:var(--accent-soft);}
           .tk-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .tk-btn.primary:hover{background:#7c3609;}
           .tk-btn:disabled{opacity:0.45;cursor:default;}
           .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:#dfd8cb;border:2px solid ${COLORS.ink};border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .tk-cell{position:relative;aspect-ratio:1;background:#fbf9f4;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${COLORS.ink};cursor:pointer;user-select:none;border:1px solid rgba(28,30,36,0.08);}
+          .tk-cell{position:relative;aspect-ratio:1;background:#fbf9f4;border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid rgba(28,30,36,0.08);}
           .tk-cell.filled{background:${COLORS.tile};border-color:rgba(146,64,14,0.35);box-shadow:inset 0 -2px 0 rgba(146,64,14,0.18);}
           .tk-cell.badword{background:#fbe3e0;border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
           .tk-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:${COLORS.accent};}
           .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
-          .tk-tile{position:relative;width:40px;height:44px;background:${COLORS.tile};border:1.5px solid rgba(146,64,14,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${COLORS.ink};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
+          .tk-tile{position:relative;width:40px;height:44px;background:${COLORS.tile};border:1.5px solid rgba(146,64,14,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
           .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:${COLORS.accent};}
           .tk-tile.used{opacity:0.28;box-shadow:none;}
           .tk-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:1px;}
-          .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${COLORS.ink};}
+          .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .tk-wtag.invalid{color:${COLORS.rust};border-color:rgba(192,57,43,0.4);}
           .tk-status{font-size:12.5px;font-weight:700;min-height:18px;}
           .tk-status.bad{color:${COLORS.rust};}
           .tk-status.good{color:${COLORS.green};}
-          .tk-status.muted{color:${COLORS.faded};}
+          .tk-status.muted{color:${FADED};}
         `}</style>
 
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -758,26 +779,26 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — sits where the board goes; the rack stays sealed
             until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 432, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Tuck is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 432, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Tuck is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Everyone gets the same rack of {RACK} letters to tuck into one interlocking crossword. Your board waits until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="tk-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="tk-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -787,10 +808,10 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
         {/* score bar */}
         {!preStart && (
-        <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+        <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= BENCH && liveScore > 0 ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
-          <span>benchmark <b style={{ color: COLORS.accent, fontWeight: 500 }}>{BENCH}</b></span>
-          <span>tiles <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
+          <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{BENCH}</b></span>
+          <span>tiles <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
           {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score submitted — sandbox mode</span>}
         </div>
         )}
@@ -862,7 +883,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
               {confirming && <button type="button" className="tk-btn" onClick={() => setConfirming(false)}>Keep building</button>}
             </div>
             {playing && (
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
                 One shot counts: only your first submitted grid ranks on the daily board.
               </div>
             )}
@@ -870,16 +891,16 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
           {/* words formed */}
           <div style={{ flex: '1 1 180px', minWidth: 170 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>Words formed</div>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 8 }}>Words formed</div>
             <div>
               {runs.length ? runs.map((x, i) => (
                 <span key={i} className={`tk-wtag${dict && !dict.has(x.word.toLowerCase()) ? ' invalid' : ''}`}>
                   {x.word.toLowerCase()}{dict && !dict.has(x.word.toLowerCase()) ? ' ?' : ''}
-                  <span style={{ marginLeft: 5, color: COLORS.accent, fontWeight: 800, fontSize: 10 }}>{[...x.word].reduce((s, ch) => s + PTS[ch], 0)}</span>
+                  <span style={{ marginLeft: 5, color: ACC, fontWeight: 800, fontSize: 10 }}>{[...x.word].reduce((s, ch) => s + PTS[ch], 0)}</span>
                 </span>
-              )) : <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded }}>No words yet.</span>}
+              )) : <span style={{ fontSize: 12, fontWeight: 600, color: FADED }}>No words yet.</span>}
             </div>
-            <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, lineHeight: 1.55, marginTop: 10 }}>
               Every run of 2+ letters must be a word, across and down. Intersections score in both words. All {RACK} tiles placed is +10.
             </div>
           </div>
@@ -888,24 +909,24 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '16px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? `Beat the benchmark of ${BENCH} — the desk tips its cap.` : `Submitted against a benchmark of ${BENCH}.`}
                     {' '}{g.submitted ? `${g.submitted.placed}/${RACK} tiles.` : ''}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>A fresh rack in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh rack lands at midnight Eastern.'}
+                    {countdown ? <>A fresh rack in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh rack lands at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -920,7 +941,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/tuck" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Tuck &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -928,7 +949,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -979,10 +1000,11 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="tuck" name="Tuck" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="tuck" name="Tuck" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="tuck" name="Tuck" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1005,16 +1027,16 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Tuck to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Tuck to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s rack, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s rack, every day.
                 </p>
               )}
@@ -1062,10 +1084,10 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="tk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1074,20 +1096,20 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Tuck — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Tuck</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Tuck</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Tuck is a free daily word puzzle from Mind Loft &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 standard-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a benchmark set from how players actually score on that rack &mdash; beat it and the day counts as a win. Roughly a third of finished grids do. Only your first submitted grid ranks on the daily leaderboard, so make it count.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: COLORS.ink, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: INK, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

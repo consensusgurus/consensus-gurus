@@ -38,6 +38,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -279,6 +283,19 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('feud');
+  const STAGE = isStage('feud', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('feud');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('feud'), '--stg-acc-lt': gameColorLight('feud') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const focusMode = playing && !showChrome;
   const result = g.result;
@@ -582,10 +599,10 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       return (
         <div key={p} style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Prompt {p + 1}</span>
-            <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>+{rv.pts} pts</span>
+            <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACC }}>Prompt {p + 1}</span>
+            <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: FADED, marginLeft: 'auto' }}>+{rv.pts} pts</span>
           </div>
-          <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 800, color: COLORS.ink, lineHeight: 1.35, marginBottom: 9 }}>{rv.q}</div>
+          <div style={{ fontFamily: SANS, fontSize: 14, fontWeight: 800, color: INK, lineHeight: 1.35, marginBottom: 9 }}>{rv.q}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {rows.map((r, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
@@ -595,7 +612,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                     <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: r.yours ? 800 : 700, color: r.yours ? '#8a6d1a' : COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.label}{r.yours ? ' · you' : ''}
                     </span>
-                    <span style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>{r.pct}%</span>
+                    <span style={{ fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>{r.pct}%</span>
                   </div>
                   <div style={{ height: 7, background: COLORS.paper, borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
                     <div style={{ width: `${Math.round((r.count / maxV) * 100)}%`, height: '100%', background: r.yours ? COLORS.gold : '#e6a5b6', borderRadius: 4, minWidth: r.count ? 4 : 0 }} />
@@ -605,9 +622,9 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
           {(rv.missed || []).length > 0 && (
-            <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, marginTop: 8, lineHeight: 1.5 }}>
+            <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: FADED, marginTop: 8, lineHeight: 1.5 }}>
               Off the board: {(rv.missed || []).map((m, i) => (
-                <span key={i}>{i > 0 ? ' · ' : ''}<b style={{ color: COLORS.ink }}>{m.label}</b> (#{m.rank}, {m.pct}%)</span>
+                <span key={i}>{i > 0 ? ' · ' : ''}<b style={{ color: INK }}>{m.label}</b> (#{m.rank}, {m.pct}%)</span>
               ))}
             </div>
           )}
@@ -633,14 +650,18 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="feud" name="Feud" collapsed={playing && !!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="feud" quizId={PUZZLE.quizId}
           name="Feud"
           cat="Crowd Psychology"
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
@@ -661,9 +682,9 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       <div className="fd-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.fd-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .fd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .fd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .fd-btn:hover{background:var(--accent-soft);}
-          .fd-input{font-family:${SANS};font-weight:700;font-size:15px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};border-radius:9px;padding:10px 12px;width:100%;outline:none;}
+          .fd-input{font-family:${SANS};font-weight:700;font-size:15px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:9px;padding:10px 12px;width:100%;outline:none;}
           .fd-input:focus{border-color:${COLORS.accent};}
           .fd-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .fd-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
@@ -695,25 +716,25 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — the prompts stay sealed until Start begins the clock */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Feud is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Feud is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Five prompts, three answers each, typed blind. The answer key is live &mdash; it&rsquo;s whatever today&rsquo;s players say. The prompts stay sealed until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="fd-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="fd-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -724,12 +745,12 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
         {/* the day's five prompts, typed blind */}
         {!preStart && playing && (
           <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-            <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 11, flexWrap: 'wrap' }}>
+            <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, marginBottom: 11, flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><MessageSquareText size={12} /> today&rsquo;s survey</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', marginLeft: 'auto' }}><span className="fd-livedot" /> live answer key</span>
             </div>
-            <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}>
-              The board is hidden until you lock in. Answer what you think <b style={{ color: COLORS.ink }}>today&rsquo;s crowd</b> will say &mdash; all three answers score, so fill every box. Your answers become votes the moment you submit.
+            <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, marginBottom: 12, lineHeight: 1.5 }}>
+              The board is hidden until you lock in. Answer what you think <b style={{ color: INK }}>today&rsquo;s crowd</b> will say &mdash; all three answers score, so fill every box. Your answers become votes the moment you submit.
             </div>
             {PROMPTS.map((pr, p) => {
               const row = g.entries[p] || [];
@@ -740,7 +761,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                     <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{p + 1} of {P}</span>
                     {done && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
                   </div>
-                  <div style={{ fontFamily: SANS, fontSize: 15.5, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>{pr.q}</div>
+                  <div style={{ fontFamily: SANS, fontSize: 15.5, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, marginBottom: 9 }}>{pr.q}</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
                     {row.map((val, j) => (
                       <input
@@ -758,7 +779,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                     ))}
                   </div>
                   {done && (
-                    <button onClick={() => clearPrompt(p)} style={{ marginTop: 8, fontFamily: SANS, fontSize: 11.5, fontWeight: 800, color: COLORS.faded, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}>
+                    <button onClick={() => clearPrompt(p)} style={{ marginTop: 8, fontFamily: SANS, fontSize: 11.5, fontWeight: 800, color: FADED, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}>
                       <RotateCcw size={12} /> Clear
                     </button>
                   )}
@@ -770,7 +791,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
               <button className="fd-face" onClick={faceTheCrowd} disabled={sending || !readyToFace}>
                 <Users size={17} className="fd-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
               </button>
-              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED, marginTop: 8 }}>
                 {readyToFace ? 'All three answers pay — each one banks the share of the crowd that said it too.' : `Answer all ${P} prompts to lock in — ${P - answeredCount} to go.`}
               </div>
             </div>
@@ -779,25 +800,25 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && result && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     You matched <b>{result.pctCrowd}%</b> of the crowd{sharp ? ' — you read the room.' : score >= winBar(TOTAL) / 2 ? ' — a respectable read.' : ' — the crowd surprised you.'}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A crowd of {fmtBig(result.realCount || 0)} &middot; {elapsed} &middot; <span className="fd-livedot" style={{ verticalAlign: 'middle' }} /> live until midnight ET</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A crowd of {fmtBig(result.realCount || 0)} &middot; {elapsed} &middot; <span className="fd-livedot" style={{ verticalAlign: 'middle' }} /> live until midnight ET</span>
                   </span>
                 </div>
               </div>
               {revealBoards()}
               <FeudLiveBoard board={result.board} total={TOTAL} />
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>The key freezes and a new survey opens in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new survey opens at midnight Eastern.'}
+                    {countdown ? <>The key freezes and a new survey opens in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new survey opens at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -812,7 +833,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/feud" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Feud &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -820,7 +841,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -870,10 +891,11 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="feud" name="Feud" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="feud" name="Feud" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="feud" name="Feud" accent="#ffffff" align="center" />
             </div>
           )}
@@ -896,16 +918,16 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Feud to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Feud to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s survey, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s survey, every day.
                 </p>
               )}
@@ -948,10 +970,10 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="fd-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -960,20 +982,20 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Feud — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Feud</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Feud</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Feud is a free daily crowd-survey game from Mind Loft with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Scoring is pure crowd-reading: each answer pays the percent of the crowd that said the same thing, so naming the consensus answer pays big and a clever answer nobody else gives pays nothing. You&rsquo;re always graded on the crowd minus your own votes, so you can never tip the tally you&rsquo;re scored on. And nothing is final &mdash; the shares reshuffle as new players lock in, so your score and your place on the live standings move all day until the key freezes at midnight Eastern. A pre-written house pool seeds the small hours, then retires once ten real players are in.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new survey opens every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More crowd games: <a href="/outwit" style={{ color: COLORS.ink, fontWeight: 800 }}>Outwit</a>, our beat-the-crowd puzzle, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where you call the crowd&rsquo;s ranking.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new survey opens every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More crowd games: <a href="/outwit" style={{ color: INK, fontWeight: 800 }}>Outwit</a>, our beat-the-crowd puzzle, and <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, where you call the crowd&rsquo;s ranking.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

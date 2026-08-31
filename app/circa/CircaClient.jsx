@@ -34,6 +34,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -240,6 +244,19 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   const idle = playing && !g.started;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('circa');
+  const STAGE = isStage('circa', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('circa');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('circa'), '--stg-acc-lt': gameColorLight('circa') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const won = g.status === 'won';
   const guesses = g.guesses;
   const lastGuess = guesses.length ? guesses[guesses.length - 1] : null;
@@ -524,17 +541,21 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   }
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="circa" name="Circa" collapsed={playing && !!g.t0} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. "What year was this?" is a QUESTION, not a figure, so it stays in the card
           above the board; only the guess counter comes up here. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="circa" quizId={PUZZLE.quizId}
           name="Circa"
           cat="Trivia"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -554,17 +575,17 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       <div className="cc-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cc-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .cc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cc-btn:hover{background:var(--accent-soft);}
           @keyframes ccfade{from{opacity:0;}}
           @keyframes ccstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes ccrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.cc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cc-ttl h1{font-size:21px;letter-spacing:0.02em;}.cc-ttl .cc-ttl-dt{font-size:15px;}.cc-ttl-dot{display:none;}}
-          .cc-inp{font-family:${MONO};font-weight:500;font-size:30px;letter-spacing:0.14em;text-align:center;width:150px;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 6px;background:var(--white);color:${COLORS.ink};outline:none;}
+          .cc-inp{font-family:${MONO};font-weight:500;font-size:30px;letter-spacing:0.14em;text-align:center;width:150px;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 6px;background:var(--white);color:${INK};outline:none;}
           .cc-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(14,116,144,0.18);}
           .cc-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:58px;}
           .cc-go:active{transform:translateY(1px);}
-          .cc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .cc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           @media(max-width:400px){.cc-inp{width:124px;font-size:26px;}.cc-go{padding:0 16px;}}
         `}</style>
 
@@ -592,33 +613,33 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {gameRetired && (
-          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.5 }}>
+          <div style={{ background: '#fff7ed', border: '1.5px solid rgba(180,83,9,0.4)', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: INK, lineHeight: 1.5 }}>
             Circa has retired &mdash; this archive stays playable, but no new moments drop.{' '}
             Meet its successor: <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Outrank, the daily crowd-ranking puzzle &rarr;</a>
           </div>
         )}
 
         {/* the moment */}
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>what year was this?</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guess <b style={{ color: COLORS.ink, fontWeight: 500 }}>{Math.min(guesses.length + (playing ? 1 : 0), MAX_GUESSES)}</b>/{MAX_GUESSES}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guess <b style={{ color: INK, fontWeight: 500 }}>{Math.min(guesses.length + (playing ? 1 : 0), MAX_GUESSES)}</b>/{MAX_GUESSES}</span>
           </div>
           )}
           {/* The PROMPT stays here. It is a question (and for Ping a
               control), not a figure, so it belongs with the board rather
               than in the cap. Restyled off the retired mono texture. */}
           {LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span>What year was this?</span>
           </div>
           )}
@@ -630,12 +651,12 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 <div style={{ height: 18, borderRadius: 5, background: 'rgba(28,30,36,0.12)', width: '56%' }} />
               </div>
               <button className="cc-go" onClick={startGame} style={{ width: '100%', marginTop: 16 }}>Start</button>
-              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 9, textAlign: 'center' }}>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 9, textAlign: 'center' }}>
                 Today&rsquo;s moment appears when you start.
               </div>
             </div>
           ) : (
-            <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.25, margin: '2px 0 4px' }}>
+            <div style={{ fontFamily: SANS, fontSize: 24, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.25, margin: '2px 0 4px' }}>
               {PUZZLE.title}
             </div>
           )}
@@ -665,9 +686,9 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 />
                 <button className="cc-go" onClick={submitGuess}>Guess</button>
               </div>
-              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 8 }}>
                 {bounds.lo != null || bounds.hi != null ? (
-                  <>Narrowed to <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{bounds.lo != null ? bounds.lo + 1 : YR_MIN}&ndash;{bounds.hi != null ? bounds.hi - 1 : yrMax}</b> &middot; within {SNAP} years counts</>
+                  <>Narrowed to <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{bounds.lo != null ? bounds.lo + 1 : YR_MIN}&ndash;{bounds.hi != null ? bounds.hi - 1 : yrMax}</b> &middot; within {SNAP} years counts</>
                 ) : (
                   <>Any year from {YR_MIN} to {yrMax} &middot; within {SNAP} years counts as circa</>
                 )}
@@ -682,8 +703,8 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 const r = rowFor(y, i);
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: r.bg, border: `1.5px solid ${r.border}`, borderRadius: 9, padding: '8px 12px', animation: i === guesses.length - 1 ? 'ccrow .25s ease' : undefined }}>
-                    <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, width: 14, flex: '0 0 auto' }}>{i + 1}</span>
-                    <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.06em', flex: '0 0 auto' }}>{y}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, width: 14, flex: '0 0 auto' }}>{i + 1}</span>
+                    <span style={{ fontFamily: MONO, fontSize: 20, fontWeight: 500, color: INK, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.06em', flex: '0 0 auto' }}>{y}</span>
                     <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: r.color, textAlign: 'right' }}>
                       {r.win ? <Target size={14} strokeWidth={2.5} /> : (r.later ? <ArrowUp size={14} strokeWidth={2.5} /> : <ArrowDown size={14} strokeWidth={2.5} />)}
                       {r.win ? r.label : <>{r.later ? 'later' : 'earlier'} &middot; {r.label}</>}
@@ -713,7 +734,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         </div>
 
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
@@ -721,15 +742,15 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 {/* the answer */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{YEAR}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                    {PUZZLE.title}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{PUZZLE.d}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
+                    {PUZZLE.title}. <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.d}</span>
                   </span>
                 </div>
                 {PUZZLE.sunday && (
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition — a trickier moment to place.</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition — a trickier moment to place.</div>
                 )}
               </div>
-              <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
                     Circa has retired &mdash; this was its final moment. Every past puzzle stays playable in{' '}
@@ -742,7 +763,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/circa" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Circa &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -750,7 +771,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -802,11 +823,12 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="circa" name="Circa" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="circa" name="Circa" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="circa" name="Circa" accent="#ffffff" align="center" />
             </div>
           )}
@@ -829,16 +851,16 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Circa to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Circa to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s moment, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s moment, every day.
                 </p>
               )}
@@ -888,12 +910,12 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+            <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
               <p style={{ margin: '0 0 9px' }}>One historical moment a day. <b>Guess the year</b> it happened &mdash; any year from {YR_MIN} to today &mdash; in six tries. The moment stays covered until you press <b>Start</b>.</p>
               <p style={{ margin: '0 0 9px' }}>Every miss tells you two things: whether the real year is <b>earlier or later</b> than your guess, and how close you are &mdash; from <b style={{ color: '#475569' }}>cold</b> (200+ years off) through <b style={{ color: '#0a1730' }}>cool</b> and <b style={{ color: '#92610b' }}>warm</b> to <b style={{ color: '#9a3d0c' }}>hot</b> (within 10).</p>
               <p style={{ margin: '0 0 9px' }}>Land <b>within {SNAP} years</b> and you&rsquo;ve placed it &mdash; that&rsquo;s circa, and it counts. Hitting the <b>exact year</b> is a dead-on finish. One free <b>hint</b>, on your first ever play, reveals the century.</p>
@@ -905,20 +927,20 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Circa — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Circa</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Circa</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Circa is a free daily history puzzle from Mind Loft &mdash; the daily year hunt. Each day serves up one famous moment from the last thousand years: a battle, a disaster, a discovery, a first. Your job is to pin down the exact year it happened, in six guesses or fewer.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Every guess plays hot and cold: an arrow tells you whether the true year is earlier or later, and a heat band tells you how close you are. Get within three years and the moment is placed &mdash; that&rsquo;s circa, and it counts as a win. Know it cold and name the exact year on your first try for a perfect score.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

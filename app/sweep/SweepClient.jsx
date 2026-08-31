@@ -34,6 +34,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -196,6 +200,19 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const holdEnd = endHold.hold;
   const releaseEnd = endHold.release;
   const LOFT = isLoft('sweep');  const iq = useIqStanding({ game: 'sweep', quizId: PUZZLE.quizId, active: LOFT && !playing });
+  const STAGE = isStage('sweep', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('sweep');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('sweep'), '--stg-acc-lt': gameColorLight('sweep') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const nextUp = useNextUnplayed({ self: 'sweep', active: LOFT && !playing });
   const upNext = useUnplayedSimilar({ self: 'sweep', active: LOFT && !playing });
@@ -602,14 +619,18 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: COLORS.accent, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid ${COLORS.accent}`, background: '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, fontFamily: SANS , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', fontFamily: SANS, background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="sweep" name="Sweep" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="sweep" quizId={PUZZLE.quizId}
           name="Sweep"
           cat="Arcade"
           outcome={playing ? null : verdictTone}
@@ -650,24 +671,24 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sweep is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Sweep is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Uncover as much of the field as you can without hitting a mine. It never needs a guess, it has no bottom, and you can play the day again as often as you want. Your best run is the one that counts.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
               <button onClick={startGame} style={{ ...btn, background: T.cta, borderColor: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -679,13 +700,13 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           <div style={{ background: '#fff', border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
-                Depth <b style={{ color: COLORS.ink }}>{nf(depth)}</b>
+                Depth <b style={{ color: INK }}>{nf(depth)}</b>
               </span>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
-                Digs <b style={{ color: COLORS.ink }}>{nf(g.digs)}</b>
+                Digs <b style={{ color: INK }}>{nf(g.digs)}</b>
               </span>
               <span style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>
-                Flags <b style={{ color: COLORS.ink }}>{nf(g.flag.length)}</b>
+                Flags <b style={{ color: INK }}>{nf(g.flag.length)}</b>
               </span>
               <span style={{ marginLeft: 'auto', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8' }}>{fmtTime(g.ms)}</span>
             </div>
@@ -703,7 +724,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 <div style={{ display: 'grid', gridTemplateColumns: `repeat(${COLS}, 1fr)`, gap: 3 }}>{cells}</div>
               </div>
 
-              <aside className="sw-ladder" style={{ width: 132, flex: 'none', borderLeft: `1px solid ${COLORS.line}`, paddingLeft: 11, display: 'flex', flexDirection: 'column', fontSize: 11.5, color: COLORS.faded }}>
+              <aside className="sw-ladder" style={{ width: 132, flex: 'none', borderLeft: `1px solid ${COLORS.line}`, paddingLeft: 11, display: 'flex', flexDirection: 'column', fontSize: 11.5, color: FADED }}>
                 <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: '0.09em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 7 }}>Today &middot; you #{ladder.rank}</div>
                 {ladder.rows.map((r) => (r.gap ? (
                   <div key="gap" aria-hidden="true" style={{ textAlign: 'center', color: '#c3cad6', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', lineHeight: '11px', padding: '4px 0 2px' }}>&middot;&middot;&middot;</div>
@@ -721,10 +742,10 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
               </aside>
             </div>
 
-            <div className="sw-strip" style={{ display: 'none', marginTop: 10, paddingTop: 9, borderTop: `1px solid ${COLORS.line}`, alignItems: 'center', gap: 10, fontSize: 11.5, color: COLORS.faded }}>
-              <span style={{ fontWeight: 800, color: COLORS.accent }}>You #{ladder.rank}</span>
+            <div className="sw-strip" style={{ display: 'none', marginTop: 10, paddingTop: 9, borderTop: `1px solid ${COLORS.line}`, alignItems: 'center', gap: 10, fontSize: 11.5, color: FADED }}>
+              <span style={{ fontWeight: 800, color: ACC }}>You #{ladder.rank}</span>
               <span>par {nf(PAR)} cells</span>
-              <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: COLORS.ink }}>{nf(g.score)}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}> cell{g.score === 1 ? '' : 's'}</em></span>
+              <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: INK }}>{nf(g.score)}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}> cell{g.score === 1 ? '' : 's'}</em></span>
             </div>
 
             {/* Dig or flag. A phone has no right button and a long press is a
@@ -783,7 +804,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && !endHold.held && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && !endHold.held && (
@@ -833,7 +854,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="sweep" name="Sweep" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="sweep" name="Sweep" onShow={() => setShowChrome(true)} />}
 
         {!focusMode && !identity && (
           <div id="daily-join" style={{ marginTop: 20 }}>
@@ -843,7 +865,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
 
         <div style={{ display: focusMode ? 'none' : 'block' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="sweep" name="Sweep" accent="#ffffff" align="center" />
             </div>
           )}
@@ -860,8 +882,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        <section style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded }}>
-          <h2 style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Sweep</h2>
+        <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: FADED }}>
+          <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Sweep</h2>
           <p style={{ margin: '0 0 9px' }}>
             Sweep is a daily minesweeper with no bottom edge. Everyone digs the same field on the same day, so the
             leaderboard compares reading rather than luck, and the field is checked before it ships: every square on it
@@ -873,9 +895,9 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             carries more mines.
           </p>
           <p style={{ margin: 0 }}>
-            More daily puzzles: <a href="/blocks" style={{ color: COLORS.accent }}>Blocks</a>,{' '}
-            <a href="/crux" style={{ color: COLORS.accent }}>Crux</a>,{' '}
-            <a href="/tally" style={{ color: COLORS.accent }}>Tally</a>.
+            More daily puzzles: <a href="/blocks" style={{ color: ACC }}>Blocks</a>,{' '}
+            <a href="/crux" style={{ color: ACC }}>Crux</a>,{' '}
+            <a href="/tally" style={{ color: ACC }}>Tally</a>.
           </p>
         </section>
       </div>
@@ -906,8 +928,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         >
           <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ ...btn, marginTop: 14, background: COLORS.ink, borderColor: COLORS.ink, color: T.white }}>Play</button>
@@ -925,7 +947,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
         }
       `}</style>
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

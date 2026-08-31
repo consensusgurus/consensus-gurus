@@ -37,6 +37,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -191,6 +195,19 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   const guesses = g.guesses;
   const playing = g.status === 'playing';
   const LOFT = isLoft('warmer');
+  const STAGE = isStage('warmer', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('warmer');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('warmer'), '--stg-acc-lt': gameColorLight('warmer') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const won = g.status === 'won';
@@ -433,14 +450,18 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="warmer" name="Warmer" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="warmer" quizId={PUZZLE.quizId}
           name="Warmer"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -459,32 +480,32 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       <div className="wm-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.wm-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .wm-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .wm-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-btn:hover{background:var(--accent-soft);}
           @media(max-width:560px){.wm-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.wm-ttl h1{font-size:21px;}.wm-ttl-dot{display:none;}}
           .wm-spectrum{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
           .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,#dc2626);}
-          .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${COLORS.faded};}
+          .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};}
           .wm-inputrow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px;}
-          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${COLORS.ink};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:var(--white);}
+          .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${INK};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:var(--white);}
           .wm-input:focus{border-color:${COLORS.accent};}
           .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-go:disabled{opacity:.5;cursor:default;}
-          .wm-meta{display:flex;align-items:center;gap:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:${COLORS.faded};margin:2px 0 4px;flex-wrap:wrap;}
-          .wm-meta b{font-weight:500;color:${COLORS.ink};font-variant-numeric:tabular-nums;}
+          .wm-meta{display:flex;align-items:center;gap:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};margin:2px 0 4px;flex-wrap:wrap;}
+          .wm-meta b{font-weight:500;color:${INK};font-variant-numeric:tabular-nums;}
           .wm-chip{font-family:${SANS};font-weight:800;font-size:12px;border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .wm-actions{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
           .wm-list{display:flex;flex-direction:column;gap:6px;}
           .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:var(--white);border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
           .wm-row.pinned{border-width:2px;box-shadow:0 2px 0 rgba(28,30,36,0.06);}
-          .wm-word{font-family:${SANS};font-weight:800;font-size:15px;color:${COLORS.ink};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+          .wm-word{font-family:${SANS};font-weight:800;font-size:15px;color:${INK};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
           .wm-track{height:9px;border-radius:99px;background:#eef0f3;overflow:hidden;}
           .wm-fill{display:block;height:100%;border-radius:99px;transition:width .35s ease;}
           .wm-band{font-family:${SANS};font-weight:800;font-size:11.5px;text-align:right;letter-spacing:.01em;}
-          .wm-rank{font-family:${MONO};font-weight:500;font-size:13px;color:${COLORS.ink};text-align:right;font-variant-numeric:tabular-nums;}
+          .wm-rank{font-family:${MONO};font-weight:500;font-size:13px;color:${INK};text-align:right;font-variant-numeric:tabular-nums;}
           @media(max-width:520px){.wm-row{grid-template-columns:92px 1fr 44px;}.wm-band{display:none;}.wm-word{font-size:14px;}}
           .wm-pinwrap{margin-bottom:12px;}
-          .wm-pinlabel{font-family:${MONO};font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${COLORS.faded};margin-bottom:5px;}
+          .wm-pinlabel{font-family:${MONO};font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${FADED};margin-bottom:5px;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -509,25 +530,25 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {/* start gate — the puzzle card stays sealed until Start begins the clock */}
           {preStart && (
-            <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Warmer is ready'}</div>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 200, display: 'flex', flexDirection: 'column', marginBottom: 14 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Warmer is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>One secret word. Guess any word and see how close in meaning it is, cold to hot.</p>
                 </div>
               )}
               <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-                <button className="wm-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="wm-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -566,9 +587,9 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
               </>
             ) : (
               <div style={{ textAlign: 'center', padding: '6px 0 4px' }}>
-                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded }}>The word was</div>
+                <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED }}>The word was</div>
                 <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 34, letterSpacing: '-0.5px', color: COLORS.green, margin: '2px 0 4px' }}>{answerWord}</div>
-                <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 13.5, color: COLORS.faded }}>
+                <div style={{ fontFamily: SANS, fontWeight: 700, fontSize: 13.5, color: FADED }}>
                   {won ? <>Solved in {guesses.length} guess{guesses.length === 1 ? '' : 'es'} &middot; {elapsed}{g.hintUsed ? ' · 1 hint' : ''}</>
                        : <>Gave up &middot; closest was #{bestRank || '—'} in {guesses.length} guess{guesses.length === 1 ? '' : 'es'}</>}
                 </div>
@@ -596,7 +617,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           )}
 
           {started && sortedGuesses.length === 0 && (
-            <p style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', margin: '18px 0 6px', lineHeight: 1.5 }}>
+            <p style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 600, color: FADED, textAlign: 'center', margin: '18px 0 6px', lineHeight: 1.5 }}>
               Guess any word. You&rsquo;ll see how close it is in meaning to today&rsquo;s secret word, on the cold-to-hot scale above. Keep going until you land it.
             </p>
           )}
@@ -604,24 +625,24 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           {/* result footer */}
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
             {!playing && (
               <div style={{ maxWidth: 472, margin: '14px auto 0' }}>
-                <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: 0 }}>
+                <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: 0 }}>
                   {isTodays ? (
                     <>
-                      {countdown ? <>Next Warmer in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}
+                      {countdown ? <>Next Warmer in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new word drops at midnight Eastern.'}
                       {prevPuzzle && (<> {' '}Meanwhile:{' '}<a href={`/warmer?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Warmer &rarr;</a></>)}
                     </>
                   ) : (
-                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/warmer" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Warmer &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/warmer" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Warmer &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
                   )}
                 </p>
               </div>
             )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -672,12 +693,13 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="warmer" name="Warmer" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="warmer" name="Warmer" onShow={() => setShowChrome(true)} />}
 
           {/* keep playing + share + grid */}
           <div style={{ margin: '30px auto 0', display: focusMode ? 'none' : 'block' }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="warmer" name="Warmer" accent="#ffffff" align="center" />
               </div>
             )}
@@ -730,10 +752,10 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="wm-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 30); }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -743,29 +765,29 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
       {showA2hsHelp && (
         <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Warmer to your Home Screen</div>
-            <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s word, every day.</p>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Warmer to your Home Screen</div>
+            <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s word, every day.</p>
             <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
           </div>
         </div>
       )}
 
       {/* About Warmer — crawlable prose for search */}
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Warmer</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Warmer</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Warmer is a free daily word puzzle from Mind Loft. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer &mdash; the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the crowd-ranking puzzle, and <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, four hidden threads.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the crowd-ranking puzzle, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, four hidden threads.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

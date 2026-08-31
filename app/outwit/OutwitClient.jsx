@@ -39,6 +39,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -277,6 +281,19 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('outwit');
+  const STAGE = isStage('outwit', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('outwit');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('outwit'), '--stg-acc-lt': gameColorLight('outwit') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -598,7 +615,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
                 <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? '#94a3b8' : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
               </div>
-              <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>
+              <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>
                 {Math.round((rp.counts[oi] / totC) * 100)}%{you ? ' · you' : win ? (rp.type === 'least' ? ' · fewest' : ' · crowd') : ''}
               </span>
             </div>
@@ -620,15 +637,15 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 9, color: COLORS.faded, marginTop: 3 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 9, color: FADED, marginTop: 3 }}>
           <span>{rp.buckets[0].label.split('–')[0]}</span>
           <span style={{ color: COLORS.rust }}>▾ target {fmtBig(rp.target)}</span>
           <span>{rp.buckets[rp.buckets.length - 1].label.split('–')[1]}</span>
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 7, lineHeight: 1.5 }}>
-          You said <b style={{ color: COLORS.ink }}>{fmtBig(rp.yourAnswer)}</b> — closer than <b style={{ color: COLORS.ink }}>{rp.beatPct}%</b> of the crowd.
+        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 7, lineHeight: 1.5 }}>
+          You said <b style={{ color: INK }}>{fmtBig(rp.yourAnswer)}</b> — closer than <b style={{ color: INK }}>{rp.beatPct}%</b> of the crowd.
           {rp.truth != null && (
-            <> True answer: <b style={{ color: COLORS.ink }}>{fmtBig(rp.truth)}</b> (crowd median {fmtBig(rp.median)}).{rp.truthNote ? ` ${rp.truthNote}` : ''}</>
+            <> True answer: <b style={{ color: INK }}>{fmtBig(rp.truth)}</b> (crowd median {fmtBig(rp.median)}).{rp.truthNote ? ` ${rp.truthNote}` : ''}</>
           )}
         </div>
       </div>
@@ -653,14 +670,14 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
                 <div style={{ flex: '1 1 auto', height: 16, background: COLORS.paper, borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
                   <div style={{ width: `${Math.round((rp.counts[oi] / maxC) * 100)}%`, height: '100%', background: you ? COLORS.gold : win ? COLORS.green : '#c8cfd9', borderRadius: 5, minWidth: rp.counts[oi] ? 4 : 0 }} />
                 </div>
-                <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>
+                <span style={{ flex: '0 0 74px', fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>
                   {Math.round((rp.counts[oi] / totC) * 100)}%{you ? ' · you' : win ? ' · rarest' : ''}
                 </span>
               </div>
             );
           })}
-          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 6 }}>
-            Rarest pick: <b style={{ color: COLORS.green }}>{[...winSet].map((i) => rp.options[i]).join(' / ') || rp.options[rp.winner]}</b> · you took <b style={{ color: COLORS.ink }}>{rp.options[rp.yourAnswer]}</b>.
+          <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 6 }}>
+            Rarest pick: <b style={{ color: COLORS.green }}>{[...winSet].map((i) => rp.options[i]).join(' / ') || rp.options[rp.winner]}</b> · you took <b style={{ color: INK }}>{rp.options[rp.yourAnswer]}</b>.
           </div>
         </div>
       );
@@ -689,8 +706,8 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             return <span key={ci} style={{ flex: '1 1 0', textAlign: 'center', fontFamily: MONO, fontSize: 8.5, fontWeight: you || win ? 700 : 500, color: you ? '#8a6d1a' : win ? COLORS.green : COLORS.faded }}>{n}</span>;
           })}
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 6 }}>
-          Rarest pick: <b style={{ color: COLORS.green }}>{[...winSet].map((i) => i + rp.min).join(' / ') || rp.winner}</b> · you took <b style={{ color: COLORS.ink }}>{rp.yourAnswer}</b>.
+        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 6 }}>
+          Rarest pick: <b style={{ color: COLORS.green }}>{[...winSet].map((i) => i + rp.min).join(' / ') || rp.winner}</b> · you took <b style={{ color: INK }}>{rp.yourAnswer}</b>.
         </div>
       </div>
     );
@@ -706,7 +723,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>{i + 1} · {pr.tag}</span>
           {rp ? ptsChip(rp.pts) : (val != null ? <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><Crown size={14} style={{ display: 'none' }} /><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span> : null)}
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
+        <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, marginBottom: 9 }}>
           {pr.q}
         </div>
         {!rp && pr.options && (
@@ -752,14 +769,18 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="outwit" name="Outwit" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="outwit" quizId={PUZZLE.quizId}
           name="Outwit"
           cat="Crowd Psychology"
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
@@ -780,12 +801,12 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       <div className="ow-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ow-btn:hover{background:var(--accent-soft);}
-          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};border-radius:9px;padding:9px 14px;cursor:pointer;}
+          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
           .ow-opt:hover{border-color:${COLORS.accent};}
           .ow-opt-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
-          .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:var(--white);color:${COLORS.ink};outline:none;}
+          .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:var(--white);color:${INK};outline:none;}
           .ow-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(31,41,55,0.14);}
           .ow-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .ow-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
@@ -817,26 +838,26 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — sits where the prompts go; the prompts stay sealed
             until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outwit is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outwit is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Five prompts, no right answers. You score by reading today&rsquo;s crowd.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="ow-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="ow-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -847,9 +868,9 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         {/* the five prompts */}
         {!preStart && (
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-          <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> five prompts vs. today&rsquo;s crowd</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: COLORS.ink, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>answered <b style={{ color: INK, fontWeight: 500 }}>{answered}</b>/{PROMPTS.length}</span>
           </div>
           {PROMPTS.map((_, i) => renderPrompt(i))}
           {started && (
@@ -857,7 +878,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
               <button className="ow-face" onClick={faceTheCrowd} disabled={sending || answered < PROMPTS.length}>
                 <Users size={17} className="ow-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
               </button>
-              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+              <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED, marginTop: 8 }}>
                 No right answers — only what everyone else does. Lock all five, then see the real numbers.
               </div>
             </div>
@@ -867,24 +888,24 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && result && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {sharp ? 'You outwitted the crowd.' : score >= 4 ? 'You held your own against the crowd.' : 'The crowd got you today.'}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
                   </span>
                 </div>
               </div>
               <OutwitLiveBoard board={result.board} />
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Outwit in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
+                    {countdown ? <>Next Outwit in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -899,7 +920,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/outwit" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outwit &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -907,7 +928,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -957,10 +978,11 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="outwit" name="Outwit" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="outwit" name="Outwit" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="outwit" name="Outwit" accent="#ffffff" align="center" />
             </div>
           )}
@@ -983,16 +1005,16 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Outwit to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Outwit to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s crowd, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s crowd, every day.
                 </p>
               )}
@@ -1040,10 +1062,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ow-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1052,20 +1074,20 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Outwit — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outwit</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Outwit</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Outwit is a free daily puzzle from Mind Loft where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, find the number nobody else takes, and finish by undercutting the crowd&rsquo;s average &mdash; by a fraction that shifts from day to day, so the equilibrium is never the same twice.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. And the score is alive: every time a new player locks in, the entire field is re-scored, so your points and your place on the board keep moving through the day. You are always measured against the whole crowd as it stands right now — a run that trails a small early field can lead once thousands more have played, and a morning sweep can slip as the day goes on. A pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people, and the standings never stop shifting.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

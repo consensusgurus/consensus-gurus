@@ -37,6 +37,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -268,6 +272,19 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('ping');
+  const STAGE = isStage('ping', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('ping');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('ping'), '--stg-acc-lt': gameColorLight('ping') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const won = g.status === 'won';
   const guesses = g.guesses;
 
@@ -612,16 +629,16 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
     const color = solvedRow ? '#166534' : b.color;
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: bg, border: `1.5px solid ${border}`, borderRadius: 9, padding: '8px 12px', animation: last ? ' pgrow .25s ease' : undefined }}>
-        <span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, width: 14, flex: '0 0 auto' }}>{i + 1}</span>
-        <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, color: COLORS.ink, flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {x.name}<span style={{ color: COLORS.faded, fontWeight: 600, fontSize: 12.5 }}> · {x.country}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, width: 14, flex: '0 0 auto' }}>{i + 1}</span>
+        <span style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, color: INK, flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {x.name}<span style={{ color: FADED, fontWeight: 600, fontSize: 12.5 }}> · {x.country}</span>
         </span>
         {solvedRow ? (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 13, fontWeight: 800, color, flex: '0 0 auto' }}>
             <MapPin size={15} strokeWidth={2.5} /> found it!
           </span>
         ) : (
-          <span style={{ fontFamily: MONO, fontSize: 16, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums', flex: '0 0 auto' }}>{fmtDist(x.mi)}</span>
+          <span style={{ fontFamily: MONO, fontSize: 16, fontWeight: 500, color: INK, fontVariantNumeric: 'tabular-nums', flex: '0 0 auto' }}>{fmtDist(x.mi)}</span>
         )}
       </div>
     );
@@ -650,18 +667,22 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="ping" name="Ping" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. The prompt and the miles/kilometres toggle both stay in the card: one is a
           question and the other is a CONTROL, and neither is a figure. Ping pays
           proximity credit on a give-up, so the cap can go amber. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="ping" quizId={PUZZLE.quizId}
           name="Ping"
           cat="Geography"
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
@@ -681,20 +702,20 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       <div className="pg-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.pg-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .pg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .pg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pg-btn:hover{background:var(--accent-soft);}
           @keyframes pgfade{from{opacity:0;}}
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
-          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:var(--white);color:${COLORS.ink};outline:none;}
+          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:var(--white);color:${INK};outline:none;}
           .pg-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(2,132,199,0.18);}
           .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
           .pg-go:active{transform:translateY(1px);}
           .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--white);border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
-          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${COLORS.ink};background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:10px 13px;cursor:pointer;}
+          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:var(--white);border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:10px 13px;cursor:pointer;}
           .pg-sug button:last-child{border-bottom:none;}
           .pg-sug button:hover,.pg-sug button.on{background:${COLORS.accentSoft};}
-          .pg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .pg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -721,24 +742,24 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {/* start gate — the hunt stays sealed until Start begins the clock */}
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', minHeight: 220, display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Ping is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Ping is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>One secret city, no clues. Guess any world city and each ping tells you how far off you are.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
-              <button className="pg-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="pg-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -747,31 +768,31 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         )}
         {/* the hunt */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 17px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the secret city</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
-            <span style={{ whiteSpace: 'nowrap' }}>guess <b style={{ color: COLORS.ink, fontWeight: 500 }}>{guesses.length}</b>{playing ? ' so far' : ''}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>guess <b style={{ color: INK, fontWeight: 500 }}>{guesses.length}</b>{playing ? ' so far' : ''}</span>
           </div>
           )}
           {/* The PROMPT stays here. It is a question (and for Ping a
               control), not a figure, so it belongs with the board rather
               than in the cap. Restyled off the retired mono texture. */}
           {LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span>Name the secret city</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
           </div>
           )}
 
-          <div style={{ fontFamily: SANS, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, margin: '2px 0 4px' }}>
+          <div style={{ fontFamily: SANS, fontSize: 17, fontWeight: 700, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, margin: '2px 0 4px' }}>
             One city, no clues. Guess any world city and I&rsquo;ll tell you exactly how far away it is. Close in from there.
           </div>
           {g.hintUsed && playing && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: COLORS.accentDeep, background: COLORS.accentSoft, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
               <Lightbulb size={13} /> It&rsquo;s in {continent}.
             </div>
           )}
@@ -781,7 +802,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             <div style={{ marginTop: 14 }}>
               <div style={{ display: 'flex', gap: 9, alignItems: 'stretch', position: 'relative' }}>
                 <div style={{ position: 'relative', flex: '1 1 auto' }}>
-                  <Search size={17} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: COLORS.faded, pointerEvents: 'none' }} />
+                  <Search size={17} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: FADED, pointerEvents: 'none' }} />
                   <input
                     ref={inputRef}
                     className="pg-inp"
@@ -805,8 +826,8 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                           onMouseEnter={() => setSugIdx(i)}
                           onClick={() => commitGuess(c)}
                         >
-                          <MapPin size={14} style={{ color: COLORS.faded, flex: '0 0 auto' }} />
-                          <span>{c.name}<span style={{ color: COLORS.faded, fontWeight: 600 }}> · {c.country}</span></span>
+                          <MapPin size={14} style={{ color: FADED, flex: '0 0 auto' }} />
+                          <span>{c.name}<span style={{ color: FADED, fontWeight: 600 }}> · {c.country}</span></span>
                         </button>
                       ))}
                     </div>
@@ -814,11 +835,11 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 </div>
                 <button className="pg-go" onClick={submitTyped}>Guess</button>
               </div>
-              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+              <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 8 }}>
                 {closest ? (
-                  <>Closest so far: <b style={{ color: COLORS.ink }}>{closest.name}</b>, {fmtDist(closest.mi)} away &middot; no guess limit</>
+                  <>Closest so far: <b style={{ color: INK }}>{closest.name}</b>, {fmtDist(closest.mi)} away &middot; no guess limit</>
                 ) : (
-                  <>Any major world city &middot; type a <b style={{ color: COLORS.ink }}>country</b> to see its cities &middot; no guess limit</>
+                  <>Any major world city &middot; type a <b style={{ color: INK }}>country</b> to see its cities &middot; no guess limit</>
                 )}
               </div>
             </div>
@@ -838,7 +859,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(2,132,199,0.5)', color: COLORS.accentDeep }}>
+                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: COLORS.accentSoft, borderColor: 'rgba(2,132,199,0.5)', color: ACC_DEEP }}>
                   <Lightbulb size={14} /> Hint: the continent
                 </button>
               )}
@@ -855,30 +876,30 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         )}
 
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <MapPin size={30} strokeWidth={2.2} style={{ color: won ? COLORS.green : COLORS.ink, flex: '0 0 auto' }} />
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                    <b style={{ fontSize: 16 }}>{TARGET.name}, {TARGET.country}.</b> <span style={{ color: COLORS.faded, fontWeight: 600 }}>{PUZZLE.blurb}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
+                    <b style={{ fontSize: 16 }}>{TARGET.name}, {TARGET.country}.</b> <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.blurb}</span>
                   </span>
                 </div>
                 {PUZZLE.sunday && (
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition: a trickier city to find.</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition: a trickier city to find.</div>
                 )}
                 {!won && closest && (
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: COLORS.accentDeep, margin: '8px 0 0' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: ACC_DEEP, margin: '8px 0 0' }}>
                     Your closest: {closest.name}, {fmtDist(closest.mi)} away &middot; scored {finalScore}/{TOTAL}.
                   </div>
                 )}
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Ping in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new city drops at midnight Eastern.'}
+                    {countdown ? <>Next Ping in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new city drops at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -893,7 +914,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/ping" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Ping &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -901,7 +922,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -953,11 +974,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="ping" name="Ping" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="ping" name="Ping" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="ping" name="Ping" accent="#ffffff" align="center" />
             </div>
           )}
@@ -980,16 +1002,16 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Ping to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Ping to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s city, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s city, every day.
                 </p>
               )}
@@ -1042,10 +1064,10 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="pg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1054,20 +1076,20 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Ping — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Ping</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Ping</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Ping is a free daily geography puzzle from Mind Loft &mdash; the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with one number: the great-circle distance to the target, in miles or kilometers, whichever you prefer.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           From there it&rsquo;s pure triangulation: watch the distance fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint, on your first ever play, reveals the continent.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our geography puzzle, <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

@@ -33,9 +33,14 @@ import { isMobileDevice } from '@/lib/is-mobile';
 import useAbandonFlush from '../quiz/[id]/useAbandonFlush';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
+import { useSearchParams } from 'next/navigation';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -235,7 +240,21 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const assign = g.assign;
   const checks = g.checks;
   const playing = g.status === 'playing';
+  const searchParams = useSearchParams();
   const LOFT = isLoft('glyph');
+  const STAGE = isStage('glyph', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('glyph');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('glyph'), '--stg-acc-lt': gameColorLight('glyph') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const iq = useIqStanding({ game: 'glyph', quizId: PUZZLE.quizId, active: LOFT && !playing });
   const nextUp = useNextUnplayed({ self: 'glyph', active: LOFT && !playing });
@@ -538,14 +557,18 @@ export default function GlyphClient({ puzzles, forceNum }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative', fontFamily: SANS , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', fontFamily: SANS, background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="glyph" name="Glyph" collapsed={playing && !!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="glyph" quizId={PUZZLE.quizId}
           name="Glyph"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -566,7 +589,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
       )}
       <div style={{ position: 'relative', zIndex: 2, padding: '14px 16px 8px' }}>
         <style>{`
-          .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .gl-btn:disabled{opacity:0.4;cursor:default;}
           .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:var(--white);}
           .gl-cell.blk{background:${COLORS.ink};border-color:${COLORS.ink};cursor:default;}
@@ -574,15 +597,15 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-cell.kin{background:${COLORS.accentSoft};}
           .gl-cell.bad{background:#fdecea;box-shadow:inset 0 0 0 2px ${COLORS.rust};}
           .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:#2f3644;font-weight:700;}
-          .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${COLORS.ink};line-height:1;}
+          .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${INK};line-height:1;}
           .gl-ltr.given{color:${COLORS.accent};}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
-          .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:var(--white);padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${COLORS.ink};}
+          .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:var(--white);padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
           .gl-keycap.used{background:${COLORS.paper};color:#a4abb8;text-decoration:line-through;}
           .gl-keycap:disabled{cursor:default;}
-          .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:var(--white);padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${COLORS.faded};cursor:pointer;}
+          .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:var(--white);padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
           .gl-chip.on{border-color:${COLORS.accent};background:#dbeafe;}
-          .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${COLORS.ink};}
+          .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${INK};}
           .gl-card{padding:13px 15px 15px;}
           .gl-chips{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
           @media(max-width:560px){
@@ -619,24 +642,24 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {preStart && (
-            <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Glyph is ready'}</div>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Glyph is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>Crack the code: every number stands for a letter, the same one everywhere. {W}&times;{H} today, {PUZZLE.words} words.</p>
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="gl-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="gl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -646,9 +669,9 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
           {!preStart && (
             <div className="gl-card" style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-              <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
-                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>cracked <b style={{ color: placed === PRESENT.length ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{placed}</b>/{PRESENT.length}</span>
               </div>
 
@@ -673,7 +696,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
               {playing && (
                 <>
                   <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: COLORS.faded }}>
+                    <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.09em', textTransform: 'uppercase', color: FADED }}>
                       {sel ? `Number ${sel} · ${countOf[sel] || 0} square${(countOf[sel] || 0) === 1 ? '' : 's'}` : 'Tap a square'}
                     </span>
                     <button className="gl-btn" onClick={clearLetter} disabled={!sel || !assign[sel] || !!GIVEN[sel]} style={{ marginLeft: 'auto', padding: '7px 12px', fontSize: 12.5 }}><Eraser size={14} /> Clear</button>
@@ -705,7 +728,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
               )}
 
               {!playing && (
-                <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center' }}>
+                <div style={{ marginTop: 14, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.09em', textTransform: 'uppercase', color: FADED, textAlign: 'center' }}>
                   Next Glyph in {countdown}
                 </div>
               )}
@@ -715,7 +738,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -765,10 +788,11 @@ export default function GlyphClient({ puzzles, forceNum }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="glyph" name="Glyph" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="glyph" name="Glyph" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="glyph" name="Glyph" accent="#ffffff" align="center" />
             </div>
           )}
@@ -792,16 +816,16 @@ export default function GlyphClient({ puzzles, forceNum }) {
 
           {showA2hsHelp && (
             <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Glyph to your Home Screen</div>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Glyph to your Home Screen</div>
                 {isIosDevice() ? (
-                  <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                     <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                     <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                     <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s grid, every day.</li>
                   </ol>
                 ) : (
-                  <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                  <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                     Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.
                   </p>
                 )}
@@ -845,10 +869,10 @@ export default function GlyphClient({ puzzles, forceNum }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="gl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -856,20 +880,20 @@ export default function GlyphClient({ puzzles, forceNum }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Glyph</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Glyph</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Glyph is a free daily codeword from Mind Loft, the crossword with no clues at all. Every letter in the grid has been replaced by a number from 1 to 26, the same number standing for the same letter everywhere, and your job is to work out the whole alphabet from two or three given letters.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           You solve it the way you would crack a cipher, except the constraint is the grid itself. A one-letter gap between two blocks, a number that keeps landing at the end of words, a three-letter shape with a repeated outer number: each one narrows the field, and every letter you commit propagates across the entire board. All 26 letters appear in every key, so the ones you have ruled out tell you as much as the ones you have found.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board is machine-verified to use only common dictionary words and to have exactly one consistent solution, so it is always crackable by deduction and never by guesswork. A new grid drops every day at midnight Eastern, and Sundays step up to a 17&times;17 Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/cipher" style={{ color: COLORS.ink, fontWeight: 800 }}>Cipher</a>, our letter-math puzzle, and <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, the daily mini crossword.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          Every board is machine-verified to use only common dictionary words and to have exactly one consistent solution, so it is always crackable by deduction and never by guesswork. A new grid drops every day at midnight Eastern, and Sundays step up to a 17&times;17 Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, our letter-math puzzle, and <a href="/emcee" style={{ color: INK, fontWeight: 800 }}>Emcee</a>, the daily mini crossword.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

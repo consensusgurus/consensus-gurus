@@ -33,6 +33,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -213,6 +217,19 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('stands');
+  const STAGE = isStage('stands', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('stands');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('stands'), '--stg-acc-lt': gameColorLight('stands') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -441,14 +458,18 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: THEME.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : THEME.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="stands" name="Stands" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="stands" quizId={PUZZLE.quizId}
           name="Stands"
           cat="Logic"
           outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
@@ -471,23 +492,23 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       <div className="bk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.bk-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bk-btn:hover{background:var(--accent-soft);}
           .bk-grid{border-collapse:separate;border-spacing:3px;font-family:${SANS};}
-          .bk-grid th{font-size:10.5px;font-weight:800;color:${COLORS.faded};padding:2px 4px;text-align:left;white-space:nowrap;}
+          .bk-grid th{font-size:10.5px;font-weight:800;color:${FADED};padding:2px 4px;text-align:left;white-space:nowrap;}
           .bk-grid th.col{writing-mode:vertical-rl;transform:rotate(180deg);height:64px;text-align:right;}
-          .bk-cell{width:38px;height:34px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.18);background:var(--white);font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${COLORS.ink};}
+          .bk-cell{width:38px;height:34px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.18);background:var(--white);font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${INK};}
           .bk-cell.W{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .bk-cell.D{background:#fef3c7;border-color:#b45309;color:#78350f;}
           .bk-cell.L{background:#fee2e2;border-color:#b91c1c;color:#7f1d1d;}
           .bk-cell.self{background:${COLORS.paper};border-color:transparent;cursor:default;}
           .bk-cell.mirror{cursor:default;opacity:0.72;}
           .bk-tbl{width:100%;border-collapse:collapse;font-family:${SANS};font-size:12.5px;}
-          .bk-tbl th{font-family:${MONO};font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:${COLORS.faded};font-weight:500;text-align:right;padding:4px 6px;}
+          .bk-tbl th{font-family:${MONO};font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:${FADED};font-weight:500;text-align:right;padding:4px 6px;}
           .bk-tbl th:first-child{text-align:left;}
-          .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${COLORS.ink};border-top:1px solid rgba(28,30,36,0.09);}
+          .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${INK};border-top:1px solid rgba(28,30,36,0.09);}
           .bk-tbl td:first-child{text-align:left;font-weight:800;}
-          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${COLORS.ink};}
+          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -510,24 +531,24 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The record is sealed'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The record is sealed'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>{N} clubs, {PAIRS.length} matches, and {PUZZLE.clues.length} surviving facts. Exactly one set of results fits them all.</p>
               </div>
             )}
             <div style={{ marginTop: 'auto', paddingTop: 18 }}>
               <button className="bk-btn" onClick={startRun} style={{ background: THEME.cta, color: THEME.white, fontSize: 15, padding: '11px 22px' }}>Open the record</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
               </div>
             </div>
           </div>
@@ -535,21 +556,21 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
 
         {!preStart && (
           <>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
-              <span>filled <b style={{ color: COLORS.ink, fontWeight: 500 }}>{filled}</b> of {PAIRS.length}</span>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
+              <span>filled <b style={{ color: INK, fontWeight: 500 }}>{filled}</b> of {PAIRS.length}</span>
               <span>on the board <b style={{ color: (g.rejected || g.hints) ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
               {g.rejected > 0 && <span>rejected <b style={{ color: COLORS.rust, fontWeight: 500 }}>{g.rejected}</b></span>}
             </div>
 
-            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>What survived</div>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 7 }}>What survived</div>
             {PUZZLE.clues.map((c, i) => (
-              <div key={i} className="bk-clue"><span style={{ fontFamily: MONO, fontSize: 11, color: COLORS.faded, flex: '0 0 auto' }}>{i+1}</span><span>{clueText(c)}</span></div>
+              <div key={i} className="bk-clue"><span style={{ fontFamily: MONO, fontSize: 11, color: FADED, flex: '0 0 auto' }}>{i+1}</span><span>{clueText(c)}</span></div>
             ))}
 
             <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'flex-start', margin: '14px 0 6px' }}>
               <div>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>The grid</div>
-                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: COLORS.faded, marginBottom: 8, maxWidth: 330, lineHeight: 1.4 }}>Tap any cell to set that result: <b style={{ color: COLORS.green }}>W</b> {'\u2192'} <b style={{ color: COLORS.amber }}>D</b> {'\u2192'} <b style={{ color: COLORS.rust }}>L</b> {'\u2192'} blank. The opposite cell mirrors it. Long-press or right-click to step back.</div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 7 }}>The grid</div>
+                <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 600, color: FADED, marginBottom: 8, maxWidth: 330, lineHeight: 1.4 }}>Tap any cell to set that result: <b style={{ color: COLORS.green }}>W</b> {'\u2192'} <b style={{ color: COLORS.amber }}>D</b> {'\u2192'} <b style={{ color: COLORS.rust }}>L</b> {'\u2192'} blank. The opposite cell mirrors it. Long-press or right-click to step back.</div>
                 <table className="bk-grid"><tbody>
                   <tr><th></th>{T.map((t, j) => <th key={j} className="col">{t}</th>)}</tr>
                   {T.map((t, i) => (
@@ -575,7 +596,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
                 </tbody></table>
               </div>
               <div style={{ flex: '1 1 240px', minWidth: 230 }}>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 7 }}>The table as it stands</div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 7 }}>The table as it stands</div>
                 <table className="bk-tbl"><thead><tr><th>Club</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr></thead>
                   <tbody>{standing.map((r) => (
                     <tr key={r.i}><td>{r.name}</td><td>{r.p}</td><td>{r.w}</td><td>{r.d}</td><td>{r.l}</td><td style={{ fontWeight: 800 }}>{r.pts}</td></tr>
@@ -593,39 +614,39 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             <button type="button" className="bk-btn" onClick={submit} disabled={filled !== PAIRS.length} style={filled === PAIRS.length ? { background: COLORS.accent, borderColor: COLORS.accent, color: THEME.white } : { opacity: 0.45, cursor: 'not-allowed' }}>
               <Table2 size={14} /> Hand in the sheet
             </button>
-            <button type="button" className="bk-btn" onClick={hint} style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.45)', color: COLORS.accentDeep }}><Lightbulb size={14} /> Nudge (−2)</button>
+            <button type="button" className="bk-btn" onClick={hint} style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.45)', color: ACC_DEEP }}><Lightbulb size={14} /> Nudge (−2)</button>
             {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
-            {g.rejected >= 2 && <button type="button" className="bk-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>}
+            {g.rejected >= 2 && <button type="button" className="bk-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>}
           </div>
         )}
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: THEME.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done' ? (won ? <>Rebuilt clean, first sheet, no nudges.</> : <>Rebuilt after {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'}{g.hints ? ` and ${g.hints} nudge${g.hints === 1 ? '' : 's'}` : ''}.</>) : <>The record beat you. The true results are shown above.</>}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
-                  <>{countdown ? <>A new season opens in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new season opens at midnight Eastern.'}
+                  <>{countdown ? <>A new season opens in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new season opens at midnight Eastern.'}
                     {prevPuzzle && <>{' '}Meanwhile: <a href={`/stands?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>yesterday&rsquo;s season &rarr;</a></>}</>
                 ) : (
-                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/stands" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s season &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                  <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026','')} archive. <a href="/stands" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s season &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
                 )}
               </p>
             </>
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -676,10 +697,11 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="stands" name="Stands" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="stands" name="Stands" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="stands" name="Stands" accent="#ffffff" align="center" />
             </div>
           )}
@@ -695,13 +717,13 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: THEME.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Stands to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Stands to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li><li>Scroll down and tap <b>Add to Home Screen</b>.</li><li>Tap <b>Add</b> &mdash; the tile opens today&apos;s season, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s season, every day.</p>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s season, every day.</p>
               )}
               <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: THEME.white, cursor: 'pointer' }}>Got it</button>
             </div>
@@ -727,10 +749,10 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
       )}
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="bk-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: THEME.white }}>Play</button>
@@ -738,19 +760,19 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Stands</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Stands</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Stands is a free daily logic puzzle from Mind Loft. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           No sport knowledge is needed and the clubs are invented. The reasoning is arithmetic under constraint: three points a win and one a draw means a points total is a tight little equation, and one solved row usually forces the next. Every board is generated with a constraint solver and machine-verified to admit exactly one table, from a clue set trimmed until nothing in it is redundant.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new season opens every day at midnight Eastern, with a sixth club on Sundays. More dailies: <a href="/venn" style={{ color: COLORS.ink, fontWeight: 800 }}>Venn</a>, our three-circle sorting puzzle, <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number ledger.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new season opens every day at midnight Eastern, with a sixth club on Sundays. More dailies: <a href="/venn" style={{ color: INK, fontWeight: 800 }}>Venn</a>, our three-circle sorting puzzle, <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number ledger.
         </p>
       </section>
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 

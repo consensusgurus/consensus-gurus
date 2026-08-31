@@ -51,6 +51,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -250,6 +254,19 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('shards');
+  const STAGE = isStage('shards', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('shards');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('shards'), '--stg-acc-lt': gameColorLight('shards') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;
   const focusMode = playing && !showChrome;
 
@@ -868,14 +885,18 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
   const TRAYMAX = N >= 8 ? 640 : N === 7 ? 580 : 520;
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: COLORS.cream, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : COLORS.cream, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="shards" name="Shards" collapsed={playing && !!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="shards" quizId={PUZZLE.quizId}
           name="Shards"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -897,13 +918,13 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
-          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sh-btn:hover{background:var(--accent-soft);}
           .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sh-btn.primary:hover{background:${COLORS.accentDk};}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
-          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${COLORS.ink};user-select:none;border:1px solid #b9c4c2;background:#fbfdfc;}
+          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:#fbfdfc;}
           .sh-cell.block{background:${COLORS.ink};border-color:${COLORS.ink};}
           .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
           .sh-cell.filled:active{cursor:grabbing;}
@@ -925,13 +946,13 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-pc.empty{background:transparent;}
           .sh-ghost{position:fixed;z-index:200;pointer-events:none;display:grid;gap:2px;opacity:0.92;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));}
           .sh-status{font-size:12.5px;font-weight:700;min-height:18px;text-align:center;}
-          .sh-trayhead{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${COLORS.faded};margin-bottom:8px;text-align:center;}
+          .sh-trayhead{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${FADED};margin-bottom:8px;text-align:center;}
           .sh-status.bad{color:${COLORS.rust};}
           .sh-status.good{color:${COLORS.green};}
-          .sh-status.muted{color:${COLORS.faded};}
+          .sh-status.muted{color:${FADED};}
           .sh-hintbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
           .sh-hint{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${COLORS.accent};color:${COLORS.accentDk};background:${COLORS.accentSoft};border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${COLORS.faded};background:#eef2f1;}
+          .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${FADED};background:#eef2f1;}
         `}</style>
 
         <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -955,25 +976,25 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {/* start tile */}
           {preStart && (
-            <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Shards is ready'}</div>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 452, margin: '0 auto 4px' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Shards is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>A solved mini crossword, shattered into {SHARDS.length} lettered pieces. Reassemble it so every word reads true. Your grid waits until you begin.</p>
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="sh-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="sh-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -983,11 +1004,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
           {/* score bar */}
           {!preStart && (
-            <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+            <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
               <span style={{ fontSize: 12 }}>score <b style={{ color: COLORS.accentDk, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b><span style={{ fontSize: 11 }}>/{START}</span></span>
-              <span>placed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{placedCount}</b>/{SHARDS.length}</span>
-              <span>misses <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.misplaced}</b></span>
-              <span>hints <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.hintsUsed}</b>/3</span>
+              <span>placed <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b>/{SHARDS.length}</span>
+              <span>misses <b style={{ color: INK, fontWeight: 500 }}>{g.misplaced}</b></span>
+              <span>hints <b style={{ color: INK, fontWeight: 500 }}>{g.hintsUsed}</b>/3</span>
               {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>solved</span>}
             </div>
           )}
@@ -1071,7 +1092,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       </div>
                     );
                   })}
-                  {trayShards.length === 0 && <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, padding: '8px 0' }}>All pieces are on the grid.</div>}
+                  {trayShards.length === 0 && <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, padding: '8px 0' }}>All pieces are on the grid.</div>}
                 </div>
 
                 {playing && (
@@ -1088,7 +1109,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                       <button type="button" className="sh-hint" disabled={g.hintsUsed !== 1} onClick={() => useHint(2)}><Lightbulb size={13} /> Lock a piece (-{HINTS[1]})</button>
                       <button type="button" className="sh-hint" disabled={g.hintsUsed !== 2} onClick={() => useHint(3)}><Lightbulb size={13} /> Show home (-{HINTS[2]})</button>
                     </div>
-                    <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, textAlign: 'center', marginTop: 10, lineHeight: 1.5 }}>
                       Hints unlock in order. The board finishes itself when every word reads true.
                     </div>
                   </>
@@ -1100,32 +1121,32 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           {/* result line */}
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
             {!playing && (
               <>
                 <div style={{ maxWidth: 472, margin: '18px auto 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                     <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: COLORS.green, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{finalScore}</span>
-                    <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
-                      Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
+                      Solved. {finalScore} of {START}, with {g.misplaced} miss{g.misplaced === 1 ? '' : 'es'} and {g.hintsUsed} hint{g.hintsUsed === 1 ? '' : 's'}. <span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                     </span>
                   </div>
                 </div>
-                <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
+                <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px auto 0', maxWidth: 472 }}>
                   {isTodays ? (
                     <>
-                      {countdown ? <>A fresh grid in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
+                      {countdown ? <>A fresh grid in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh grid lands at midnight Eastern.'}
                       {prevPuzzle && (<>{' '}Meanwhile:{' '}<a href={`/shards?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s grid &rarr;</a></>)}
                     </>
                   ) : (
-                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}<a href="/shards" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Shards &rarr;</a>{' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a></>
                   )}
                 </p>
               </>
             )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -1176,10 +1197,11 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="shards" name="Shards" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="shards" name="Shards" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="shards" name="Shards" accent="#ffffff" align="center" />
               </div>
             )}
@@ -1244,10 +1266,10 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="sh-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1257,16 +1279,16 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
 
       {showA2hsHelp && (
         <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-            <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Shards to your Home Screen</div>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Shards to your Home Screen</div>
             {isIosDevice() ? (
-              <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+              <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                 <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                 <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                 <li>Tap <b>Add</b> - the tile opens today&apos;s grid, every day.</li>
               </ol>
             ) : (
-              <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.</p>
+              <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.</p>
             )}
             <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
           </div>
@@ -1274,20 +1296,20 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Shards - crawlable prose */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Shards</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Shards</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Shards is a free daily word puzzle from Mind Loft, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of letters reads as a word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Every day&rsquo;s pieces have exactly one valid reassembly, checked by a solver before it ships, so there is always a single right answer to find. Pieces never rotate or flip. Drag them onto the grid or tap to place, move them as often as you like, and lean on three optional hints when you are stuck. You start at {START} and finish the moment the last word clicks into place. Answers are checked against a Scrabble word list, so it is broader than everyday English and accepts some unusual short entries.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A fresh grid lands every day at midnight Eastern, with a larger Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/emcee" style={{ color: INK, fontWeight: 800 }}>Emcee</a>, our mini crossword, <a href="/tuck" style={{ color: INK, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

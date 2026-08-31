@@ -45,6 +45,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -196,6 +200,19 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('redact');
+  const STAGE = isStage('redact', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('redact');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('redact'), '--stg-acc-lt': gameColorLight('redact') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -434,11 +451,15 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
   const catRank = useCategoryRank({ self: 'redact', active: LOFT && !playing });
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="redact" name="Redact" collapsed={!!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="redact" quizId={PUZZLE.quizId}
           name="Redact"
           cat="Trivia"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -457,26 +478,26 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
       <div className="rd-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.rd-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .rd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .rd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .rd-btn:hover{background:${COLORS.accentSoft};}
           .rd-btn.primary{background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};color:var(--white);}
           .rd-btn.primary:hover{background:#000;}
           .rd-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:3px;color:#e4e4e7;font-family:${MONO};font-size:11px;line-height:1.5;text-align:center;cursor:pointer;vertical-align:baseline;user-select:none;}
           .rd-slab:hover{background:#3f3f46;}
-          .rd-article{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${COLORS.ink};}
+          .rd-article{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${INK};}
           .rd-article p{margin:0 0 14px;}
           .rd-article p:last-child{margin-bottom:0;}
           .rd-title-slab{display:inline-block;background:${COLORS.accentDeep};border-radius:4px;color:transparent;user-select:none;-webkit-user-select:none;}
           .rd-chip{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;border-radius:5px;padding:3px 8px;}
           .rd-guess{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:12px;border-radius:6px;padding:2px 8px;border:1px solid rgba(28,30,36,0.14);background:var(--white);}
           .rd-guess.hit{border-color:${COLORS.hit};background:${COLORS.hitSoft};color:#7c2d12;font-weight:700;}
-          .rd-guess.zero{color:${COLORS.faded};}
+          .rd-guess.zero{color:${FADED};}
           .rd-sticky{position:sticky;top:0;z-index:30;background:${T.surface};padding:8px 0 10px;border-bottom:1px solid rgba(28,30,36,0.1);}
-          .rd-input{flex:1;min-width:0;font-family:${SANS};font-weight:700;font-size:16px;border:2px solid ${COLORS.accentDeep};border-radius:9px;padding:10px 13px;background:var(--white);color:${COLORS.ink};outline:none;}
-          .rd-input::placeholder{color:${COLORS.faded};font-weight:600;}
+          .rd-input{flex:1;min-width:0;font-family:${SANS};font-weight:700;font-size:16px;border:2px solid ${COLORS.accentDeep};border-radius:9px;padding:10px 13px;background:var(--white);color:${INK};outline:none;}
+          .rd-input::placeholder{color:${FADED};font-weight:600;}
           .rd-stat{display:flex;flex-direction:column;align-items:center;min-width:56px;}
-          .rd-stat b{font-family:${MONO};font-size:15px;color:${COLORS.ink};}
-          .rd-stat span{font-family:${MONO};font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:${COLORS.faded};}
+          .rd-stat b{font-family:${MONO};font-size:15px;color:${INK};}
+          .rd-stat span{font-family:${MONO};font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:${FADED};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -498,21 +519,21 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {/* start tile */}
           {preStart && (
             <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 An entire article, blacked out. Name its subject.
               </h2>
-              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 10px' }}>
-                Today&apos;s subject is a <b style={{ color: COLORS.accentDeep }}>{DAY ? PUZZLE.cat : ''}</b>, rated{' '}
-                <b style={{ color: COLORS.accentDeep }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</b>. Guess one word at a time;
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 10px' }}>
+                Today&apos;s subject is a <b style={{ color: ACC_DEEP }}>{DAY ? PUZZLE.cat : ''}</b>, rated{' '}
+                <b style={{ color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</b>. Guess one word at a time;
                 every hit uncovers that word everywhere it appears. Uncover the title to win.
               </p>
               {gateRules && (
@@ -542,7 +563,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               <div className="rd-sticky">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: playing ? 8 : 0, flexWrap: 'wrap' }}>
                   <span className="rd-chip" style={{ background: COLORS.accentDeep, color: T.white }}>{PUZZLE.cat}</span>
-                  <span className="rd-chip" style={{ background: COLORS.accentSoft, color: COLORS.accentDeep }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
+                  <span className="rd-chip" style={{ background: COLORS.accentSoft, color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
                     <div className="rd-stat"><b>{g.guesses.length}</b><span>Guesses</span></div>
                     <div className="rd-stat"><b>{acc}%</b><span>Hit rate</span></div>
@@ -576,7 +597,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               </div>
 
               {/* the redacted headline */}
-              <div style={{ margin: '16px 0 10px', fontSize: 24, fontWeight: 900, color: COLORS.ink, lineHeight: 1.35 }}>
+              <div style={{ margin: '16px 0 10px', fontSize: 24, fontWeight: 900, color: INK, lineHeight: 1.35 }}>
                 {TITLE_TOKENS.map((tk, i) => {
                   if (!tk.w) return <span key={i}>{tk.t}</span>;
                   if (over || FREEBIES.has(tk.n) || tk.n.length < 3 || revealedNorms.has(tk.n)) {
@@ -587,7 +608,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                   return <span key={i} className="rd-title-slab" style={{ width: `${Math.max(1.2, tk.t.length * 0.85)}ch` }}>{'\u00a0'}</span>;
                 })}
                 {over && (
-                  <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: COLORS.faded, marginLeft: 10 }}>
+                  <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: FADED, marginLeft: 10 }}>
                     {solved ? 'named it' : 'revealed'}
                   </span>
                 )}
@@ -611,10 +632,10 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
               {over && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '16px 20px', margin: '16px 0 0' }}>
-                  <div style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, marginBottom: 4 }}>
+                  <div style={{ fontSize: 19, fontWeight: 900, color: INK, marginBottom: 4 }}>
                     {solved ? `Named in ${g.guesses.length} guesses.` : `The subject was ${DAY.answer}.`}
                   </div>
-                  <div style={{ fontFamily: MONO, fontSize: 12.5, color: COLORS.faded }}>
+                  <div style={{ fontFamily: MONO, fontSize: 12.5, color: FADED }}>
                     {acc}% hit rate &middot; {pct}% of the article uncovered &middot; {elapsed}
                   </div>
                 </div>
@@ -625,7 +646,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -675,10 +696,11 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="redact" name="Redact" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="redact" name="Redact" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="redact" name="Redact" accent="#ffffff" align="center" />
               </div>
             )}
@@ -718,8 +740,8 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
       {confirmGiveUp && (
         <div onClick={() => setConfirmGiveUp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 400, fontFamily: SANS }}>
-            <b style={{ fontSize: 16, color: COLORS.ink }}>Reveal the article?</b>
-            <p style={{ fontSize: 13.5, lineHeight: 1.6, color: COLORS.faded, margin: '8px 0 14px' }}>
+            <b style={{ fontSize: 16, color: INK }}>Reveal the article?</b>
+            <p style={{ fontSize: 13.5, lineHeight: 1.6, color: FADED, margin: '8px 0 14px' }}>
               This ends the day. Your result posts as {pct}% uncovered, and the streak resets.
             </p>
             <button className="rd-btn primary" onClick={giveUp}>Reveal it</button>
@@ -734,14 +756,14 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accentDeep} />
-              <b style={{ fontSize: 17, color: COLORS.ink }}>How Redact works</b>
-              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <b style={{ fontSize: 17, color: INK }}>How Redact works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: INK, margin: '0 0 10px' }}>
               One article a day about one famous subject, every meaningful word hidden. Guess words to
               uncover them; uncover the title to win.
             </p>
-            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: INK, margin: '0 0 12px', paddingLeft: 20 }}>
               <li>A guess uncovers every occurrence of that word, plurals included.</li>
               <li>The category chip and difficulty are shown from the start.</li>
               <li>Tap a block to see its letter count.</li>
@@ -753,7 +775,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

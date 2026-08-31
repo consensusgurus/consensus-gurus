@@ -38,6 +38,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -283,6 +287,19 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('outrank');
+  const STAGE = isStage('outrank', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('outrank');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('outrank'), '--stg-acc-lt': gameColorLight('outrank') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
   const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -608,8 +625,8 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     return (
       <div style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 9 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>The crowd&rsquo;s order</span>
-          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(result.poolSize)} votes in</span>
+          <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACC }}>The crowd&rsquo;s order</span>
+          <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: FADED, marginLeft: 'auto' }}>{fmtBig(result.poolSize)} votes in</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {rows.map((r, i) => {
@@ -619,10 +636,10 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                 <span style={{ flex: '0 0 20px', fontFamily: MONO, fontSize: 13, fontWeight: 700, color: r.rank <= 3 ? COLORS.ink : COLORS.faded, textAlign: 'right' }}>{r.rank}</span>
                 <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                    <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: r.yourFav ? 800 : 700, color: COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: r.yourFav ? 800 : 700, color: INK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {r.item}{r.yourFav ? ' ♥' : ''}
                     </span>
-                    <span style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, whiteSpace: 'nowrap' }}>{r.pct}%</span>
+                    <span style={{ fontFamily: MONO, fontSize: 10.5, color: FADED, whiteSpace: 'nowrap' }}>{r.pct}%</span>
                   </div>
                   <div style={{ height: 7, background: COLORS.paper, borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
                     <div style={{ width: `${Math.round((r.votes / maxV) * 100)}%`, height: '100%', background: r.yourFav ? COLORS.gold : '#b9c0f0', borderRadius: 4, minWidth: r.votes ? 4 : 0 }} />
@@ -636,8 +653,8 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
             );
           })}
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, marginTop: 10, lineHeight: 1.5 }}>
-          Your favorite: <b style={{ color: COLORS.ink }}>{ITEMS[result.yourFav]}</b> &mdash; you and <b style={{ color: COLORS.ink }}>{result.favPct}%</b> of the crowd.
+        <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 10, lineHeight: 1.5 }}>
+          Your favorite: <b style={{ color: INK }}>{ITEMS[result.yourFav]}</b> &mdash; you and <b style={{ color: INK }}>{result.favPct}%</b> of the crowd.
         </div>
       </div>
     );
@@ -665,14 +682,18 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="outrank" name="Outrank" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="outrank" quizId={PUZZLE.quizId}
           name="Outrank"
           cat="Crowd Psychology"
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
@@ -693,9 +714,9 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       <div className="ork-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ork-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ork-btn:hover{background:var(--accent-soft);}
-          .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
+          .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
           .ork-item:hover{border-color:${COLORS.accent};}
           .ork-item-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
           .ork-slot{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
@@ -729,26 +750,26 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — sits where the slate goes; the slate and its two moves
             stay sealed (not rendered) until the player presses Start, which begins the clock. */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outrank is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Outrank is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Two moves: vote for your honest favorite, then predict how today&rsquo;s crowd ranks the whole slate. The slate stays sealed until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="ork-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="ork-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -759,14 +780,14 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         {/* the day's slate */}
         {!preStart && (
         <div style={{ background: COLORS.accentSoft, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '15px 17px 12px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
-          <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 9, flexWrap: 'wrap' }}>
+          <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, marginBottom: 9, flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}><Users size={12} /> today&rsquo;s category</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 10, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 12, marginBottom: 12 }}>
             <span aria-hidden style={{ flex: '0 0 auto', width: 5, background: COLORS.accent, borderRadius: 3 }} />
-            <span style={{ fontFamily: SANS, fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.12, color: COLORS.accent, textTransform: 'uppercase' }}>{PUZZLE.theme}</span>
+            <span style={{ fontFamily: SANS, fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.12, color: ACC, textTransform: 'uppercase' }}>{PUZZLE.theme}</span>
           </div>
-          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, marginBottom: 12, lineHeight: 1.5 }}><b style={{ color: COLORS.ink }}>{PUZZLE.theme}:</b> {PUZZLE.flavor}</div>
+          <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, marginBottom: 12, lineHeight: 1.5 }}><b style={{ color: INK }}>{PUZZLE.theme}:</b> {PUZZLE.flavor}</div>
 
           {playing ? (
             <>
@@ -776,7 +797,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                   <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>1 &middot; Your vote</span>
                   {g.fav != null && <span style={{ marginLeft: 'auto', color: COLORS.green, display: 'flex' }}><svg viewBox="0 0 12 12" width="14" height="14" fill="none"><path d="M2.5 6.2 L5 8.6 L9.5 3.6" stroke={T.successDeep} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg></span>}
                 </div>
-                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
+                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, marginBottom: 9 }}>
                   Tap your honest favorite. Your vote helps build the crowd&rsquo;s real order.
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -792,9 +813,9 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
               <div style={{ background: T.white, border: '1.5px solid rgba(28,30,36,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 9 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: T.white, background: COLORS.accent, borderRadius: 4, padding: '2px 7px' }}>2 &middot; Call the crowd</span>
-                  <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10.5, color: COLORS.faded }}>placed {g.order.length}/{K}</span>
+                  <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10.5, color: FADED }}>placed {g.order.length}/{K}</span>
                 </div>
-                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.4, marginBottom: 9 }}>
+                <div style={{ fontFamily: SANS, fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK, lineHeight: 1.4, marginBottom: 9 }}>
                   Now forget your taste. Tap the items in the order TODAY&rsquo;S CROWD ranks them, favorite first.
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -808,7 +829,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                   })}
                 </div>
                 {g.order.length > 0 && (
-                  <button onClick={resetOrder} style={{ marginTop: 9, fontFamily: SANS, fontSize: 11.5, fontWeight: 800, color: COLORS.faded, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}>
+                  <button onClick={resetOrder} style={{ marginTop: 9, fontFamily: SANS, fontSize: 11.5, fontWeight: 800, color: FADED, background: 'none', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, padding: 0 }}>
                     <RotateCcw size={12} /> Reset the order
                   </button>
                 )}
@@ -818,13 +839,13 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                 <button className="ork-face" onClick={faceTheCrowd} disabled={sending || !placedAll}>
                   <Users size={17} className="ork-gold" /> {sending ? 'Facing the crowd…' : 'Face the crowd'}
                 </button>
-                <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: COLORS.faded, marginTop: 8 }}>
+                <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: FADED, marginTop: 8 }}>
                   Exact slot pays 2, one off pays 1. The order is whatever today&rsquo;s players vote it to be.
                 </div>
               </div>
             </>
           ) : (
-            <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+            <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED }}>
               Locked in. The crowd&rsquo;s order below keeps updating as votes arrive.
             </div>
           )}
@@ -833,25 +854,25 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && result && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: sharp ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {sharp ? 'You outranked the crowd.' : score >= TOTAL / 2 ? 'You read the room respectably.' : 'The crowd surprised you today.'}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{result.board && result.board.youRegistered && result.board.you ? <>Live rank #{result.board.you.rank} of {fmtBig(result.board.registered)} &middot; </> : null}A field of {fmtBig(result.realCount != null ? result.realCount : result.poolSize)} &middot; {elapsed}</span>
                   </span>
                 </div>
               </div>
               {revealBoard()}
               <OutrankLiveBoard board={result.board} total={TOTAL} />
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Outrank in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
+                    {countdown ? <>Next Outrank in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new crowd forms at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -866,7 +887,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/outrank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Outrank &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -874,7 +895,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -924,10 +945,11 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="outrank" name="Outrank" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="outrank" name="Outrank" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="outrank" name="Outrank" accent="#ffffff" align="center" />
             </div>
           )}
@@ -950,16 +972,16 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Outrank to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Outrank to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s crowd, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s crowd, every day.
                 </p>
               )}
@@ -1007,10 +1029,10 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ork-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1019,20 +1041,20 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Outrank — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Outrank</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Outrank</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Outrank is a free daily puzzle from Mind Loft where the crowd itself is the answer key. Every day brings a new themed slate &mdash; breakfast classics, candy bars, karaoke closers, the seven deadly sins &mdash; and every player makes two moves: vote for their honest favorite, then predict how the entire field of players ranks the whole list. Your vote helps build the real order; your prediction is scored against it.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           There is no trivia to know &mdash; the puzzle is pure crowd-reading. Placing an item in its exact crowd slot pays two points, one slot off pays one, and the daily maximum is a perfect call of the whole board. And the score is alive: the crowd&rsquo;s order is recomputed from every vote as it arrives, so your points and your place on the live standings keep moving all day. A pre-written house crowd seeds the small hours, then retires once ten real players are in; your own prediction is always graded on the crowd minus your own vote, so you can never tip the order you&rsquo;re scored against. On Sundays the slate grows to seven items.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outwit" style={{ color: COLORS.ink, fontWeight: 800 }}>Outwit</a>, our five-prompt crowd puzzle, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, and <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outwit" style={{ color: INK, fontWeight: 800 }}>Outwit</a>, our five-prompt crowd puzzle, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

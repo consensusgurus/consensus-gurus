@@ -54,6 +54,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -271,6 +275,19 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('lode');
+  const STAGE = isStage('lode', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('lode');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('lode'), '--stg-acc-lt': gameColorLight('lode') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;   // not begun: the seam stays sealed
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
@@ -579,14 +596,18 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="lode" name="Lode" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="lode" quizId={PUZZLE.quizId}
           name="Lode"
           cat="Word"
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
@@ -607,24 +628,24 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
       <div className="ld-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ld-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .ld-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ld-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ld-btn:hover{background:var(--accent-soft);}
           .ld-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .ld-btn.primary:hover{background:${COLORS.accentDeep};}
           .ld-btn:disabled{opacity:0.45;cursor:default;}
           .ld-row{display:flex;gap:10px;justify-content:center;}
-          .ld-tile{width:58px;height:58px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:900;font-size:25px;color:${COLORS.ink};background:var(--white);border:2px solid rgba(28,30,36,0.16);cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(28,30,36,0.14);transition:transform .08s;}
+          .ld-tile{width:58px;height:58px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:900;font-size:25px;color:${INK};background:var(--white);border:2px solid rgba(28,30,36,0.16);cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(28,30,36,0.14);transition:transform .08s;}
           .ld-tile:active{transform:translateY(2px);box-shadow:none;}
           .ld-tile.core{background:${COLORS.accent};border-color:${COLORS.accentDeep};color:var(--white);box-shadow:0 2px 0 ${COLORS.accentDeep};}
           @media(max-width:420px){.ld-tile{width:46px;height:46px;font-size:21px;}.ld-row{gap:7px;}}
-          .ld-entry{font-family:${SANS};font-weight:800;font-size:22px;letter-spacing:0.13em;text-transform:uppercase;text-align:center;width:100%;border:none;border-bottom:2.5px solid rgba(28,30,36,0.22);background:transparent;color:${COLORS.ink};padding:8px 4px;outline:none;caret-color:${COLORS.accent};}
+          .ld-entry{font-family:${SANS};font-weight:800;font-size:22px;letter-spacing:0.13em;text-transform:uppercase;text-align:center;width:100%;border:none;border-bottom:2.5px solid rgba(28,30,36,0.22);background:transparent;color:${INK};padding:8px 4px;outline:none;caret-color:${COLORS.accent};}
           .ld-entry::placeholder{letter-spacing:0.02em;font-size:14px;font-weight:700;color:#b6bcc6;text-transform:none;}
           .ld-shake{animation:ldshake .3s;}
           @keyframes ldshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
           .ld-track{position:relative;height:10px;border-radius:999px;background:#e4e7ec;overflow:hidden;}
           .ld-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,${COLORS.accent},#d99a1a);border-radius:999px;transition:width .35s;}
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
-          .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${COLORS.ink};}
+          .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
           .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
           .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
@@ -632,7 +653,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           /* Tailings: real, unscored. Deliberately the quietest tag on the
              board — dashed and faded, so it reads as acknowledged rather than
              earned and can never be mistaken for a scoring word. */
-          .ld-wtag.spare{background:transparent;border-style:dashed;border-color:rgba(28,30,36,0.28);color:${COLORS.faded};font-weight:500;}
+          .ld-wtag.spare{background:transparent;border-style:dashed;border-color:rgba(28,30,36,0.28);color:${FADED};font-weight:500;}
           .ld-found{max-height:280px;overflow-y:auto;overflow-x:hidden;padding:4px;}
         `}</style>
 
@@ -658,25 +679,25 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — the seam stays sealed until the player begins */}
         {preStart && (
-          <div className={LOFT ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 440, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Lode is ready'}</div>
+          <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 440, margin: '0 auto 4px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Lode is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>{ALL_LETTERS.length} letters, one core letter every word must use, and points that reward the words nobody else finds. Your seam stays sealed until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="ld-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="ld-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -687,11 +708,11 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
           <>
             {/* score bar */}
-            <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+            <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
               <span style={{ fontSize: 12 }}>score <b style={{ color: struck ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{score}</b></span>
-              <span>vein <b style={{ color: COLORS.accent, fontWeight: 500 }}>{VEIN}</b></span>
-              <span>words <b style={{ color: COLORS.ink, fontWeight: 500 }}>{g.found.length}</b></span>
-              {pangramsFound > 0 && <span style={{ color: COLORS.accent }}>pangram &times;{pangramsFound}</span>}
+              <span>vein <b style={{ color: ACC, fontWeight: 500 }}>{VEIN}</b></span>
+              <span>words <b style={{ color: INK, fontWeight: 500 }}>{g.found.length}</b></span>
+              {pangramsFound > 0 && <span style={{ color: ACC }}>pangram &times;{pangramsFound}</span>}
               {!playing && <span style={{ marginLeft: 'auto', color: COLORS.green }}>score posted &mdash; sandbox mode</span>}
             </div>
 
@@ -699,7 +720,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : COLORS.accent }}>{rank.n}</span>
-                {nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>{nextRank.at - score} to {nextRank.n}</span>}
+                {nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>{nextRank.at - score} to {nextRank.n}</span>}
                 {!nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.green }}>every word on the board</span>}
               </div>
               <div className="ld-track">
@@ -742,7 +763,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                   </div>
                 </div>
 
-                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', color: COLORS.faded, textAlign: 'center', marginTop: 11 }}>
+                <div style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', color: FADED, textAlign: 'center', marginTop: 11 }}>
                   Letters can be reused.
                 </div>
 
@@ -761,7 +782,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                   </div>
                 )}
                 {playing && (
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, textAlign: 'center', marginTop: 8, lineHeight: 1.5 }}>
                     {struck
                       ? 'You have struck the Lode. Cash in, or keep digging for the Mother Lode.'
                       : 'One shot counts: your first posted score is the one that ranks.'}
@@ -771,8 +792,8 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
 
               {/* the haul */}
               <div style={{ flex: '1 1 200px', minWidth: 190 }}>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, marginBottom: 8 }}>
-                  Your haul {g.found.length > 0 && <span style={{ color: COLORS.ink }}>({g.found.length})</span>}
+                <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, marginBottom: 8 }}>
+                  Your haul {g.found.length > 0 && <span style={{ color: INK }}>({g.found.length})</span>}
                 </div>
                 <div className="ld-found">
                   {foundSorted.length ? foundSorted.map((w) => {
@@ -785,31 +806,31 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                         <span style={{ marginLeft: 5, fontWeight: 800, fontSize: 10 }}>{x?.p}</span>
                       </span>
                     );
-                  }) : <span style={{ fontSize: 12, fontWeight: 600, color: COLORS.faded }}>Nothing mined yet.</span>}
+                  }) : <span style={{ fontSize: 12, fontWeight: 600, color: FADED }}>Nothing mined yet.</span>}
                 </div>
                 {spareSorted.length > 0 && (
                   <>
-                    <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '14px 0 8px' }}>
-                      Tailings <span style={{ color: COLORS.ink }}>({spareSorted.length})</span>
+                    <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '14px 0 8px' }}>
+                      Tailings <span style={{ color: INK }}>({spareSorted.length})</span>
                     </div>
                     <div className="ld-found">
                       {spareSorted.map((w) => (
                         <span key={w} className="ld-wtag spare" title="A real word, but not one this board scores">{w.toLowerCase()}</span>
                       ))}
                     </div>
-                    <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 8 }}>
+                    <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, lineHeight: 1.55, marginTop: 8 }}>
                       Real words, off the seam. They score nothing and cost nothing.
                     </div>
                   </>
                 )}
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 10 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, lineHeight: 1.55, marginTop: 10 }}>
                   {TIERS[1].block} common &middot; {TIERS[2].block} uncommon &middot; {TIERS[3].block} rare &middot; {PANGRAM_BLOCK} pangram. Rarity is what pays here.
                 </div>
                 {/* Every dictionary word scores, so the board carries a long tail
                     the rarity data cannot rank. Saying so is better than letting a
                     player conclude the tiers are wrong when an obscure word pays
                     the base rate. */}
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55, marginTop: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: FADED, lineHeight: 1.55, marginTop: 8 }}>
                   Rarity is measured from how often a word appears in real writing. Every word in the dictionary counts here, and the most obscure ones have no usage on record at all, so those score at the common rate rather than the rare one.
                 </div>
               </div>
@@ -819,24 +840,24 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '18px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: struck ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {struck ? `${rank.n} — you struck the vein at ${VEIN}.` : `${rank.n}, against a vein of ${VEIN}.`}
                     {' '}{g.found.length} word{g.found.length === 1 ? '' : 's'}{pangramsFound ? `, ${pangramsFound} pangram${pangramsFound > 1 ? 's' : ''}` : ''}.
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>A fresh seam in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh seam lands at midnight Eastern.'}
+                    {countdown ? <>A fresh seam in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A fresh seam lands at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -851,7 +872,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/lode" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Lode &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -859,7 +880,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -910,10 +931,11 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="lode" name="Lode" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="lode" name="Lode" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="lode" name="Lode" accent="#ffffff" align="center" />
             </div>
           )}
@@ -936,16 +958,16 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Lode to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Lode to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s board, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s board, every day.
                 </p>
               )}
@@ -988,10 +1010,10 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ld-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1000,20 +1022,20 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Lode — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Lode</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Lode</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Lode is a free daily word puzzle from Mind Loft, and a fresh answer to the make-words-from-letters puzzle. Every player gets the same seven letters, with one core letter that every word must contain, and eight letters in the Sunday Edition. Words must be four letters or longer, and you can reuse a letter as often as you like. A word that uses every letter on the board is a pangram.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The twist is the scoring. Points come from how rare a word is, not simply how long it is, so an uncommon word is worth two or three ordinary ones and a single good find can outrank a long grind. Reach the day&rsquo;s vein and you have struck the Lode, which counts the day as solved. Keep going and the Mother Lode waits at the far end, where you have found every word on the board.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A fresh board lands every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/tuck" style={{ color: COLORS.ink, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A fresh board lands every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/tuck" style={{ color: INK, fontWeight: 800 }}>Tuck</a>, our tile-tucking puzzle, and <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

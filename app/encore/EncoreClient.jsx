@@ -39,6 +39,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -264,6 +268,19 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const LOFT = isLoft('encore');
+  const STAGE = isStage('encore', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('encore');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('encore'), '--stg-acc-lt': gameColorLight('encore') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
 
   useEffect(() => {
     if (!armReveal) return undefined;
@@ -645,7 +662,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
         className="ec-cluerow"
         style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(29,78,216,0.03)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(29,78,216,0.18)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
         <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : (cross ? 'rgba(30,64,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
-        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: COLORS.ink, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
+        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
   };
@@ -682,12 +699,16 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: THEME.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : THEME.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="encore" name="Encore" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat strip.
           Mounted here, outside ec-wrap, so the band runs full bleed like the
           chrome above it. The figures are the same three the strip carried, and
@@ -695,7 +716,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           and the date line becomes the verdict while the cap itself takes the
           outcome colour. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="encore" quizId={PUZZLE.quizId}
           name="Encore"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
@@ -718,7 +739,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       <div className="ec-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ec-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .ec-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ec-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ec-btn:hover{background:var(--accent-soft);}
           @keyframes ecshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
           @media(max-width:560px){.ec-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ec-ttl h1{font-size:21px;letter-spacing:0.02em;}.ec-ttl .ec-ttl-dt{font-size:15px;}.ec-ttl-dot{display:none;}}
@@ -732,9 +753,9 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
           .ec-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .ec-cluerow:hover{background:${COLORS.paper};}
-          .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:var(--white);color:${COLORS.ink};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:var(--white);color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .ec-key:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
-          .ec-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .ec-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ec-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
           @media(max-width:560px){.ec-cols{grid-template-columns:1fr;}}
         `}</style>
@@ -764,21 +785,21 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
         {/* LOFT: the start tile and the board sit on the navy stage, which runs
             full bleed and fills the first screen, so the board is the one lit
             object on the page while the clock is running. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
 
         {/* start tile — the grid and clues stay sealed until Start begins the clock */}
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Encore is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Encore is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>The big grid: fill every square from the numbered Across and Down clues.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
               <button className="ec-btn" onClick={startGame} style={{ background: THEME.cta, color: THEME.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -786,18 +807,18 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These three figures move UP into the cap on a loft page. Printing
               them in both places is the one thing to avoid: the cap exists to
               give the board this row back. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>squares <b style={{ color: filledCount === whiteCount ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{whiteCount}</span>
           </div>
@@ -831,8 +852,8 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
                 <ChevronLeft size={15} />
               </button>
               <div onClick={() => setDir((d) => (d === 'A' ? 'D' : 'A'))} style={{ flex: '1 1 auto', background: COLORS.accentSoft, border: `1.5px solid rgba(29,78,216,0.4)`, borderRadius: 8, padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.accent, whiteSpace: 'nowrap' }}>{curWord.n}{curWord.dir === 'A' ? 'A' : 'D'}</span>
-                <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: COLORS.ink, lineHeight: 1.3 }}>{curWord.clue}</span>
+                <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 500, color: ACC, whiteSpace: 'nowrap' }}>{curWord.n}{curWord.dir === 'A' ? 'A' : 'D'}</span>
+                <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: INK, lineHeight: 1.3 }}>{curWord.clue}</span>
               </div>
               <button aria-label="Next clue" onClick={() => stepWord(1)} className="ec-tool" style={{ padding: '7px 8px' }}>
                 <ChevronRight size={15} />
@@ -864,7 +885,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
                 </button>
               )}
               {!mobileUi && (
-                <span className="ec-tool" style={{ cursor: 'default', borderStyle: 'dashed', color: COLORS.faded }}>
+                <span className="ec-tool" style={{ cursor: 'default', borderStyle: 'dashed', color: FADED }}>
                   Type to fill &middot; space flips Across/Down &middot; tab jumps
                 </span>
               )}
@@ -875,14 +896,14 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
 
         {/* clue lists */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: THEME.white, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: THEME.white, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
           <div className="ec-cols">
             <div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '0 0 6px 6px' }}>Across</div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '0 0 6px 6px' }}>Across</div>
               {WORDS.map((w, i) => (w.dir === 'A' ? clueRow(w, i) : null))}
             </div>
             <div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.faded, margin: '0 0 6px 6px' }}>Down</div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '0 0 6px 6px' }}>Down</div>
               {WORDS.map((w, i) => (w.dir === 'D' ? clueRow(w, i) : null))}
             </div>
           </div>
@@ -893,7 +914,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
               things you act on belong on the lit surface with the board. */}
           {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(20,22,28,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
               Fill the grid from the clues. It checks itself when the last square lands — wrong squares flash red, and every failed check counts on the board.
             </span>
             {identity && (g.t0 || checks > 0) && (
@@ -904,14 +925,14 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
             )}
           </div>
           )}
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
-            <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+            <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
               {isTodays ? (
                 <>
-                  {countdown ? <>Next Encore in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
+                  {countdown ? <>Next Encore in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new grid drops at midnight Eastern.'}
                   {prevPuzzle && (
                     <>
                       {' '}Meanwhile:{' '}
@@ -926,7 +947,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                   <a href="/encore" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Encore &rarr;</a>
                   {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </>
               )}
             </p>
@@ -934,7 +955,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
         </div>
         )}
@@ -991,11 +1012,12 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="encore" name="Encore" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="encore" name="Encore" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="encore" name="Encore" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1019,15 +1041,15 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: THEME.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Encore to your Home Screen</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Encore to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s grid, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s grid, every day.
                 </p>
               )}
@@ -1077,10 +1099,10 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ec-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: THEME.white }}>Play</button>
@@ -1089,20 +1111,20 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Encore — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Encore</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Encore is a free daily crossword from Mind Loft, and it is the long one. Nine squares by nine on weekdays, with around twenty-six numbered Across and Down answers, so it asks for a few minutes rather than a few seconds. If you want the sprint version, that is <a href="/emcee" style={{ color: COLORS.ink, fontWeight: 800 }}>Emcee</a>, our five by five mini.
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Encore</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          Encore is a free daily crossword from Mind Loft, and it is the long one. Nine squares by nine on weekdays, with around twenty-six numbered Across and Down answers, so it asks for a few minutes rather than a few seconds. If you want the sprint version, that is <a href="/emcee" style={{ color: INK, fontWeight: 800 }}>Emcee</a>, our five by five mini.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Every grid is fully checked, which means every letter you write belongs to both an Across answer and a Down one, so a crossing always confirms you. The words are everyday words and the clues play fair. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and the Sunday Edition steps up to eleven by eleven with around forty-four answers. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More word puzzles: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word-grouping puzzle, and <a href="/garble" style={{ color: COLORS.ink, fontWeight: 800 }}>Garble</a>, our daily unscramble.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new grid drops every day at midnight Eastern, and the Sunday Edition steps up to eleven by eleven with around forty-four answers. No app, no signup, play free in your browser, keep a streak and race the daily leaderboard. More word puzzles: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word-grouping puzzle, and <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily unscramble.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

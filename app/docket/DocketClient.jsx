@@ -50,6 +50,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -174,6 +178,19 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('docket');
+  const STAGE = isStage('docket', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('docket');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('docket'), '--stg-acc-lt': gameColorLight('docket') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const [showChrome, setShowChrome] = useState(false);
   const focusMode = playing && !showChrome;
@@ -354,11 +371,15 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
   const hyb = PUZZLE.spec.k === 'hyb';
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="docket" name="Docket" collapsed={!!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="docket" quizId={PUZZLE.quizId}
           name="Docket"
           cat="Logic"
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
@@ -379,12 +400,12 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
       <div className="dk-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.dk-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .dk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .dk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .dk-btn:hover{background:${COLORS.accentSoft};}
           .dk-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .dk-btn.primary:hover{background:${COLORS.accentDeep};}
           .dk-row{display:flex;align-items:stretch;gap:6px;margin-bottom:7px;}
-          .dk-choice{display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${COLORS.ink};}
+          .dk-choice{display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
           .dk-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .dk-choice:disabled{cursor:default;}
           .dk-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
@@ -396,23 +417,23 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-choice.off{opacity:0.5;border-style:dashed;}
           .dk-choice.off .t{text-decoration:line-through;}
           .dk-choice.off:hover:not(:disabled){border-color:rgba(28,30,36,0.16);background:var(--white);}
-          .dk-x{flex:0 0 auto;width:36px;border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;background:var(--white);color:${COLORS.faded};cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.5;padding:0;}
+          .dk-x{flex:0 0 auto;width:36px;border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;background:var(--white);color:${FADED};cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.5;padding:0;}
           .dk-x:hover:not(:disabled){opacity:1;border-color:${COLORS.accent};color:${COLORS.accent};}
           .dk-x.on{opacity:1;background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};color:var(--white);}
           .dk-x:disabled{cursor:default;}
           .dk-x:disabled:not(.on){opacity:0.16;}
           .dk-x.on:disabled{opacity:0.8;}
-          .dk-notes{width:100%;box-sizing:border-box;margin-top:8px;font-family:${MONO};font-size:13px;line-height:1.7;color:${COLORS.ink};background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:8px;padding:9px 11px;resize:vertical;min-height:96px;}
+          .dk-notes{width:100%;box-sizing:border-box;margin-top:8px;font-family:${MONO};font-size:13px;line-height:1.7;color:${INK};background:var(--white);border:1px solid rgba(28,30,36,0.16);border-radius:8px;padding:9px 11px;resize:vertical;min-height:96px;}
           .dk-notes:focus{outline:none;border-color:${COLORS.accent};}
-          .dk-notes::placeholder{color:${COLORS.faded};opacity:0.7;}
-          .dk-nlead{font-size:12.5px;font-weight:700;color:${COLORS.faded};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
-          .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${COLORS.ink};padding:4px 0;}
+          .dk-notes::placeholder{color:${FADED};opacity:0.7;}
+          .dk-nlead{font-size:12.5px;font-weight:700;color:${FADED};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+          .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${INK};padding:4px 0;}
           .dk-cond .n{font-family:${MONO};font-weight:700;color:${COLORS.accent};flex:0 0 auto;}
           .dk-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .dk-pip.on{background:${COLORS.accent};}
           .dk-pip.miss{background:#b91c1c;}
           .dk-panel{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-radius:11px;padding:12px 14px;margin-bottom:10px;}
-          .dk-setup{font-size:14px;line-height:1.6;color:${COLORS.faded};font-weight:600;}
+          .dk-setup{font-size:14px;line-height:1.6;color:${FADED};font-weight:600;}
           .dk-fold{background:none;border:none;padding:0;cursor:pointer;font-family:${MONO};font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;font-weight:700;color:${COLORS.accent};display:inline-flex;align-items:center;gap:4px;}
         `}</style>
 
@@ -435,22 +456,22 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {/* start tile */}
           {preStart && (
             <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 One small world, {TOTAL} questions about it.
               </h2>
-              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
-                Today it is <b style={{ color: COLORS.accentDeep }}>{PUZZLE.title}</b>. Read the setup and the
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
+                Today it is <b style={{ color: ACC_DEEP }}>{PUZZLE.title}</b>. Read the setup and the
                 conditions, work out what they force, then answer. The conditions stay on screen the whole
-                time, because <b style={{ color: COLORS.accentDeep }}>the deductions are meant to be reused</b>.
+                time, because <b style={{ color: ACC_DEEP }}>the deductions are meant to be reused</b>.
                 There is a scratchpad for the diagram, and you can cross off a choice you have ruled out.
                 If the format feels familiar, it is: this is the reasoning section a well known standardized
                 test used to run, and quietly retired.
@@ -481,7 +502,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           <div className="dk-panel">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: setupOpen ? 7 : 0 }}>
               <Scale size={15} color={COLORS.accent} />
-              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.accent }}>
+              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC }}>
                 {PUZZLE.title}
               </span>
               <button className="dk-fold" style={{ marginLeft: 'auto' }} onClick={() => setSetupOpen((v) => !v)}>
@@ -503,7 +524,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
             <div className="dk-panel" style={{ padding: g.notesOpen ? '12px 14px' : '9px 14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <Pencil size={14} color={COLORS.accent} style={{ flex: '0 0 auto' }} />
-                <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.accent, flex: '0 0 auto' }}>
+                <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC, flex: '0 0 auto' }}>
                   Scratchpad
                 </span>
                 {!g.notesOpen && !!(g.notes || '').trim() && (
@@ -536,18 +557,18 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                     <div key={i} className={`dk-pip${g.picks[i] !== null ? (g.picks[i] === KEY[i] ? ' on' : ' miss') : ''}`} />
                   ))}
                 </div>
-                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {Math.min(idx + 1, TOTAL)}/{TOTAL} &middot; {elapsed}
                 </div>
               </div>
 
               {playing && (
                 <>
-                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 700, marginBottom: 6 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, fontWeight: 700, marginBottom: 6 }}>
                     Question {idx + 1}
                   </div>
                   <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 11, padding: '14px 16px', marginBottom: 10 }}>
-                    <div style={{ fontSize: 16.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.45 }}>{q.q}</div>
+                    <div style={{ fontSize: 16.5, fontWeight: 800, color: INK, lineHeight: 1.45 }}>{q.q}</div>
                   </div>
 
                   {q.choices.map((c, ci) => {
@@ -588,10 +609,10 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                   {/* the reveal, which is where the format actually teaches */}
                   {revealed && (
                     <div style={{ background: COLORS.accentSoft, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.accentDeep, marginBottom: 7 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite. The answer is ${CHOICE_KEYS[answerKey]}.`}
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.6, color: COLORS.ink }}>{q.note}</div>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.6, color: INK }}>{q.note}</div>
                       <button className="dk-btn primary" style={{ marginTop: 11 }} onClick={next}>
                         {idx + 1 >= TOTAL ? 'Finish' : 'Next question'}
                       </button>
@@ -602,18 +623,18 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
               {!playing && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: COLORS.ink, marginBottom: 4 }}>{score}/{TOTAL} &middot; {elapsed}</div>
-                  <div style={{ fontFamily: MONO, fontSize: 11.5, color: COLORS.faded, marginBottom: 10 }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: INK, marginBottom: 4 }}>{score}/{TOTAL} &middot; {elapsed}</div>
+                  <div style={{ fontFamily: MONO, fontSize: 11.5, color: FADED, marginBottom: 10 }}>
                     {SOLVED.sols.length} arrangement{SOLVED.sols.length === 1 ? '' : 's'} satisfied every condition
                     {hyb ? ' (an asterisk marks the second dimension)' : ''}
                   </div>
                   {QS.map((qq, i) => (
                     <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '5px 0', borderTop: i ? '1px solid rgba(28,30,36,0.08)' : 'none', fontSize: 13.5 }}>
-                      <span style={{ fontFamily: MONO, color: COLORS.faded, flex: '0 0 auto', width: 20 }}>{i + 1}</span>
+                      <span style={{ fontFamily: MONO, color: FADED, flex: '0 0 auto', width: 20 }}>{i + 1}</span>
                       <span style={{ flex: '0 0 auto', width: 22, height: 22, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, background: g.picks[i] === KEY[i] ? COLORS.green : '#b91c1c', color: T.white }}>{CHOICE_KEYS[KEY[i]]}</span>
-                      <span style={{ color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qq.q}</span>
-                      {g.picks[i] !== null && g.picks[i] !== KEY[i] && <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>you said {CHOICE_KEYS[g.picks[i]]}</span>}
-                      {g.picks[i] === null && <Minus size={14} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.faded }} />}
+                      <span style={{ color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{qq.q}</span>
+                      {g.picks[i] !== null && g.picks[i] !== KEY[i] && <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 12, color: FADED }}>you said {CHOICE_KEYS[g.picks[i]]}</span>}
+                      {g.picks[i] === null && <Minus size={14} style={{ marginLeft: 'auto', flex: '0 0 auto', color: FADED }} />}
                     </div>
                   ))}
                 </div>
@@ -624,7 +645,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -674,10 +695,11 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="docket" name="Docket" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="docket" name="Docket" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="docket" name="Docket" accent="#ffffff" align="center" />
               </div>
             )}
@@ -720,15 +742,15 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
-              <b style={{ fontSize: 17, color: COLORS.ink }}>How Docket works</b>
-              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <b style={{ fontSize: 17, color: INK }}>How Docket works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: INK, margin: '0 0 10px' }}>
               A setup describes a small world, the numbered conditions constrain it, and every question is
               about what those conditions do and do not force. It is the analytical reasoning format a
               well known standardized test ran for decades before retiring it.
             </p>
-            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: INK, margin: '0 0 12px', paddingLeft: 20 }}>
               <li>Diagram first. The conditions stay pinned so you only do that once.</li>
               <li>&ldquo;Could be true&rdquo; needs one arrangement that works. &ldquo;Must be true&rdquo; needs all of them.</li>
               <li>A question that starts &ldquo;If ...&rdquo; applies only inside that question.</li>
@@ -741,7 +763,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

@@ -69,6 +69,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -385,6 +389,19 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const playing = g.status === 'playing';
   const LOFT = isLoft('cipher');
+  const STAGE = isStage('cipher', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('cipher');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('cipher'), '--stg-acc-lt': gameColorLight('cipher') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
   const started = playing && !!g.t0;    // clock running: show the board
   const focusMode = playing && !showChrome;
@@ -903,14 +920,18 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="cipher" name="Cipher" collapsed={started} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="cipher" quizId={PUZZLE.quizId}
           name="Cipher"
           cat="Numbers"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -932,22 +953,22 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       <div className="cf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.cf-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cf-btn:hover{background:var(--accent-soft);}
           .cf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-btn.primary:hover{background:#0c5f59;}
           .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
-          .cf-op{width:26px;font-size:22px;font-weight:800;color:${COLORS.faded};text-align:center;flex:0 0 auto;}
+          .cf-op{width:26px;font-size:22px;font-weight:800;color:${FADED};text-align:center;flex:0 0 auto;}
           .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.14);background:var(--white);padding:0;font-family:${SANS};}
           .cf-cell:hover{background:${COLORS.accentSoft};}
           .cf-cell.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
-          .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${COLORS.ink};line-height:1.1;}
+          .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
           .cf-cell .cf-dg{font-size:14px;font-weight:800;color:${COLORS.accent};height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
           .cf-cell.bad .cf-dg{color:${COLORS.rust};}
           .cf-rule{border-top:3px solid ${COLORS.ink};margin:7px 0 6px;}
           .cf-carrow,.cf-mkrow{margin:0;}
-          .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${COLORS.faded};cursor:pointer;padding:0;line-height:1;}
+          .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${FADED};cursor:pointer;padding:0;line-height:1;}
           .cf-carry:hover:not(:disabled){background:${COLORS.accentSoft};border-color:${COLORS.accent};}
           .cf-carry.fixed{border:1px solid transparent;color:${COLORS.accent};font-weight:700;cursor:default;}
           .cf-carry.off{border-color:transparent;cursor:default;}
@@ -959,10 +980,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              box and players read those numerals as the letter's digit. The pad
              keys below carry the same information one number to a box. */
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
-          .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${COLORS.ink};}
+          .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
           .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:${COLORS.accent};font-weight:800;letter-spacing:0.02em;}
-          .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${COLORS.faded};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+          .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
           .cf-pk.note{grid-column:span 2;}
           .cf-pk.foot:not(.note){grid-column:span 3;}
           .cf-pk.note.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
@@ -992,12 +1013,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--white);border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
           .cf-dock.notes{background:${COLORS.accentSoft};border-top:2px solid ${COLORS.accent};}
           .cf-dk{max-width:470px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
-          .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${COLORS.faded};}
+          .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${FADED};}
           .cf-say.bad{color:${COLORS.rust};}
           .cf-say.good{color:${COLORS.green};}
           .cf-strip{display:grid;gap:3px;}
           .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:var(--white);padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
-          .cf-sc .l{font-size:14px;font-weight:800;color:${COLORS.ink};line-height:1;}
+          .cf-sc .l{font-size:14px;font-weight:800;color:${INK};line-height:1;}
           .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
           /* An unassigned letter shows a DOT, never a number. The count of
              digits still open used to render here as a pill and still read as
@@ -1016,7 +1037,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock .cf-pk{height:46px;font-size:20px;}
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
           .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
-          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${COLORS.ink};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
+          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:var(--white);color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
           .cf-db.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
           .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
@@ -1047,26 +1068,26 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
         {/* start tile — sits where the board goes; the equation stays sealed
             (not rendered) until the player presses Start, which begins the clock. */}
         {preStart && (
           <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', maxWidth: 472, margin: '0 auto 12px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Cipher is ready'}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Cipher is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Assign a different digit to every letter so the {opWord} works out. The equation stays sealed until you begin.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="cf-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="cf-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -1076,14 +1097,14 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
         {/* the equation */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '18px 20px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12, maxWidth: 472, marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '18px 20px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12, maxWidth: 472, marginLeft: 'auto', marginRight: 'auto' }}>
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.14)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.14)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>every letter is a digit · {opWord}</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>placed <b style={{ color: COLORS.ink, fontWeight: 500 }}>{Object.keys(g.assign).length}/{LETTERS.length}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>placed <b style={{ color: INK, fontWeight: 500 }}>{Object.keys(g.assign).length}/{LETTERS.length}</b></span>
           </div>
           )}
-          {LOFT && <div className="loft-prompt">{`every letter is a digit · ${opWord}`}</div>}
+          {LOFT && <div className={STAGE ? undefined : 'loft-prompt'}>{`every letter is a digit · ${opWord}`}</div>}
           <div className="cf-eqn" style={{ maxWidth: (maxLen + 1) * 50, margin: '0 auto' }}>
             {renderCarryRow()}
             {PUZZLE.lhs.map((w, i) => renderRow(w, (OP === 'sub' ? i > 0 : i === PUZZLE.lhs.length - 1) ? opGlyph : '', `l${i}`))}
@@ -1092,20 +1113,20 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             {renderMarkRow()}
           </div>
           {playing && (
-            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, textAlign: 'center', marginTop: 2 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: FADED, textAlign: 'center', marginTop: 2 }}>
               {carryWord}s on top · column marks below · it locks itself when it lands
             </div>
           )}
           {/* These three status lines are folded into the dock's single status
               line on a phone, so they only render in the desktop card. */}
-          <div style={{ display: dockUi ? 'none' : 'block', fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
+          <div style={{ display: dockUi ? 'none' : 'block', fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, textAlign: 'center', margin: '10px 0 8px', minHeight: 16 }}>
             {playing
               ? (noteMode
                   ? (selected !== null
-                      ? <>Notes on: crossing candidates off <b style={{ color: COLORS.accent }}>{selected}</b></>
+                      ? <>Notes on: crossing candidates off <b style={{ color: ACC }}>{selected}</b></>
                       : 'Notes on: pick a letter, then tap digits to cross them off.')
                   : (selected !== null
-                      ? <>Assigning a digit to <b style={{ color: COLORS.accent }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</>
+                      ? <>Assigning a digit to <b style={{ color: ACC }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</>
                       : 'Tap a letter, then a digit — or just type.'))
               : null}
           </div>
@@ -1122,7 +1143,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
               {/* No Check button by design: the board ends the day itself. */}
               <button type="button" className="cf-btn" onClick={clearAll} style={clearArmed ? { borderColor: COLORS.rust, color: COLORS.rust } : undefined}>{clearArmed ? 'Clear all, tap again' : 'Clear'}</button>
               {revealOk && (
-                <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: COLORS.faded }} onClick={reveal}>Reveal (ends the day)</button>
+                <button type="button" className="cf-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>
               )}
             </div>
           )}
@@ -1136,25 +1157,25 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
 
 
           </div>
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: T.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.ink, lineHeight: 1.45 }}>
+                  <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'
                       ? `Cracked. ${eqnText}`
                       : 'The cipher kept its secret today.'}
-                    {' '}<span style={{ color: COLORS.faded, fontWeight: 600 }}>{elapsed}</span>
+                    {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>
                   </span>
                 </div>
               </div>
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Cipher in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new equation drops at midnight Eastern.'}
+                    {countdown ? <>Next Cipher in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new equation drops at midnight Eastern.'}
                     {prevPuzzle && (
                       <>
                         {' '}Meanwhile:{' '}
@@ -1169,7 +1190,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/cipher" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Cipher &rarr;</a>
                     {' · '}
-                    <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -1177,7 +1198,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -1228,10 +1249,11 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="cipher" name="Cipher" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="cipher" name="Cipher" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="cipher" name="Cipher" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1254,16 +1276,16 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Cipher to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Cipher to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s equation, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s equation, every day.
                 </p>
               )}
@@ -1356,10 +1378,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="cf-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1368,20 +1390,20 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Cipher — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Cipher</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Cipher</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation &mdash; the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. The digit pad dims a digit the moment another letter takes it and tells you whose it is, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. There is no Check button and nothing to submit: because the board works the columns out with you, it simply ends the day the moment your assignment is right. A solve is a perfect 10, so the daily leaderboard is a straight race on the clock.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: COLORS.ink, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: COLORS.ink, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: COLORS.ink, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
         </p>
       </section>
 
-      <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
     </div>
   );
 }

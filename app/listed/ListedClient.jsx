@@ -41,6 +41,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -290,6 +294,19 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;   // clock running: show the board
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('listed');
+  const STAGE = isStage('listed', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('listed');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('listed'), '--stg-acc-lt': gameColorLight('listed') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const won = g.status === 'won';
   const checksUsed = g.rows.length;
   const checksLeft = MAX_CHECKS - checksUsed;
@@ -710,17 +727,21 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="listed" name="Listed" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. The metric is a short token (population, height), so it reads as a figure.
           A partly-right ranking still scores, so the cap can go amber. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="listed" quizId={PUZZLE.quizId}
           name="Listed"
           cat="Trivia"
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
@@ -743,14 +764,14 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       <div className="ls-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ls-wrap{padding-left:14px !important;padding-right:14px !important;}}
-          .ls-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ls-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ls-btn:hover{background:var(--accent-soft);}
           .ls-btn:disabled{opacity:.45;cursor:default;}
           @keyframes lsshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .ls-shake{animation:lsshake .45s ease;}
-          .ls-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${COLORS.ink};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+          .ls-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:var(--white);color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
           .ls-arrow:hover{background:${COLORS.brandSoft};border-color:${COLORS.brand};color:${COLORS.brand};}
-          .ls-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${COLORS.ink};}
+          .ls-arrow:disabled{opacity:.25;cursor:default;background:var(--white);border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:560px){.ls-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ls-ttl h1{font-size:21px;letter-spacing:0.02em;}.ls-ttl .ls-ttl-dt{font-size:15px;}.ls-ttl-dot{display:none;}}
           @media(max-width:430px){.ls-mh-tile{width:34px !important;height:34px !important;font-size:20px !important;}}
         `}</style>
@@ -779,22 +800,22 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
 
         {/* start tile — sits where the board goes until the player presses Start,
             which begins the clock. The shuffled list stays sealed until then. */}
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Listed is ready'}</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Listed is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>{N} real things, shuffled. Rank them {PUZZLE.hi.toLowerCase()} to {PUZZLE.lo.toLowerCase()} in {MAX_CHECKS} submits.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="ls-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="ls-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -802,28 +823,28 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           </div>
         )}
 
-          <div className={LOFT && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
             {PUZZLE.cat ? (
               <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 5, padding: '2px 7px' }}>{PUZZLE.cat}</span>
             ) : null}
           </div>
-          <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 15.5, lineHeight: 1.35, color: COLORS.ink, marginBottom: 9 }}>{PUZZLE.title}</div>
+          <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 15.5, lineHeight: 1.35, color: INK, marginBottom: 9 }}>{PUZZLE.title}</div>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>by <b style={{ color: COLORS.ink, fontWeight: 500 }}>{PUZZLE.metric.toLowerCase()}</b></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <span style={{ whiteSpace: 'nowrap' }}>by <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.metric.toLowerCase()}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>submits <b style={{ color: checksUsed > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checksUsed}/{MAX_CHECKS}</b> &middot; locked <b style={{ color: lockedCount > 0 ? COLORS.lock : COLORS.ink, fontWeight: 500 }}>{lockedCount}/{N}</b></span>
           </div>
           )}
 
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>&uarr; {PUZZLE.hi}{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag rows or use the arrows</span> : null}</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 7 }}>&uarr; {PUZZLE.hi}{!mobileUi && playing ? <span style={{ color: '#a8adb8' }}> &middot; drag rows or use the arrows</span> : null}</div>
           <div className={shake ? 'ls-shake' : undefined} style={{ display: 'flex', flexDirection: 'column', gap: 7, userSelect: drag ? 'none' : undefined }}>
             {g.order.map((it, slot) => {
               const locked = lockedSlots[slot];
@@ -856,7 +877,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               );
             })}
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginTop: 7 }}>&darr; {PUZZLE.lo}</div>
+          <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginTop: 7 }}>&darr; {PUZZLE.lo}</div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: COLORS.lock, fontWeight: 500, marginTop: 8 }}>Ranked in {checksUsed} submit{checksUsed === 1 ? '' : 's'}.</div>}
 
         {/* Controls. These sit INSIDE the board card: on the navy stage a bare
@@ -867,7 +888,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)' }}>
             {g.rows.map((row, ri) => (
               <div key={ri} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 10, color: COLORS.faded }}>{ri + 1}</span>
+                <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 10, color: FADED }}>{ri + 1}</span>
                 {row.map((c, ci) => (
                   <span key={ci} style={{ width: 15, height: 15, borderRadius: 3, background: c === EXACT ? COLORS.lock : c === NEAR ? COLORS.near : '#d3d7de' }} />
                 ))}
@@ -875,39 +896,39 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
             ))}
           </div>
         )}
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (!LOFT || revealed) && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 7 }}>The real ranking</div>
+                <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 7 }}>The real ranking</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {PUZZLE.items.map((item, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, color: COLORS.faded, width: 16, textAlign: 'right', marginTop: 2 }}>{i + 1}</span>
+                      <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, color: FADED, width: 16, textAlign: 'right', marginTop: 2 }}>{i + 1}</span>
                       <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: COLORS.brandInk, background: COLORS.brandSoft, border: '1px solid rgba(134,25,143,0.35)', borderRadius: 6, padding: '2px 7px', minWidth: 74, textAlign: 'center', whiteSpace: 'nowrap', marginTop: 1 }}>{item.v}</span>
                       <span style={{ minWidth: 0 }}>
-                        <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: COLORS.ink }}>{item.t}</span>
-                        {item.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: COLORS.faded, marginTop: 1 }}>{item.d}</span> : null}
+                        <span style={{ display: 'block', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, lineHeight: 1.35, color: INK }}>{item.t}</span>
+                        {item.d ? <span style={{ display: 'block', fontFamily: SANS, fontWeight: 600, fontSize: 11.5, lineHeight: 1.45, color: FADED, marginTop: 1 }}>{item.d}</span> : null}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div style={{ fontFamily: MONO, fontSize: 10.5, color: COLORS.faded, marginTop: 11, borderTop: '1px solid rgba(28,30,36,0.14)', paddingTop: 8 }}>Source: {PUZZLE.source}</div>
+                <div style={{ fontFamily: MONO, fontSize: 10.5, color: FADED, marginTop: 11, borderTop: '1px solid rgba(28,30,36,0.14)', paddingTop: 8 }}>Source: {PUZZLE.source}</div>
               </div>
               {!isTodays && (
-                <p style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+                <p style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                   You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                   <a href="/listed" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Listed &rarr;</a>
                   {' · '}
-                  <a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                  <a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                 </p>
               )}
             </>
           )}
           </div>
           {LOFT && !playing && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
         </div>
         )}
@@ -990,11 +1011,12 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="listed" name="Listed" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="listed" name="Listed" onShow={() => setShowChrome(true)} />}
         {/* standard quiz-page bottom: challenge + stats + join + leaderboard */}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
-            <div className="loft-report">
+            <div className={STAGE ? undefined : 'loft-report'}>
               <ReportIssue self="listed" name="Listed" accent="#ffffff" align="center" />
             </div>
           )}
@@ -1017,16 +1039,16 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Listed to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Listed to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b>, and the tile opens today&apos;s ranking, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s ranking, every day.
                 </p>
               )}
@@ -1073,10 +1095,10 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="ls-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -1085,20 +1107,20 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Listed — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Listed</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Listed</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Listed is a free daily ranking puzzle from Mind Loft. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The amber tier is what makes it a deduction puzzle rather than a quiz. Knowing a row is one place from home turns a wild guess into arithmetic, and a board that looks hopeless after one submit is usually two nudges from solved. Rank the whole list on your first submit and you score a perfect 10.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Every board is a trivia, history or geography board, and the three rotate through the week: box office and sports records one day, founding years or independence dates the next, deepest trenches or highest capitals after that. Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: COLORS.ink, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: COLORS.ink, fontWeight: 800 }}>Dating</a>, our put-history-in-order puzzle, <a href="/links" style={{ color: COLORS.ink, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/outrank" style={{ color: COLORS.ink, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          Every board is a trivia, history or geography board, and the three rotate through the week: box office and sports records one day, founding years or independence dates the next, deepest trenches or highest capitals after that. Every answer key is a published number from a named source, never an opinion and never a critics&rsquo; poll, so there is always exactly one right order. A new list drops every day at midnight Eastern, and the Sunday Edition adds a ninth item. No app, no signup: play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our put-history-in-order puzzle, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, where the crowd is the answer key.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

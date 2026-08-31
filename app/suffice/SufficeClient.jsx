@@ -43,6 +43,10 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -197,6 +201,19 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('suffice');
+  const STAGE = isStage('suffice', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('suffice');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('suffice'), '--stg-acc-lt': gameColorLight('suffice') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -358,11 +375,15 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const ex = revealed && answerKey ? explainItem(item, answerKey) : null;
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="suffice" name="Suffice" collapsed={!!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="suffice" quizId={PUZZLE.quizId}
           name="Suffice"
           cat="Logic"
           outcome={playing ? null : (score === TOTAL ? 'won' : (score > 0 ? 'part' : 'lost'))}
@@ -383,11 +404,11 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
       <div className="sf-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.sf-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .sf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .sf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sf-btn:hover{background:${COLORS.accentSoft};}
           .sf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .sf-btn.primary:hover{background:${COLORS.accentDeep};}
-          .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${COLORS.ink};}
+          .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:var(--white);border:1.5px solid rgba(28,30,36,0.16);border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
           .sf-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
           .sf-choice:disabled{cursor:default;}
           .sf-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
@@ -395,7 +416,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           .sf-choice.right .k{background:${COLORS.green};color:var(--white);}
           .sf-choice.wrong{border-color:#b91c1c;background:#fee2e2;}
           .sf-choice.wrong .k{background:#b91c1c;color:var(--white);}
-          .sf-stmt{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${COLORS.ink};display:flex;gap:10px;}
+          .sf-stmt{background:var(--white);border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
           .sf-stmt .n{font-family:${MONO};font-weight:700;color:${COLORS.accentDeep};flex:0 0 auto;}
           .sf-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .sf-pip.on{background:${COLORS.accent};}
@@ -421,21 +442,21 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
         {/* LOFT: the play area sits on the navy stage, which runs full bleed
             and fills the first screen, so the board is the one lit object. */}
-        <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing ? 'loft-face' : undefined}>
-          <div className={LOFT ? 'loft-sheet' : undefined}>
+        <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? (loftRevealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-sheet' : undefined}>
 
           {/* start tile: full rules for a first-timer, compact card otherwise */}
           {preStart && (
             <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 {TOTAL} questions you do not have to answer.
               </h2>
-              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Each item gives you a question and two statements. You are not asked what the answer is,
-                only whether the statements are <b style={{ color: COLORS.accentDeep }}>enough to settle it</b>.
+                only whether the statements are <b style={{ color: ACC_DEEP }}>enough to settle it</b>.
                 Working out the actual value is wasted time.
               </p>
               {gateRules && (
@@ -468,19 +489,19 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                     <div key={i} className={`sf-pip${g.picks[i] ? (g.picks[i] === KEY[i] ? ' on' : ' miss') : ''}`} />
                   ))}
                 </div>
-                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {Math.min(idx + 1, TOTAL)}/{TOTAL} &middot; {elapsed}
                 </div>
               </div>
 
               {playing && (
                 <>
-                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, fontWeight: 700, marginBottom: 6 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, fontWeight: 700, marginBottom: 6 }}>
                     Item {idx + 1}
                   </div>
                   <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 11, padding: '14px 16px', marginBottom: 10 }}>
-                    <div style={{ fontSize: 14, color: COLORS.faded, fontWeight: 600, marginBottom: 5 }}>{item.stem}</div>
-                    <div style={{ fontSize: 17.5, fontWeight: 800, color: COLORS.ink, lineHeight: 1.4 }}>{item.ask}</div>
+                    <div style={{ fontSize: 14, color: FADED, fontWeight: 600, marginBottom: 5 }}>{item.stem}</div>
+                    <div style={{ fontSize: 17.5, fontWeight: 800, color: INK, lineHeight: 1.4 }}>{item.ask}</div>
                   </div>
                   <div className="sf-stmt"><span className="n">(1)</span><span>{item.s1}</span></div>
                   <div className="sf-stmt" style={{ marginBottom: 14 }}><span className="n">(2)</span><span>{item.s2}</span></div>
@@ -505,10 +526,10 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                       counterexample that proves the ones that were not */}
                   {revealed && ex && (
                     <div style={{ background: COLORS.accentSoft, border: `1px solid ${COLORS.accent}`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: COLORS.accentDeep, marginBottom: 7 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite — the answer is ${answerKey}.`}
                       </div>
-                      <div style={{ fontSize: 13.5, lineHeight: 1.6, color: COLORS.ink }}>
+                      <div style={{ fontSize: 13.5, lineHeight: 1.6, color: INK }}>
                         <div>(1) alone {ex.enough[0] ? 'settles it' : 'is not enough'}. (2) alone {ex.enough[1] ? 'settles it' : 'is not enough'}. Together they {ex.enough[2] ? 'settle it' : 'still do not'}.</div>
                         {ex.witness && (
                           <div style={{ marginTop: 7, paddingTop: 7, borderTop: '1px solid rgba(67,56,202,0.22)', fontFamily: MONO, fontSize: 12.5 }}>
@@ -528,14 +549,14 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
               {!playing && (
                 <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: COLORS.ink, marginBottom: 8 }}>{score}/{TOTAL} &middot; {elapsed}</div>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: INK, marginBottom: 8 }}>{score}/{TOTAL} &middot; {elapsed}</div>
                   {ITEMS.map((it, i) => (
                     <div key={i} style={{ display: 'flex', gap: 9, alignItems: 'center', padding: '5px 0', borderTop: i ? '1px solid rgba(28,30,36,0.08)' : 'none', fontSize: 13.5 }}>
-                      <span style={{ fontFamily: MONO, color: COLORS.faded, flex: '0 0 auto', width: 20 }}>{i + 1}</span>
+                      <span style={{ fontFamily: MONO, color: FADED, flex: '0 0 auto', width: 20 }}>{i + 1}</span>
                       <span style={{ flex: '0 0 auto', width: 22, height: 22, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12, background: g.picks[i] === KEY[i] ? COLORS.green : '#b91c1c', color: T.white }}>{KEY[i]}</span>
-                      <span style={{ color: COLORS.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.ask}</span>
-                      {g.picks[i] && g.picks[i] !== KEY[i] && <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>you said {g.picks[i]}</span>}
-                      {!g.picks[i] && <Minus size={14} style={{ marginLeft: 'auto', flex: '0 0 auto', color: COLORS.faded }} />}
+                      <span style={{ color: INK, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.ask}</span>
+                      {g.picks[i] && g.picks[i] !== KEY[i] && <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 12, color: FADED }}>you said {g.picks[i]}</span>}
+                      {!g.picks[i] && <Minus size={14} style={{ marginLeft: 'auto', flex: '0 0 auto', color: FADED }} />}
                     </div>
                   ))}
                 </div>
@@ -549,7 +570,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className="loft-showopts" onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (
@@ -599,10 +620,11 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="suffice" name="Suffice" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="suffice" name="Suffice" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="suffice" name="Suffice" accent="#ffffff" align="center" />
               </div>
             )}
@@ -645,14 +667,14 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
-              <b style={{ fontSize: 17, color: COLORS.ink }}>How Suffice works</b>
-              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <b style={{ fontSize: 17, color: INK }}>How Suffice works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: INK, margin: '0 0 10px' }}>
               Every item is a question plus two statements. You never answer the question. You decide
               whether the statements give enough information to answer it.
             </p>
-            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: INK, margin: '0 0 12px', paddingLeft: 20 }}>
               <li>Test statement (1) on its own, then (2) on its own, then both.</li>
               <li>A statement is sufficient when every case it allows gives the same answer.</li>
               <li>Find one pair of cases that disagree and it is insufficient.</li>
@@ -663,7 +685,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

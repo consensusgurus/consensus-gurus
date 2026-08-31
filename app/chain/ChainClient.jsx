@@ -32,6 +32,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { useStageTheme } from '@/lib/stage-theme';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -221,6 +225,19 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   const started = playing && !!g.t0;
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('chain');
+  const STAGE = isStage('chain', searchParams);
+  const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('chain');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('chain'), '--stg-acc-lt': gameColorLight('chain') };
+  const [stageTheme] = useStageTheme();
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   const won = g.status === 'won';
   const errors = g.errors;
@@ -713,9 +730,13 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   }
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      data-stage-theme={STAGE ? stageTheme : undefined}
+      style={{ ...(STAGE ? STAGE_ACC : null), minHeight: '100vh', position: 'relative', background: STAGE ? 'var(--stg-ground)' : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="chain" name="Chain" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. END GAME: the cap shows exactly what the strip showed at that moment and
           no more. The tally is kept and posted throughout but only APPEARS once
@@ -723,7 +744,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           the move was wrong. What is left while you play is the clock and the
           puzzle's own brief, both of which announce nothing. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="chain" quizId={PUZZLE.quizId}
           name="Chain"
           cat="End Game"
           outcome={playing ? null : (won ? 'won' : 'lost')}
@@ -746,9 +767,9 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
       <div className="ch-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.ch-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .ch-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accent};background:var(--white);color:${COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .ch-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accent};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ch-btn:hover{background:${COLORS.accentSoft};}
-          .ch-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
+          .ch-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:118px;box-sizing:border-box;}
           .ch-edge{-webkit-tap-highlight-color:transparent;}
           .ch-edge.live:hover span{transition:background .12s ease;}
           .ch-fresh{animation:chink .3s ease;}
@@ -780,23 +801,23 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
           {/* LOFT: the play area sits on the navy stage, which runs full bleed
               and fills the first screen. */}
-          <div className={LOFT ? 'loft-stage' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
-          <div className={LOFT && !playing && !endHold.held ? 'loft-face' : undefined}>
+          <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-flip-in' : undefined}>
+          <div className={LOFT && !STAGE && !playing && !endHold.held ? 'loft-face' : undefined}>
 
           {preStart && (
-            <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chain is ready'}</div>
+            <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Chain is ready'}</div>
               {gateRules ? rulesBody : (
-                <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                   <p style={{ margin: '0 0 6px' }}>The boxes are counted and you are winning this one. Exactly one edge keeps it. Draw the wrong one and the engine, which is perfect, will not give it back.</p>
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="ch-btn" onClick={startGame} style={{ background: T.cta, color: T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="ch-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                  <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>
                 </div>
@@ -805,19 +826,19 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           )}
 
           {!preStart && (
-            <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               {/* These figures move UP into the cap on a loft page; printing them
                   twice is the one thing to avoid. */}
               {!LOFT && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 {/* Kept and posted throughout, shown only once the boxes are
                     counted: a counter ticking up is itself a notice. */}
                 {!playing && <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
-                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+                <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-                  boxes <b style={{ color: COLORS.accent, fontWeight: 500 }}>{view.score.mine}</b>
+                  boxes <b style={{ color: ACC, fontWeight: 500 }}>{view.score.mine}</b>
                   <span style={{ opacity: 0.55 }}> &ndash; </span>
-                  <b style={{ color: COLORS.ink, fontWeight: 500 }}>{view.score.theirs}</b>
+                  <b style={{ color: INK, fontWeight: 500 }}>{view.score.theirs}</b>
                 </span>
               </div>
               )}
@@ -833,8 +854,8 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-                <div style={{ fontSize: endHold.held ? 15 : 13.5, fontWeight: endHold.held ? 800 : 700, color: COLORS.ink }}>{statusLine()}</div>
-                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded }}>
+                <div style={{ fontSize: endHold.held ? 15 : 13.5, fontWeight: endHold.held ? 800 : 700, color: INK }}>{statusLine()}</div>
+                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
                   <span style={{ color: EDGE_MINE }}>&#9632;</span> you &nbsp; <span style={{ color: EDGE_FOE }}>&#9632;</span> engine
                 </div>
               </div>
@@ -851,7 +872,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
                 row has nothing to sit on, and the card is meant to hold the game. */}
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 11, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.faded }}>No take-back. Every edge you draw is played.</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: FADED }}>No take-back. Every edge you draw is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <button className="ch-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
                   <Eye size={14} /> {armReveal ? 'Press again' : 'Give up'}
@@ -866,7 +887,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           )}
 
 
-          <div className="loft-sol">
+          <div className={STAGE ? undefined : 'loft-sol'}>
             {!playing && !endHold.held && (
               <div style={{ maxWidth: 472, margin: '0 auto 6px' }}>
                 {/* The key edge and the idea behind it go only to a solver. The
@@ -874,35 +895,35 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
                     is the whole puzzle, so it is withheld from everyone else. */}
                 {won ? (
                   <>
-                    <div style={{ fontSize: 14.5, fontWeight: 800, color: COLORS.ink, marginBottom: 6 }}>
-                      The key: <span style={{ color: COLORS.accent }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
+                    <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, marginBottom: 6 }}>
+                      The key: <span style={{ color: ACC }}>{revealKey ? 'the edge pulsing on the board' : 'the edge you found'}</span>.
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: FADED, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
                   </>
                 ) : (
-                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, lineHeight: 1.55 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: FADED, lineHeight: 1.55 }}>
                     We are not marking the edge. The win is still sitting in this position, so take another run at it.
                   </div>
                 )}
                 {PUZZLE.sunday && (
-                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: COLORS.faded, marginTop: 8 }}>The Sunday Edition, on the bigger 5 by 5 board.</div>
+                  <div style={{ fontSize: 12.5, fontStyle: 'italic', color: FADED, marginTop: 8 }}>The Sunday Edition, on the bigger 5 by 5 board.</div>
                 )}
                 {isTodays && myStats.cur >= 2 && (
                   <div style={{ fontSize: 12.5, fontWeight: 800, color: '#b45309', marginTop: 8 }}>{myStats.cur}-day streak</div>
                 )}
-                <p style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.faded, marginTop: 12, lineHeight: 1.6 }}>
+                <p style={{ fontSize: 12.5, fontWeight: 600, color: FADED, marginTop: 12, lineHeight: 1.6 }}>
                   {isTodays ? (
-                    <>Next Chain in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/chain?p=${PUZZLE.num - 1}`} style={{ color: COLORS.accent, fontWeight: 800 }}>Play yesterday&rsquo;s Chain &rarr;</a>)}</>
+                    <>Next Chain in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/chain?p=${PUZZLE.num - 1}`} style={{ color: ACC, fontWeight: 800 }}>Play yesterday&rsquo;s Chain &rarr;</a>)}</>
                   ) : (
-                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/chain" style={{ color: COLORS.accent, fontWeight: 800 }}>Back to today&rsquo;s Chain &rarr;</a></>
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/chain" style={{ color: ACC, fontWeight: 800 }}>Back to today&rsquo;s Chain &rarr;</a></>
                   )}
-                  {' '}<a href="/daily" style={{ color: COLORS.accent, fontWeight: 800 }}>All daily puzzles</a>
+                  {' '}<a href="/daily" style={{ color: ACC, fontWeight: 800 }}>All daily puzzles</a>
                 </p>
               </div>
             )}
           </div>
           {LOFT && !playing && !endHold.held && revealed && (
-            <button className="loft-showopts" onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && !endHold.held && (
@@ -953,11 +974,12 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-          <GamePanel self="chain" name="Chain" onShow={() => setShowChrome(true)} />
+          {/* The strip in the cap answers what this opens, without being pressed. */}
+          {!STAGE && <GamePanel self="chain" name="Chain" onShow={() => setShowChrome(true)} />}
 
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
             {LOFT && (
-              <div className="loft-report">
+              <div className={STAGE ? undefined : 'loft-report'}>
                 <ReportIssue self="chain" name="Chain" accent="#ffffff" align="center" />
               </div>
             )}
@@ -982,9 +1004,9 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
           {showA2hsHelp && (
             <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-              <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 380, fontFamily: SANS }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Chain to your home screen</div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.ink, lineHeight: 1.55, margin: '0 0 14px' }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 380, fontFamily: SANS }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Chain to your home screen</div>
+                <p style={{ fontSize: 13.5, fontWeight: 600, color: INK, lineHeight: 1.55, margin: '0 0 14px' }}>
                   {isIosDevice()
                     ? 'Tap the Share button in Safari, scroll down, and choose Add to Home Screen.'
                     : 'Open your browser menu and choose Install app, or Add to Home screen.'}
@@ -1023,10 +1045,10 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
 
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: 20, maxWidth: 460, maxHeight: '86vh', overflowY: 'auto', fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button type="button" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.ink, display: 'flex' }} aria-label="Close"><X size={20} /></button>
+              <div style={{ fontSize: 18, fontWeight: 800, color: INK }}>How to play</div>
+              <button type="button" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: INK, display: 'flex' }} aria-label="Close"><X size={20} /></button>
             </div>
             {rulesBody}
             <div style={{ marginTop: 16 }}>
@@ -1036,20 +1058,20 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: focusMode ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, margin: '0 0 8px' }}>About Chain</h2>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: '0 0 9px' }}>
+      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Chain</h2>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           Chain is the daily boxes endgame. Everyone knows the game from the back of a school exercise book: join two dots, close a box, go again. Almost nobody plays the ending, which is where the whole thing is actually decided.
         </p>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: '0 0 9px' }}>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           Once the safe edges run out, every move opens a chain for the other player, so the game turns into a question of who runs out of quiet moves first. That is why taking every box on offer can lose: handing the last two back keeps your opponent on move, and the move is often worth more than the boxes. Some days that is right and some days it is exactly wrong, which is the read the puzzle asks for.
         </p>
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.6, margin: 0 }}>
-          Every board is a real position reached by a real game, checked so that exactly one edge still wins it. More dailies: <a href="/four" style={{ color: COLORS.accent, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: COLORS.accent, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: COLORS.accent, fontWeight: 800 }}>Check</a>.
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: 0 }}>
+          Every board is a real position reached by a real game, checked so that exactly one edge still wins it. More dailies: <a href="/four" style={{ color: ACC, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: ACC, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: ACC, fontWeight: 800 }}>Check</a>.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
