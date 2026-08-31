@@ -31,7 +31,8 @@
 // this surface adds no new endpoint and cannot disagree with the other one
 // about what has been played.
 import { useEffect, useMemo, useState } from 'react';
-import { DAILY_GAMES } from '@/lib/daily-games';
+import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -42,6 +43,18 @@ const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
 
 const routeOf = (g) => g.href || `/${g.key}`;
+
+// The same identity the rest of the site sends: this surface must not disagree
+// with the old home about whose board it is showing.
+function identityQs() {
+  const p = new URLSearchParams();
+  try { const a = localStorage.getItem('sot_quiz_anon'); if (a) p.set('anonId', a); } catch (e) {}
+  try {
+    const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+    if (id && id.email) p.set('email', id.email);
+  } catch (e) {}
+  return p.toString();
+}
 
 function fmtDate(ymd) {
   if (!ymd) return '';
@@ -61,6 +74,16 @@ export default function StageToday() {
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [day, setDay] = useState('');
+  const [board, setBoard] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const qs = identityQs();
+    fetch('/api/quiz/daily-combined' + (qs ? `?${qs}` : ''))
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.overall)) setBoard(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   // The register decides which end of the ramp a category wears, exactly as it
   // does on a board: the pale step on the dark ground, its dark twin on the pale.
@@ -98,6 +121,32 @@ export default function StageToday() {
     .filter((c) => c.games.length), []);
 
   const total = useMemo(() => cats.reduce((n, c) => n + c.games.length, 0), [cats]);
+
+  // TODAY'S BOARD. Top eight, plus your own row appended when you are outside
+  // it — a leaderboard that cannot show you your own position is a scoreboard
+  // for other people.
+  const overall = board && Array.isArray(board.overall) ? board.overall : [];
+  const meKey = board && board.me ? board.me.userKey : null;
+  const top = overall.slice(0, 8);
+  const myRow = meKey ? overall.find((r) => r && r.userKey === meKey) : null;
+  const myOut = myRow && !top.some((r) => r && r.userKey === meKey) ? myRow : null;
+
+  // CIRCUITS. The set is DISPLAY_CIRCUITS and the membership is
+  // circuitKeysFor(id, day), which is the call that owns rotation — reading
+  // the raw keys instead would show yesterday's run on a rotating circuit.
+  const circuits = useMemo(() => {
+    if (!day) return [];
+    return DISPLAY_CIRCUITS.map((c) => {
+      let keys = [];
+      try { keys = circuitKeysFor(c.id, day) || []; } catch (e) { keys = []; }
+      const games = keys.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+      if (!games.length) return null;
+      const n = games.filter((g) => done.has(g.key)).length;
+      // A circuit spans categories, so it wears its LEAD game's step rather
+      // than inventing a tenth colour.
+      return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, hue: hueFor(games[0].cat) };
+    }).filter(Boolean);
+  }, [day, done, light]);   // eslint-disable-line react-hooks/exhaustive-deps
   const playedCount = done.size;
 
   // THE DAY, as one ladder. Blocks flex by their game count, so a block's width
@@ -216,6 +265,41 @@ export default function StageToday() {
           </div>
         )}
 
+        {top.length ? (
+          <section>
+            <div className="sty-eb">Today&rsquo;s board <em>&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</em></div>
+            <table className="sty-tbl">
+              <tbody>
+                {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
+                  <tr key={(r && r.userKey) || i} className={meKey && r.userKey === meKey ? 'me' : undefined}>
+                    <td className="sty-pos">{r.rank || i + 1}</td>
+                    <td className="sty-who">{r.username || 'Player'}</td>
+                    <td className="sty-gp">{typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${total}` : ''}</td>
+                    <td className="sty-pts">{r.total != null ? Math.round(r.total) : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
+        {circuits.length ? (
+          <section>
+            <div className="sty-eb">Circuits</div>
+            <div className="sty-circs">
+              {circuits.map((c) => (
+                <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
+                  href={circuitEntryHref(c.id)} style={{ '--cc': c.hue }}>
+                  <div className="sty-cn">{c.name}</div>
+                  <div className="sty-cb">{c.blurb}</div>
+                  <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
+                  <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* 4. THE CATEGORIES. One row each: the 4px rule carries the hue, the
                figures carry the state, and the games are plain chips. */}
         {cats.map(({ cat, games }) => {
@@ -303,6 +387,34 @@ const CSS = `
   border:1.5px solid currentColor;border-radius:9px;padding:9px 18px;}
 .sty-next:hover .sty-go{background:currentColor;color:var(--cc);}
 .sty-allin{cursor:default;}
+
+/* ── today's board ─────────────────────────────────────────────────────── */
+.sty-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.sty-tbl td{padding:7px 6px;border-bottom:1px solid var(--stg-line);font-size:13.5px;}
+.sty-tbl tr:last-child td{border-bottom:0;}
+.sty-tbl tr.me td{background:var(--stg-chip);font-weight:800;}
+.sty-pos{width:40px;font-family:${MONO};font-size:12px;color:var(--stg-mute);}
+.sty-who{font-weight:700;}
+.sty-gp{width:70px;text-align:right;color:var(--stg-mute);font-size:12px;}
+.sty-pts{width:56px;text-align:right;font-weight:800;}
+
+/* ── circuits ──────────────────────────────────────────────────────────── */
+.sty-circs{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
+.sty-circ{position:relative;display:block;text-decoration:none;color:var(--stg-ink);
+  background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:10px;
+  padding:12px 14px 13px 16px;overflow:hidden;}
+.sty-circ::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
+.sty-circ:hover{border-color:var(--cc);}
+.sty-cn{font-size:15px;font-weight:800;letter-spacing:-0.01em;}
+.sty-cb{font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;line-height:1.4;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sty-cbar{height:4px;border-radius:2px;background:var(--stg-surf2);margin-top:10px;overflow:hidden;}
+.sty-cbar span{display:block;height:100%;background:var(--cc);}
+.sty-cnum{position:absolute;top:12px;right:14px;font-family:${MONO};font-size:11.5px;
+  font-weight:700;color:var(--stg-ink2);}
+.sty-cnum i{font-style:normal;color:var(--stg-mute);}
+/* A finished circuit is DIM, like a played game: the day is a record. */
+.sty-circ.full{opacity:.5;}
 
 /* ── the categories ────────────────────────────────────────────────────── */
 .sty-cat{position:relative;padding-left:16px;}
