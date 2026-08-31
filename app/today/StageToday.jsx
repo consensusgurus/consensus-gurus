@@ -46,6 +46,33 @@ const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
 
 const routeOf = (g) => g.href || `/${g.key}`;
 
+// A daily's quizId is '<key>-M-D-YY', so the key is everything before the first
+// numeric part. Quiz plays that are not dailies resolve to nothing and are left
+// out: this is the daily home, and its feed is the dailies.
+function gameOfQuizId(id) {
+  const m = /^([a-z]+)-\d+-\d+-\d+$/.exec(String(id || ''));
+  return m ? DAILY_GAME_MAP[m[1]] || null : null;
+}
+
+function ago(iso) {
+  const t = Date.parse(iso);
+  if (!Number.isFinite(t)) return '';
+  const s = Math.max(0, Math.round((Date.now() - t) / 1000));
+  if (s < 60) return 'just now';
+  const m = Math.round(s / 60);
+  if (m < 60) return m + 'm ago';
+  const h = Math.round(m / 60);
+  if (h < 24) return h + 'h ago';
+  return Math.round(h / 24) + 'd ago';
+}
+
+function hhmm(sec) {
+  const x = Math.max(0, Math.round(Number(sec) || 0));
+  const h = Math.floor(x / 3600);
+  const m = Math.round((x % 3600) / 60);
+  return h ? h + 'h ' + m + 'm' : m + 'm';
+}
+
 // The same identity the rest of the site sends: this surface must not disagree
 // with the old home about whose board it is showing.
 function identityQs() {
@@ -164,6 +191,25 @@ export default function StageToday() {
       else localStorage.removeItem('sot_cat_order');
     } catch (e) {}
   };
+  // THE LIVE FEED, at the foot of this page rather than a link away to /feed,
+  // which is the ACTIVITY LOG and a different thing entirely (owner,
+  // 2026-08-31). Same two endpoints the other home's feed reads, so the two
+  // cannot disagree about how busy the day is.
+  const [feed, setFeed] = useState(null);
+  const [totals, setTotals] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/quiz/recent')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.plays)) setFeed(d.plays); })
+      .catch(() => {});
+    fetch('/api/quiz/totals')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && !d.error) setTotals(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   const [board, setBoard] = useState(null);
   // THE OVERALL RANK comes from /api/quiz/me, the same place the site header
   // reads it. daily-status computes the identical figure internally (posNow) but
@@ -316,6 +362,20 @@ export default function StageToday() {
   const myOut = myRow && !top.some((r) => r && r.userKey === meKey) ? myRow : null;
   const topRow = top[0] && top[0].total != null ? top[0] : null;
 
+  // Resolvable dailies only, most recent first, capped: a feed is a glance at
+  // what is happening, not a log.
+  const live = useMemo(() => {
+    if (!feed) return [];
+    const out = [];
+    for (const f of feed) {
+      const game = gameOfQuizId(f && f.quizId);
+      if (!game || f.total == null) continue;
+      out.push({ ...f, game });
+      if (out.length >= 14) break;
+    }
+    return out;
+  }, [feed]);
+
   // CIRCUITS. The set is DISPLAY_CIRCUITS and the membership is
   // circuitKeysFor(id, day), which is the call that owns rotation — reading
   // the raw keys instead would show yesterday's run on a rotating circuit.
@@ -440,7 +500,7 @@ export default function StageToday() {
             <path d="M4 21v-6M12 21V4M20 21v-10" />
           </svg>
         </a>
-        <a className="sty-cx sty-lf" href="/feed" aria-label="Live feed" title="Live feed">
+        <a className="sty-cx sty-lf" href="#sty-live" aria-label="Live feed" title="Live feed">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
             strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d="M4 12h3l2.5-6 4 13 2.5-7H21" />
@@ -636,6 +696,42 @@ export default function StageToday() {
             </table>
           </section>
         ) : null}
+
+        {/* THE LIVE FEED, and it is game PLAYS — not the activity log at /feed,
+            which tracks list and consensus changes. It sits at the foot because
+            it is what you read when you are done, not what you arrive for.
+
+            THE FIGURES ARE THE DAY'S, AND THE ROWS CARRY NO NAMES. That is the
+            existing feed's rule and it is kept deliberately: promoting one
+            person's run into a headline is a different product. */}
+        <section id="sty-live">
+          <div className="sty-eb">
+            Live feed
+            {totals ? (
+              <em>
+                {' \u00b7 '}{(totals.today || 0).toLocaleString()} plays
+                {totals.todayPlayers ? ` \u00b7 ${totals.todayPlayers.toLocaleString()} players` : ''}
+                {totals.todayTime ? ` \u00b7 ${hhmm(totals.todayTime)} played` : ''}
+              </em>
+            ) : null}
+          </div>
+          {live.length ? (
+            <div className="sty-live">
+              {live.map((f, i) => (
+                <a key={`${f.quizId}-${i}`} className="sty-lrow" href={`${routeOf(f.game)}?stage=1${tq}`}
+                  style={{ '--cc': hueFor(f.game.cat) }}>
+                  <Glyph k={f.game.key} size={15} />
+                  <span className="sty-lname">{f.game.name}</span>
+                  <span className="sty-lsc">{f.score}<i>/{f.total}</i></span>
+                  <span className="sty-lwhen">{ago(f.playedAt)}</span>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="sty-lnone">{feed ? 'No plays yet today.' : 'Loading the feed…'}</div>
+          )}
+        </section>
+
       </div>
     </div>
   );
@@ -755,6 +851,21 @@ const CSS = `
 .sty-signup b{font-size:13px;font-weight:800;line-height:1.2;}
 .sty-signup i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;opacity:.8;}
+/* ── the live feed ─────────────────────────────────────────────────────── */
+.sty-live{display:grid;gap:5px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+.sty-lrow{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--stg-ink);
+  background:var(--stg-surf);border:1px solid var(--stg-line);border-left:3px solid var(--cc);
+  border-radius:8px;padding:8px 11px;min-width:0;}
+.sty-lrow:hover{border-color:var(--stg-line2);border-left-color:var(--cc);}
+.sty-lrow .sty-gi{color:var(--cc);}
+.sty-lname{font-size:13px;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sty-lsc{margin-left:auto;flex:none;font-family:${MONO};font-size:12px;font-weight:700;
+  font-variant-numeric:tabular-nums;}
+.sty-lsc i{font-style:normal;color:var(--stg-mute);}
+.sty-lwhen{flex:none;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--stg-mute2);width:62px;text-align:right;}
+.sty-lnone{color:var(--stg-mute);font-size:13px;font-weight:600;}
+
 .sty-ord{display:flex;gap:7px;}
 .sty-ordb{width:auto;margin-top:0;padding:7px 13px;}
 .sty-move{display:inline-flex;gap:4px;margin-left:10px;}
