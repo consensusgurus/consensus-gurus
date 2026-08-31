@@ -47,7 +47,6 @@
 // anchors by their own class only.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { useStageTheme } from '@/lib/stage-theme';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref, circuitEntryHref } from '@/lib/circuits';
@@ -202,8 +201,15 @@ export default function TodayClient({ onSignup = null } = {}) {
   // conversion is the token remap at the bottom of CSS rather than a rewrite:
   // this page is already built on the site's CSS variables, so redefining those
   // variables converts every surface on it at once.
-  const searchParams = useSearchParams();
-  const STAGE = searchParams ? searchParams.get('stage') === '1' : false;
+  // Read in an EFFECT, not with useSearchParams. This page is statically
+  // rendered, where that hook hands back null and the flag silently reads false
+  // — which is exactly what happened: ?stage=1 did nothing at all. It is also
+  // the rule the rest of this file already follows for anything the server
+  // cannot know, and the same one useStageTheme follows.
+  const [STAGE, setStage] = useState(false);
+  useEffect(() => {
+    try { setStage(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+  }, []);
   const [stageTheme] = useStageTheme();
   // Build the shelves once: the sudoku circuit pool leaves Numbers and becomes
   // its own category. Static, so the server and client render the same rows.
