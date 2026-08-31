@@ -259,7 +259,10 @@ export default function StageToday() {
               <i>today&rsquo;s board</i>
             </div>
           ) : null}
-          <div><b>{playedCount}<i>/{total}</i></b><i>played</i></div>
+          {/* NO PLAYED COUNT HERE (owner, 2026-08-31): the ladder directly
+              below is that number drawn, and every category row carries its
+              own n/N. The cap says what the day has EARNED you; what is left
+              to play is the rest of the page's whole job. */}
         </div>
         <button
           type="button"
@@ -301,8 +304,6 @@ export default function StageToday() {
                 </a>
               );
             })}
-          </div>
-        </section>
 
         {/* 3. UP NEXT. One card, in its own category's colour, and the only
                filled control on the page. */}
@@ -323,24 +324,6 @@ export default function StageToday() {
             </div>
           </div>
         )}
-
-        {top.length ? (
-          <section>
-            <div className="sty-eb">Today&rsquo;s board <em>&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</em></div>
-            <table className="sty-tbl">
-              <tbody>
-                {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
-                  <tr key={(r && r.userKey) || i} className={meKey && r.userKey === meKey ? 'me' : undefined}>
-                    <td className="sty-pos">{r.rank || i + 1}</td>
-                    <td className="sty-who">{r.username || 'Player'}</td>
-                    <td className="sty-gp">{typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${total}` : ''}</td>
-                    <td className="sty-pts">{r.total != null ? Math.round(r.total) : ''}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        ) : null}
 
         {circuits.length ? (
           <section>
@@ -388,6 +371,31 @@ export default function StageToday() {
             </section>
           );
         })}
+
+        {/* THE STANDINGS COME LAST (owner, 2026-08-31: the leaderboard does not
+            need to be at the top of the page). The top of a home is for what
+            you can play; where everyone finished is what you read once you have
+            played it, so it sits under the games rather than above them. */}
+        {top.length ? (
+          <section>
+            <div className="sty-eb">Today&rsquo;s board <em>&middot; {overall.length} {overall.length === 1 ? 'player' : 'players'}</em></div>
+            <table className="sty-tbl">
+              <tbody>
+                {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
+                  <tr key={(r && r.userKey) || i} className={meKey && r.userKey === meKey ? 'me' : undefined}>
+                    <td className="sty-pos">{r.rank || i + 1}</td>
+                    <td className="sty-who">{r.username || 'Player'}</td>
+                    <td className="sty-gp">{typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${total}` : ''}</td>
+                    <td className="sty-pts">{r.total != null ? Math.round(r.total) : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
+          </div>
+        </section>
       </div>
     </div>
   );
