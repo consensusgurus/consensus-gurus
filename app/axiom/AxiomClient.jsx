@@ -727,7 +727,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-btn:hover{background:var(--accent-soft);}
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
-          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
+          .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
           .ax-tile:hover:not(:disabled){border-color:${COLORS.accent};}
           .ax-tile:disabled{cursor:default;}
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
@@ -736,14 +736,14 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-tile.marked{background:${COLORS.paper};border-style:dashed;border-color:rgba(28,30,36,0.32);color:${FADED};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
           .ax-tile.marked:hover:not(:disabled){opacity:1;}
           .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
-          .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
-          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
+          .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
+          .ax-rule{display:flex;align-items:flex-start;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
           .ax-rule.struck .ax-rule-t{text-decoration:line-through;}
           .ax-rule.dead{opacity:0.42;}
           .ax-rule.dead .ax-rule-t{text-decoration:line-through;}
           .ax-rule.win{border-color:${COLORS.green};border-left-color:${COLORS.green};background:${COLORS.greenSoft};}
-          .ax-chip{flex:0 0 auto;width:26px;height:26px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.25);background:${COLORS.cream};font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;color:${FADED};}
+          .ax-chip{flex:0 0 auto;width:26px;height:26px;border-radius:7px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));background:${COLORS.cream};font-family:${MONO};font-size:12px;font-weight:500;display:flex;align-items:center;justify-content:center;color:${FADED};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>

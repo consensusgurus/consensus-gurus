@@ -908,14 +908,14 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
           .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
           @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}
-          .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
+          .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .cg-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .cg-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
           .cg-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 rgba(55,20,110,0.55);}
           .cg-pad.armed .cg-pad-n{color:#ded2fb;}
           .cg-pad .cg-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .cg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .cg-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
+          .cg-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>

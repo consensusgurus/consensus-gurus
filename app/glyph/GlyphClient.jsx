@@ -591,8 +591,8 @@ export default function GlyphClient({ puzzles, forceNum }) {
         <style>{`
           .gl-btn{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .gl-btn:disabled{opacity:0.4;cursor:default;}
-          .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border:1px solid rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .gl-cell.blk{background:${COLORS.ink};border-color:${COLORS.ink};cursor:default;}
+          .gl-cell{box-sizing:border-box;display:flex;align-items:center;justify-content:center;position:relative;min-width:0;min-height:0;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;border: 1px solid var(--stg-line, rgba(28,30,36,0.16));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
+          .gl-cell.blk{background:${COLORS.ink};border-color:var(--stg-ink, ${COLORS.ink});cursor:default;}
           .gl-cell.sel{background:#dbeafe;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .gl-cell.kin{background:${COLORS.accentSoft};}
           .gl-cell.bad{background:${STAGE ? 'var(--stg-surf2)' : '#fdecea'};box-shadow:inset 0 0 0 2px ${COLORS.rust};}
@@ -600,10 +600,10 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${INK};line-height:1;}
           .gl-ltr.given{color:${COLORS.accent};}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
-          .gl-keycap{border:1.5px solid rgba(28,30,36,0.28);border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
+          .gl-keycap{border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.28));border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
           .gl-keycap.used{background:${COLORS.paper};color:#a4abb8;text-decoration:line-through;}
           .gl-keycap:disabled{cursor:default;}
-          .gl-chip{border:1.5px solid rgba(28,30,36,0.22);border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
+          .gl-chip{border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.22));border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
           .gl-chip.on{border-color:${COLORS.accent};background:#dbeafe;}
           .gl-chip b{display:block;font-family:${SANS};font-size:13px;color:${INK};}
           .gl-card{padding:13px 15px 15px;}

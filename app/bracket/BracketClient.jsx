@@ -427,8 +427,8 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-rounds{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
           .bk-col{flex:0 0 auto;width:168px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
           .bk-rh{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${FADED};margin-bottom:2px;}
-          .bk-m{border:1px solid rgba(28,30,36,0.14);border-radius:9px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid rgba(28,30,36,0.08);padding:8px 9px;cursor:pointer;}
+          .bk-m{border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:9px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
+          .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));padding:8px 9px;cursor:pointer;}
           .bk-s:last-child{border-bottom:none;}
           .bk-s:hover:not(:disabled){background:${COLORS.accentSoft};}
           .bk-s:disabled{cursor:default;color:var(--muted);}

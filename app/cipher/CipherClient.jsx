@@ -960,7 +960,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
           .cf-op{width:26px;font-size:22px;font-weight:800;color:${FADED};text-align:center;flex:0 0 auto;}
-          .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.14);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;font-family:${SANS};}
+          .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;font-family:${SANS};}
           .cf-cell:hover{background:${COLORS.accentSoft};}
           .cf-cell.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
           .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
@@ -980,7 +980,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              box and players read those numerals as the letter's digit. The pad
              keys below carry the same information one number to a box. */
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
-          .cf-pk{position:relative;height:50px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
+          .cf-pk{position:relative;height:50px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
           .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:${COLORS.accent};font-weight:800;letter-spacing:0.02em;}
           .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
@@ -1017,7 +1017,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-say.bad{color:${COLORS.rust};}
           .cf-say.good{color:${COLORS.green};}
           .cf-strip{display:grid;gap:3px;}
-          .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:1.5px solid rgba(28,30,36,0.16);border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
+          .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${INK};line-height:1;}
           .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
           /* An unassigned letter shows a DOT, never a number. The count of
@@ -1037,7 +1037,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock .cf-pk{height:46px;font-size:20px;}
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
           .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
-          .cf-db{height:44px;border-radius:9px;border:1.5px solid rgba(28,30,36,0.2);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
+          .cf-db{height:44px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
           .cf-db.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
           .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
           .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}

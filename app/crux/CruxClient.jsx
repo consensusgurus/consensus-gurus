@@ -1479,7 +1479,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             // of the stage: a white panel here reads as a cut-out, and a dark
             // panel reads as a second ground nobody asked for.
             ? { background: 'transparent', border: 'none', borderRadius: 0, padding: 0, boxShadow: 'none', marginBottom: 12 }
-            : { background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+            : { background: `var(--stg-surf, ${T.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             {!LOFT && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
               <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
@@ -1555,11 +1555,11 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* selected slot bar — only while there are still words to guess */}
           {started && slot && !allWordsSolved && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16, marginBottom: 10, flexWrap: 'wrap' }}>
-              <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
+              <button className="cl-key" onClick={() => cycleSlot(-1)} aria-label="Previous word" style={{ background: `var(--stg-surf2, ${COLORS.paper})`, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronLeft size={17} /></button>
               <div style={{ fontSize: 14, fontWeight: 800, color: INK }}>
                 {slotLabel(sel)} <span style={{ color: FADED, fontWeight: 700 }}>&middot; {slot.word.length} letters &middot; {(g.slotGuesses[sel] || 0)} guess{(g.slotGuesses[sel] || 0) === 1 ? '' : 'es'} spent</span>
               </div>
-              <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
+              <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: `var(--stg-surf2, ${COLORS.paper})`, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
               {freeHintOk && (
                 <button className="cl-key" onClick={() => revealHint(false)} title="Reveal one letter in this word. Free, and only on your first ever Crux."
                   style={{ marginLeft: 'auto', background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: STAGE ? INK : '#8a6d1a' }}>
@@ -1628,7 +1628,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                     );
                   })}
                   {ri === 2 && (
-                    <button className="cl-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>
+                    <button className="cl-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: `var(--stg-surf2, ${COLORS.paper})`, color: INK, fontSize: 16 }}>&#9003;</button>
                   )}
                 </div>
               ))}

@@ -217,7 +217,7 @@ function EtchGallery({ puzzles, rec, currentNum }) {
   return (
     <div style={{ margin: '20px 0 0' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
-        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.faded }}>Your gallery</span>
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-mute, ${COLORS.faded})` }}>Your gallery</span>
         <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 800, color: developed ? COLORS.accent : COLORS.faded }}>
           {developed} of {items.length} developed
         </span>
@@ -248,7 +248,7 @@ function EtchGallery({ puzzles, rec, currentNum }) {
           );
         })}
       </div>
-      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, margin: '8px 0 0' }}>
+      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: `var(--stg-mute, ${COLORS.faded})`, margin: '8px 0 0' }}>
         Solve a day and its picture fills in here. Sundays develop in {'\u2009'}<span style={{ color: COLORS.accent, fontWeight: 800 }}>moss</span>.
       </div>
     </div>
@@ -928,7 +928,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${INK};min-width:0;min-height:0;line-height:1;}
           .et-clue.done{color:#c3c8d4;}
           .et-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .et-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
+          .et-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
         `}</style>
 
         <div style={{ maxWidth: shellMax, margin: '0 auto' }}>

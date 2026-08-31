@@ -552,7 +552,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           .fl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
           @media(max-width:560px){.fl-grid{grid-template-columns:1fr;}}
           .fl-slot{display:flex;align-items:center;font-family:${SANS};font-size:14px;border:2px solid;border-radius:9px;padding:10px 12px;line-height:1.3;transition:background .15s ease,border-color .15s ease;}
-          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border:2px solid rgba(28,30,36,0.4);border-radius:9px;padding:11px 13px;color:${INK};background:${T.white};outline:none;}
+          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border: 2px solid var(--stg-line, rgba(28,30,36,0.4));border-radius:9px;padding:11px 13px;color:${INK};background:${T.white};outline:none;}
           .fl-input:focus{border-color:${COLORS.accent};}
           .fl-input.shake{animation:flshake .3s linear;}
           @keyframes flshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}

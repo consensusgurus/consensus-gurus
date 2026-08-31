@@ -242,7 +242,7 @@ function SpanMap({ chain, best, alts }) {
           );
         })}
       </svg>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: COLORS.faded, marginTop: 6 }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.06em', color: `var(--stg-mute, ${COLORS.faded})`, marginTop: 6 }}>
         {showRoad && (
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span style={swatch('#8fdcab')} /> your road
@@ -815,7 +815,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           .sp-shake{animation:spshake .45s ease;}
           @keyframes spfade{from{opacity:0;}}
           @keyframes spstamp{from{opacity:0;transform:scale(.94);}}
-          .sp-sug{display:block;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid rgba(28,30,36,0.08);font-family:${SANS};font-weight:700;font-size:14px;color:${INK};padding:9px 13px;cursor:pointer;}
+          .sp-sug{display:block;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));font-family:${SANS};font-weight:700;font-size:14px;color:${INK};padding:9px 13px;cursor:pointer;}
           .sp-sug:hover{background:${STAGE ? 'var(--stg-surf2)' : '#eef4ff'};}
           @media(max-width:520px){.sp-htp-f{display:none;}.sp-htp-s{display:inline;}}
           @media(max-width:560px){.sp-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sp-ttl h1{font-size:21px;letter-spacing:0.02em;}.sp-ttl .sp-ttl-dt{font-size:15px;}.sp-ttl-dot{display:none;}}

@@ -1040,19 +1040,19 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.tl-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.tl-ttl h1{font-size:21px;letter-spacing:0.02em;}.tl-ttl .tl-ttl-dt{font-size:15px;}.tl-ttl-dot{display:none;}}
           .tl-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:21px;font-weight:500;color:${INK};box-sizing:border-box;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
           .tl-blocked{background:${COLORS.ink};}
-          .tl-given{background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};border:1.5px solid rgba(28,30,36,0.25);position:relative;}
+          .tl-given{background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));position:relative;}
           .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:rgba(28,30,36,0.3);}
           .tl-empty{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px dashed rgba(28,30,36,0.4);cursor:pointer;}
           .tl-empty.hot{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.16);}
-          .tl-placed{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.55);cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
+          .tl-placed{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
           .tl-placed:active{transform:translateY(1px);}
           /* certainty marks, all navy — deliberately NOT the green used for a
              balanced line, since green means the board agrees and navy means the
              player does. Rails show which half is proven: rails top+bottom pin
              the tile into its horizontal band (right row), rails left+right pin
              it into the vertical one (right column), both = the exact square. */
-          .tl-placed.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border:1.5px solid rgba(28,30,36,0.14);border-top:4px solid ${COLORS.ember};border-bottom:4px solid ${COLORS.ember};}
-          .tl-placed.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border:1.5px solid rgba(28,30,36,0.14);border-left:4px solid ${COLORS.ember};border-right:4px solid ${COLORS.ember};}
+          .tl-placed.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:4px solid ${COLORS.ember};border-bottom:4px solid ${COLORS.ember};}
+          .tl-placed.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:4px solid ${COLORS.ember};border-right:4px solid ${COLORS.ember};}
           .tl-placed.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
           .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
           /* a half-marked tile is draggable along the line it has proven. The
@@ -1063,21 +1063,21 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-placed.tl-drag{box-shadow:0 7px 15px rgba(14,29,64,0.3);}
           .tl-placed.tl-drag:active{transform:none;}
           /* legend swatches under the board reuse the same language at 22px */
-          .tl-key{width:22px;height:22px;border-radius:5px;border:1.5px solid rgba(28,30,36,0.55);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};flex:none;box-sizing:border-box;position:relative;}
-          .tl-key.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border:1.5px solid rgba(28,30,36,0.14);border-top:3px solid ${COLORS.ember};border-bottom:3px solid ${COLORS.ember};}
-          .tl-key.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border:1.5px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.ember};border-right:3px solid ${COLORS.ember};}
+          .tl-key{width:22px;height:22px;border-radius:5px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};flex:none;box-sizing:border-box;position:relative;}
+          .tl-key.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:3px solid ${COLORS.ember};border-bottom:3px solid ${COLORS.ember};}
+          .tl-key.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.ember};border-right:3px solid ${COLORS.ember};}
           .tl-key.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${COLORS.ember};}
           .tl-key.mk-both::after{content:'\\2713';position:absolute;top:0;right:2px;font-family:${SANS};font-size:9px;font-weight:800;line-height:1.1;color:${COLORS.ember};}
-          .tl-legend{border-top:1px solid rgba(28,30,36,0.14);margin-top:14px;padding-top:11px;}
+          .tl-legend{border-top: 1px solid var(--stg-line, rgba(28,30,36,0.14));margin-top:14px;padding-top:11px;}
           .tl-legend li{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
           @media(max-width:560px){.tl-legend li{align-items:flex-start;}}
-          .tl-act{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:7px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
+          .tl-act{font-family:${SANS};font-weight:800;font-size:12.5px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.35));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:7px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
           .tl-act:hover:not(:disabled){border-color:${COLORS.ember};color:${COLORS.ember};}
           .tl-act:disabled{opacity:0.38;cursor:default;}
           .tl-tgt{cursor:default;}
           .tl-tgt.live{cursor:pointer;}
           .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
-          .tl-rtile{width:42px;height:42px;border-radius:8px;border:1.5px solid rgba(28,30,36,0.55);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-size:20px;font-weight:500;color:${INK};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
+          .tl-rtile{width:42px;height:42px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-size:20px;font-weight:500;color:${INK};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
           .tl-rtile:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.5);}
           .tl-rtile.sel{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.2), 0 2.5px 0 rgba(28,30,36,0.5);}
           .tl-rtile.used{visibility:hidden;}

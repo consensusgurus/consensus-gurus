@@ -496,7 +496,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           .wm-chip{font-family:${SANS};font-weight:800;font-size:12px;border-radius:8px;padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .wm-actions{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
           .wm-list{display:flex;flex-direction:column;gap:6px;}
-          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.12);border-radius:9px;padding:8px 12px;}
+          .wm-row{display:grid;grid-template-columns:118px 1fr 74px 52px;gap:10px;align-items:center;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.12));border-radius:9px;padding:8px 12px;}
           .wm-row.pinned{border-width:2px;box-shadow:0 2px 0 rgba(28,30,36,0.06);}
           .wm-word{font-family:${SANS};font-weight:800;font-size:15px;color:${INK};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
           .wm-track{height:9px;border-radius:99px;background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};overflow:hidden;}

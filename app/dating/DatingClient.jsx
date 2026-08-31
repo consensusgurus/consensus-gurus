@@ -757,7 +757,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           .dt-shake{animation:dtshake .45s ease;}
           @keyframes dtfade{from{opacity:0;}}
           @keyframes dtstamp{from{opacity:0;transform:scale(.94);}}
-          .dt-arrow{width:34px;height:31px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+          .dt-arrow{width:34px;height:31px;border-radius:7px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
           .dt-arrow:hover{background:${COLORS.plumSoft};border-color:${COLORS.plum};color:${COLORS.plum};}
           .dt-arrow:disabled{opacity:.25;cursor:default;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:520px){.dt-htp-f{display:none;}.dt-htp-s{display:inline;}}

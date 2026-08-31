@@ -134,21 +134,21 @@ function OutwitLiveBoard({ board }) {
     <div style={{ maxWidth: 472, margin: '0 auto 12px', background: 'var(--stg-surf, var(--white))', border: '1.5px solid var(--stg-line, rgba(28,30,36,0.18))', borderRadius: 10, padding: '13px 15px' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
         <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: COLORS.accent }}>Live standings</span>
-        <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
+        <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: `var(--stg-mute, ${COLORS.faded})`, marginLeft: 'auto' }}>{fmtBig(board.field || 0)} in the field</span>
       </div>
-      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: COLORS.faded, lineHeight: 1.45, marginBottom: 10 }}>
+      <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 600, color: `var(--stg-mute, ${COLORS.faded})`, lineHeight: 1.45, marginBottom: 10 }}>
         Nothing here is final. Every new player re-scores the whole board &mdash; your place climbs or slips as the crowd fills in.
         {board.houseActive ? ' The house crowd is still seeding until ten players lock in.' : ''}
       </div>
       {top.length === 0 ? (
-        <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, padding: '6px 0' }}>No one has joined the board yet &mdash; be the first name on it.</div>
+        <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: `var(--stg-mute, ${COLORS.faded})`, padding: '6px 0' }}>No one has joined the board yet &mdash; be the first name on it.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {top.map((r, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '5px 8px', borderRadius: 6, background: r.you ? 'rgba(232,180,58,0.16)' : (i % 2 ? COLORS.cream : 'transparent'), border: r.you ? `1px solid ${COLORS.gold}` : '1px solid transparent' }}>
               <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 500, color: r.rank <= 3 ? COLORS.ink : COLORS.faded, textAlign: 'right' }}>{r.rank}</span>
               <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: r.you ? 800 : 600, color: r.you ? '#8a6d1a' : COLORS.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name}{r.you ? ' \u00b7 you' : ''}</span>
-              <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{r.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+              <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums' }}>{r.total}<span style={{ color: `var(--stg-mute, ${COLORS.faded})`, fontSize: 10.5 }}>/10</span></span>
             </div>
           ))}
         </div>
@@ -157,11 +157,11 @@ function OutwitLiveBoard({ board }) {
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(28,30,36,0.1)', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ flex: '0 0 26px', fontFamily: MONO, fontSize: 12, fontWeight: 700, color: '#8a6d1a', textAlign: 'right' }}>{board.you.rank}</span>
           <span style={{ flex: '1 1 auto', fontFamily: SANS, fontSize: 13, fontWeight: 800, color: '#8a6d1a' }}>You</span>
-          <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: COLORS.ink }}>{board.you.total}<span style={{ color: COLORS.faded, fontSize: 10.5 }}>/10</span></span>
+          <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 12.5, fontWeight: 500, color: `var(--stg-ink, ${COLORS.ink})` }}>{board.you.total}<span style={{ color: `var(--stg-mute, ${COLORS.faded})`, fontSize: 10.5 }}>/10</span></span>
         </div>
       ) : null}
       {!board.youRegistered ? (
-        <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 11, fontWeight: 700, color: COLORS.faded }}>Join the leaderboard below to take your place as the field grows.</div>
+        <div style={{ marginTop: 8, fontFamily: SANS, fontSize: 11, fontWeight: 700, color: `var(--stg-mute, ${COLORS.faded})` }}>Join the leaderboard below to take your place as the field grows.</div>
       ) : null}
     </div>
   );
@@ -803,7 +803,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ow-btn:hover{background:var(--accent-soft);}
-          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border:2px solid rgba(28,30,36,0.3);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
+          .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border: 2px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
           .ow-opt:hover{border-color:${COLORS.accent};}
           .ow-opt-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
           .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}

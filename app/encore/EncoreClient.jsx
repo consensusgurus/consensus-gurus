@@ -753,7 +753,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
           .ec-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .ec-cluerow:hover{background:${COLORS.paper};}
-          .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+          .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border: 1.5px solid var(--stg-line, rgba(28,30,36,0.4));height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .ec-key:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
           .ec-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ec-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
@@ -812,7 +812,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These three figures move UP into the cap on a loft page. Printing
               them in both places is the one thing to avoid: the cap exists to
               give the board this row back. */}
@@ -896,7 +896,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
 
         {/* clue lists */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: THEME.white, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: '1.5px solid rgba(20,22,28,0.12)', borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
           <div className="ec-cols">
             <div>
               <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '0 0 6px 6px' }}>Across</div>
@@ -1040,7 +1040,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: THEME.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: `var(--stg-surf, ${THEME.white})`, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Encore to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>

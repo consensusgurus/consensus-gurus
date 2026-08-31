@@ -497,7 +497,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           .bk-grid{border-collapse:separate;border-spacing:3px;font-family:${SANS};}
           .bk-grid th{font-size:10.5px;font-weight:800;color:${FADED};padding:2px 4px;text-align:left;white-space:nowrap;}
           .bk-grid th.col{writing-mode:vertical-rl;transform:rotate(180deg);height:64px;text-align:right;}
-          .bk-cell{width:38px;height:34px;border-radius:7px;border:1.5px solid rgba(28,30,36,0.18);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${INK};}
+          .bk-cell{width:38px;height:34px;border-radius:7px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.18));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${SANS};font-weight:800;font-size:13px;cursor:pointer;color:${INK};}
           .bk-cell.W{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .bk-cell.D{background:${STAGE ? 'var(--stg-surf2)' : '#fef3c7'};border-color:#b45309;color:#78350f;}
           .bk-cell.L{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;}
@@ -506,9 +506,9 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           .bk-tbl{width:100%;border-collapse:collapse;font-family:${SANS};font-size:12.5px;}
           .bk-tbl th{font-family:${MONO};font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:${FADED};font-weight:500;text-align:right;padding:4px 6px;}
           .bk-tbl th:first-child{text-align:left;}
-          .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${INK};border-top:1px solid rgba(28,30,36,0.09);}
+          .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${INK};border-top:1px solid var(--stg-line, rgba(28,30,36,0.09));}
           .bk-tbl td:first-child{text-align:left;font-weight:800;}
-          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid rgba(28,30,36,0.14);border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
+          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -626,7 +626,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: THEME.white, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: `var(--stg-surf, ${THEME.white})`, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done' ? (won ? <>Rebuilt clean, first sheet, no nudges.</> : <>Rebuilt after {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'}{g.hints ? ` and ${g.hints} nudge${g.hints === 1 ? '' : 's'}` : ''}.</>) : <>The record beat you. The true results are shown above.</>}
@@ -716,7 +716,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: THEME.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: `var(--stg-surf, ${THEME.white})`, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Stands to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>

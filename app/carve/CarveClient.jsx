@@ -733,11 +733,11 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           .cv-cell.cv-wrongflash{background:${STAGE ? 'var(--stg-surf2)' : '#fdecec'} !important;animation:cvshake .32s ease;}
           .cv-cell.cv-bounce{animation:cvbounce .3s ease;}
           .cv-seed-ring{position:absolute;inset:14%;border-radius:99px;pointer-events:none;}
-          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};box-shadow:0 2px 0 rgba(28,30,36,0.35);border:1.5px solid rgba(28,30,36,0.4);min-width:0;}
+          .cv-chip{position:relative;border:none;border-radius:9px;cursor:pointer;padding:7px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:${MONO};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};box-shadow:0 2px 0 rgba(28,30,36,0.35);border: 1.5px solid var(--stg-line, rgba(28,30,36,0.4));min-width:0;}
           .cv-chip:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.35);}
           .cv-chip.on{border-width:2.5px;}
           .cv-chip.done{opacity:.55;box-shadow:none;cursor:default;}
-          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .cv-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.35));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -792,7 +792,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
 
         {/* the board */}
         {!preStart && (
-        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: THEME.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: `var(--stg-surf, ${THEME.white})`, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
@@ -986,7 +986,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: THEME.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: `var(--stg-surf, ${THEME.white})`, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
               <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Carve to your Home Screen</div>
               {isIosDevice() ? (
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>

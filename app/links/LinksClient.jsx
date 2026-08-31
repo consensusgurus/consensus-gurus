@@ -591,9 +591,9 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.lk-wrap{padding-left:14px !important;padding-right:14px !important;}}
           .lk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .lk-btn:hover{background:var(--accent-soft);}
-          .lk-tile{font-family:${SANS};font-weight:800;border-radius:8px;cursor:pointer;border:1.5px solid rgba(28,30,36,0.42);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 3px;min-height:58px;user-select:none;touch-action:manipulation;transition:background .1s,transform .1s;box-shadow:inset 0 1px 2px rgba(28,30,36,0.07);overflow:hidden;}
+          .lk-tile{font-family:${SANS};font-weight:800;border-radius:8px;cursor:pointer;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.42));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 3px;min-height:58px;user-select:none;touch-action:manipulation;transition:background .1s,transform .1s;box-shadow:inset 0 1px 2px rgba(28,30,36,0.07);overflow:hidden;}
           .lk-tile:active{transform:scale(0.96);}
-          .lk-tile.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+          .lk-tile.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
           @keyframes lkshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-4px);}40%,80%{transform:translateX(4px);}}
           .lk-tile.shake{animation:lkshake .45s ease;}
           @keyframes lkbank{from{opacity:0;transform:scale(.9);}}

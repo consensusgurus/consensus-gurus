@@ -875,7 +875,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-guess-btns{display:flex;gap:10px;flex-wrap:wrap;}
           .pr-guess-skip{font-family:${SANS};font-size:14px;font-weight:700;background:transparent;border:1.5px solid ${COLORS.line};
                          border-radius:6px;padding:9px 18px;color:${FADED};cursor:pointer;}
-          .pr-guess-skip:hover{border-color:${COLORS.ink};color:${INK};}
+          .pr-guess-skip:hover{border-color:var(--stg-ink, ${COLORS.ink});color:${INK};}
           .pr-guess-submit{font-family:${SANS};font-size:14px;font-weight:800;background:${COLORS.accent};border:1.5px solid ${COLORS.accent};
                            border-radius:6px;padding:9px 18px;color:${T.white};cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pr-guess-submit:hover{background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};}

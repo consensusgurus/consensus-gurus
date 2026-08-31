@@ -925,7 +925,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
           .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:${STAGE ? 'var(--stg-surf2)' : '#fbfdfc'};}
-          .sh-cell.block{background:${COLORS.ink};border-color:${COLORS.ink};}
+          .sh-cell.block{background:${COLORS.ink};border-color:var(--stg-ink, ${COLORS.ink});}
           .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
           .sh-cell.filled:active{cursor:grabbing;}
           .sh-cell.dragging{opacity:0.26;}
@@ -938,7 +938,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
           .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:${TRAYMAX}px;}
-          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px solid rgba(28,30,36,0.16);box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
+          .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
           .sh-piece:active{cursor:grabbing;}
           .sh-piece.dragging{opacity:0.3;}
           .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}

@@ -828,7 +828,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-user{font-weight:500;color:${COLORS.accent};}
           .tw-notes{display:grid;grid-template-rows:repeat(2,1fr);width:100%;height:100%;padding:3px;box-sizing:border-box;}
           .tw-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;line-height:1;color:#8a93a3;}
-          .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid rgba(28,30,36,0.5);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
+          .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .tw-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .tw-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
           .tw-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 ${COLORS.accentDeep};}
@@ -840,7 +840,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-mark.ok{color:${COLORS.green};}
           .tw-mark.off{color:${COLORS.rust};}
           .tw-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .tw-tool.on{background:${COLORS.ink};color:var(--white);border-color:${COLORS.ink};}
+          .tw-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
