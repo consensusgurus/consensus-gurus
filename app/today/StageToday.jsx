@@ -33,6 +33,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
+import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -64,6 +65,20 @@ function fmtDate(ymd) {
 }
 
 const CIRC_PEEK = 3;
+
+// ONE DRAWING PER GAME, PAINTED BY THE SURFACE. The glyph is a single stroke
+// path in currentColor, so the card's own --cc (its category step) colours it,
+// and it flips with the register for free. See lib/game-glyphs.js for why these
+// replaced the two hand-maintained PNG sets.
+function Glyph({ k, size = 20 }) {
+  const d = GLYPHS[k];
+  if (!d) return null;
+  return (
+    <svg className="sty-gi" viewBox={GLYPH_BOX} width={size} height={size} fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"><path d={d} /></svg>
+  );
+}
 
 export default function StageToday() {
   const [stageTheme, setStageTheme] = useStageTheme();
@@ -295,7 +310,7 @@ export default function StageToday() {
           <a className="sty-next" href={`${routeOf(next)}?stage=1${tq}`} style={{ '--cc': hueFor(next.cat) }}>
             <div>
               <div className="sty-eb">{inprog.has(next.key) ? 'Finish' : 'Up next'}</div>
-              <div className="sty-nm">{next.name}</div>
+              <div className="sty-nm"><Glyph k={next.key} size={26} />{next.name}</div>
               <div className="sty-tag">{next.tag}</div>
             </div>
             <span className="sty-go">{inprog.has(next.key) ? 'Resume' : 'Play'}</span>
@@ -364,7 +379,7 @@ export default function StageToday() {
                   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
                   return (
                     <a key={g.key} className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}>
-                      <span className="sty-gn">{g.name}</span>
+                      <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
                       <span className="sty-gt">{g.tag}</span>
                     </a>
                   );
@@ -502,7 +517,12 @@ const CSS = `
 .sty-g{display:block;text-decoration:none;background:var(--stg-surf);
   border:1px solid var(--stg-line);border-radius:9px;padding:10px 12px;color:var(--stg-ink);}
 .sty-g:hover{border-color:var(--cc);}
-.sty-gn{display:block;font-size:14.5px;font-weight:800;letter-spacing:-0.01em;}
+.sty-gn{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:800;
+  letter-spacing:-0.01em;}
+/* The glyph wears the row's hue while the name stays ink, so the colour marks
+   the category without costing the name any contrast. */
+.sty-gi{flex:none;color:var(--cc);}
+.sty-nm{display:flex;align-items:center;gap:11px;}
 .sty-gt{display:block;font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* Played is DIM, not struck through: the day is a record, not a chore list. */
