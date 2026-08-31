@@ -656,7 +656,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
           {!preStart && (<>
           <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap', marginBottom: 16 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em', color: FADED }}>
-              Misses <span style={{ fontSize: 17, color: g.misses > 5 ? COLORS.rust : COLORS.ink, marginLeft: 4 }}>{g.misses}</span>
+              Misses <span style={{ fontSize: 17, color: g.misses > 5 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, marginLeft: 4 }}>{g.misses}</span>
             </div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: FADED }}>{solvedCount}/5 untangled {g.finalSolved ? '· finale solved' : ''}</div>
           </div>
@@ -715,7 +715,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               {identity && (solvedCount > 0 || g.misses > 0) && (
                 <p style={{ margin: '12px 0 0', textAlign: 'center' }}>
                   <button onClick={() => { if (armReveal) { setArmReveal(false); endGame(false); } else { setArmReveal(true); } }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                     <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and reveals the answers' : 'Reveal answers & end'}
                   </button>
                 </p>

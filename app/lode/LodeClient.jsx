@@ -709,7 +709,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           <>
             {/* score bar */}
             <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
-              <span style={{ fontSize: 12 }}>score <b style={{ color: struck ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{score}</b></span>
+              <span style={{ fontSize: 12 }}>score <b style={{ color: struck ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500, fontSize: 20 }}>{score}</b></span>
               <span>vein <b style={{ color: ACC, fontWeight: 500 }}>{VEIN}</b></span>
               <span>words <b style={{ color: INK, fontWeight: 500 }}>{g.found.length}</b></span>
               {pangramsFound > 0 && <span style={{ color: ACC }}>pangram &times;{pangramsFound}</span>}
@@ -719,7 +719,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             {/* rank ladder */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : COLORS.accent }}>{rank.n}</span>
+                <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : `var(--stg-acc, ${COLORS.accent})` }}>{rank.n}</span>
                 {nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>{nextRank.at - score} to {nextRank.n}</span>}
                 {!nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: `var(--stg-ink, ${COLORS.green})` }}>every word on the board</span>}
               </div>
@@ -846,7 +846,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '18px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: struck ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: struck ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {struck ? `${rank.n} — you struck the vein at ${VEIN}.` : `${rank.n}, against a vein of ${VEIN}.`}
                     {' '}{g.found.length} word{g.found.length === 1 ? '' : 's'}{pangramsFound ? `, ${pangramsFound} pangram${pangramsFound > 1 ? 's' : ''}` : ''}.

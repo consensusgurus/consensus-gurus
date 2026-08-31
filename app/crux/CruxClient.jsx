@@ -1250,7 +1250,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         border: `2px solid ${SPAL ? (isCursor ? BOARD_C : SPAL.selB) : (isCursor ? COLORS.ember : 'rgba(37,99,235,0.5)')}`,
       };
     }
-    return { ...base, background: SPAL ? SPAL.tile : TILE, color: SPAL ? INK : COLORS.ink, border: `1.5px solid ${SPAL ? SPAL.tileB : TILE_BORDER}`, boxShadow: SPAL ? 'none' : 'inset 0 1px 2px rgba(28,30,36,0.07)' };
+    return { ...base, background: SPAL ? SPAL.tile : TILE, color: SPAL ? INK : `var(--stg-ink, ${COLORS.ink})`, border: `1.5px solid ${SPAL ? SPAL.tileB : TILE_BORDER}`, boxShadow: SPAL ? 'none' : 'inset 0 1px 2px rgba(28,30,36,0.07)' };
   }
 
   function cellLetter(r, c, info) {
@@ -1487,7 +1487,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             : { background: `var(--stg-surf, ${T.white})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: '14px 16px 16px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
             {!LOFT && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12 }}>
-              <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.left}</b> guesses</span>
+              <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: g.left <= 3 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{g.left}</b> guesses</span>
               <span style={{ flex: 1, height: 5, background: 'rgba(28,30,36,0.1)', borderRadius: 3, overflow: 'hidden', minWidth: 36 }}>
                 <span style={{ display: 'block', height: '100%', width: `${Math.max(0, Math.min(100, (g.left / PUZZLE.guesses) * 100))}%`, background: g.left <= 3 ? COLORS.rust : COLORS.ember, transition: 'width .2s' }} />
               </span>

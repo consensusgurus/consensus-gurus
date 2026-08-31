@@ -670,9 +670,9 @@ export default function GlyphClient({ puzzles, forceNum }) {
           {!preStart && (
             <div className="gl-card" style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
               <div style={{ display: LOFT ? 'none' : 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{checks}</b>/{MAX_CHECKS}</span>
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-                <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>cracked <b style={{ color: placed === PRESENT.length ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{placed}</b>/{PRESENT.length}</span>
+                <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>cracked <b style={{ color: placed === PRESENT.length ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{placed}</b>/{PRESENT.length}</span>
               </div>
 
               <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
@@ -686,7 +686,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
                     return (
                       <div key={i} className={cls} onClick={() => { if (!playing) return; if (!g.t0) startGame(); setSel(n); }}>
                         <span className="gl-num">{n}</span>
-                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(${(52 / W).toFixed(1)}vw, ${W > 15 ? 21 : 23}px)`, color: GIVEN[n] ? '#0f766e' : COLORS.ink }}>{L}</span> : null}
+                        {L ? <span className="gl-ltr given" style={{ fontSize: `min(${(52 / W).toFixed(1)}vw, ${W > 15 ? 21 : 23}px)`, color: GIVEN[n] ? '#0f766e' : `var(--stg-ink, ${COLORS.ink})` }}>{L}</span> : null}
                       </div>
                     );
                   })}

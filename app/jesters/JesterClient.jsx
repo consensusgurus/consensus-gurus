@@ -766,7 +766,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const counterStyle = (v) => ({
     fontFamily: MONO, fontSize: Math.max(10, Math.round(cellPx * 0.32)), fontWeight: 700,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: v < 0 ? COLORS.rust : v === 0 ? 'rgba(28,30,36,0.28)' : COLORS.ink,
+    color: v < 0 ? `var(--stg-bad, ${COLORS.rust})` : v === 0 ? 'rgba(28,30,36,0.28)' : COLORS.ink,
   });
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
@@ -867,7 +867,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span>seated <b style={{ color: INK, fontWeight: 500 }}>{seated}</b>/{SEATS}</span>
-          <span>quarrels <b style={{ color: conflictSet.size ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{conflictSet.size ? conflictSet.size : 0}</b></span>
+          <span>quarrels <b style={{ color: conflictSet.size ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{conflictSet.size ? conflictSet.size : 0}</b></span>
           {g.hintUsed && <span>&#128161; hint used</span>}
           {playing && (
             <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>
@@ -991,7 +991,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                 <Lightbulb size={14} /> Hint: seat one jester
               </button>
             )}
-            <button type="button" className="je-btn" onClick={reveal} style={{ borderColor: revealArmed ? COLORS.rust : '#c3c8cf', color: revealArmed ? COLORS.rust : COLORS.faded }}>
+            <button type="button" className="je-btn" onClick={reveal} style={{ borderColor: revealArmed ? COLORS.rust : '#c3c8cf', color: revealArmed ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})` }}>
               <Eye size={14} /> {revealArmed ? 'Tap again to reveal (ends the day)' : 'Reveal'}
             </button>
           </div>
@@ -1005,7 +1005,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '12px auto' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : `var(--stg-bad, ${COLORS.rust})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won
                       ? <>The whole court is seated &mdash; {g.placements} placement{g.placements === 1 ? '' : 's'}, {elapsed}.{g.hintUsed ? ' (1 hint)' : ''}</>

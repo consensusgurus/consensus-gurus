@@ -746,9 +746,9 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
               them twice is the one thing to avoid. */}
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>loop <b style={{ color: rightDrawn === LOOP_LEN ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{rightDrawn}</b>/{LOOP_LEN}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>loop <b style={{ color: rightDrawn === LOOP_LEN ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{rightDrawn}</b>/{LOOP_LEN}</span>
           </div>
           )}
 
@@ -831,14 +831,14 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
             meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: tool === 'line' ? COLORS.accent : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: tool === 'line' ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {tool === 'line'
                 ? 'Drawing lines: tap a segment to draw the loop, tap again to lift it. Switch to × to mark segments off.'
                 : 'Marking: tap a segment for a × (no line here), tap again to clear. Switch to Line to draw — or hold / right-click any segment to draw one.'}
             </span>
             {identity && (rightDrawn > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and draws the loop' : 'Reveal & end'}
               </button>
             )}

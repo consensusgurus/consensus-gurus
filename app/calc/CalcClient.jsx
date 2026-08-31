@@ -832,7 +832,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           {/* the running tape */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 9, padding: '9px 12px', marginBottom: 12, minHeight: 44, overflowX: 'auto' }}>
             <span style={{ fontFamily: MONO, fontSize: 13.5, color: FADED, whiteSpace: 'nowrap', flex: 1 }}>{tapeText}</span>
-            <b style={{ fontFamily: SANS, fontWeight: 800, fontSize: 21, fontVariantNumeric: 'tabular-nums', flex: 'none', paddingLeft: 10, borderLeft: '2px solid rgba(28,30,36,0.14)', color: atEnd ? (total === TARGETS[g.slot].target ? COLORS.green : COLORS.rust) : COLORS.ink }}>
+            <b style={{ fontFamily: SANS, fontWeight: 800, fontSize: 21, fontVariantNumeric: 'tabular-nums', flex: 'none', paddingLeft: 10, borderLeft: '2px solid rgba(28,30,36,0.14)', color: atEnd ? (total === TARGETS[g.slot].target ? COLORS.green : `var(--stg-bad, ${COLORS.rust})`) : `var(--stg-ink, ${COLORS.ink})` }}>
               {atNumber ? total : '–'}
             </b>
           </div>
@@ -893,7 +893,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
             </span>
             {identity && (path.length > 1 || landed > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows a route' : 'Reveal & end'}
               </button>
             )}

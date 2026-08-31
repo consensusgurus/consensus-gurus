@@ -640,7 +640,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
                   {Array.from({ length: STRIKES }, (_, i) => <i key={i} className={`fl-pip${i < strikes ? ' on' : ''}`} />)}
                 </span>
               </div>
-              <div style={{ minHeight: 19, marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: notice && notice.kind === 'strike' ? COLORS.rust : COLORS.faded }}>
+              <div style={{ minHeight: 19, marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: notice && notice.kind === 'strike' ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})` }}>
                 {notice ? notice.msg : ''}
               </div>
             </div>

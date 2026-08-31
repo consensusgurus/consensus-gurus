@@ -614,7 +614,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
                   #{i + 1} {fmtChips(hd.net)}
                 </span>
               )))}
-              <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, color: FADED }}>bank <b style={{ color: chips >= 0 ? COLORS.green : COLORS.rust, fontWeight: 700 }}>{fmtChips(chips)}</b></span>
+              <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, color: FADED }}>bank <b style={{ color: chips >= 0 ? COLORS.green : `var(--stg-bad, ${COLORS.rust})`, fontWeight: 700 }}>{fmtChips(chips)}</b></span>
             </div>
           )}
 

@@ -661,7 +661,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
                 <div className="bz-timebar" style={{ flex: 1 }}>
                   <div className="bz-timefill" style={{ width: `${Math.round(remainFrac * 100)}%`, background: remainFrac > 0.4 ? COLORS.green : remainFrac > 0.18 ? '#b45309' : COLORS.rust }} />
                 </div>
-                <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: remainFrac > 0.18 ? COLORS.faded : COLORS.rust, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>{Math.ceil(remainMs / 1000)}s</span>
+                <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: remainFrac > 0.18 ? `var(--stg-mute, ${COLORS.faded})` : `var(--stg-bad, ${COLORS.rust})`, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>{Math.ceil(remainMs / 1000)}s</span>
               </div>
               <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q}</div>
               {qCard(problem, false)}

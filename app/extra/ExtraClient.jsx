@@ -673,7 +673,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the story</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>tears <b style={{ color: tears > 0 ? COLORS.accent : COLORS.ink, fontWeight: 500 }}>{tears}</b>/{MAX_TEARS}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>tears <b style={{ color: tears > 0 ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{tears}</b>/{MAX_TEARS}</span>
           </div>
           )}
           {/* The PROMPT stays here. It is a question (and for Ping a
@@ -733,7 +733,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
                 )}
                 {identity && (tears > 0 || g.wrong.length > 0) && (
                   <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                    style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                     <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and names the story' : 'Reveal & end'}
                   </button>
                 )}
@@ -760,7 +760,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
             <>
               {/* the answer */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
-                <Newspaper size={26} style={{ color: won ? COLORS.green : COLORS.ink, flex: '0 0 auto' }} />
+                <Newspaper size={26} style={{ color: won ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, flex: '0 0 auto' }} />
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                   {PUZZLE.answer} ({PUZZLE.year}). <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.d}</span>
                 </span>

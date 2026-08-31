@@ -834,9 +834,9 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
               them twice is the one thing to avoid. */}
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>cost <b style={{ color: allLinked && cost === perfect ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{cost}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>cost <b style={{ color: allLinked && cost === perfect ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{cost}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>par <b style={{ color: INK, fontWeight: 500 }}>{parTarget}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>linked <b style={{ color: allLinked ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{linked}</b>/{TOWNS.length}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>linked <b style={{ color: allLinked ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{linked}</b>/{TOWNS.length}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
           </div>
           )}
@@ -996,14 +996,14 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: allLinked ? COLORS.accent : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: allLinked ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {allLinked
                 ? `Every town is linked for ${cost}. ${over === 0 ? 'That is perfect.' : `Perfect is ${perfect}, so there are ${over} to trim if you can find them.`}`
                 : 'Drag along a lane to lay track, drag back over it to lift it. Every town has to reach the depot.'}
             </span>
             {identity && cost > 0 && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the round and shows a cheapest network' : 'Reveal & end'}
               </button>
             )}

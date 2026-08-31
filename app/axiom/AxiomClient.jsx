@@ -785,10 +785,10 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         {/* status bar */}
         {started && (
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
-          <span>tests left <b style={{ color: testsLeft <= 1 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
+          <span>tests left <b style={{ color: testsLeft <= 1 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{testsLeft}</b> of {PUZZLE.budget}</span>
           <span>perfect <b style={{ color: INK, fontWeight: 500 }}>{PERFECT}</b> test{PERFECT === 1 ? '' : 's'}</span>
-          <span>still unproven <b style={{ color: standing ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{standing}</b> rule{standing === 1 ? '' : 's'}{standing > 0 ? '' : ' · proved'}</span>
-          <span>name it now &rarr; <b style={{ color: overPerfect || g.wrongPicks.length ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
+          <span>still unproven <b style={{ color: standing ? `var(--stg-bad, ${COLORS.rust})` : COLORS.green, fontWeight: 500 }}>{standing}</b> rule{standing === 1 ? '' : 's'}{standing > 0 ? '' : ' · proved'}</span>
+          <span>name it now &rarr; <b style={{ color: overPerfect || g.wrongPicks.length ? `var(--stg-bad, ${COLORS.rust})` : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
           {g.wrongPicks.length > 0 && <span>wrong names <b style={{ color: `var(--stg-ink, ${COLORS.rust})`, fontWeight: 500 }}>{g.wrongPicks.length}</b></span>}
         </div>
         )}
@@ -916,7 +916,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '14px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-bad, ${COLORS.rust})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done'
                       ? (won ? <>Named at perfect on {testsUsed} test{testsUsed === 1 ? '' : 's'}.</> : <>Named it on {testsUsed} test{testsUsed === 1 ? '' : 's'}{g.wrongPicks.length ? ` and ${g.wrongPicks.length} wrong name${g.wrongPicks.length === 1 ? '' : 's'}` : ''}.</>)

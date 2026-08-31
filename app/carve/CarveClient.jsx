@@ -798,9 +798,9 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>every block <b style={{ color: ACC, fontWeight: 500 }}>= {TARGET}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>blocks <b style={{ color: lockedCount === R ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{lockedCount}</b>/{R}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>blocks <b style={{ color: lockedCount === R ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{lockedCount}</b>/{R}</span>
           </div>
           )}
 
@@ -835,7 +835,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                       aria-label={`carve block ${k + 1}`}
                       style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : THEME.white) }}>
                       <span style={{ width: 14, height: 14, borderRadius: 99, background: hue.line, display: 'inline-block' }} />
-                      <span style={{ fontSize: 10.5, fontWeight: 500, color: done ? COLORS.faded : COLORS.ink, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 500, color: done ? `var(--stg-mute, ${COLORS.faded})` : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                         {done ? '✓' : `${sums[k]}/${TARGET}`}
                       </span>
                     </button>
@@ -866,7 +866,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
             </span>
             {identity && (g.t0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the carving' : 'Reveal & end'}
               </button>
             )}

@@ -992,7 +992,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 {...tapProps('hold')}
                 style={{ marginLeft: 'auto', border: `1px solid ${COLORS.line}`, background: g.held ? '#f1f5f9' : '#fff', color: g.held ? '#94a3b8' : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', touchAction: 'none' }}
               >
-                Hold{g.hold ? <> &middot; <b style={{ color: g.held ? '#94a3b8' : COLORS.ink }}>{PIECE_LABEL[g.hold]}</b></> : null}
+                Hold{g.hold ? <> &middot; <b style={{ color: g.held ? '#94a3b8' : `var(--stg-ink, ${COLORS.ink})` }}>{PIECE_LABEL[g.hold]}</b></> : null}
               </button>
               <button onClick={togglePause} aria-label={paused ? 'Resume' : 'Pause'} style={{ border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, borderRadius: 7, width: 30, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                 {paused ? <Play size={14} /> : <Pause size={14} />}
@@ -1011,10 +1011,10 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                 ) : (
                   <div key={`${r.rank}-${r.name}`} style={{
                     display: 'flex', alignItems: 'baseline', gap: 6, padding: '3.5px 6px', margin: '0 -6px',
-                    fontSize: 11.5, color: r.me ? COLORS.accent : COLORS.faded, fontWeight: r.me ? 800 : 500,
+                    fontSize: 11.5, color: r.me ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, fontWeight: r.me ? 800 : 500,
                     background: r.me ? '#eef4ff' : 'transparent', borderRadius: 5,
                   }}>
-                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? COLORS.accent : '#9aa2b1' }}>#{r.rank}</span>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1' }}>#{r.rank}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     <span style={{ fontWeight: 800 }}>{r.score}</span>
                   </div>
@@ -1078,7 +1078,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                   type="button"
                   onClick={() => { if (armRestart) replayRun(); else setArmRestart(true); }}
                   title={armRestart ? 'Starts this run over' : 'Start this run over'}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.accent : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >
                   <RotateCcw size={13} /> {armRestart ? 'Press again to start over' : 'Restart run'}
                 </button>

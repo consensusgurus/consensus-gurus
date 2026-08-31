@@ -609,7 +609,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
             cursor: over ? 'default' : 'pointer',
             background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? '#fff' : COLORS.covered,
-            color: isBoom ? '#fff' : NUM_COLOR[n] || COLORS.faded,
+            color: isBoom ? '#fff' : NUM_COLOR[n] || `var(--stg-mute, ${COLORS.faded})`,
             boxShadow: isOpen && !isBoom ? 'none' : 'inset 0 -2px 0 rgba(15,23,42,0.10)',
           }}
         >
@@ -729,8 +729,8 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 {ladder.rows.map((r) => (r.gap ? (
                   <div key="gap" aria-hidden="true" style={{ textAlign: 'center', color: '#c3cad6', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', lineHeight: '11px', padding: '4px 0 2px' }}>&middot;&middot;&middot;</div>
                 ) : (
-                  <div key={`${r.rank}-${r.name}`} style={{ display: 'flex', gap: 6, padding: '3px 0', color: r.me ? COLORS.ink : COLORS.faded, fontWeight: r.me ? 800 : 600 }}>
-                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? COLORS.accent : '#9aa2b1' }}>#{r.rank}</span>
+                  <div key={`${r.rank}-${r.name}`} style={{ display: 'flex', gap: 6, padding: '3px 0', color: r.me ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-mute, ${COLORS.faded})`, fontWeight: r.me ? 800 : 600 }}>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1' }}>#{r.rank}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     <span style={{ fontWeight: 800 }}>{r.score}</span>
                   </div>
@@ -762,7 +762,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                         display: 'flex', alignItems: 'center', gap: 7, fontFamily: SANS, fontWeight: 800, fontSize: 14,
                         padding: '11px 22px', border: 'none', cursor: 'pointer',
                         background: flagMode === mode ? COLORS.accent : '#fff',
-                        color: flagMode === mode ? T.white : COLORS.faded,
+                        color: flagMode === mode ? T.white : `var(--stg-mute, ${COLORS.faded})`,
                       }}
                     >
                       <Icon size={15} /> {label}
@@ -792,7 +792,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 <button
                   type="button"
                   onClick={() => { if (armRestart) replayRun(); else setArmRestart(true); }}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.accent : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >
                   <RotateCcw size={13} /> {armRestart ? 'Press again to start over' : 'Restart run'}
                 </button>

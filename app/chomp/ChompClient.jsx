@@ -896,7 +896,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                     display: 'flex', alignItems: 'center', gap: 3, padding: '2px 8px 2px 3px', borderRadius: 20,
                     fontSize: 10.5, fontWeight: 800, letterSpacing: '0.02em',
                     background: next ? COLORS.accentSoft : done ? 'transparent' : '#f4f6f8',
-                    color: next ? COLORS.accent : '#94a3b8',
+                    color: next ? `var(--stg-acc, ${COLORS.accent})` : '#94a3b8',
                     opacity: done ? 0.4 : 1,
                   }}>
                     <img src={`/games/chomp/${m}.png`} alt="" width={18} height={18} style={{ display: 'block' }} />
@@ -953,14 +953,14 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                       <button
                         onClick={() => { if (armRestart) { setArmRestart(false); restartRun(); } else { setArmGive(false); setArmRestart(true); } }}
                         title={armRestart ? 'Records this run as it stands, then deals the board again' : 'Record this run as it stands and start the board over'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? COLORS.accent : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
                       </button>
                       <button
                         onClick={() => { if (armGive) { setArmGive(false); giveUp(); } else { setArmRestart(false); setArmGive(true); } }}
                         title={armGive ? 'Ends the run and records it as it stands' : 'End the run now and record it as it stands'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armGive ? COLORS.block : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armGive ? COLORS.block : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <Flag size={13} style={{ flexShrink: 0 }} /> {armGive ? 'Press again' : 'Give up'}
                       </button>
@@ -977,7 +977,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                   </span>
                 </div>
                 {(armGive || armRestart) && (
-                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: armGive ? COLORS.block : COLORS.accent, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: armGive ? COLORS.block : `var(--stg-acc, ${COLORS.accent})`, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
                     {armGive
                       ? 'Ends the run and records it as it stands.'
                       : 'Records this run as it stands, then deals the board again.'}

@@ -577,7 +577,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
                 const trail = t.raw.slice(t.raw.toLowerCase().indexOf(e.wrong.toLowerCase()) + e.wrong.length);
                 return (
                   <span key={j}>
-                    <s style={{ color: found ? COLORS.accent : COLORS.rust, textDecorationThickness: 2 }}>{e.wrong}</s>
+                    <s style={{ color: found ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-bad, ${COLORS.rust})`, textDecorationThickness: 2 }}>{e.wrong}</s>
                     {' '}<b style={{ color: `var(--stg-ink, ${COLORS.green})` }}>{e.fix}</b>{trail}
                   </span>
                 );
@@ -590,7 +590,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
             )}
           </p>
           {r && (
-            <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: r.pts === r.value ? COLORS.green : r.pts > 0 ? T.goldInk : COLORS.rust }}>
+            <span style={{ marginLeft: 'auto', flex: '0 0 auto', fontFamily: MONO, fontSize: 11, fontWeight: 500, color: r.pts === r.value ? COLORS.green : r.pts > 0 ? T.goldInk : `var(--stg-bad, ${COLORS.rust})` }}>
               +{r.pts}
             </span>
           )}
@@ -835,7 +835,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: perfect ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: perfect ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {perfect ? 'A clean desk — every call was right.' : misses === 0 ? 'Sharp eyes — a fix or two got away.' : `${misses} mis-flag${misses === 1 ? '' : 's'} on the desk today.`}
                     {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>

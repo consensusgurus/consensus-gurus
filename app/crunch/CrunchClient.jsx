@@ -695,7 +695,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>steps <b style={{ color: INK, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>closest <b style={{ color: bestDiff === 0 ? COLORS.green : COLORS.accent, fontWeight: 500 }}>{bestDiff == null ? '—' : bestDiff === 0 ? 'exact' : `${bestDiff} off`}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>closest <b style={{ color: bestDiff === 0 ? COLORS.green : `var(--stg-acc, ${COLORS.accent})`, fontWeight: 500 }}>{bestDiff == null ? '—' : bestDiff === 0 ? 'exact' : `${bestDiff} off`}</b></span>
           </div>
           )}
 
@@ -731,7 +731,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>{statusLine}</span>
+            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>{statusLine}</span>
             {selTile && op && playing && (
               <span style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 12, color: INK, fontWeight: 500 }}>{selTile.v} {OPL[op]} ?</span>
             )}
@@ -743,7 +743,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: FADED, fontWeight: 500, marginBottom: 6 }}>Your working</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {g.steps.map((st, i) => (
-                  <div key={i} style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: st[3] === TARGET ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>
+                  <div key={i} style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: st[3] === TARGET ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums' }}>
                     {st[0]} {OPL[st[1]]} {st[2]} = {st[3]}
                     {st[3] !== TARGET && (
                       <span style={{ color: FADED, fontSize: 11.5 }}> &nbsp;{Math.abs(st[3] - TARGET)} off</span>
@@ -790,7 +790,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
               Number, operation, number. Undo as often as you like.
             </span>
             <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Eye size={13} /> {armReveal ? 'Tap again — ends the board and scores nothing' : 'Give up'}
             </button>
           </div>

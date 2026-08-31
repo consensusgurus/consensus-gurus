@@ -888,7 +888,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}><b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.start}</b> &rarr; <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.end}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>perfect <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.perfect}</b> &middot; hops <b style={{ color: hops > PUZZLE.perfect ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>perfect <b style={{ color: INK, fontWeight: 500 }}>{PUZZLE.perfect}</b> &middot; hops <b style={{ color: hops > PUZZLE.perfect ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{hops}</b> &middot; misses <b style={{ color: g.misses > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{g.misses}</b></span>
           </div>
           )}
           {LOFT && <div className={STAGE ? undefined : 'loft-prompt'}>{PUZZLE.start} → {PUZZLE.end}</div>}
@@ -945,7 +945,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               )}
               {identity && (chain.length > 1 || g.misses > 0) && (
                 <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows a shortest road' : 'Reveal a road & end'}
                 </button>
               )}

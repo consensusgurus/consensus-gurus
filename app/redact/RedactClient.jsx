@@ -590,7 +590,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                   </div>
                 )}
                 {flash && playing && (
-                  <div style={{ fontFamily: MONO, fontSize: 12, color: flash.hits > 0 ? '#7c2d12' : COLORS.faded, marginTop: 6 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 12, color: flash.hits > 0 ? '#7c2d12' : `var(--stg-mute, ${COLORS.faded})`, marginTop: 6 }}>
                     {flash.hits === -1 ? `"${flash.w}" is already free` : flash.hits === -2 ? `already guessed "${flash.w}"` : flash.hits === 0 ? `"${flash.w}" appears nowhere` : `"${flash.w}" uncovered ${flash.hits} ${flash.hits === 1 ? 'word' : 'words'}`}
                   </div>
                 )}

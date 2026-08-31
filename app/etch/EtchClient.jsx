@@ -218,7 +218,7 @@ function EtchGallery({ puzzles, rec, currentNum }) {
     <div style={{ margin: '20px 0 0' }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
         <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-mute, ${COLORS.faded})` }}>Your gallery</span>
-        <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 800, color: developed ? COLORS.accent : COLORS.faded }}>
+        <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 800, color: developed ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
           {developed} of {items.length} developed
         </span>
       </div>
@@ -983,9 +983,9 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
               them twice is the one thing to avoid. */}
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filledRight === TOTAL ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledRight}</b>/{TOTAL}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filledRight === TOTAL ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{filledRight}</b>/{TOTAL}</span>
           </div>
           )}
 
@@ -1057,7 +1057,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     }}
                   >
                     {(pv !== null ? pv === 2 : v === 2) && (
-                      <span style={{ fontFamily: MONO, fontSize: clueFs, color: pv === 2 ? COLORS.accent : '#b9c0cc', lineHeight: 1 }}>&times;</span>
+                      <span style={{ fontFamily: MONO, fontSize: clueFs, color: pv === 2 ? `var(--stg-acc, ${COLORS.accent})` : '#b9c0cc', lineHeight: 1 }}>&times;</span>
                     )}
                   </div>
                 );
@@ -1112,7 +1112,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
             meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: mode === 'mark' ? COLORS.accent : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: mode === 'mark' ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {mode === 'mark'
                 ? (mobileUi
                     ? 'Marking: tap or drag, and it lands when you lift. Hold to aim.'
@@ -1123,7 +1123,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
             </span>
             {identity && (filledRight > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the picture' : 'Reveal & end'}
               </button>
             )}

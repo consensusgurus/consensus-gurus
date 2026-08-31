@@ -685,7 +685,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           }}
         >
           {v ? (
-            <span style={{ fontFamily: MONO, fontSize: cellFs, lineHeight: 1, fontWeight: 500, color: isDup ? COLORS.rust : isGiven ? COLORS.ink : COLORS.accent }}>{v}</span>
+            <span style={{ fontFamily: MONO, fontSize: cellFs, lineHeight: 1, fontWeight: 500, color: isDup ? `var(--stg-bad, ${COLORS.rust})` : isGiven ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-acc, ${COLORS.accent})` }}>{v}</span>
           ) : noteMask ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', width: '86%', height: '86%', alignItems: 'center', justifyItems: 'center' }}>
               {Array.from({ length: n }).map((_, k) => (
@@ -829,10 +829,10 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
               them twice is the one thing to avoid. */}
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>broken <b style={{ color: brokenCount === 1 ? COLORS.amber : COLORS.ink, fontWeight: 500 }}>{brokenCount}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === N ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filled}</b>/{N}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>broken <b style={{ color: brokenCount === 1 ? COLORS.amber : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{brokenCount}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === N ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{filled}</b>/{N}</span>
           </div>
           )}
 
@@ -891,7 +891,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
         {started && identity && (filled > PUZZLE.givens.length || errors > 0) && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the answer' : 'Reveal & end'}
             </button>
           </div>

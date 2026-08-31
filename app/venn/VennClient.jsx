@@ -505,8 +505,8 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           <>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
               <span>filed <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b> of {N}</span>
-              <span>counts <b style={{ color: countsMatch ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{countsMatch ? 'match' : 'off'}</b></span>
-              <span>on the board <b style={{ color: g.rejected ? COLORS.rust : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
+              <span>counts <b style={{ color: countsMatch ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{countsMatch ? 'match' : 'off'}</b></span>
+              <span>on the board <b style={{ color: g.rejected ? `var(--stg-bad, ${COLORS.rust})` : COLORS.green, fontWeight: 500 }}>{liveScore}</b>/{TOTAL}</span>
             </div>
 
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: factNote ? 6 : 10 }}>
@@ -538,7 +538,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
                   <div key={r} className={`vn-zone${ready ? ' ready' : ''}${over ? ' over' : ''}${tightItems ? ' tight' : ''}`} style={{ left: ZONE[r].x, top: ZONE[r].y }} onClick={() => dropInto(r)} title={ZONE[r].label}>
                     <span className="n">{words.length}/{need}</span>
                     {words.map(({ w, i }) => (
-                      <span key={w} className="w" title={playing ? 'Tap to pick this word back up' : undefined} onClick={(e) => { if (held != null) { dropInto(r); e.stopPropagation(); return; } e.stopPropagation(); liftFrom(i); }} style={{ color: !playing ? (TRUTH[i] === g.place[i] ? COLORS.green : COLORS.rust) : COLORS.ink }}>
+                      <span key={w} className="w" title={playing ? 'Tap to pick this word back up' : undefined} onClick={(e) => { if (held != null) { dropInto(r); e.stopPropagation(); return; } e.stopPropagation(); liftFrom(i); }} style={{ color: !playing ? (TRUTH[i] === g.place[i] ? COLORS.green : `var(--stg-bad, ${COLORS.rust})`) : `var(--stg-ink, ${COLORS.ink})` }}>
                         <span className="t">{w}</span>
                         {playing && (
                           <button type="button" className="x" aria-label={`Send ${w} back to the tray`} title="Back to the tray" onClick={(e) => { e.stopPropagation(); unfile(i); }}>&times;</button>
@@ -583,7 +583,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '10px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? COLORS.ink : COLORS.rust, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : g.status === 'done' ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-bad, ${COLORS.rust})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {g.status === 'done' ? (won ? <>Filed clean on the first sheet.</> : <>Filed after {g.rejected} rejected sheet{g.rejected === 1 ? '' : 's'}.</>) : <>The sheet beat you. The correct filing is shown above.</>}
                     {' '}<span style={{ color: FADED, fontWeight: 600 }}>{elapsed}</span>

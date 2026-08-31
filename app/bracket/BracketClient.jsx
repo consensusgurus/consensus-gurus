@@ -533,7 +533,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
               <div className="bk-col" style={{ width: 132 }}>
                 <div className="bk-rh">Winner</div>
                 <div className="bk-m" style={{ borderColor: COLORS.gold, background: STAGE ? 'var(--stg-surf2)' : '#fffbeb' }}>
-                  <div style={{ padding: '10px 9px', fontSize: 13, fontWeight: 800, color: playing ? COLORS.faded : COLORS.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <div style={{ padding: '10px 9px', fontSize: 13, fontWeight: 800, color: playing ? `var(--stg-mute, ${COLORS.faded})` : COLORS.gold, display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Trophy size={13} />
                     {playing ? (g.picks[MATCHES - 1] >= 0 ? PUZZLE.items[g.picks[MATCHES - 1]].name : 'your call') : champion.name}
                   </div>
@@ -559,7 +559,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 560, margin: '14px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', flexWrap: 'wrap' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{score}/{TOTAL}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? <>A perfect bracket. Nothing busted.</> : <>{champion.name} took it at {fmtValue(champion.value, PUZZLE.unit)}.</>}
                     {' '}<span style={{ color: FADED, fontWeight: 600 }}>

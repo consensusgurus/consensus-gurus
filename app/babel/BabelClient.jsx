@@ -801,7 +801,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         {!preStart && (
         <>
         <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
-          <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : COLORS.ink, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
+          <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
           <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{signed(BENCH)}</b></span>
           <span>you <b style={{ color: INK, fontWeight: 500 }}>{g.my}</b></span>
           <span>them <b style={{ color: `var(--stg-ink, ${COLORS.foe})`, fontWeight: 500 }}>{g.foeScore}</b></span>
@@ -897,12 +897,12 @@ export default function BabelClient({ puzzles, forceNum }) {
             <div style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: FADED, margin: '16px 0 6px' }}>Moves</div>
             <div className="sc-log">
               {g.log.length ? g.log.map((m, i) => (
-                <div key={i} style={{ color: m.who === 'you' ? COLORS.ink : COLORS.foe }}>
+                <div key={i} style={{ color: m.who === 'you' ? `var(--stg-ink, ${COLORS.ink})` : COLORS.foe }}>
                   {m.who === 'you' ? 'You' : 'Them'} &middot; {m.word.toLowerCase()} {m.score ? <b>{m.score}</b> : ''}
                 </div>
               )) : <span style={{ color: FADED }}>No plays yet.</span>}
               {g.status === 'done' && g.adj !== 0 && (
-                <div style={{ color: g.adj > 0 ? COLORS.green : COLORS.rust, marginTop: 4 }}>
+                <div style={{ color: g.adj > 0 ? COLORS.green : `var(--stg-bad, ${COLORS.rust})`, marginTop: 4 }}>
                   racks &middot; {signed(g.adj)}
                 </div>
               )}
@@ -919,7 +919,7 @@ export default function BabelClient({ puzzles, forceNum }) {
             <>
               <div style={{ maxWidth: 480, margin: '16px 0 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
-                  <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : beat ? COLORS.gold : COLORS.ink, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
+                  <span style={{ fontFamily: MONO, fontSize: 30, fontWeight: 500, color: won ? COLORS.green : beat ? COLORS.gold : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{signed(spread)}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {won ? `The benchmark was ${signed(BENCH)}. You matched the book line.` : beat ? `You beat them by ${spread}. The benchmark was ${signed(BENCH)}, and greedy play gets ${signed(PUZZLE.greedy)}.` : `The benchmark was ${signed(BENCH)}. Greedy play gets ${signed(PUZZLE.greedy)}.`}
                     {' '}<span style={{ color: FADED, fontWeight: 600 }}>

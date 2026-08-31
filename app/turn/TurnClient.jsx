@@ -842,7 +842,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                 {/* Kept and posted throughout, shown only once the board is
                     counted: a counter ticking up is itself a notice. */}
-                {!playing && <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{errors}</b></span>}
+                {!playing && <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>}
                 <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
                 <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
                   discs <b style={{ color: INK, fontWeight: 500 }}>{view.score.mine}</b>
@@ -887,10 +887,10 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 11, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: FADED }}>No take-back. Every square you play is played.</div>
               <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <button className="tn-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? COLORS.rust : undefined }}>
+                <button className="tn-tool" onClick={revealEnd} style={{ borderColor: armReveal ? COLORS.rust : undefined, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : undefined }}>
                   <Eye size={14} /> {armReveal ? 'Press again' : 'Give up'}
                 </button>
-                <button className="tn-tool" onClick={restartGame} title="Record this as a loss and deal the same board again" style={{ borderColor: armRestart ? COLORS.rust : undefined, color: armRestart ? COLORS.rust : undefined }}>
+                <button className="tn-tool" onClick={restartGame} title="Record this as a loss and deal the same board again" style={{ borderColor: armRestart ? COLORS.rust : undefined, color: armRestart ? `var(--stg-bad, ${COLORS.rust})` : undefined }}>
                   <RotateCcw size={14} /> {armRestart ? 'Press again' : 'Restart'}
                 </button>
               </span>

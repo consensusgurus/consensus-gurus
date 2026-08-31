@@ -701,7 +701,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === CELLS ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filled}</b>/{CELLS}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>filled <b style={{ color: filled === CELLS ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{filled}</b>/{CELLS}</span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>guesses left <b style={{ color: INK, fontWeight: 500 }}>{guessesLeft}</b></span>
           </div>
           )}
@@ -807,7 +807,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
               </span>
               {filled + g.misses > 0 && (
                 <button onClick={() => { if (armEnd) { setArmEnd(false); endNow(); } else { setArmEnd(true); } }}
-                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armEnd ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armEnd ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armEnd ? 'Tap again — ends the board and scores it' : 'End & score'}
                 </button>
               )}

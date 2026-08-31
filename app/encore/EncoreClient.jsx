@@ -661,7 +661,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="ec-cluerow"
         style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(29,78,216,0.03)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(29,78,216,0.18)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? COLORS.accent : (cross ? 'rgba(30,64,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? 'rgba(30,64,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
@@ -819,8 +819,8 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{checks}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>squares <b style={{ color: filledCount === whiteCount ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{filledCount}</b>/{whiteCount}</span>
+            <span style={{ whiteSpace: 'nowrap' }}>checks <b style={{ color: checks > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{checks}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>squares <b style={{ color: filledCount === whiteCount ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{filledCount}</b>/{whiteCount}</span>
           </div>
           )}
 
@@ -838,7 +838,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
                     className={`ec-cell${inWord && !sel ? ' ec-inword' : ''}${sel ? ' ec-sel' : ''}${wrongMark ? ' ec-wrongmark' : ''}`}
                     onClick={() => cellClick(idx)}>
                     {numAt[idx] != null && <span className="ec-num" style={{ fontSize: numPx }}>{numAt[idx]}</span>}
-                    <span style={{ fontSize: cellPx, fontWeight: 800, color: revealMiss ? COLORS.faded : COLORS.ink }}>{letters[idx]}</span>
+                    <span style={{ fontSize: cellPx, fontWeight: 800, color: revealMiss ? `var(--stg-mute, ${COLORS.faded})` : `var(--stg-ink, ${COLORS.ink})` }}>{letters[idx]}</span>
                   </div>
                 );
               })}
@@ -919,7 +919,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
             </span>
             {identity && (g.t0 || checks > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the answers' : 'Reveal & end'}
               </button>
             )}

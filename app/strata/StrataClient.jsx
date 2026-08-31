@@ -664,7 +664,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                 <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {foundWords.length}/{TOTAL} &middot; {elapsed}{g.hints ? ` · ${g.hints} hint${g.hints > 1 ? 's' : ''}` : ''}
                 </div>
-                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 700, color: g.thread ? COLORS.accentDeep : 'transparent', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 700, color: g.thread ? `var(--stg-acc, ${COLORS.accentDeep})` : 'transparent', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {g.thread ? threadLabel : '.'}
                 </div>
               </div>
@@ -698,7 +698,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               {/* What you have spelled so far. Tapping has no finger on the
                   board to look at, so the trace needs to be readable as text. */}
               <div style={{ minHeight: 26, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontFamily: MONO, fontSize: 16, letterSpacing: '0.22em', fontWeight: 700, color: bad ? '#b91c1c' : COLORS.accentDeep }}>
+                <span style={{ fontFamily: MONO, fontSize: 16, letterSpacing: '0.22em', fontWeight: 700, color: bad ? '#b91c1c' : `var(--stg-acc, ${COLORS.accentDeep})` }}>
                   {trace.map((id) => cells[id].ch).join('')}
                 </span>
                 {trace.length > 0 && (

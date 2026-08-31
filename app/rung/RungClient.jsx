@@ -599,7 +599,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             width: 40, height: 44, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: SANS, fontWeight: 800, fontSize: 21, textTransform: 'uppercase',
             background: outline ? 'transparent' : changed ? COLORS.accent : TILE,
-            color: outline ? COLORS.faded : changed ? T.white : COLORS.ink,
+            color: outline ? `var(--stg-mute, ${COLORS.faded})` : changed ? T.white : `var(--stg-ink, ${COLORS.ink})`,
             border: outline ? `2px dashed ${TILE_EDGE}` : `1.5px solid ${changed ? COLORS.accent : TILE_EDGE}`,
             opacity: dim ? 0.55 : 1,
           }}>{ch}</div>
@@ -702,7 +702,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
               them twice is the one thing to avoid. */}
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <span style={{ whiteSpace: 'nowrap' }}>rungs <b style={{ color: used > par ? COLORS.rust : COLORS.ink, fontWeight: 500 }}>{used}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>rungs <b style={{ color: used > par ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: INK, fontWeight: 500 }}>{perfect}</b></span>
           </div>
@@ -737,7 +737,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? COLORS.accent : COLORS.faded }}>
+            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {!playing
                 ? (won ? (used === perfect ? `${used} rungs. That is perfect.` : `${used} rungs. Par was ${par}.`) : 'You stepped off the ladder.')
                 : `On ${current.toUpperCase()}. Change one letter.`}
@@ -767,7 +767,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>One letter at a time. No undo.</span>
             <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? COLORS.rust : COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Eye size={13} /> {armReveal ? 'Tap again — ends the ladder and scores nothing' : 'Give up'}
             </button>
           </div>
