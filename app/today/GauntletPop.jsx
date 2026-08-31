@@ -37,6 +37,27 @@
 // a sans name, exactly as the run cap sets "RUN COMPLETE / Trivia Gauntlet". It
 // reads "Daily Trivia Gauntlet" without spending a fourth line to say so.
 //
+// DEEP NAMES ITS DAY'S TOPIC; THE OTHER SIX NAME THEIR SUBJECT (owner,
+// 2026-08-30). Every row is a registry `subject` except Deep's, whose subject
+// is the word "Trivia" — which on a list of seven trivia quizzes says nothing
+// at all. Deep is the one member with a DIFFERENT subject every day, so its row
+// reads "Deep: Rivers". This is the same call the run stage already makes:
+// `lineFor` in RunClient is `s.topic || s.subject || s.cat || s.tag`, so the
+// topic wins wherever there is one.
+//
+// It is NOT a spoiler. Deep's own page prints "TODAY'S TOPIC" above the fold
+// before a question is asked, and its share line names it too: the topic is the
+// premise, not an answer.
+//
+// THE BANK IS LOADED LAZILY, and that is the whole reason this is affordable.
+// app/deep/puzzles.js is ~6KB gzipped and grows by a day every day; importing
+// it at the top of a component that renders on the homepage would put it in
+// every visitor's bundle for one word in a pop-up that fires once a day. The
+// dynamic import inside the fire timer gives it its own chunk, fetched only
+// when the pop-up has already decided to open, and awaited BEFORE `open` flips
+// so the list never appears and then re-renders under the reader. A failed
+// import is not a failure: the row falls back to a bare "Deep".
+//
 // THREE CONDITIONS, all of them required, and the reason for each:
 //
 //   READY. The prompt waits for the day's combined board, which is the
@@ -67,6 +88,9 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 
 export default function GauntletPop({ ready = false, unplayed = false, day = '' }) {
   const [open, setOpen] = useState(false);
+  // Deep's topic for `day`, resolved from the lazily imported bank. Null until
+  // it lands, and null forever if the import fails.
+  const [deepTopic, setDeepTopic] = useState(null);
   const fired = useRef(false);
   // The timer fires later than it was set, so it must read the CURRENT props
   // rather than the ones it closed over: `unplayed` flips as the passes land.
@@ -77,7 +101,8 @@ export default function GauntletPop({ ready = false, unplayed = false, day = '' 
 
   useEffect(() => {
     if (!ready || !day || fired.current) return undefined;
-    const t = setTimeout(() => {
+    let alive = true;
+    const t = setTimeout(async () => {
       const now = live.current;
       if (fired.current || !now.unplayed || !now.day) return;
       // A browser that refuses storage (private mode, blocked cookies) gets
@@ -86,9 +111,19 @@ export default function GauntletPop({ ready = false, unplayed = false, day = '' 
       try { if (localStorage.getItem(STORE) === now.day) return; } catch (e) {}
       try { localStorage.setItem(STORE, now.day); } catch (e) {}
       fired.current = true;
-      setOpen(true);
+      // Deep's day topic, in its own chunk, awaited before the pop-up appears
+      // so the row is complete on first paint. `dayFor`'s rule, not an exact
+      // date match: the latest puzzle already live, so a gap in the bank falls
+      // back to the last one rather than blanking the row.
+      try {
+        const mod = await import('../deep/puzzles');
+        const started = (mod.PUZZLES || []).filter((p) => p.live <= now.day);
+        const today = started.length ? started[started.length - 1] : null;
+        if (alive && today && today.topic) setDeepTopic(today.topic);
+      } catch (e) { /* no topic: the row reads a bare "Deep" */ }
+      if (alive) setOpen(true);
     }, WAIT_MS);
-    return () => clearTimeout(t);
+    return () => { alive = false; clearTimeout(t); };
   }, [ready, day]);
 
   useEffect(() => {
@@ -108,11 +143,16 @@ export default function GauntletPop({ ready = false, unplayed = false, day = '' 
     try {
       return circuitGamesFor(ID, day).map((g) => ({
         key: g.key,
-        label: g.subject || g.cat,
+        // Deep is the only member whose subject changes daily, so it names its
+        // game and its topic; the other six name the subject that IS their
+        // identity. See the note at the top.
+        label: g.key === 'deep'
+          ? (deepTopic ? `${g.name}: ${deepTopic}` : g.name)
+          : (g.subject || g.cat),
         color: rampFor(circuitSlotFor(ID, g.key)),
       }));
     } catch (e) { return []; }
-  }, [day]);
+  }, [day, deepTopic]);
 
   if (!open) return null;
 
