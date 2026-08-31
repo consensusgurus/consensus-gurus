@@ -199,12 +199,7 @@ export default function StageToday() {
     });
   };
 
-  // Every live daily, by name. Each card keeps its OWN category hue, so the
-  // list still says what a game is without the rows to group them.
-  const alpha = useMemo(
-    () => cats.flatMap((c) => c.games).slice().sort((a, b) => a.name.localeCompare(b.name)),
-    [cats],
-  );
+
   useEffect(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('sot_cat_order') || 'null');
@@ -317,6 +312,14 @@ export default function StageToday() {
       .sort((a, b) => (played(b[0]) - played(a[0])) || (a[1] - b[1]))
       .map(([c]) => c);
   }, [cats, handOrder, archive]);
+
+  // Every live daily, by name. Declared AFTER `cats`: a useMemo body runs during
+  // render, so reading `cats` from above its own declaration is a temporal dead
+  // zone, and it took the homepage down rather than warning.
+  const alpha = useMemo(
+    () => cats.flatMap((c) => c.games).slice().sort((a, b) => a.name.localeCompare(b.name)),
+    [cats],
+  );
 
   const moveCat = (cat, dir) => {
     const cur = orderedCats.map((c) => c.cat);
