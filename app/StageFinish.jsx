@@ -19,7 +19,7 @@
 // because showing a player what they missed is the one thing they want first;
 // 'similar' comes OUT of the grid because a finisher was passing two exits
 // before reaching the one that hands them forward).
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
@@ -34,7 +34,32 @@ export default function StageFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
 }) {
-  const opts = useMemo(() => [...options.filter(Boolean)].sort((a, b) => rankOf(a) - rankOf(b)), [options]);
+  // THE COLLAPSE IS THE CARD'S TO RELEASE. A finished page hides the board, the
+  // leader strip and the play figures (app/globals.css), and it is keyed on a
+  // class this component owns rather than on :has(.stf) — because 'Return to
+  // board' flips CLIENT state to show that body again, and a rule keyed on the
+  // card's mere presence overrode it, so the button did nothing (owner,
+  // 2026-08-31). Anything that asks for the board back takes the class off
+  // first; everything else leaves it on.
+  useEffect(() => {
+    const root = document.querySelector('.stage-page');
+    if (!root) return undefined;
+    root.classList.add('stf-collapse');
+    return () => root.classList.remove('stf-collapse');
+  }, []);
+  const uncollapse = () => {
+    const root = document.querySelector('.stage-page');
+    if (root) root.classList.remove('stf-collapse');
+  };
+  // 'board' and 'reveal' are the two that put the board back on screen.
+  const wrap = (o) => (o.tone === 'board' || o.tone === 'reveal'
+    ? { ...o, onClick: (e) => { uncollapse(); if (o.onClick) o.onClick(e); } }
+    : o);
+
+  const opts = useMemo(
+    () => [...options.filter(Boolean)].map(wrap).sort((a, b) => rankOf(a) - rankOf(b)),
+    [options],   // eslint-disable-line react-hooks/exhaustive-deps
+  );
   const forward = opts.find((o) => o.tone === 'similar') || null;
   const rest = opts.filter((o) => o !== forward);
 

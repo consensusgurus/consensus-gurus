@@ -252,14 +252,15 @@ body:has(.stage-page) { background: #0b0f1a !important; }
    and the figure row come off the chrome, and the element that directly holds
    the card hides everything else it holds (which is the game's whole body,
    board and all). Written once here rather than in 79 clients, and keyed on the
-   card's own class so a game that has not finished is untouched.
+   class StageFinish owns, so 'Return to board' can take it off and show the
+   board again — keyed on :has(.stf) it could not, and that button did nothing.
 
    Every way back — replay, the board, the next game — is on the card itself,
    which is why hiding the body costs the reader nothing. */
-.stage-page:has(.stf) .stg-strip,
-.stage-page:has(.stf) .stg-fg { display: none; }
-.stage-page *:has(> .stf) { display: flex; flex-direction: column; }
-.stage-page *:has(> .stf) > *:not(.stf) { display: none; }
+.stage-page.stf-collapse .stg-strip,
+.stage-page.stf-collapse .stg-fg { display: none; }
+.stage-page.stf-collapse *:has(> .stf) { display: flex; flex-direction: column; }
+.stage-page.stf-collapse *:has(> .stf) > *:not(.stf) { display: none; }
 
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
