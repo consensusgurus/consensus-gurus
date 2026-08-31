@@ -197,6 +197,11 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-mute2: #66748f;
   --stg-dim: #5a657d;
   --stg-onramp: #08222e;
+  /* The fill a MEANING chip gives up on the stage: a warning keeps its border
+     and its ink and stops being the brightest thing on a near-black page.
+     Deliberately UNDEFINED outside .stage-page, so every fallback keeps the
+     Loft's original wash. */
+  --stg-chip: rgba(255, 255, 255, 0.08);
   --stg-fieldink: 255, 255, 255;
 
   /* The client's root publishes BOTH registers of its category step, because
@@ -226,6 +231,7 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-mute2: #79839a;
   --stg-dim: #9aa0ab;
   --stg-onramp: #ffffff;
+  --stg-chip: #e4e9f1;
   --stg-fieldink: 11, 15, 26;
 
   --stg-acc: var(--stg-acc-lt, #0369a1);

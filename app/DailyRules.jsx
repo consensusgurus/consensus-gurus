@@ -58,10 +58,14 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // the rest are fixed so that green always reads as good and red as bad across
 // every game, which is the whole point of standardising.
 const TONES = {
-  good: { background: '#dcfce7', border: '1.5px solid #15803d', color: '#14532d' },
-  warn: { background: '#fef3c7', border: '1.5px solid #b45309', color: '#78350f' },
-  bad: { background: '#fee2e2', border: '1.5px solid #b91c1c', color: '#7f1d1d' },
-  grey: { background: '#eef2f7', border: '1.5px solid #94a3b8', color: '#3f4757' },
+  // Each chip keeps its BORDER and its INK, which is where the meaning lives,
+  // and gives up only the pale fill: on the stage that fill was the brightest
+  // thing on a near-black page. --stg-chip is undefined off the stage, so the
+  // fallback is the original wash and the Loft is untouched.
+  good: { background: 'var(--stg-chip, #dcfce7)', border: '1.5px solid #15803d', color: 'var(--stg-ink, #14532d)' },
+  warn: { background: 'var(--stg-chip, #fef3c7)', border: '1.5px solid #b45309', color: 'var(--stg-ink, #78350f)' },
+  bad: { background: 'var(--stg-chip, #fee2e2)', border: '1.5px solid #b91c1c', color: 'var(--stg-ink, #7f1d1d)' },
+  grey: { background: 'var(--stg-chip, #eef2f7)', border: '1.5px solid #94a3b8', color: 'var(--stg-ink2, #3f4757)' },
 };
 
 export default function DailyRules({
@@ -84,7 +88,7 @@ export default function DailyRules({
   const stepList = (steps || []).filter(Boolean);
 
   return (
-    <div style={{ fontSize: 14, lineHeight: 1.5, color: T.ink, fontWeight: 600 }}>
+    <div style={{ fontSize: 14, lineHeight: 1.5, color: `var(--stg-ink, ${T.ink})`, fontWeight: 600 }}>
       {lead && (
         <p style={{ margin: '0 0 10px', fontSize: 15.5, fontWeight: 800 }}>{lead}</p>
       )}
@@ -92,14 +96,14 @@ export default function DailyRules({
       {banner && (
         <div
           style={{
-            background: accentSoft,
+            background: `var(--stg-chip, ${accentSoft})`,
             border: `1.5px solid ${accent}`,
             borderRadius: 8,
             padding: '9px 11px',
             marginBottom: 12,
             fontSize: 14,
             fontWeight: 800,
-            color: accentDeep,
+            color: `var(--stg-ink, ${accentDeep})`,
           }}
         >
           {banner}
@@ -111,7 +115,7 @@ export default function DailyRules({
           {chipList.map((c, i) => {
             const tone = c.tone && TONES[c.tone]
               ? TONES[c.tone]
-              : { background: accentSoft, border: `1.5px solid ${accent}`, color: accentDeep };
+              : { background: `var(--stg-chip, ${accentSoft})`, border: `1.5px solid ${accent}`, color: `var(--stg-ink, ${accentDeep})` };
             return (
               <span
                 key={i}
@@ -133,7 +137,7 @@ export default function DailyRules({
       )}
 
       {sub && (
-        <div style={{ margin: '-4px 0 12px', fontSize: 12.5, fontWeight: 600, color: T.muted, lineHeight: 1.45 }}>
+        <div style={{ margin: '-4px 0 12px', fontSize: 12.5, fontWeight: 600, color: `var(--stg-mute, ${T.muted})`, lineHeight: 1.45 }}>
           {sub}
         </div>
       )}
@@ -151,8 +155,8 @@ export default function DailyRules({
       {knack && (
         <div
           style={{
-            background: T.white,
-            border: '1px solid rgba(28,30,36,0.12)',
+            background: `var(--stg-surf, ${T.white})`,
+            border: '1px solid var(--stg-line, rgba(28,30,36,0.12))',
             borderLeft: `3px solid ${accent}`,
             borderRadius: 7,
             padding: '9px 11px',
@@ -167,8 +171,8 @@ export default function DailyRules({
       {note && (
         <div
           style={{
-            background: T.white,
-            border: '1px solid rgba(28,30,36,0.12)',
+            background: `var(--stg-surf, ${T.white})`,
+            border: '1px solid var(--stg-line, rgba(28,30,36,0.12))',
             borderLeft: `3px solid ${T.danger}`,
             borderRadius: 7,
             padding: '9px 11px',
@@ -182,7 +186,7 @@ export default function DailyRules({
       )}
 
       {footer && (
-        <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: T.muted }}>
+        <p style={{ margin: '10px 0 0', fontSize: 12.5, fontWeight: 600, color: `var(--stg-mute, ${T.muted})` }}>
           {footer}
         </p>
       )}
