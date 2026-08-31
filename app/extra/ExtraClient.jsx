@@ -686,7 +686,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           )}
 
           {/* the paper itself */}
-          <div style={{ background: NEWSPRINT, border: '1px solid rgba(28,30,36,0.22)', borderRadius: 4, padding: '14px 16px 16px', boxShadow: 'inset 0 0 24px rgba(28,30,36,0.05)' }}>
+          <div style={{ background: STAGE ? 'var(--stg-surf)' : NEWSPRINT, border: `1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.22)'}`, borderRadius: 4, padding: '14px 16px 16px', boxShadow: 'inset 0 0 24px rgba(28,30,36,0.05)' }}>
             <div style={{ borderBottom: `2.5px solid ${COLORS.ink}`, paddingBottom: 6, marginBottom: 7, display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: SERIF, fontWeight: 700, fontSize: 19, letterSpacing: '0.04em', color: INK }}>The Daily Truth</span>
               <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 11, letterSpacing: '0.1em', color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 3, padding: '2px 7px', transform: 'rotate(-2deg)' }}>EXTRA</span>

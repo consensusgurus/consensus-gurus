@@ -753,6 +753,8 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
     const wallB = r !== 8 && REG[idx + 9] !== b;
     return {
       background: bg,
+      // The quilt is pale in both registers, so its digits are dark in both.
+      color: '#0b0d12',
       boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
       zIndex: isSel ? 1 : undefined,
       borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,

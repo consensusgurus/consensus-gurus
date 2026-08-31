@@ -417,7 +417,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           .sf-choice.wrong{border-color:#b91c1c;background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};}
           .sf-choice.wrong .k{background:#b91c1c;color:var(--white);}
           .sf-stmt{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
-          .sf-stmt .n{font-family:${MONO};font-weight:700;color:${COLORS.accentDeep};flex:0 0 auto;}
+          .sf-stmt .n{font-family:${MONO};font-weight:700;color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};flex:0 0 auto;}
           .sf-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .sf-pip.on{background:${COLORS.accent};}
           .sf-pip.miss{background:#b91c1c;}

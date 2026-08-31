@@ -12,8 +12,27 @@
 //      near-black ground. Nobody had looked for this one.
 //
 // Per line, because these are inline style objects and a line is one element.
+//
+// THE BLIND SPOT, and what closes it (2026-08-31). Both checks above need a
+// background on the SAME LINE as the colour, so neither can see a BOARD: Plot's
+// clue ink was computed into a variable (`const col = ... : COLORS.ink`) on a
+// line carrying no background at all, and it shipped at 1.24:1 on the dark
+// register until a player reported it. A rendered sweep of all 80 dailies then
+// found the same class on 18 of them, in both directions.
+//
+// A static checker cannot resolve a ground that is set by a different rule, so
+// this file does NOT pretend to. It adds the part that IS static, direction C
+// below, and the rest is covered by the LIVE sweep documented at the foot of
+// this file, which is the instrument that found them.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+// DIRECTION C. Inside a client's own <style> template, ONE rule that sets both a
+// pale literal ground and the stage-aware ${INK}. Same rule, so no cross-element
+// guessing is needed, and it is exactly how Tuck's rack tile (1.01:1), Babel's
+// and Crunch's tiles went out: the stage sweep moved the ink and left the face.
+const PALE = /background:\s*(?:\$\{COLORS\.(?:tile|paper|cream|accentSoft)\}|#(?:fff|[e-f][0-9a-f]{5})\b|\$\{(?:TILE_FACE|PAPER|NEWSPRINT|TILE)\})/;
+const STAGE_INK = /color:\s*\$\{INK\}/;
 
 // Text that is only legible on a LIGHT ground.
 const DARK_INK = /color: (?:COLORS\.(?:ink|faded)|T\.ink)\b|color:\s*'#(?:0|1|2)[0-9a-f]{5}'|color:\s*'rgba\(2[08],\s*30,\s*36/;
@@ -55,6 +74,11 @@ for (const d of readdirSync('app', { withFileTypes: true })) {
         console.log(`\u2717 ${rel}:${i + 1}  light ground on the stage`);
         console.log(`    ${l.trim().slice(0, 130)}`);
         bad++;
+      } else if (PALE.test(l) && STAGE_INK.test(l) && !/STAGE \?/.test(l.split('background:')[1] || '')) {
+        // DIRECTION C. A pale face carrying the stage's near-white ink.
+        console.log(`\u2717 ${rel}:${i + 1}  stage ink on a pale literal face`);
+        console.log(`    ${l.trim().slice(0, 130)}`);
+        bad++;
       } else if (DARK_INK.test(l) && STAGE_BG.test(l) && !gatedInk) {
         // DIRECTION B. The reverse, which nobody had looked for: a stage surface
         // under ink that only works on paper.
@@ -70,4 +94,24 @@ if (swatches.length) {
   console.log('   ' + swatches.join(' '));
 }
 console.log(bad ? `\n${bad} half-converted element(s) across ${n} clients` : `clean: ${n} clients, no half-converted elements`);
+
+// THE LIVE SWEEP, which is what catches a board. Run it in the browser on each
+// /<game>?p=1&theme=dark, after clicking Start, and read the result: it walks
+// every rendered element, composites the REAL stacked ground behind it (an
+// ancestor chain of translucent surfaces, which is why a single getComputedStyle
+// is not enough), and reports anything under 3:1. Composite BOTTOM UP; folding
+// each layer as you walk outward reports a:1 on the first translucent surface
+// and makes every element look like it sits on paper, which is a false clean.
+//
+//   const ground = (el) => { const L = []; let n = el;
+//     while (n && n !== document.documentElement) {
+//       const q = px(getComputedStyle(n).backgroundColor);
+//       if (q && q.a > 0) { L.push(q); if (q.a >= 0.999) break; }
+//       n = n.parentElement; }
+//     let a = { r: 11, g: 15, b: 26, a: 1 };
+//     for (let i = L.length - 1; i >= 0; i--) a = over(L[i], a);
+//     return a; };
+//
+// Do this before shipping any change to a board's palette, and after any stage
+// sweep that touches ink or surfaces.
 process.exit(bad ? 1 : 0);

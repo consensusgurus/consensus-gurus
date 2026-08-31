@@ -745,7 +745,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           .tk-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});}
           .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
-          .tk-tile{position:relative;width:40px;height:44px;background:${COLORS.tile};border:1.5px solid rgba(146,64,14,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
+          .tk-tile{position:relative;width:40px;height:44px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(146,64,14,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
           .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});}
           .tk-tile.used{opacity:0.28;box-shadow:none;}
           .tk-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:1px;}

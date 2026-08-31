@@ -733,14 +733,14 @@ export default function BabelClient({ puzzles, forceNum }) {
              the green ground. The launch version used a pale cream on a pale
              board and the letters washed out, so the tile is warmer, the letter
              is near-black at full weight, and every tile carries a hard edge. */
-          .sc-cell.tile{background:${STAGE ? 'var(--stg-surf2)' : '#f0dfba'};border:1px solid rgba(86,58,16,0.55);color:#12141a;text-shadow:0 1px 0 rgba(255,255,255,0.5);box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
+          .sc-cell.tile{background:${STAGE ? 'var(--stg-surf2)' : '#f0dfba'};border:1px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(86,58,16,0.55)'};color:${STAGE ? 'var(--stg-ink)' : '#12141a'};text-shadow:${STAGE ? 'none' : '0 1px 0 rgba(255,255,255,0.5)'};box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
           .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 rgba(20,83,45,0.45);}
           .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
           .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:var(--stg-acc, ${COLORS.accent});}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
-          .sc-tile{position:relative;width:42px;height:46px;background:${COLORS.tile};border:1.5px solid rgba(120,80,20,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
+          .sc-tile{position:relative;width:42px;height:46px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(120,80,20,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}
           .sc-tile.used{opacity:0.25;box-shadow:none;}
           .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}

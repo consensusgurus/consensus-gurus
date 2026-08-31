@@ -1012,7 +1012,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                   <div key={`${r.rank}-${r.name}`} style={{
                     display: 'flex', alignItems: 'baseline', gap: 6, padding: '3.5px 6px', margin: '0 -6px',
                     fontSize: 11.5, color: r.me ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, fontWeight: r.me ? 800 : 500,
-                    background: r.me ? '#eef4ff' : 'transparent', borderRadius: 5,
+                    background: r.me ? (STAGE ? 'var(--stg-surf2)' : '#eef4ff') : 'transparent', borderRadius: 5,
                   }}>
                     <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1' }}>#{r.rank}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>

@@ -560,7 +560,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
           .hs-btn:hover{background:var(--accent-soft);}
           .hs-row{display:flex;align-items:center;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:9px 12px;margin-bottom:7px;flex-wrap:wrap;}
           .hs-key{font-family:${MONO};font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:${COLORS.accentDeep};flex:0 0 auto;min-width:86px;}
-          .hs-card{font-family:${SANS};font-weight:800;font-size:13px;border-radius:8px;padding:8px 11px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${COLORS.cream};color:${INK};}
+          .hs-card{font-family:${SANS};font-weight:800;font-size:13px;border-radius:8px;padding:8px 11px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : COLORS.cream};color:${INK};}
           .hs-card:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});}
           .hs-card.off{opacity:0.4;text-decoration:line-through;}
           .hs-card.wrong{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;text-decoration:line-through;}

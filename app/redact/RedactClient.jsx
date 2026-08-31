@@ -492,7 +492,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           .rd-guess{display:inline-flex;align-items:center;gap:5px;font-family:${MONO};font-size:12px;border-radius:6px;padding:2px 8px;border: 1px solid var(--stg-line, rgba(28,30,36,0.14));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .rd-guess.hit{border-color:${COLORS.hit};background:${COLORS.hitSoft};color:#7c2d12;font-weight:700;}
           .rd-guess.zero{color:${FADED};}
-          .rd-sticky{position:sticky;top:0;z-index:30;background:${T.surface};padding:8px 0 10px;border-bottom: 1px solid var(--stg-line, rgba(28,30,36,0.1));}
+          .rd-sticky{position:sticky;top:0;z-index:30;background:${STAGE ? 'var(--stg-ground)' : T.surface};padding:8px 0 10px;border-bottom: 1px solid var(--stg-line, rgba(28,30,36,0.1));}
           .rd-input{flex:1;min-width:0;font-family:${SANS};font-weight:700;font-size:16px;border:2px solid ${COLORS.accentDeep};border-radius:9px;padding:10px 13px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .rd-input::placeholder{color:${FADED};font-weight:600;}
           .rd-stat{display:flex;flex-direction:column;align-items:center;min-width:56px;}

@@ -598,7 +598,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           <div key={i} style={{
             width: 40, height: 44, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: SANS, fontWeight: 800, fontSize: 21, textTransform: 'uppercase',
-            background: outline ? 'transparent' : changed ? COLORS.accent : TILE,
+            background: outline ? 'transparent' : changed ? COLORS.accent : (STAGE ? 'var(--stg-surf2)' : TILE),
             color: outline ? `var(--stg-mute, ${COLORS.faded})` : changed ? T.white : `var(--stg-ink, ${COLORS.ink})`,
             border: outline ? `2px dashed ${TILE_EDGE}` : `1.5px solid ${changed ? COLORS.accent : TILE_EDGE}`,
             opacity: dim ? 0.55 : 1,

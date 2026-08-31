@@ -754,7 +754,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
     if (kind === 'goal') return <span key={key} style={{ ...base, background: COLORS.trail, color: T.white, borderColor: COLORS.trail }}><Flag size={13} /> {name}</span>;
     return <span key={key} style={{ ...base, background: `var(--stg-surf, ${COLORS.trailSoft})`, color: '#14532d', borderColor: 'rgba(21,128,61,0.45)' }}>{name}</span>;
   }
-  const arrow = (k) => <span key={k} style={{ color: T.muted, fontWeight: 800 }}>&rarr;</span>;
+  const arrow = (k) => <span key={k} style={{ color: `var(--stg-ink2, ${T.muted})`, fontWeight: 800 }}>&rarr;</span>;
 
   // Shared rules body — rendered in both the how-to-play modal and the start gate.
   const rulesBody = (
@@ -901,7 +901,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
               if (i < chain.length - 1) parts.push(arrow(`a${i}`));
               return parts;
             })}
-            {!won && [arrow('af'), <span key="dots" style={{ color: T.muted, fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
+            {!won && [arrow('af'), <span key="dots" style={{ color: `var(--stg-ink2, ${T.muted})`, fontWeight: 800, letterSpacing: 2 }}>&hellip;</span>, arrow('ae'), chip(PUZZLE.end, 'end', 'endchip')]}
           </div>
           {won && <div style={{ fontFamily: MONO, fontSize: 11, color: `var(--stg-ink, ${COLORS.trail})`, fontWeight: 500, marginTop: 6 }}>Spanned in {chain.length - 1} hop{chain.length - 1 === 1 ? '' : 's'}.</div>}
         </div>

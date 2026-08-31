@@ -783,7 +783,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div className={LOFT && !STAGE ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid var(--stg-line, rgba(28,30,36,0.18))', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>errors <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>claimed <b style={{ color: claimed === CELLS ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{claimed}</b>/{CELLS}</span>
@@ -796,12 +796,12 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               onPointerDown={onGridDown}
               onPointerMove={onGridMove}
               onPointerUp={onGridUp}
-              style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', touchAction: 'none', userSelect: 'none', cursor: playing ? 'crosshair' : 'default', background: STAGE ? SURF : T.white, border: '2px solid rgba(28,30,36,0.75)', boxSizing: 'border-box' }}
+              style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', touchAction: 'none', userSelect: 'none', cursor: playing ? 'crosshair' : 'default', background: STAGE ? SURF : T.white, border: `2px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.75)'}`, boxSizing: 'border-box' }}
             >
               {/* the empty grid */}
               <div style={{ position: 'absolute', inset: 0, display: 'grid', gridTemplateColumns: `repeat(${N}, 1fr)`, gridTemplateRows: `repeat(${N}, 1fr)` }}>
                 {Array.from({ length: CELLS }).map((_, i) => (
-                  <div key={i} style={{ borderRight: (i % N) === N - 1 ? 'none' : '1px solid rgba(28,30,36,0.16)', borderBottom: Math.floor(i / N) === N - 1 ? 'none' : '1px solid rgba(28,30,36,0.16)' }} />
+                  <div key={i} style={{ borderRight: (i % N) === N - 1 ? 'none' : `1px solid var(--stg-line, rgba(28,30,36,0.16))`, borderBottom: Math.floor(i / N) === N - 1 ? 'none' : `1px solid var(--stg-line, rgba(28,30,36,0.16))` }} />
                 ))}
               </div>
               {/* claimed plots */}
@@ -820,7 +820,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               {CLUES.map((cl, k) => {
                 const i = owner[cl[0] * N + cl[1]];
                 const bad = i >= 0 && wrongSet.has(i);
-                const col = i >= 0 ? (bad ? WRONG_EDGE : TINT[plots[i][4] % TINT.length][1]) : COLORS.ink;
+                const col = i >= 0 ? (bad ? WRONG_EDGE : TINT[plots[i][4] % TINT.length][1]) : `var(--stg-ink, ${COLORS.ink})`;
                 return (
                   <div key={`c${k}`} className="pl-num" style={{ left: pct(cl[1]), top: pct(cl[0]), width: pct(1), height: pct(1), fontSize: numFs, color: col }}>{cl[2]}</div>
                 );
@@ -829,8 +829,8 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               {preview && (
                 <div style={{
                   position: 'absolute', left: pct(preview[1]), top: pct(preview[0]), width: pct(preview[2]), height: pct(preview[3]),
-                  border: `2px dashed ${previewOk ? COLORS.green : 'rgba(28,30,36,0.55)'}`,
-                  background: previewOk ? 'rgba(21,128,61,0.13)' : 'rgba(28,30,36,0.07)',
+                  border: `2px dashed ${previewOk ? COLORS.green : 'var(--stg-line3, rgba(28,30,36,0.55))'}`,
+                  background: previewOk ? 'rgba(21,128,61,0.13)' : 'var(--stg-surf, rgba(28,30,36,0.07))',
                   borderRadius: 4, boxSizing: 'border-box', pointerEvents: 'none',
                 }} />
               )}
@@ -851,7 +851,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
           )}
 
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--stg-line, rgba(28,30,36,0.10))', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
               Drag corner to corner to claim a plot. Tap a plot to hand it back.
             </span>

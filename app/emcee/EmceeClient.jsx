@@ -743,7 +743,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           .mc-cell.mc-sel{background:${STAGE ? 'var(--stg-surf2)' : '#f6d9f9'};box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
           .mc-cell.mc-wrongmark{animation:mcshake .3s ease;}
-          .mc-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
+          .mc-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:${STAGE ? 'var(--stg-mute)' : 'rgba(28,30,36,0.55)'};pointer-events:none;}
           .mc-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .mc-cluerow:hover{background:${COLORS.paper};}
           .mc-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border: 1.5px solid var(--stg-line, rgba(28,30,36,0.4));height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}

@@ -596,7 +596,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-cell.sel{background:#dbeafe;box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .gl-cell.kin{background:${COLORS.accentSoft};}
           .gl-cell.bad{background:${STAGE ? 'var(--stg-surf2)' : '#fdecea'};box-shadow:inset 0 0 0 2px ${COLORS.rust};}
-          .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:#2f3644;font-weight:700;}
+          .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:${STAGE ? 'var(--stg-mute)' : '#2f3644'};font-weight:700;}
           .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${INK};line-height:1;}
           .gl-ltr.given{color:var(--stg-acc, ${COLORS.accent});}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}

@@ -646,7 +646,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     const reg = assign[idx];
     const hue = reg >= 0 ? REGION_HUES[reg % REGION_HUES.length] : null;
     const isLocked = reg >= 0 && locked.includes(reg);
-    let bg = THEME.white;
+    let bg = STAGE ? 'var(--stg-surf)' : THEME.white;
     if (hue) bg = isLocked ? hue.mid : hue.soft;
     const edge = (j) => {
       if (j < 0) return true;
@@ -654,10 +654,15 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     };
     const rightIdx = c < N - 1 ? idx + 1 : -1;
     const downIdx = r < N - 1 ? idx + N : -1;
-    const thin = '1px solid rgba(28,30,36,0.16)';
-    const thickColor = 'rgba(28,30,36,0.78)';
+    // A hue cell keeps its PAPER rules and ink: its ground is a pale literal in
+    // both registers, so a white hairline would vanish on it exactly as a dark
+    // one vanishes on the stage.
+    const onStage = STAGE && !hue;
+    const thin = `1px solid ${onStage ? 'var(--stg-line)' : 'rgba(28,30,36,0.16)'}`;
+    const thickColor = onStage ? 'var(--stg-line3)' : 'rgba(28,30,36,0.78)';
     return {
       background: bg,
+      color: hue ? '#0b0d12' : undefined,
       borderRight: c === N - 1 ? 'none' : (edge(rightIdx) && (reg >= 0 || (rightIdx >= 0 && assign[rightIdx] >= 0)) ? `2.5px solid ${thickColor}` : thin),
       borderBottom: r === N - 1 ? 'none' : (edge(downIdx) && (reg >= 0 || (downIdx >= 0 && assign[downIdx] >= 0)) ? `2.5px solid ${thickColor}` : thin),
     };
