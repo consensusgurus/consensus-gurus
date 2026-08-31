@@ -710,7 +710,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
     const st = clueStates[ci];
     const accused = g.acc === ci;
     const isLiar = !playing && ci === PUZZLE.liar;
-    const col = isLiar ? COLORS.rust : st === 'broken' ? COLORS.amber : st === 'ok' ? '#b6bdc9' : COLORS.faded;
+    const col = isLiar ? COLORS.rust : st === 'broken' ? COLORS.amber : st === 'ok' ? '#b6bdc9' : FADED;
     boardCells.push(
       <div
         key={i}

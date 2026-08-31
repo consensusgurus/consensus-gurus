@@ -587,7 +587,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           .sw-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .sw-btn.primary:hover{background:${COLORS.accentDeep};}
           .sw-card{display:flex;align-items:center;gap:12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:8px;}
-          .sw-card b{color:${COLORS.accentDeep};}
+          .sw-card b{color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};}
           .sw-mark{color:${INK};flex:0 0 auto;width:38px;height:38px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
           .sw-mark.truth{background:#dcfce7;border-color:var(--success-deep);color:var(--success-deep);}
           .sw-mark.lie{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#b91c1c;}

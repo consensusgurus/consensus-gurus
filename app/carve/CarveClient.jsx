@@ -820,7 +820,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                 return (
                   <div key={idx} className={`cv-cell${wrongFlash ? ' cv-wrongflash' : ''}${bounce === idx ? ' cv-bounce' : ''}`} style={cellStyle(idx)} onClick={() => cellClick(idx)}>
                     {isSeed && hue && <span className="cv-seed-ring" style={{ border: `2.5px solid ${hue.line}` }} />}
-                    <span style={{ fontSize: cellPx, fontWeight: isSeed ? 700 : 500, color: INK, position: 'relative' }}>{gridFlat[idx]}</span>
+                    <span style={{ fontSize: cellPx, fontWeight: isSeed ? 700 : 500, color: hue ? '#0b0d12' : INK, position: 'relative' }}>{gridFlat[idx]}</span>
                   </div>
                 );
               })}

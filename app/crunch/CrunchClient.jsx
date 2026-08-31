@@ -711,7 +711,9 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
             {tiles.map((t) => (
               <button key={t.id} type="button" className={`cr-tile${sel === t.id ? ' on' : ''}`} onClick={() => onTile(t)}
                 disabled={!playing} aria-label={`number ${t.v}`}
-                style={{ background: sel === t.id ? COLORS.accentSoft : t.made ? TILE_MADE : TILE_FACE, opacity: playing ? 1 : 0.75, cursor: playing ? 'pointer' : 'default' }}>
+                style={{ background: STAGE ? (sel === t.id ? 'var(--stg-acc)' : t.made ? 'var(--stg-panel)' : 'var(--stg-surf2)')
+                  : (sel === t.id ? COLORS.accentSoft : t.made ? TILE_MADE : TILE_FACE),
+                  color: STAGE && sel === t.id ? 'var(--stg-onramp)' : undefined, opacity: playing ? 1 : 0.75, cursor: playing ? 'pointer' : 'default' }}>
                 {t.v}
               </button>
             ))}

@@ -657,8 +657,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
     return (
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="mc-cluerow"
-        style={{ background: active ? COLORS.accentSoft : (cross ? 'rgba(192,38,211,0.025)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(192,38,211,0.15)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? 'rgba(162,28,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        style={{ background: active ? (STAGE ? 'color-mix(in srgb, var(--stg-acc) 18%, transparent)' : COLORS.accentSoft) : (cross ? 'rgba(192,38,211,0.025)' : 'none'), borderLeft: active ? `3px solid ${COLORS.accent}` : (cross ? '3px solid rgba(192,38,211,0.15)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? `var(--stg-ink2, rgba(162,28,175,0.5))` : FADED), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
@@ -739,7 +739,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
           .mc-cell.mc-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#fdf6fe'};}
-          .mc-cell.mc-inword{background:${COLORS.accentSoft};}
+          .mc-cell.mc-inword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, transparent)' : COLORS.accentSoft};}
           .mc-cell.mc-sel{background:${STAGE ? 'var(--stg-surf2)' : '#f6d9f9'};box-shadow:inset 0 0 0 2px ${COLORS.accent};}
           .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
           .mc-cell.mc-wrongmark{animation:mcshake .3s ease;}
