@@ -33,7 +33,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { DAILY_GAMES } from '@/lib/daily-games';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
-import { fetchDayStatus, etToday } from '../useDayStats';
+import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
+import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
 
@@ -50,7 +51,13 @@ function fmtDate(ymd) {
 }
 
 export default function StageToday() {
-  const [stageTheme] = useStageTheme();
+  const [stageTheme, setStageTheme] = useStageTheme();
+  // The day's own numbers, from the hook the site header already uses, so this
+  // cap and that one cannot disagree. Name resolves after mount because it
+  // reads localStorage.
+  const stats = useDayStats();
+  const [who, setWho] = useState('');
+  useEffect(() => { setWho(savedIdentity().username || ''); }, []);
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   const [day, setDay] = useState('');
@@ -121,10 +128,40 @@ export default function StageToday() {
           <span className="sty-date">{fmtDate(day)}</span>
         </div>
         <div className="sty-figs">
+          {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
+          {/* THE DAY'S GAINS, not the totals: what this cap is for is what has
+              happened since midnight. Each renders only when it is real, which
+              is the pattern's own rule about the field. */}
+          {stats.todayXp ? <div><b className="sty-up">+{stats.todayXp.toLocaleString()}</b><i>IQ today</i></div> : null}
+          {stats.dayRank ? (
+            <div>
+              <b>#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>
+              <i>rank today</i>
+            </div>
+          ) : null}
           <div><b>{playedCount}<i>/{total}</i></b><i>played</i></div>
-          <div><b>{cats.filter((c) => c.games.every((g) => done.has(g.key))).length}<i>/{cats.length}</i></b><i>categories</i></div>
         </div>
-        <a className="sty-cx" href="/quizzes" aria-label="Quizzes">Quizzes</a>
+        <button
+          type="button"
+          className="sty-cx sty-tg"
+          onClick={() => setStageTheme(stageTheme === 'light' ? 'dark' : 'light')}
+          aria-label={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
+          title={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
+        >
+          {stageTheme === 'light' ? (
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+            </svg>
+          )}
+        </button>
+        <a className="sty-cx" href="/quizzes">Quizzes</a>
       </div>
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
 
@@ -215,6 +252,10 @@ const CSS = `
 .sty-figs b i{font-style:normal;font-weight:600;color:var(--stg-mute);font-size:12px;}
 .sty-figs>div>i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--stg-mute);}
+.sty-who b{font-weight:800;}
+.sty-up{color:var(--stg-ink);}
+.sty-tg{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;
+  background:none;cursor:pointer;font:inherit;}
 .sty-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--stg-ink2);text-decoration:none;border:1px solid var(--stg-line);
   border-radius:7px;padding:6px 10px;}
