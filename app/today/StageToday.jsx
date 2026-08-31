@@ -97,6 +97,15 @@ function fmtDate(ymd) {
 const CIRC_PEEK_NARROW = 3;
 const AZ_KEY = 'sot_stage_az';
 
+// The two the shelf leads with, by id. lib/circuits.js orders DISPLAY_CIRCUITS
+// the same way; this repeats it because the home's sort has to interleave that
+// lead with the reader's own progress, which that module knows nothing about.
+const CIRC_LEAD = ['gauntlet', 'five'];
+const leadRankOf = (id) => {
+  const i = CIRC_LEAD.indexOf(id);
+  return i < 0 ? CIRC_LEAD.length : i;
+};
+
 // ONE DRAWING PER GAME, PAINTED BY THE SURFACE. The glyph is a single stroke
 // path in currentColor, so the card's own --cc (its category step) colours it,
 // and it flips with the register for free. See lib/game-glyphs.js for why these
@@ -438,10 +447,30 @@ export default function StageToday() {
       // than inventing a tenth colour.
       return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, pop, hue: hueFor(games[0].cat) };
     }).filter(Boolean)
-      // Ties keep DISPLAY_CIRCUITS' order, which is why the sort is stable on
-      // the index rather than on pop alone.
+      // THE ORDER (owner, 2026-08-31), in four terms:
+      //
+      //   1  A FINISHED CIRCUIT GOES TO THE END. It is a record, not an
+      //      invitation, and that applies to the two pinned ones too — finish
+      //      the Gauntlet and it leaves the front.
+      //   2  Then the two the site leads with: the Gauntlet, then the Five.
+      //   3  Then the ones the reader is furthest INTO. Three sudokus done says
+      //      more about what they want next than any editorial order does.
+      //   4  Popularity settles the rest, so a reader who has started nothing
+      //      still sees the busiest circuits first.
+      //
+      // Stable on the original index underneath, so equal circuits never swap
+      // places between renders.
       .map((c, i) => [c, i])
-      .sort((a, b) => (b[0].pop - a[0].pop) || (a[1] - b[1]))
+      .sort((a, b) => {
+        const A = a[0], B = b[0];
+        const doneA = A.n === A.games.length ? 1 : 0;
+        const doneB = B.n === B.games.length ? 1 : 0;
+        return (doneA - doneB)
+          || (leadRankOf(A.id) - leadRankOf(B.id))
+          || (B.n - A.n)
+          || (B.pop - A.pop)
+          || (a[1] - b[1]);
+      })
       .map(([c]) => c);
   }, [day, done, light, playsBy]);   // eslint-disable-line react-hooks/exhaustive-deps
   // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
