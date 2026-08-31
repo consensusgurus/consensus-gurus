@@ -57,7 +57,11 @@ import { meRequest } from '@/app/quizMeClient';
 const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, rust: T.danger, faded: T.muted,
   accent: '#b45309', accentSoft: '#fef3c7', accentDeep: '#92400e', green: T.successDeep, greenSoft: '#dcfce7',
-  cA: T.blue, cB: '#be185d', cC: '#0f766e',
+  // THE THREE SETS. These identify circle A, B and C, so they are meaning
+  // colours and cannot simply be neutralised — but the 700-weight versions are
+  // 3.2 to 3.7:1 on the stage's near-black ground. Each takes a lighter twin
+  // there and keeps its own hue, so the sets still read as the same three.
+  cA: `var(--stg-cA, ${T.blue})`, cB: 'var(--stg-cB, #be185d)', cC: 'var(--stg-cC, #0f766e)',
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";

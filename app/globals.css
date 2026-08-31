@@ -194,8 +194,13 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-ink: #e9edf4;
   --stg-ink2: #aab5c7;
   --stg-mute: #8b95a8;
-  --stg-mute2: #66748f;
-  --stg-dim: #5a657d;
+  /* mute2 and dim carry REAL TEXT (the cap eyebrow, a game's own small print),
+     so both clear 4.5:1 on their own ground. They were 4.06 and 3.27 on the
+     dark register and 3.36 and 2.32 on the LIGHT one, which is the register a
+     dark-only sweep never sees. Keep the ordering ink > ink2 > mute > mute2 >
+     dim, and keep every one of them above 4.5. */
+  --stg-mute2: #78859d;
+  --stg-dim: #747f97;
   --stg-onramp: #08222e;
   /* The fill a MEANING chip gives up on the stage: a warning keeps its border
      and its ink and stops being the brightest thing on a near-black page.
@@ -211,6 +216,11 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-good: #6ee7b7;
   --stg-cool: #7dd3fc;
   --stg-warn: #fbbf24;
+  /* Venn's three SETS. Meaning colours that identify a circle, so they keep
+     their hue and take a lighter twin rather than being neutralised. */
+  --stg-cA: #93b8fb;
+  --stg-cB: #fb7185;
+  --stg-cC: #5eead4;
   --stg-bad: #fb7185;
   --stg-fieldink: 255, 255, 255;
 
@@ -250,15 +260,18 @@ body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;
   --stg-mute: #646c7a;
-  --stg-mute2: #79839a;
-  --stg-dim: #9aa0ab;
+  --stg-mute2: #626c83;
+  --stg-dim: #666c77;
   --stg-onramp: #ffffff;
   --stg-chip: #e4e9f1;
   --stg-up: #047857;
   --stg-dn: #be123c;
   --stg-good: #047857;
   --stg-cool: #0369a1;
-  --stg-warn: #a16207;
+  --stg-warn: #9c5d02;
+  --stg-cA: #1d4ed8;
+  --stg-cB: #9f1239;
+  --stg-cC: #0f766e;
   --stg-bad: #be123c;
   --stg-fieldink: 11, 15, 26;
 

@@ -203,9 +203,19 @@ export default function TodayClient({ onSignup = null } = {}) {
   // white-card-with-white-text failure in another costume. Read in an EFFECT,
   // because this page is statically rendered and useSearchParams returns null
   // here — that is what made ?stage=1 a silent no-op the first time.
+  // THE HOME IS ON THE STAGE TOO (owner, 2026-08-31, sitewide). '?stage=0' is
+  // the way back to this page for one load, matching the games' own opt-out in
+  // lib/stage.js, so a report about the home can be checked against the old one
+  // without a deploy.
+  //
+  // Still read in an EFFECT, not during render: useSearchParams() returns null
+  // on a statically rendered page and fails the build, and resolving it during
+  // render would make the client's first paint disagree with the server's. So
+  // the default here is FALSE and the stage arrives a beat later, which is the
+  // same shape every clock- and storage-dependent read on this site uses.
   const [stageOn, setStageOn] = useState(false);
   useEffect(() => {
-    try { setStageOn(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+    try { setStageOn(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setStageOn(true); }
   }, []);
   useStageTheme();
   // Build the shelves once: the sudoku circuit pool leaves Numbers and becomes

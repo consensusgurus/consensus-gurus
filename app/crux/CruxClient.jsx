@@ -1668,7 +1668,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               <>
                 {isTodays && myStats.cur >= 2 && (
                   <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 12, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
+                    <span style={{ color: 'var(--stg-warn, #b45309)' }}>{myStats.cur}-day streak</span>
                   </div>
                 )}
                 <p className={STAGE ? undefined : 'loft-tailnote'} style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
