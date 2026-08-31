@@ -101,8 +101,51 @@ function useStripBoard(quizId, on) {
   return b;
 }
 
+// HAVE THEY STARTED THIS ONE? Read off the client's own save rather than a
+// prop, so no game has to be edited to gain the state.
+//
+// The key is sot_<gameKey>_<num>, optionally carrying a revision suffix (Crux,
+// Emcee and Encore bump one when a live puzzle is corrected), so it is matched
+// with a bounded pattern rather than a prefix: a bare startsWith would let
+// puzzle 1 read puzzle 10's save and call a fresh board in progress.
+//
+// FIRST PAINT SAYS NO. The server cannot read localStorage, so resolving this
+// during render makes the client's first paint disagree with the server's and
+// React throws. It arrives in an effect, as the theme and every other storage
+// read on this site does.
+//
+// Polled rather than pushed: the write happens inside the game and the chip is
+// a different component, so the alternative is an event contract in all 80. Two
+// seconds is well under the time it takes to notice, and it costs one
+// localStorage read on a page that is already re-rendering a clock.
+function useStarted(gameKey, num) {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (!gameKey || num === null || num === undefined) return undefined;
+    const re = new RegExp('^sot_' + gameKey + '_' + num + '(r[0-9]+)?$');
+    const read = () => {
+      try {
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (!k || !re.test(k)) continue;
+          const sv = JSON.parse(window.localStorage.getItem(k) || 'null');
+          // t0 says they began; a terminal status says they have finished, and
+          // a finished board is a result rather than something in progress.
+          if (sv && sv.t0 && (!sv.status || sv.status === 'playing')) return true;
+        }
+      } catch (e) {}
+      return false;
+    };
+    setOn(read());
+    const id = setInterval(() => setOn(read()), 2000);
+    return () => clearInterval(id);
+  }, [gameKey, num]);
+  return on;
+}
+
 export default function StageChrome({
   gameKey,
+  num = null,
   name,
   cat = null,
   dateLabel = null,
@@ -117,6 +160,7 @@ export default function StageChrome({
   ladder = null,
 }) {
   const [panel, setPanel] = useState(false);
+  const started = useStarted(gameKey, num);
   // The switch reads the SAME store the page root reads, so the glyph and the
   // ground can never disagree about which register is showing.
   const [theme, setTheme] = useStageTheme();
@@ -238,7 +282,7 @@ export default function StageChrome({
             {'· '}{board.field} {board.field === 1 ? 'player' : 'players'}
           </span>
           <span className="stg-sy">
-            {board.myRank ? 'You ' + ord(board.myRank) : 'Not played yet'}
+            {board.myRank ? 'You ' + ord(board.myRank) : (started ? 'In progress' : 'Not played yet')}
             <i>{panel ? '‹' : '›'}</i>
           </span>
         </button>
