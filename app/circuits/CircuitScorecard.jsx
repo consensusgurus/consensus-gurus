@@ -33,6 +33,7 @@
 
 import React from 'react';
 import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+import { DAILY_GAME_MAP } from '@/lib/daily-games';
 
 const r1 = (n) => Math.round(Number(n) * 10) / 10;
 
@@ -124,7 +125,16 @@ export default function CircuitScorecard({
                 <div key={x.key}
                      className={`csc-row${x.state === 'won' ? ' won' : ''}${x.state === 'open' ? ' open' : ''}`}
                      style={{ '--acc': x.accent || 'var(--accent,#233a63)' }}>
-                  <span className="csc-ic" style={{ color: x.accent || 'currentColor' }}><GameGlyph gameKey={x.key} size={30} /></span>
+                  {/* THE GLYPH TAKES THE GAME'S DARK COLOUR, not x.accent.
+                      accent is `colorNavy` (DailyFiveSummary sets it), which is
+                      the BRIGHT variant for a navy ground — and this card is
+                      white, so it would have been a pastel on white. The
+                      registry's `color` is the same hue at the value a light
+                      card needs. */}
+                  <span className="csc-ic"
+                    style={{ color: (DAILY_GAME_MAP[x.key] || {}).color || 'var(--accent,#233a63)' }}>
+                    <GameGlyph gameKey={x.key} size={26} />
+                  </span>
                   <div className="csc-rt">
                     {x.href
                       ? <a className="csc-rn" href={x.href}>{x.name}</a>
@@ -256,7 +266,11 @@ const CSS = `
   border-bottom:1px solid var(--border,#e5e7eb);}
 .csc-row:last-child{border-bottom:0;}
 .csc-row.open{background:var(--surface,#f7f8fa);}
-.csc-ic{border-radius:8px;flex:none;object-fit:contain;}
+/* Sized explicitly: this replaced a 44px <img>, and a bare span collapses to
+   the glyph and takes the row's alignment with it. object-fit went with the
+   image it was written for. */
+.csc-ic{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;background:var(--surface,#f7f8fa);border:1px solid var(--border,#e5e7eb);}
 .csc-rt{min-width:0;width:150px;flex:none;}
 .csc-rt .csc-rn{display:block;font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;
   text-overflow:ellipsis;text-decoration:none;}
