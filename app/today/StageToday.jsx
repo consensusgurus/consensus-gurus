@@ -75,6 +75,21 @@ export default function StageToday() {
   const [inprog, setInprog] = useState(() => new Set());
   const [day, setDay] = useState('');
   const [board, setBoard] = useState(null);
+  // THE OVERALL RANK comes from /api/quiz/me, the same place the site header
+  // reads it. daily-status computes the identical figure internally (posNow) but
+  // does not return it, and adding a second source for one number is how two
+  // surfaces end up disagreeing about a player's rank.
+  const [mine, setMine] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const qs = identityQs();
+    if (!qs) return undefined;
+    fetch('/api/quiz/me?light=1&' + qs)
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && d.found !== false) setMine(d); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
   useEffect(() => {
     let alive = true;
     const qs = identityQs();
@@ -148,6 +163,9 @@ export default function StageToday() {
     }).filter(Boolean);
   }, [day, done, light]);   // eslint-disable-line react-hooks/exhaustive-deps
   const playedCount = done.size;
+  // light=1 returns the flat `rank`; full mode nests it under ranks.xp. Both are
+  // the IQ board's position, so read either.
+  const rank = mine ? ((mine.ranks && mine.ranks.xp) || mine.rank || null) : null;
 
   // THE DAY, as one ladder. Blocks flex by their game count, so a block's width
   // says how big its category is, which is true and useful rather than decorative.
@@ -178,20 +196,35 @@ export default function StageToday() {
         </div>
         <div className="sty-figs">
           {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
-          {/* THE DAY'S GAINS, not the totals: what a cap on a home is for is
-              what has happened since midnight. The headline is the OVERALL rank
-              movement, with the IQ that earned it in parentheses — the rank is
-              the thing a player is climbing and the points are how they climbed
-              it, so the points read as the explanation rather than as a rival
-              figure. rankChange is POSITIVE for a climb toward #1, which is why
-              the arrow is not simply the sign. Each renders only when real. */}
-          {(stats.rankChange != null || stats.todayXp) ? (
+          {/* FOUR FIGURES, in the order a player asks the questions: what did
+              today earn me, where does that put me overall, where did I finish
+              on today's board, and how much of the day is left.
+
+              The previous cap tried to say the first two at once — the day's
+              rank MOVEMENT with the IQ in parentheses — and broke on the common
+              case: a move of 0 rendered an em dash under a label reading "rank
+              today", with a dangling "(+130)" explaining a number that was not
+              there. A day's play very often moves nobody, so the resting state
+              of that cell was a dash. Rank and the day's gain are two figures
+              and now read as two.
+
+              Each is drawn only when it is real, and the movement chip appears
+              only when there IS movement: no arrow means no change, which is
+              the honest way to say it. */}
+          {stats.todayXp ? (
+            <div><b className="sty-up">+{stats.todayXp.toLocaleString()}</b><i>IQ today</i></div>
+          ) : null}
+          {rank ? (
             <div>
-              <b className={stats.rankChange > 0 ? 'sty-up' : stats.rankChange < 0 ? 'sty-dn' : ''}>
-                {stats.rankChange > 0 ? `\u25b2${stats.rankChange}` : stats.rankChange < 0 ? `\u25bc${Math.abs(stats.rankChange)}` : '\u2014'}
-                {stats.todayXp ? <i> (+{stats.todayXp.toLocaleString()})</i> : null}
+              <b>
+                #{rank.toLocaleString()}
+                {stats.rankChange ? (
+                  <i className={stats.rankChange > 0 ? 'sty-up' : 'sty-dn'}>
+                    {' '}{stats.rankChange > 0 ? '\u25b2' : '\u25bc'}{Math.abs(stats.rankChange)}
+                  </i>
+                ) : null}
               </b>
-              <i>rank today</i>
+              <i>rank</i>
             </div>
           ) : null}
           {stats.dayRank ? (
@@ -353,6 +386,11 @@ const CSS = `
    apart at a glance, and they are not the category family. */
 .sty-up{color:var(--stg-up);}
 .sty-dn{color:var(--stg-dn);}
+/* The movement chip is an <i> INSIDE the figure, and .sty-figs b i (0,2,1)
+   outranks a bare .sty-up (0,1,0), so the arrow would render mute grey.
+   NOTE: this block is a JS template literal, so no backticks in comments. */
+.sty-figs b i.sty-up{color:var(--stg-up);}
+.sty-figs b i.sty-dn{color:var(--stg-dn);}
 .sty-tg{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;
   background:none;cursor:pointer;font:inherit;}
 .sty-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.11em;text-transform:uppercase;
