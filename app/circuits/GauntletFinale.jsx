@@ -99,6 +99,7 @@ export default function GauntletFinale({
   fieldSize = null,
   rows = [],
   meKey = null,
+  guest = false,
   onDone,
 }) {
   const N = sections.length;
@@ -270,6 +271,16 @@ export default function GauntletFinale({
             <span className="n">#<Count to={rank} ms={CLIMB_MS} from={fieldSize} resetKey="pos" /></span>
           </div>
         ) : null}
+        {/* A GUEST'S POSITION IS PROVISIONAL, and the number alone does not say
+            so (owner, 2026-08-31). The ladder pays registered names only, so a
+            guest watching their slot land is watching a spot nobody is holding.
+            The card underneath carries the form; this line is the only thing on
+            the curtain that says the spot has to be claimed. It is drawn on the
+            same condition as the number, because it is a note about that
+            number and nothing else. */}
+        {rank != null && fieldSize && guest ? (
+          <div className="gfin-claim">(select a name to claim)</div>
+        ) : null}
         <div className="gfin-rows">
           {top.map((row, i) => (
             <div key={row.userKey || i} className={`gfin-row${meKey && row.userKey === meKey ? ' me' : ''}`}>
@@ -343,6 +354,8 @@ const CSS = `
   text-transform:uppercase;opacity:.5}
 .gfin-pos .n{font-size:clamp(64px,13vw,120px);font-weight:800;letter-spacing:-.05em;
   line-height:.9;font-variant-numeric:tabular-nums}
+.gfin-claim{margin-top:-8px;font-size:clamp(12.5px,1.9vw,16px);font-weight:700;
+  letter-spacing:.03em;opacity:.62;text-align:center}
 .gfin-rows{width:min(520px,100%);display:flex;flex-direction:column;gap:2px}
 .gfin-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;
   padding:7px 14px;border-radius:8px;font-size:14px;font-weight:600;
@@ -367,6 +380,7 @@ const CSS = `
   .gfin-mark .ln{width:12px}
   .gfin-board{padding:0 62px 74px 18px;gap:10px}
   .gfin-pos .n{font-size:62px}
+  .gfin-claim{margin-top:-4px;font-size:12px}
   .gfin-rows{width:100%}
   .gfin-row{grid-template-columns:34px 1fr auto;gap:8px;padding:6px 10px;font-size:12.5px}
   .gfin-skip{bottom:18px;font-size:10px}

@@ -1307,6 +1307,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           fieldSize={(boardQ.data && boardQ.data.overallField) || null}
           rows={(boardQ.data && boardQ.data.overall) || []}
           meKey={(boardQ.data && boardQ.data.me && boardQ.data.me.userKey) || null}
+          guest={guest && !claimed}
           onDone={() => setCurtain(false)}
         />
       ) : null}
