@@ -381,6 +381,16 @@ export default function StageToday() {
   // CIRCUITS. The set is DISPLAY_CIRCUITS and the membership is
   // circuitKeysFor(id, day), which is the call that owns rotation — reading
   // the raw keys instead would show yesterday's run on a rotating circuit.
+  // Today's plays per game, off the board this page already fetches. Defined
+  // HERE rather than borrowed: playsOf and bgames belong to the other home, and
+  // reaching for them by name compiled cleanly and threw at runtime.
+  const playsBy = useMemo(() => {
+    const m = new Map();
+    const gs = board && Array.isArray(board.games) ? board.games : [];
+    for (const g of gs) if (g && g.key) m.set(g.key, g.plays || 0);
+    return m;
+  }, [board]);
+
   const circuits = useMemo(() => {
     if (!day) return [];
     return DISPLAY_CIRCUITS.map((c) => {
@@ -395,7 +405,7 @@ export default function StageToday() {
       // the shelf leads with what the site is actually playing rather than a
       // fixed editorial order. Summed, not averaged: a circuit of five busy
       // games IS a busier circuit than one of two.
-      const pop = games.reduce((t, g) => t + (playsOf(g.key) || 0), 0);
+      const pop = games.reduce((t, g) => t + (playsBy.get(g.key) || 0), 0);
       // A circuit spans categories, so it wears its LEAD game's step rather
       // than inventing a tenth colour.
       return { id: c.id, name: c.name, blurb: c.blurb || '', games, n, pop, hue: hueFor(games[0].cat) };
@@ -405,7 +415,7 @@ export default function StageToday() {
       .map((c, i) => [c, i])
       .sort((a, b) => (b[0].pop - a[0].pop) || (a[1] - b[1]))
       .map(([c]) => c);
-  }, [day, done, light, bgames]);   // eslint-disable-line react-hooks/exhaustive-deps
+  }, [day, done, light, playsBy]);   // eslint-disable-line react-hooks/exhaustive-deps
   // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
   // 2026-08-31: "takes up too much space"). The key is nine labelled swatches,
   // which wrap to three lines at 390 and push the first playable thing off the
