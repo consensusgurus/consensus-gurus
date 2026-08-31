@@ -44,6 +44,9 @@ import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -166,6 +169,17 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
 
   const playing = g.status === 'playing';
   const LOFT = isLoft('strata');
+  const STAGE = isStage('strata', searchParams);
+  const STAGE_C = gameColor('strata');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -538,11 +552,14 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   const boardH = rows * tile + gap * (rows - 1);
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative' , overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="strata" name="Strata" collapsed={!!g.t0} loft={LOFT} />
+      )}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="strata" quizId={PUZZLE.quizId}
           name="Strata"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (foundWords.length > 0 ? 'part' : 'lost'))}
@@ -563,7 +580,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
       <div className="st-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.st-wrap{padding-left:12px !important;padding-right:12px !important;}}
-          .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${COLORS.accentDeep};background:var(--white);color:${COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .st-btn:hover{background:${COLORS.accentSoft};}
           .st-btn:disabled{opacity:0.4;cursor:default;}
           .st-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
@@ -571,14 +588,14 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
           .st-board{position:relative;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;}
           .st-tile{position:absolute;display:flex;align-items:center;justify-content:center;
             font-family:${SANS};font-weight:800;border-radius:7px;cursor:pointer;
-            background:var(--white);border:1px solid rgba(28,30,36,0.15);color:${COLORS.ink};
+            background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.15)'};color:${INK};
             transition:top ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),left ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),background 120ms,color 120ms,border-color 120ms,transform 160ms,opacity ${LIFT_MS}ms;}
           .st-tile.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);transform:scale(1.04);}
           .st-tile.lift{background:${COLORS.green};border-color:${COLORS.green};color:var(--white);opacity:0.15;transform:scale(0.82);}
           .st-tile.bad{background:#fee2e2;border-color:#b91c1c;color:#7f1d1d;}
           .st-tile.flash{border-color:${COLORS.accent};box-shadow:0 0 0 3px ${COLORS.accentSoft};}
           .st-word{font-family:${MONO};font-size:13px;letter-spacing:0.08em;padding:5px 10px;border-radius:7px;background:#dcfce7;color:${COLORS.green};font-weight:700;}
-          .st-slot{font-family:${MONO};font-size:13px;letter-spacing:0.28em;padding:5px 10px;border-radius:7px;background:rgba(28,30,36,0.05);color:${COLORS.faded};}
+          .st-slot{font-family:${MONO};font-size:13px;letter-spacing:0.28em;padding:5px 10px;border-radius:7px;background:rgba(28,30,36,0.05);color:${FADED};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -607,13 +624,13 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT ? 'loft-sheet' : undefined}>
 
           {preStart && (
-            <div style={{ background: T.white, border: '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
-              <h2 style={{ fontSize: 19, fontWeight: 900, color: COLORS.ink, margin: '0 0 8px' }}>
+            <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderRadius: 12, padding: '20px 22px', margin: '4px 0 14px' }}>
+              <h2 style={{ fontSize: 19, fontWeight: 900, color: INK, margin: '0 0 8px' }}>
                 {TOTAL} words are buried in {rows * cols} letters.
               </h2>
-              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: COLORS.faded, fontWeight: 600, margin: '0 0 12px' }}>
+              <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Every letter belongs to one of them, and they are all members of{' '}
-                {PUZZLE.sunday ? <b style={{ color: COLORS.accentDeep }}>two categories you are not told</b> : <b style={{ color: COLORS.accentDeep }}>one category you are not told</b>}.
+                {PUZZLE.sunday ? <b style={{ color: ACC_DEEP }}>two categories you are not told</b> : <b style={{ color: ACC_DEEP }}>one category you are not told</b>}.
                 Trace a word and it lifts out. Then the letters above it fall, and the board you were reading is gone.
               </p>
               {gateRules && (
@@ -638,7 +655,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
           {!preStart && (
             <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '2px 0 12px', flexWrap: 'wrap' }}>
-                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: COLORS.faded }}>
+                <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {foundWords.length}/{TOTAL} &middot; {elapsed}{g.hints ? ` · ${g.hints} hint${g.hints > 1 ? 's' : ''}` : ''}
                 </div>
                 <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 700, color: g.thread ? COLORS.accentDeep : 'transparent', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -681,7 +698,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                 {trace.length > 0 && (
                   <button
                     onClick={() => setTrace([])}
-                    style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                    style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                   >clear</button>
                 )}
               </div>
@@ -694,10 +711,10 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
 
               {stuck && (
                 <div style={{ border: `1.5px solid ${COLORS.accentDeep}`, borderRadius: 10, padding: '12px 14px', marginBottom: 14, background: COLORS.accentSoft }}>
-                  <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: COLORS.accentDeep, marginBottom: 4 }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: ACC_DEEP, marginBottom: 4 }}>
                     Nothing left to read. That is our fault, not yours.
                   </div>
-                  <div style={{ fontFamily: SANS, fontSize: 13, color: COLORS.faded, fontWeight: 600, marginBottom: 10 }}>
+                  <div style={{ fontFamily: SANS, fontSize: 13, color: FADED, fontWeight: 600, marginBottom: 10 }}>
                     This board should never have been able to do that. Put {unstickTo === 0 ? 'the board' : 'it'} back
                     to where it can still be finished and try another order. It costs nothing: no hint, no time,
                     no points.
@@ -776,7 +793,8 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="strata" name="Strata" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="strata" name="Strata" onShow={() => setShowChrome(true)} />}
           <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0', maxWidth: 640 }}>
             {LOFT && (
               <div className="loft-report">
@@ -819,19 +837,19 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 470, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 470, fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : undefined }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accent} />
-              <b style={{ fontSize: 17, color: COLORS.ink }}>How Strata works</b>
-              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <b style={{ fontSize: 17, color: INK }}>How Strata works</b>
+              <button onClick={() => setShowHelp(false)} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: COLORS.ink, margin: '0 0 10px' }}>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: INK, margin: '0 0 10px' }}>
               Every letter on the grid belongs to one of today&rsquo;s hidden words, and the words are all
               members of {PUZZLE.sunday ? 'two categories' : 'a category'} you are not told. Trace a word through
               neighbouring letters and it lifts out. The letters above it then fall, which is the point:
               most of the words cannot be read until the board has collapsed under them.
             </p>
-            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: COLORS.ink, margin: '0 0 12px', paddingLeft: 20 }}>
+            <ul style={{ fontSize: 13.5, lineHeight: 1.7, color: INK, margin: '0 0 12px', paddingLeft: 20 }}>
               <li>Tap the letters one at a time, or hold and drag through them. Diagonals count.</li>
               <li>Tapping the letter you are on drops the trace; tapping an earlier one walks back to it.</li>
               <li>A word is taken the moment your trace spells it. There is nothing to press.</li>
@@ -844,7 +862,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

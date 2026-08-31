@@ -38,6 +38,9 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -226,6 +229,17 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const LOFT = isLoft('blitz');
+  const STAGE = isStage('blitz', searchParams);
+  const STAGE_C = gameColor('blitz');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const score = won ? TOTAL_Q : g.i;
   const problem = playing && started && g.i < TOTAL_Q ? PROBLEMS[g.i] : null;
   const deadProblem = g.status === 'lost' && g.i < TOTAL_Q ? PROBLEMS[g.i] : null;
@@ -535,17 +549,20 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
   );
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="blitz" name="Blitz" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. An arcade run ends the moment you are wrong, so how far you got IS the score.
           A run that banked anything is a partial and the cap goes amber. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="blitz" quizId={PUZZLE.quizId}
           name="Blitz"
           cat="Numbers"
           outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
@@ -566,12 +583,12 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
       <div className="bz-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.bz-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .bz-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .bz-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .bz-btn:hover{background:var(--accent-soft);}
           .bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           .bz-choice{font-family:${SANS};display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid;border-radius:9px;padding:15px 12px;transition:background .12s ease,border-color .12s ease;}
           .bz-grid:not(.nohov) .bz-choice:not(:disabled):hover{background:${COLORS.paper};}
-          .bz-prob{font-family:${MONO};font-weight:500;font-size:44px;line-height:1.15;letter-spacing:-0.02em;color:${COLORS.ink};text-align:center;padding:14px 4px 20px;font-variant-numeric:tabular-nums;}
+          .bz-prob{font-family:${MONO};font-weight:500;font-size:44px;line-height:1.15;letter-spacing:-0.02em;color:${INK};text-align:center;padding:14px 4px 20px;font-variant-numeric:tabular-nums;}
           @media(max-width:560px){.bz-prob{font-size:36px;padding:10px 2px 16px;}}
           .bz-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
           .bz-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
@@ -597,18 +614,18 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: COLORS.faded, marginBottom: 5 }}>Today&rsquo;s twenty</div>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 22, color: COLORS.accent, lineHeight: 1.2, marginBottom: 14 }}>Mental arithmetic, against the clock</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 5 }}>Today&rsquo;s twenty</div>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 22, color: ACC, lineHeight: 1.2, marginBottom: 14 }}>Mental arithmetic, against the clock</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Twenty problems in five rounds, easy to hard, {Q_SECONDS} seconds each, and one life. Do it in your head and pick from four; every problem you clear is a point. Keys 1 to 4 answer. The clock starts when you do.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="bz-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="bz-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -617,18 +634,18 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         )}
 
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 4, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Zap size={13} style={{ color: COLORS.accent }} />
-              <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{score}</b>
+              <Zap size={13} style={{ color: ACC }} />
+              <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{score}</b>
               <span>of {TOTAL_Q}</span>
             </span>
             {scoreRow('time', elapsed)}
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: COLORS.accent, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: ACC, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
           </div>
           )}
 
@@ -640,7 +657,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
                 </div>
                 <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: remainFrac > 0.18 ? COLORS.faded : COLORS.rust, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>{Math.ceil(remainMs / 1000)}s</span>
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q}</div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q}</div>
               {qCard(problem, false)}
             </div>
           )}
@@ -650,7 +667,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
               <div style={{ fontFamily: SANS, fontSize: 14.5, fontWeight: 800, color: COLORS.rust, marginBottom: 4 }}>
                 {g.timedOut ? 'Time ran out.' : 'Wrong answer.'} The run ends at {score}.
               </div>
-              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: COLORS.faded, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q} — the one that stopped you</div>
+              <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED, opacity: 0.75 }}>Problem {g.i + 1} of {TOTAL_Q} — the one that stopped you</div>
               {qCard(deadProblem, true)}
             </div>
           )}
@@ -658,7 +675,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           {won && (
             <div style={{ textAlign: 'center', padding: '18px 6px 10px' }}>
               <div style={{ fontSize: 26, fontWeight: 900, color: COLORS.green, marginBottom: 6 }}>20 for 20.</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: COLORS.faded }}>A clean run in {elapsed}. Nobody beats that today, they can only tie it faster.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: FADED }}>A clean run in {elapsed}. Nobody beats that today, they can only tie it faster.</div>
             </div>
           )}
 
@@ -667,7 +684,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
             meant to hold the whole game. */}
         {started && playing && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: COLORS.faded }}>One wrong answer ends the run. Everything you clear is banked. Keys 1 to 4 answer.</span>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>One wrong answer ends the run. Everything you clear is banked. Keys 1 to 4 answer.</span>
           </div>
         )}
         </div>
@@ -677,10 +694,10 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           <div className="loft-sol">
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-                {won ? <>A clean run: <span style={{ color: COLORS.accent }}>all 20</span>.</> : <>You cleared <span style={{ color: COLORS.accent }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
+              <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
+                {won ? <>A clean run: <span style={{ color: ACC }}>all 20</span>.</> : <>You cleared <span style={{ color: ACC }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {won
                   ? 'Twenty problems, no slips, no calculator. That is the whole game.'
                   : score >= 17 ? 'Into the last round. Cubes and two-digit multiplication under fifteen seconds is a real skill.'
@@ -694,17 +711,17 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Twenty new problems in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Twenty new problems at midnight Eastern.'}
+                    {countdown ? <>Twenty new problems in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'Twenty new problems at midnight Eastern.'}
                     {prevPuzzle && (<>{' '}Meanwhile: <a href={`/blitz?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s twenty &rarr;</a></>)}
                   </>
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/blitz" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Blitz &rarr;</a>
-                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    {' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -764,7 +781,8 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="blitz" name="Blitz" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="blitz" name="Blitz" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className="loft-report">
@@ -786,16 +804,16 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Blitz to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Blitz to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s twenty, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s twenty, every day.</p>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s twenty, every day.</p>
               )}
               <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
@@ -825,10 +843,10 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="bz-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -836,20 +854,20 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         </div>
       )}
 
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Blitz</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Blitz</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Blitz is a free daily mental math game from Mind Loft. Twenty arithmetic problems climb through five rounds, from two-digit addition and the times tables up to two-digit multiplication, awkward percentages, order of operations and cubes. You get fifteen seconds each and one life, so your score is simply how far up the ladder you got before a wrong answer or an empty clock stopped you.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The four options are not padding. Every wrong answer on the board is a mistake somebody actually makes: a dropped carry, a slipped times-table row, the left-to-right reading of a line that needs precedence, the cube next door. You cannot pick the right one out by its last digit or by its size, which means there is no way through but the arithmetic.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          Everyone plays the same twenty problems in the same order each day, so the daily leaderboard is a straight fight: furthest wins, and ties break by time. Twenty new problems drop every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. If you would rather be asked what you know than what you can work out, try <a href="/streak" style={{ color: COLORS.ink, fontWeight: 800 }}>Streak</a> or <a href="/deep" style={{ color: COLORS.ink, fontWeight: 800 }}>Deep</a>. More numbers: <a href="/crunch" style={{ color: COLORS.ink, fontWeight: 800 }}>Crunch</a> and <a href="/cipher" style={{ color: COLORS.ink, fontWeight: 800 }}>Cipher</a>.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          Everyone plays the same twenty problems in the same order each day, so the daily leaderboard is a straight fight: furthest wins, and ties break by time. Twenty new problems drop every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. If you would rather be asked what you know than what you can work out, try <a href="/streak" style={{ color: INK, fontWeight: 800 }}>Streak</a> or <a href="/deep" style={{ color: INK, fontWeight: 800 }}>Deep</a>. More numbers: <a href="/crunch" style={{ color: INK, fontWeight: 800 }}>Crunch</a> and <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

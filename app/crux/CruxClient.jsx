@@ -1151,6 +1151,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // 330. The floor drops with it: 42px was chosen when a tall board could
   // scroll under all that chrome, and on the stage it just overflows.
   const VROOM = STAGE ? STAGE_VROOM : 430;
+  // Everything the rows themselves do not occupy: the gaps between them, plus
+  // a little slack so the board rests on the fold rather than against it.
+  const GAPS = (ROWS - 1) * 3 + 8;
   // Measured, not guessed. See lib/stage-fit.js for why this cannot loop.
   const gridRef = useRef(null);
   const stageRoom = useStageRoom(gridRef, STAGE);
@@ -1353,8 +1356,8 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
              untouched. The floor stops a very tall board on a short window from
              shrinking to something unreadable; past that point the page scrolls,
              which is the better trade. At 1080 tall nothing changes at all. */
-          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px))/${ROWS})));}
-          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px))/${ROWS})));}}
+          .cl-grid{--cs:min(${CS_FILL}px, calc((596px - ${(COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px) - ${GAPS}px)/${ROWS})));}
+          @media (max-width:900px){.cl-grid{--cs:min(${CS_FILL}px, calc((100vw - ${88 + (COLS - 1) * 3}px)/${COLS}), max(${CS_MIN}px, calc((100vh - var(--cx-room, ${VROOM}px) - ${GAPS}px)/${ROWS})));}}
           @media (max-width:560px){.cx-wrap{padding-left:14px !important;padding-right:14px !important;}.cl-grid{--cs:min(46px, calc((100vw - ${52 + (COLS - 1) * 3}px)/${COLS}));}.cl-panel{padding:11px 11px 13px !important;}.cl-cat{flex-direction:column;align-items:flex-start;gap:5px;padding:9px 11px !important;}}
           @media (max-width:430px){.cl-cats{grid-template-columns:1fr;}}
           .cx-htp-s{display:none;}
@@ -1529,14 +1532,14 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               <button className="cl-key" onClick={() => cycleSlot(1)} aria-label="Next word" style={{ background: COLORS.paper, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChevronRight size={17} /></button>
               {freeHintOk && (
                 <button className="cl-key" onClick={() => revealHint(false)} title="Reveal one letter in this word. Free, and only on your first ever Crux."
-                  style={{ marginLeft: 'auto', background: '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: '#8a6d1a' }}>
+                  style={{ marginLeft: 'auto', background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: STAGE ? INK : '#8a6d1a' }}>
                   <Lightbulb size={14} /> Free hint
                 </button>
               )}
               {paidHintOk && (
                 <button className="cl-key" onClick={() => revealHint(true)} disabled={!canAffordPaid}
                   title={canAffordPaid ? 'Reveal one letter in this word. Costs 1 guess and 1 point off your score.' : 'Not enough guesses left to buy a hint.'}
-                  style={{ marginLeft: freeHintOk ? 0 : 'auto', background: canAffordPaid ? '#fdf6e3' : 'rgba(28,30,36,0.05)', border: `1.5px solid ${canAffordPaid ? 'rgba(230,185,63,0.7)' : 'rgba(28,30,36,0.16)'}`, height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: canAffordPaid ? '#8a6d1a' : COLORS.faded, cursor: canAffordPaid ? 'pointer' : 'not-allowed' }}>
+                  style={{ marginLeft: freeHintOk ? 0 : 'auto', background: canAffordPaid ? (STAGE ? 'var(--stg-surf2)' : '#fdf6e3') : (STAGE ? 'var(--stg-surf)' : 'rgba(28,30,36,0.05)'), border: `1.5px solid ${canAffordPaid ? 'rgba(230,185,63,0.7)' : (STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.16)')}`, height: 30, padding: '0 10px', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 800, color: canAffordPaid ? (STAGE ? INK : '#8a6d1a') : FADED, cursor: canAffordPaid ? 'pointer' : 'not-allowed' }}>
                   <Lightbulb size={14} /> Hint
                   <span style={{ fontSize: 10, fontWeight: 800, opacity: 0.85 }}>&minus;1 guess &minus;1 pt</span>
                 </button>

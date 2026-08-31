@@ -49,6 +49,9 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -286,6 +289,17 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   const [showChrome, setShowChrome] = useState(false);
   const focusMode = playing && !showChrome;
   const LOFT = isLoft('hands');
+  const STAGE = isStage('hands', searchParams);
+  const STAGE_C = gameColor('hands');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const started = !!g.t0;
   const preStart = !started && playing;
   const done = g.status === 'done';
@@ -511,18 +525,21 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   });
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
       {/* Shared daily chrome (app/DailyChrome.jsx): home masthead + stat bar +
           today's slate rail, collapsing to one line once the clock runs. Outside
           the page wrapper so the bands run full bleed; nothing here is pinned. */}
+      {!STAGE && (
       <DailyChrome slug="hands" name="Hands" collapsed={started}
         stats={started ? [{ k: 'Points', v: total }, { k: 'Par', v: par }] : null} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. A finished hand under par still scores, so it is a partial and the cap goes
           amber rather than red. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="hands" quizId={PUZZLE.quizId}
           name="Hands"
           cat="Cards"
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
@@ -545,9 +562,9 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
       <div className="hd-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.hd-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .hd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .hd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .hd-btn:hover{background:var(--accent-soft);}
-          .hd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid rgba(28,30,36,0.35);background:var(--white);color:${COLORS.ink};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .hd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .hd-tool:disabled{opacity:0.4;cursor:default;}
           .hd-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:13px 12px 15px;touch-action:manipulation;}
           /* minmax(0,1fr) on the card tracks, NOT 1fr: a bare 1fr floors at the
@@ -581,17 +598,17 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Hands is ready'}</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Hands is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Twenty five cards, one at a time, into a five by five grid. Every row and column is a poker hand, so each card counts twice. One muck, no undo. Par is {par} and ace is {ace}.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="hd-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="hd-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -600,14 +617,14 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
         )}
 
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>points <b style={{ color: total >= par ? COLORS.green : COLORS.ink, fontWeight: 500 }}>{total}</b></span>
-            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: COLORS.accent, fontWeight: 500 }}>{par}</b> &middot; ace <b style={{ color: COLORS.ink, fontWeight: 500 }}>{ace}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC, fontWeight: 500 }}>{par}</b> &middot; ace <b style={{ color: INK, fontWeight: 500 }}>{ace}</b></span>
           </div>
           )}
 
@@ -670,7 +687,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           {done && (
             <div style={{ marginTop: 12, textAlign: 'center' }}>
               <button type="button" onClick={() => setShowBest((v) => !v)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, color: COLORS.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12.5, color: FADED, textDecoration: 'underline', textUnderlineOffset: 3 }}>
                 {showBest ? 'Hide the best arrangement' : `The best board found on these cards was ${PUZZLE.ceiling}. See it`}
               </button>
               {showBest && (
@@ -691,7 +708,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                       <ChipCell><ScoreChip value={PUZZLE.ceiling} complete total /></ChipCell>
                     </div>
                   </div>
-                  <div style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, color: FADED, fontWeight: 600, marginTop: 8, lineHeight: 1.5 }}>
                     The best arrangement of these 26 cards our search could find. It is not a target and not a proven maximum: you would have to have seen the whole deal coming to build it, which is exactly why the round is scored against par and ace, both of which are rounds played blind.
                   </div>
                 </div>
@@ -705,10 +722,10 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           <div className="loft-sol">
           {done && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-                You scored <span style={{ color: COLORS.accent }}>{total} points</span>. Par was {par}, ace was {ace}.
+              <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
+                You scored <span style={{ color: ACC }}>{total} points</span>. Par was {par}, ace was {ace}.
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 0', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>
                 {total >= ace ? 'You matched or beat the best round our solver found playing blind on this deal. That is as good as it gets without seeing the cards coming.'
                   : total > par ? `That is ${total - par} over par, with ${busts === 0 ? 'not a single hand wasted' : `${busts} of the ten hands worth nothing`}.`
                   : total === par ? 'Level par, exactly what an ordinary round comes home with.'
@@ -719,17 +736,17 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Hands in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new deal drops at midnight Eastern.'}
+                    {countdown ? <>Next Hands in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new deal drops at midnight Eastern.'}
                     {prevPuzzle && (<>{' '}Meanwhile: <a href={`/hands?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>play yesterday&rsquo;s Hands &rarr;</a></>)}
                   </>
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/hands" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Hands &rarr;</a>
-                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    {' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -789,7 +806,8 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
             home-page puzzle tile. GamePanel renders its own button and also
             flips the page out of focus mode on first open, which is all the
             "Show overview and more" control it replaces ever did. */}
-        <GamePanel self="hands" name="Hands" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="hands" name="Hands" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className="loft-report">
@@ -834,10 +852,10 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="hd-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -845,20 +863,20 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Hands</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Hands</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Hands is a free daily poker puzzle from Mind Loft. Twenty five cards arrive one at a time and you place each one on a five by five grid, which is read as ten poker hands: five rows and five columns, with every card counting in two of them. A card you have placed never moves, so the whole game is deciding where it goes while the rest of the deal is still hidden.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Poker is usually a game of luck, and a daily leaderboard cannot rank luck. So the shuffle is fixed: every player in the world gets the same 26 cards in the same order, which turns the whole thing into a decision game. The one lever you have is a single muck, which throws the current card away and takes the next one without showing it to you first. Both of the numbers you play against are real rounds rather than formulas: par is the middle of four hundred blind solver runs on your exact deal, and ace is the best of them, so the top of the scale is genuinely reachable.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/taire" style={{ color: COLORS.ink, fontWeight: 800 }}>Taire</a>, our daily two-suit solitaire, <a href="/babel" style={{ color: COLORS.ink, fontWeight: 800 }}>Babel</a>, the word tile endgame, and <a href="/mate" style={{ color: COLORS.ink, fontWeight: 800 }}>Mate</a>, our daily chess finish.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new deal drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/taire" style={{ color: INK, fontWeight: 800 }}>Taire</a>, our daily two-suit solitaire, <a href="/babel" style={{ color: INK, fontWeight: 800 }}>Babel</a>, the word tile endgame, and <a href="/mate" style={{ color: INK, fontWeight: 800 }}>Mate</a>, our daily chess finish.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }

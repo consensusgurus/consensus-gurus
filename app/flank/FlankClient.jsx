@@ -34,6 +34,9 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
+import StageChrome from '../StageChrome';
+import { isStage } from '@/lib/stage';
+import { gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -220,6 +223,17 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
   const focusMode = playing && !showChrome;
   const won = g.status === 'won';
   const LOFT = isLoft('flank');
+  const STAGE = isStage('flank', searchParams);
+  const STAGE_C = gameColor('flank');
+  const Cap = STAGE ? StageChrome : LoftCap;
+  const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
+  const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
+  const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
+  const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const ACC = STAGE ? STAGE_C : COLORS.accent;
+  const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
+  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
   const foundCount = g.found.length;
   const strikes = g.wrong.length;
 
@@ -496,14 +510,17 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
   };
 
   return (
-    <div className={LOFT ? 'loft-page' : undefined} style={{ minHeight: '100vh', background: T.surface, position: 'relative', overflowX: LOFT ? 'hidden' : undefined }}>
-      <Grain />
+    <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
+      style={{ minHeight: '100vh', background: STAGE ? STAGE_GROUND : T.surface, color: STAGE ? 'var(--stg-ink,#e9edf4)' : undefined, position: 'relative', overflowX: (STAGE || LOFT) ? 'hidden' : undefined }}>
+      {!STAGE && <Grain />}
+      {!STAGE && (
       <DailyChrome slug="flank" name="Flank" collapsed={started} loft={LOFT} />
+      )}
       {/* LOFT: the cap replaces the title block AND the board's own stat
           strip. Naming some of the borders is a partial, so the cap goes
           amber on anything banked. */}
       {LOFT && (
-        <LoftCap
+        <Cap gameKey="flank" quizId={PUZZLE.quizId}
           name="Flank"
           cat="Geography"
           outcome={playing ? null : (won ? 'won' : (foundCount > 0 ? 'part' : 'lost'))}
@@ -524,12 +541,12 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
       <div className="fl-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
         <style>{`
           @media(max-width:560px){.fl-wrap{padding-left:10px !important;padding-right:10px !important;}}
-          .fl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:var(--white);color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .fl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .fl-btn:hover{background:var(--accent-soft);}
           .fl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
           @media(max-width:560px){.fl-grid{grid-template-columns:1fr;}}
           .fl-slot{display:flex;align-items:center;font-family:${SANS};font-size:14px;border:2px solid;border-radius:9px;padding:10px 12px;line-height:1.3;transition:background .15s ease,border-color .15s ease;}
-          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border:2px solid rgba(28,30,36,0.4);border-radius:9px;padding:11px 13px;color:${COLORS.ink};background:${T.white};outline:none;}
+          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border:2px solid rgba(28,30,36,0.4);border-radius:9px;padding:11px 13px;color:${INK};background:${T.white};outline:none;}
           .fl-input:focus{border-color:${COLORS.accent};}
           .fl-input.shake{animation:flshake .3s linear;}
           @keyframes flshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -556,17 +573,17 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           <div className={LOFT && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: COLORS.cream, border: `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: COLORS.ink, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Flank is ready'}</div>
+          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Flank is ready'}</div>
             {gateRules ? rulesBody : (
-              <div style={{ fontSize: 14, lineHeight: 1.55, color: COLORS.ink, fontWeight: 600 }}>
+              <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>One country, {TOTAL === 1 ? 'one border' : `${TOTAL} borders`}, {STRIKES} strikes. Type every country that touches it; typos are free, wrong countries are not. The clock starts when you do.</p>
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="fl-btn" onClick={startGame} style={{ background: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="fl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
-                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: COLORS.faded, textDecoration: 'underline' }}>
+                <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
               </div>
@@ -575,28 +592,28 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         )}
 
         {!preStart && (
-        <div className={LOFT ? 'loft-card' : undefined} style={{ background: T.white, border: `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
+        <div className={LOFT ? 'loft-card' : undefined} style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '13px 15px 15px', boxShadow: STAGE ? 'none' : '5px 5px 0 rgba(28,30,36,0.16)', marginBottom: 12 }}>
           {/* These figures move UP into the cap on a loft page. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.faded, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Milestone size={13} style={{ color: COLORS.accent }} />
-              <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{foundCount}/{TOTAL}</b>
+              <Milestone size={13} style={{ color: ACC }} />
+              <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{foundCount}/{TOTAL}</b>
               <span>borders</span>
             </span>
-            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: COLORS.ink, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
+            <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>strikes <b style={{ color: COLORS.rust, fontWeight: 500 }}>{strikes}/{STRIKES}</b></span>
           </div>
           )}
 
           {/* The prompt: today's country. A question stays with the board. */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: COLORS.accent, marginBottom: 4 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: ACC, marginBottom: 4 }}>
               Today&apos;s country{PUZZLE.sunday ? ' · Sunday Edition' : ''}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: SANS, fontSize: 27, fontWeight: 900, letterSpacing: '-0.01em', color: COLORS.ink, lineHeight: 1.1 }}>{SUBJECT}</span>
-              <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: COLORS.faded }}>{TOTAL === 1 ? 'has 1 land border' : `has ${TOTAL} land borders`}</span>
+              <span style={{ fontFamily: SANS, fontSize: 27, fontWeight: 900, letterSpacing: '-0.01em', color: INK, lineHeight: 1.1 }}>{SUBJECT}</span>
+              <span style={{ fontFamily: SANS, fontSize: 13.5, fontWeight: 700, color: FADED }}>{TOTAL === 1 ? 'has 1 land border' : `has ${TOTAL} land borders`}</span>
             </div>
           </div>
 
@@ -639,7 +656,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           </div>
 
           {(g.wrong.length > 0 || !playing) && (
-            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: COLORS.faded, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'baseline' }}>
+            <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'baseline' }}>
               <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Wrong</span>
               {g.wrong.length ? g.wrong.map((code) => (
                 <span key={code} style={{ color: COLORS.rust, textDecoration: 'line-through' }}>{nameOf(code)}</span>
@@ -652,10 +669,10 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           <div className="loft-sol">
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: COLORS.ink, margin: '8px 0 0' }}>
-                {won ? <>A clean sweep: <span style={{ color: COLORS.accent }}>all {TOTAL} borders</span>.</> : <>You named <span style={{ color: COLORS.accent }}>{foundCount} of {TOTAL}</span>.</>}
+              <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
+                {won ? <>A clean sweep: <span style={{ color: ACC }}>all {TOTAL} borders</span>.</> : <>You named <span style={{ color: ACC }}>{foundCount} of {TOTAL}</span>.</>}
               </div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.faded, margin: '6px 0 4px', lineHeight: 1.5 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {won
                   ? 'Nobody can beat that. They can only tie it with fewer wrong guesses, or faster.'
                   : foundCount >= TOTAL - 1 ? 'One border short. That is the one to look up tonight.'
@@ -667,17 +684,17 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
                   <span style={{ color: '#b45309' }}>{myStats.cur}-day streak</span>
                 </div>
               )}
-              <p className="loft-tailnote" style={{ fontSize: 12, color: COLORS.faded, fontWeight: 600, margin: '12px 0 0' }}>
+              <p className="loft-tailnote" style={{ fontSize: 12, color: FADED, fontWeight: 600, margin: '12px 0 0' }}>
                 {isTodays ? (
                   <>
-                    {countdown ? <>Next Flank in <b style={{ color: COLORS.ink, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new country drops at midnight Eastern.'}
+                    {countdown ? <>Next Flank in <b style={{ color: INK, fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>.</> : 'A new country drops at midnight Eastern.'}
                     {prevPuzzle && (<>{' '}Meanwhile: <a href={`/flank?p=${prevPuzzle.num}`} style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>run yesterday&rsquo;s country &rarr;</a></>)}
                   </>
                 ) : (
                   <>
                     You&rsquo;re playing the {PUZZLE.dateLabel.replace(', 2026', '')} archive.{' '}
                     <a href="/flank" style={{ color: COLORS.ember, fontWeight: 800, textDecoration: 'underline' }}>Back to today&rsquo;s Flank &rarr;</a>
-                    {' · '}<a href="/daily" style={{ color: COLORS.faded, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
+                    {' · '}<a href="/daily" style={{ color: FADED, fontWeight: 700, textDecoration: 'underline' }}>All daily puzzles</a>
                   </>
                 )}
               </p>
@@ -731,7 +748,8 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         {/* end of the navy play stage; everything below is the light tail */}
         </div>
 
-        <GamePanel self="flank" name="Flank" onShow={() => setShowChrome(true)} />
+        {/* The strip in the cap answers what this opens, without being pressed. */}
+        {!STAGE && <GamePanel self="flank" name="Flank" onShow={() => setShowChrome(true)} />}
         <div style={{ display: focusMode ? 'none' : 'block', margin: '30px auto 0' }}>
           {LOFT && (
             <div className="loft-report">
@@ -753,16 +771,16 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         </div>
         {showA2hsHelp && (
           <div onClick={() => setShowA2hsHelp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ background: T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: '1.5px solid rgba(20,22,28,0.12)' }}>
-              <div style={{ fontSize: 17, fontWeight: 800, color: COLORS.ink, marginBottom: 8 }}>Add Flank to your Home Screen</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 14, maxWidth: 430, width: '100%', padding: '22px 22px 16px', fontFamily: SANS, border: STAGE ? '1px solid var(--stg-line)' : '1.5px solid rgba(20,22,28,0.12)' }}>
+              <div style={{ fontSize: 17, fontWeight: 800, color: INK, marginBottom: 8 }}>Add Flank to your Home Screen</div>
               {isIosDevice() ? (
-                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>
+                <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
                   <li>Tap <b>Add</b> &mdash; the tile opens today&apos;s country, every day.</li>
                 </ol>
               ) : (
-                <p style={{ margin: '0 0 4px', color: COLORS.ink, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s country, every day.</p>
+                <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s country, every day.</p>
               )}
               <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
             </div>
@@ -792,10 +810,10 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: COLORS.cream, borderRadius: 12, border: `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: 460, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderRadius: 12, border: STAGE ? '1px solid var(--stg-line)' : `2px solid ${COLORS.ink}`, padding: '20px 22px', fontFamily: SANS, maxHeight: '86vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 21, fontWeight: 800, color: COLORS.ink }}>How to play</div>
-              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: COLORS.faded }}><X size={20} /></button>
+              <div style={{ fontSize: 21, fontWeight: 800, color: INK }}>How to play</div>
+              <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
             <button className="fl-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
@@ -803,20 +821,20 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         </div>
       )}
 
-      <section style={{ position: 'relative', display: focusMode ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
-        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: COLORS.ink }}>About Flank</h2>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Flank</h2>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Flank is a free daily geography game from Mind Loft. One country is revealed each day, and your job is to name every country that shares a land border with it. A correct neighbor banks itself the moment you finish typing it. A real country that does not border costs a strike, and three strikes end the run, so the game is less about typing speed and more about whether you can actually see the map in your head.
         </p>
-        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
+        <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The week has a shape. Monday starts with a one-border country anyone can clear, the difficulty climbs a step a day, and Sunday hands you a giant like China or Russia with fourteen neighbors and a fourth strike to spend. Everyone plays the same country each day, so the daily leaderboard is a straight fight: most borders named, then fewest wrong guesses, then time.
         </p>
-        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: COLORS.faded, fontWeight: 600 }}>
-          A new country drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More geography dailies: <a href="/atlas" style={{ color: COLORS.ink, fontWeight: 800 }}>Atlas</a>, our twenty-five question gauntlet, <a href="/ping" style={{ color: COLORS.ink, fontWeight: 800 }}>Ping</a>, our daily secret city, and <a href="/span" style={{ color: COLORS.ink, fontWeight: 800 }}>Span</a>, our daily border chain.
+        <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
+          A new country drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More geography dailies: <a href="/atlas" style={{ color: INK, fontWeight: 800 }}>Atlas</a>, our twenty-five question gauntlet, <a href="/ping" style={{ color: INK, fontWeight: 800 }}>Ping</a>, our daily secret city, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our daily border chain.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>
+      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
     </div>
   );
 }
