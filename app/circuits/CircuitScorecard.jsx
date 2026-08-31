@@ -32,7 +32,7 @@
 // other two shapes those rules catch.
 
 import React from 'react';
-import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+import GameGlyph from '../GameGlyph';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 
 const r1 = (n) => Math.round(Number(n) * 10) / 10;
@@ -41,14 +41,6 @@ const r1 = (n) => Math.round(Number(n) * 10) / 10;
 // THE NEW GLYPHS, not the old multicolour PNGs (owner, 2026-08-31). One stroke
 // drawing in currentColor, so it takes the surface's own colour instead of
 // importing a second palette. See lib/game-glyphs.js.
-function GameGlyph({ gameKey, size = 22 }) {
-  const d = GLYPHS[gameKey];
-  if (!d) return null;
-  return (
-    <svg viewBox={GLYPH_BOX} width={size} height={size} fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-  );
-}
 
 export default function CircuitScorecard({
   eyebrow = '',

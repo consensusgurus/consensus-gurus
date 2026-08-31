@@ -33,7 +33,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
-import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+import GameGlyph from '../GameGlyph';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import useMyGames from '../useMyGames';
@@ -141,14 +141,9 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue 
   );
 }
 
+// A thin wrapper, not a copy: the only local part is the class the page styles.
 function Glyph({ k, size = 20 }) {
-  const d = GLYPHS[k];
-  if (!d) return null;
-  return (
-    <svg className="sty-gi" viewBox={GLYPH_BOX} width={size} height={size} fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden="true"><path d={d} /></svg>
-  );
+  return <GameGlyph gameKey={k} size={size} className="sty-gi" />;
 }
 
 export default function StageToday() {

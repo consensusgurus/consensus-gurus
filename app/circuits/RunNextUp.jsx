@@ -50,6 +50,7 @@ import useDailyRoster from '../useDailyRoster';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, circuitById, circuitEntryHref } from '@/lib/circuits';
 import { T } from '@/lib/theme';
+import GameGlyph from '../GameGlyph';
 
 const PICKS = 4;      // single puzzles shown at rest
 const FEATURED = 2;   // circuits shown at rest
@@ -172,7 +173,7 @@ export default function RunNextUp({ circuitId }) {
           <div className="rnx-tiles">
             {picks.map(({ g, why }) => (
               <a key={g.key} className="rnx-tile" href={g.href}>
-                <img src={g.img} alt="" width={30} height={30} />
+                <span className="rnx-ic" style={{ color: (DAILY_GAME_MAP[g.key] || {}).colorNavy || '#eef2fa' }}><GameGlyph gameKey={g.key} size={22} /></span>
                 <span><b>{g.name}</b><i>{g.tag}</i></span>
                 <em>{why}</em>
               </a>
@@ -229,7 +230,7 @@ export default function RunNextUp({ circuitId }) {
           <div className="rnx-tiles">
             {shownGames.map((g) => (
               <a key={g.key} className={g.played ? 'rnx-tile played' : 'rnx-tile'} href={g.href}>
-                <img src={g.img} alt="" width={30} height={30} />
+                <span className="rnx-ic" style={{ color: (DAILY_GAME_MAP[g.key] || {}).colorNavy || '#eef2fa' }}><GameGlyph gameKey={g.key} size={22} /></span>
                 <span><b>{g.name}</b><i>{g.tag}</i></span>
                 {g.played ? <em className="done">Played</em> : null}
               </a>
@@ -274,7 +275,8 @@ const CSS = `
 .rnx-tile{display:flex;align-items:center;gap:9px;text-decoration:none;border:1px solid rgba(255,255,255,.14);
   border-radius:10px;padding:8px 10px;background:rgba(255,255,255,.05);color:#eef2fa;min-width:0;}
 .rnx-tile:hover{border-color:${T.blue400};background:rgba(47,111,228,.16);}
-.rnx-tile img{flex:0 0 auto;width:30px;height:30px;border-radius:7px;object-fit:contain;display:block;}
+.rnx-tile .rnx-ic{flex:0 0 auto;width:30px;height:30px;border-radius:7px;display:flex;
+  align-items:center;justify-content:center;background:rgba(255,255,255,.07);}
 .rnx-tile > span{min-width:0;flex:1;}
 .rnx-tile b{display:block;font-weight:800;font-size:13px;line-height:1.1;white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;color:#eef2fa;}

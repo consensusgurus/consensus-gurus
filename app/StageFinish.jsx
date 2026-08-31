@@ -22,7 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
 import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
-import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+import GameGlyph from './GameGlyph';
 
 // Which dailies are finished TODAY, from the breadcrumb every client writes on
 // finishing. Read once on mount: a finish page is a snapshot, not live data.
@@ -49,14 +49,10 @@ function doneToday() {
 }
 
 function Tile({ g, played }) {
-  const d = GLYPHS[g.key];
   return (
     <a className={'stf-tile' + (played ? ' done' : '')} href={g.href || `/${g.key}`}
       style={{ '--tc': categoryColor(g.cat) }}>
-      {d ? (
-        <svg viewBox={GLYPH_BOX} width="14" height="14" fill="none" stroke="currentColor"
-          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-      ) : null}
+      <GameGlyph gameKey={g.key} size={14} />
       <span>{g.name}</span>
     </a>
   );

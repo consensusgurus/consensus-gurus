@@ -31,6 +31,7 @@
 // /api/quiz/daily-game, cached per game by the parent.
 
 import React, { useEffect, useMemo, useState } from 'react';
+import GameGlyph from './GameGlyph';
 import { Play, X, Flame, Crown, ChevronLeft, ChevronRight, CalendarDays, Trophy, TrendingUp, Share2, Users, Star } from 'lucide-react';
 import { DAILY_GAME_MAP } from '../lib/daily-games';
 import { T } from '@/lib/theme';
@@ -267,7 +268,7 @@ export default function DailyTilePanel({
   return (
     <div className="dtp" style={{ '--gc': accent }} role="region" aria-label={game.name + ' details'}>
       <div className="dtp-hd">
-        <span className="dtp-ic"><img src={game.img} alt="" aria-hidden="true" /></span>
+        <span className="dtp-ic" style={{ color: game.color || '#33415c' }}><GameGlyph gameKey={game.key} size={26} /></span>
         <div className="dtp-idt">
           <div className="dtp-nm">
             <span className="dtp-nmt">{game.name}</span>

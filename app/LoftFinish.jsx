@@ -70,7 +70,7 @@ import { DAILY_GAMES, DAILY_GAME_MAP, attemptsMode, isArcade, wantsFastRetry, da
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
-import { GLYPHS, GLYPH_BOX } from '@/lib/game-glyphs';
+import GameGlyph from './GameGlyph';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -89,14 +89,6 @@ function Calculating({ wide = false }) {
 // THE NEW GLYPHS, not the old multicolour PNGs (owner, 2026-08-31). One stroke
 // drawing in currentColor, so it takes the surface's own colour instead of
 // importing a second palette. See lib/game-glyphs.js.
-function GameGlyph({ gameKey, size = 22 }) {
-  const d = GLYPHS[gameKey];
-  if (!d) return null;
-  return (
-    <svg viewBox={GLYPH_BOX} width={size} height={size} fill="none" stroke="currentColor"
-      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-  );
-}
 
 export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
