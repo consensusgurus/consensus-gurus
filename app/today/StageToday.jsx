@@ -129,14 +129,26 @@ export default function StageToday() {
         </div>
         <div className="sty-figs">
           {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
-          {/* THE DAY'S GAINS, not the totals: what this cap is for is what has
-              happened since midnight. Each renders only when it is real, which
-              is the pattern's own rule about the field. */}
-          {stats.todayXp ? <div><b className="sty-up">+{stats.todayXp.toLocaleString()}</b><i>IQ today</i></div> : null}
+          {/* THE DAY'S GAINS, not the totals: what a cap on a home is for is
+              what has happened since midnight. The headline is the OVERALL rank
+              movement, with the IQ that earned it in parentheses — the rank is
+              the thing a player is climbing and the points are how they climbed
+              it, so the points read as the explanation rather than as a rival
+              figure. rankChange is POSITIVE for a climb toward #1, which is why
+              the arrow is not simply the sign. Each renders only when real. */}
+          {(stats.rankChange != null || stats.todayXp) ? (
+            <div>
+              <b className={stats.rankChange > 0 ? 'sty-up' : stats.rankChange < 0 ? 'sty-dn' : ''}>
+                {stats.rankChange > 0 ? `\u25b2${stats.rankChange}` : stats.rankChange < 0 ? `\u25bc${Math.abs(stats.rankChange)}` : '\u2014'}
+                {stats.todayXp ? <i> (+{stats.todayXp.toLocaleString()})</i> : null}
+              </b>
+              <i>rank today</i>
+            </div>
+          ) : null}
           {stats.dayRank ? (
             <div>
               <b>#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>
-              <i>rank today</i>
+              <i>today&rsquo;s board</i>
             </div>
           ) : null}
           <div><b>{playedCount}<i>/{total}</i></b><i>played</i></div>
@@ -253,7 +265,10 @@ const CSS = `
 .sty-figs>div>i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--stg-mute);}
 .sty-who b{font-weight:800;}
-.sty-up{color:var(--stg-ink);}
+/* The only semantic colour on this page: a climb and a slip have to read
+   apart at a glance, and they are not the category family. */
+.sty-up{color:var(--stg-up);}
+.sty-dn{color:var(--stg-dn);}
 .sty-tg{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;
   background:none;cursor:pointer;font:inherit;}
 .sty-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.11em;text-transform:uppercase;
