@@ -45,7 +45,21 @@ export default function StageFinish({
     const root = document.querySelector('.stage-page');
     if (!root) return undefined;
     root.classList.add('stf-collapse');
-    return () => root.classList.remove('stf-collapse');
+    // AND THE WAY BACK IN. 'Hide game board' is the client's own button and it
+    // only flips client state, which under the collapse model nothing acts on:
+    // pressing it made the button vanish and left the board (owner,
+    // 2026-08-31). It is the exact inverse of Return to board, so it re-adds
+    // the class. Delegated because the button belongs to 80 different clients
+    // and mounts and unmounts with their own state.
+    const back = (e) => {
+      const t = e.target && e.target.closest && e.target.closest('.stf-hideboard');
+      if (t) root.classList.add('stf-collapse');
+    };
+    document.addEventListener('click', back);
+    return () => {
+      document.removeEventListener('click', back);
+      root.classList.remove('stf-collapse');
+    };
   }, []);
   const uncollapse = () => {
     const root = document.querySelector('.stage-page');

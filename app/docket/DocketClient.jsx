@@ -645,7 +645,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
 
           </div>
           {LOFT && !playing && loftRevealed && (
-            <button className={STAGE ? undefined : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
+            <button className={STAGE ? 'stf-hideboard' : 'loft-showopts'} onClick={() => setLoftRevealed(false)}>&#8630; Hide game board</button>
           )}
           </div>
           {LOFT && !playing && (

@@ -262,6 +262,16 @@ body:has(.stage-page) { background: #0b0f1a !important; }
 .stage-page.stf-collapse *:has(> .stf) { display: flex; flex-direction: column; }
 .stage-page.stf-collapse *:has(> .stf) > *:not(.stf) { display: none; }
 
+/* The client's own 'Hide game board', which is the inverse of Return to board.
+   It had no class on the stage and so no room around it either. */
+.stage-page .stf-hideboard {
+  display: block; margin: 16px auto 22px; background: none;
+  border: 1px solid var(--stg-line); border-radius: 99px;
+  color: var(--stg-ink2); font: inherit; font-size: 12px; font-weight: 700;
+  padding: 8px 16px; cursor: pointer;
+}
+.stage-page .stf-hideboard:hover { border-color: var(--stg-line2); color: var(--stg-ink); }
+
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 
