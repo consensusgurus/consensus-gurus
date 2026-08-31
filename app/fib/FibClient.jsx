@@ -774,7 +774,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           .fb-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
           .fb-key{font-family:${MONO};font-weight:500;font-size:20px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;height:46px;min-width:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
           .fb-key:hover{background:${COLORS.paper};}
-          .fb-key.note{color:${COLORS.accent};}
+          .fb-key.note{color:var(--stg-acc, ${COLORS.accent});}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>

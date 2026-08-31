@@ -661,10 +661,10 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .al-btn:hover{background:var(--accent-soft);}
           .al-btn:disabled:hover{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .al-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .al-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .al-btn.primary:hover{background:#761a26;}
           .al-clue{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${INK};}
-          .al-clue b{color:${COLORS.accent};}
+          .al-clue b{color:var(--stg-acc, ${COLORS.accent});}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
           .al-tbl{border-collapse:collapse;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${FADED};text-align:left;padding:0 0 6px 2px;caption-side:top;}
@@ -676,7 +676,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-td{height:34px;border: 1px solid var(--stg-line, rgba(28,30,36,0.12));text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .al-td:hover{background:${STAGE ? 'var(--stg-surf2)' : '#faf6ee'};}
           .al-td.x{color:#b9b2a6;}
-          .al-td.dot{color:${COLORS.accent};background:${COLORS.accentSoft};}
+          .al-td.dot{color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
           .al-cols{max-width:620px;margin:0 auto;}
           /* DESKTOP: statements and board sit SIDE BY SIDE (owner, 2026-08-08).

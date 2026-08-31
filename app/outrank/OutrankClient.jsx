@@ -717,9 +717,9 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           .ork-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ork-btn:hover{background:var(--accent-soft);}
           .ork-item{font-family:${SANS};font-weight:800;font-size:13.5px;border: 2px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;}
-          .ork-item:hover{border-color:${COLORS.accent};}
-          .ork-item-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
-          .ork-slot{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .ork-item:hover{border-color:var(--stg-acc, ${COLORS.accent});}
+          .ork-item-on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
+          .ork-slot{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .ork-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .ork-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
           .ork-face:disabled{opacity:.55;cursor:default;}

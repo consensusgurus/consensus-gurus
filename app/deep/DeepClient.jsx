@@ -573,7 +573,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
           .dp-grid:not(.nohov) .dp-choice:not(:disabled):hover{background:${COLORS.paper};}
           .dp-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
           .dp-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
-          .dp-topic{font-family:${SANS};font-weight:900;font-size:22px;color:${COLORS.accent};line-height:1.2;}
+          .dp-topic{font-family:${SANS};font-weight:900;font-size:22px;color:var(--stg-acc, ${COLORS.accent});line-height:1.2;}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>

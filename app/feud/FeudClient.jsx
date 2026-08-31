@@ -685,7 +685,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
           .fd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .fd-btn:hover{background:var(--accent-soft);}
           .fd-input{font-family:${SANS};font-weight:700;font-size:15px;border: 2px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:10px 12px;width:100%;outline:none;}
-          .fd-input:focus{border-color:${COLORS.accent};}
+          .fd-input:focus{border-color:var(--stg-acc, ${COLORS.accent});}
           .fd-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .fd-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
           .fd-face:disabled{opacity:.55;cursor:default;}

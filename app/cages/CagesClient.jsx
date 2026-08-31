@@ -890,7 +890,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
           @media(max-width:520px){.cg-htp-f{display:none;}.cg-htp-s{display:inline;}}
           @media(max-width:560px){.cg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cg-ttl h1{font-size:21px;letter-spacing:0.02em;}.cg-ttl .cg-ttl-dt{font-size:15px;}.cg-ttl-dot{display:none;}}
           .cg-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
-          .cg-user{font-weight:500;color:${COLORS.accent};}
+          .cg-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
           .cg-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .cg-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
           /* the cage outline sits INSIDE the cell, inset from the solid sudoku
@@ -911,7 +911,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
           .cg-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .cg-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .cg-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .cg-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 rgba(55,20,110,0.55);}
+          .cg-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(55,20,110,0.55);}
           .cg-pad.armed .cg-pad-n{color:#ded2fb;}
           .cg-pad .cg-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .cg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}

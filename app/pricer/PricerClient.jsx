@@ -766,7 +766,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-hchip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;width:100%;text-align:left;font-family:${SANS};background:none;border:1px dashed ${COLORS.line};
                     border-radius:5px;padding:3px 6px;font-size:10px;font-weight:700;color:#a3adbb;cursor:pointer;
                     text-decoration:line-through;line-height:1.25;overflow:hidden;transition:.12s;}
-          .pr-hchip:hover{border-style:solid;border-color:${COLORS.accent};color:${COLORS.accentDeep};background:${COLORS.accentSoft};text-decoration:none;}
+          .pr-hchip:hover{border-style:solid;border-color:var(--stg-acc, ${COLORS.accent});color:${COLORS.accentDeep};background:${COLORS.accentSoft};text-decoration:none;}
           .pr-hempty{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#a9b3c1;line-height:1.6;}
           .pr-bout{gap:10px;padding-right:14px;}
           .pr-bout::after{content:'';position:absolute;right:0;top:25%;height:50%;width:14px;border-right:2px solid ${COLORS.line};
@@ -774,10 +774,10 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-card{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};
                    border:2px solid ${COLORS.line};border-radius:9px;padding:9px 13px;cursor:pointer;min-height:54px;text-align:left;width:100%;
                    font-family:${SANS};transition:border-color .12s,background .12s,transform .12s,box-shadow .12s,opacity .25s;}
-          .pr-card:hover:not(:disabled){border-color:${COLORS.accent};background:${STAGE ? 'var(--stg-surf2)' : '#f5fdf7'};transform:translateX(4px);box-shadow:0 6px 16px rgba(21,128,61,.13);}
+          .pr-card:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:${STAGE ? 'var(--stg-surf2)' : '#f5fdf7'};transform:translateX(4px);box-shadow:0 6px 16px rgba(21,128,61,.13);}
           .pr-card .nm{font-size:18px;font-weight:900;line-height:1.15;letter-spacing:-.015em;color:${INK};}
           .pr-card .sub{margin-top:3px;font-family:${MONO};font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;}
-          .pr-card.won{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:inset 0 0 0 2px ${COLORS.accent};transform:translateX(8px);}
+          .pr-card.won{border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};box-shadow:inset 0 0 0 2px ${COLORS.accent};transform:translateX(8px);}
           .pr-card.out{opacity:.28;transform:translateX(-6px);}
           .pr-card.wait{cursor:default;border-style:dashed;background:${COLORS.cream};}
           .pr-card.wait .nm{font-size:12.5px;color:#a3adbb;font-weight:700;}
@@ -805,10 +805,10 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-dot{flex:1;position:relative;background:none;border:none;padding:0;cursor:pointer;border-radius:4px;}
           .pr-dot::before{content:'';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:10px;border-radius:3px;
                           border:1.5px solid ${COLORS.line};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};transition:.12s;}
-          .pr-dot:hover:not(:disabled)::before{border-color:${COLORS.accent};height:13px;}
+          .pr-dot:hover:not(:disabled)::before{border-color:var(--stg-acc, ${COLORS.accent});height:13px;}
           .pr-dot:focus-visible{outline:2px solid ${COLORS.accent};outline-offset:1px;}
-          .pr-dot.done::before{background:${COLORS.accent};border-color:${COLORS.accent};}
-          .pr-dot.cur::before{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(21,128,61,.22);background:${COLORS.accentSoft};height:13px;}
+          .pr-dot.done::before{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});}
+          .pr-dot.cur::before{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(21,128,61,.22);background:${COLORS.accentSoft};height:13px;}
           .pr-dot:disabled{cursor:default;}
           .pr-dot:disabled::before{opacity:.32;}
           .pr-dot.hit::before{background:${COLORS.green};border-color:${COLORS.green};}
@@ -825,7 +825,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-tmatch::after{content:'';position:absolute;right:-13px;top:50%;width:13px;border-top:1px solid ${COLORS.line};}
           .pr-tbox{width:100%;border:1px solid ${COLORS.line};border-radius:7px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-tbox.jump{cursor:pointer;transition:box-shadow .12s,border-color .12s;}
-          .pr-tbox.jump:hover,.pr-tbox.jump:focus-visible{border-color:${COLORS.accent};box-shadow:0 0 0 2px ${COLORS.accentSoft};outline:none;}
+          .pr-tbox.jump:hover,.pr-tbox.jump:focus-visible{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 2px ${COLORS.accentSoft};outline:none;}
           .pr-trow{display:flex;align-items:center;gap:5px;padding:4px 7px;font-size:11.5px;font-weight:700;border-bottom:1px solid ${COLORS.line};line-height:1.25;}
           .pr-trow:last-child{border-bottom:none;}
           .pr-trow .v{margin-left:auto;font-family:${MONO};font-size:9.5px;font-weight:500;color:${FADED};white-space:nowrap;padding-left:6px;}
@@ -868,7 +868,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-guess-label{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.accentDeep};margin:0 0 6px;}
           .pr-guess-sub{font-family:${SANS};font-size:14px;font-weight:700;line-height:1.45;color:${INK};margin:0 0 14px;}
           .pr-guess-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
-          .pr-guess-dollar{font-family:${MONO};font-size:18px;font-weight:500;color:${COLORS.accent};}
+          .pr-guess-dollar{font-family:${MONO};font-size:18px;font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
           .pr-guess-input{font-family:${MONO};font-size:18px;font-weight:500;border:1.5px solid ${COLORS.accent};border-radius:6px;
                           padding:8px 10px;width:170px;max-width:100%;outline:none;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-guess-input:focus{border-color:${COLORS.accentDeep};box-shadow:0 0 0 3px rgba(21,128,61,.2);}

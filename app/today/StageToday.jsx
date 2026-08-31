@@ -254,7 +254,7 @@ const CSS = `
 .sty-cap{display:flex;align-items:center;gap:22px;padding:11px 22px;
   border-bottom:1px solid var(--stg-line);}
 .sty-id{display:flex;align-items:baseline;gap:11px;min-width:0;}
-.sty-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;}
+.sty-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;}
 .sty-date{font-family:${MONO};font-size:10.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--stg-mute);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;}
@@ -326,7 +326,10 @@ const CSS = `
   outline:2px solid var(--cc, var(--stg-ink2));outline-offset:2px;}
 
 @media (max-width:640px){
+  /* The name never wraps; the DATE is what gives way, onto its own line first
+     and out of the flow entirely on the narrowest screens. */
   .sty-cap{flex-wrap:wrap;gap:10px 16px;padding:10px 14px;}
+  .sty-id{flex:none;}
   .sty-date{width:100%;order:3;}
   .sty-figs{margin-left:auto;gap:16px;}
   .sty-wrap{padding:18px 14px 56px;gap:22px;}
@@ -334,6 +337,10 @@ const CSS = `
   .sty-next{padding:15px 16px;gap:12px;}
   .sty-go{padding:8px 13px;font-size:13px;}
   .sty-games{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:380px){
+  .sty-date{display:none;}
+  .sty-figs{gap:12px;}
 }
 @media (prefers-reduced-motion:reduce){.sty-prog span{transition:none;}}
 `;

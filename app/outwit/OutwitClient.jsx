@@ -804,10 +804,10 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ow-btn:hover{background:var(--accent-soft);}
           .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border: 2px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
-          .ow-opt:hover{border-color:${COLORS.accent};}
-          .ow-opt-on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
+          .ow-opt:hover{border-color:var(--stg-acc, ${COLORS.accent});}
+          .ow-opt-on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);box-shadow:0 0 0 3px rgba(232,180,58,0.45);}
           .ow-inp{font-family:${MONO};font-weight:500;font-size:22px;letter-spacing:0.06em;width:200px;max-width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:8px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .ow-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(31,41,55,0.14);}
+          .ow-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(31,41,55,0.14);}
           .ow-face{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.05em;text-transform:uppercase;border:none;background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 26px;height:56px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 3px 0 rgba(20,22,28,0.25);}
           .ow-face:active{transform:translateY(1px);box-shadow:0 2px 0 rgba(20,22,28,0.25);}
           .ow-face:disabled{opacity:.55;cursor:default;}

@@ -488,7 +488,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};}
           .wm-inputrow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px;}
           .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${INK};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .wm-input:focus{border-color:${COLORS.accent};}
+          .wm-input:focus{border-color:var(--stg-acc, ${COLORS.accent});}
           .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-go:disabled{opacity:.5;cursor:default;}
           .wm-meta{display:flex;align-items:center;gap:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};margin:2px 0 4px;flex-wrap:wrap;}

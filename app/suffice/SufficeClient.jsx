@@ -406,10 +406,10 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .sf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sf-btn:hover{background:${COLORS.accentSoft};}
-          .sf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .sf-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .sf-btn.primary:hover{background:${COLORS.accentDeep};}
           .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
-          .sf-choice:hover:not(:disabled){border-color:${COLORS.accent};background:${COLORS.accentSoft};}
+          .sf-choice:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};}
           .sf-choice:disabled{cursor:default;}
           .sf-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
           .sf-choice.right{border-color:${COLORS.green};background:#dcfce7;}

@@ -723,7 +723,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         <style>{`
           .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.28));border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sc-btn:hover{background:${COLORS.paper};}
-          .sc-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .sc-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
@@ -738,7 +738,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
-          .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:${COLORS.accent};}
+          .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:var(--stg-acc, ${COLORS.accent});}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
           .sc-tile{position:relative;width:42px;height:46px;background:${COLORS.tile};border:1.5px solid rgba(120,80,20,0.45);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}

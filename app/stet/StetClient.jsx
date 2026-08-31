@@ -749,7 +749,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           .st-w-on{background:${COLORS.accentSoft};box-shadow:0 0 0 2px ${COLORS.accent};border-radius:4px;}
           .st-w-staged{background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(3,105,161,0.35);border-radius:4px;text-decoration:line-through;}
           .st-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .st-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(3,105,161,0.16);}
+          .st-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(3,105,161,0.16);}
           .st-go{font-family:${SANS};font-weight:800;font-size:13.5px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 18px;cursor:pointer;}
           .st-go:active{transform:translateY(1px);}
           .st-lock{font-family:${SANS};font-weight:800;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.ink};background:${COLORS.ink};color:var(--white);border-radius:8px;padding:6px 13px;cursor:pointer;}

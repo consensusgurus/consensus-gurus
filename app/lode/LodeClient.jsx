@@ -630,7 +630,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ld-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ld-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ld-btn:hover{background:var(--accent-soft);}
-          .ld-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .ld-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .ld-btn.primary:hover{background:${COLORS.accentDeep};}
           .ld-btn:disabled{opacity:0.45;cursor:default;}
           .ld-row{display:flex;gap:10px;justify-content:center;}
@@ -638,7 +638,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-tile:active{transform:translateY(2px);box-shadow:none;}
           .ld-tile.core{background:${COLORS.accent};border-color:${COLORS.accentDeep};color:var(--white);box-shadow:0 2px 0 ${COLORS.accentDeep};}
           @media(max-width:420px){.ld-tile{width:46px;height:46px;font-size:21px;}.ld-row{gap:7px;}}
-          .ld-entry{font-family:${SANS};font-weight:800;font-size:22px;letter-spacing:0.13em;text-transform:uppercase;text-align:center;width:100%;border:none;border-bottom: 2.5px solid var(--stg-line2, rgba(28,30,36,0.22));background:transparent;color:${INK};padding:8px 4px;outline:none;caret-color:${COLORS.accent};}
+          .ld-entry{font-family:${SANS};font-weight:800;font-size:22px;letter-spacing:0.13em;text-transform:uppercase;text-align:center;width:100%;border:none;border-bottom: 2.5px solid var(--stg-line2, rgba(28,30,36,0.22));background:transparent;color:${INK};padding:8px 4px;outline:none;caret-color:var(--stg-acc, ${COLORS.accent});}
           .ld-entry::placeholder{letter-spacing:0.02em;font-size:14px;font-weight:700;color:#b6bcc6;text-transform:none;}
           .ld-shake{animation:ldshake .3s;}
           @keyframes ldshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -647,8 +647,8 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
           .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
-          .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:${COLORS.accent};}
-          .ld-wtag.pan{background:${COLORS.accentSoft};border-color:${COLORS.accent};font-weight:700;}
+          .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:var(--stg-acc, ${COLORS.accent});}
+          .ld-wtag.pan{background:${COLORS.accentSoft};border-color:var(--stg-acc, ${COLORS.accent});font-weight:700;}
           .ld-wtag.new{outline:2px solid ${COLORS.accent};outline-offset:1px;}
           /* Tailings: real, unscored. Deliberately the quietest tag on the
              board — dashed and faded, so it reads as acknowledged rather than

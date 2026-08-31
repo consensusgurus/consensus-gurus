@@ -920,7 +920,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
           .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sh-btn:hover{background:var(--accent-soft);}
-          .sh-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .sh-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .sh-btn.primary:hover{background:${COLORS.accentDk};}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}

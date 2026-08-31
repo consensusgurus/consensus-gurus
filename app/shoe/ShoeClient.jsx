@@ -554,7 +554,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           .sh-act:active{transform:translateY(1px);}
           .sh-act:disabled{opacity:0.35;cursor:default;}
           .sh-act.gold{background:${STAGE ? 'var(--stg-surf2)' : '#f4d98d'};border-color:#e8b43a;color:#5b4104;}
-          .sh-act.deal{background:${COLORS.accentSoft};border-color:rgba(255,255,255,0.9);color:${COLORS.accent};}
+          .sh-act.deal{background:${COLORS.accentSoft};border-color:rgba(255,255,255,0.9);color:var(--stg-acc, ${COLORS.accent});}
           .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--white);}
           .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);margin-top:11px;flex-wrap:wrap;}
           .sh-strip b{color:var(--white);font-weight:500;font-variant-numeric:tabular-nums;}

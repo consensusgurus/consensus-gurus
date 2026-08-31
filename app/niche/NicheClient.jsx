@@ -635,7 +635,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-cell{position:relative;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.22));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
           .nc-cell.filled{border-color:${COLORS.accentTint};background:${COLORS.accentSoft};cursor:default;}
           .nc-cell.rare{border-color:${COLORS.gold};background:${COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
-          .nc-cell.sel{border-color:${COLORS.accent};box-shadow:0 0 0 2.5px rgba(17,94,89,0.25);}
+          .nc-cell.sel{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 2.5px rgba(17,94,89,0.25);}
           .nc-cell.miss{background:${STAGE ? 'var(--stg-surf2)' : '#fafbfc'};}
           .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${INK};overflow-wrap:anywhere;}
           .nc-rar{font-family:${MONO};font-size:9.5px;color:${FADED};}

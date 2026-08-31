@@ -752,7 +752,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           .cl-key.solved{background:${COLORS.green};border-color:${COLORS.green};color:var(--white);}
           .cl-flag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-family:${MONO};font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:${COLORS.ink};color:var(--white);padding:1px 5px;border-radius:99px;font-weight:500;pointer-events:none;}
           .cl-goal{border: 2px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:11px;padding:6px 16px 8px;text-align:center;min-width:104px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};cursor:pointer;font-family:${SANS};}
-          .cl-goal.act{border-color:${COLORS.accent};box-shadow:0 0 0 3px ${COLORS.accentTint};}
+          .cl-goal.act{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px ${COLORS.accentTint};}
           .cl-goal.got{border-color:${COLORS.green};background:${STAGE ? 'var(--stg-surf2)' : '#f2fbf6'};cursor:default;}
           .cl-goal .k{font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};}
           .cl-goal .v{font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-.03em;color:${INK};font-variant-numeric:tabular-nums;}

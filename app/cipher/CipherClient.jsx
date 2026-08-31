@@ -955,22 +955,22 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.cf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cf-btn:hover{background:var(--accent-soft);}
-          .cf-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .cf-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .cf-btn.primary:hover{background:#0c5f59;}
           .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
           .cf-op{width:26px;font-size:22px;font-weight:800;color:${FADED};text-align:center;flex:0 0 auto;}
           .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;font-family:${SANS};}
           .cf-cell:hover{background:${COLORS.accentSoft};}
-          .cf-cell.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
+          .cf-cell.on{border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
           .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
-          .cf-cell .cf-dg{font-size:14px;font-weight:800;color:${COLORS.accent};height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
+          .cf-cell .cf-dg{font-size:14px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
           .cf-cell.bad .cf-dg{color:${COLORS.rust};}
           .cf-rule{border-top:3px solid ${COLORS.ink};margin:7px 0 6px;}
           .cf-carrow,.cf-mkrow{margin:0;}
           .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${FADED};cursor:pointer;padding:0;line-height:1;}
-          .cf-carry:hover:not(:disabled){background:${COLORS.accentSoft};border-color:${COLORS.accent};}
-          .cf-carry.fixed{border:1px solid transparent;color:${COLORS.accent};font-weight:700;cursor:default;}
+          .cf-carry:hover:not(:disabled){background:${COLORS.accentSoft};border-color:var(--stg-acc, ${COLORS.accent});}
+          .cf-carry.fixed{border:1px solid transparent;color:var(--stg-acc, ${COLORS.accent});font-weight:700;cursor:default;}
           .cf-carry.off{border-color:transparent;cursor:default;}
           .cf-mk{width:46px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;color:transparent;}
           .cf-mk.good{color:${COLORS.green};}
@@ -982,12 +982,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
           .cf-pk{position:relative;height:50px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
           .cf-pk:hover{background:${COLORS.accentSoft};}
-          .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:${COLORS.accent};font-weight:800;letter-spacing:0.02em;}
+          .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});font-weight:800;letter-spacing:0.02em;}
           .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
           .cf-pk.note{grid-column:span 2;}
           .cf-pk.foot:not(.note){grid-column:span 3;}
-          .cf-pk.note.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
-          .cf-pad.notes .cf-pk:not(.foot){border-style:dashed;border-color:${COLORS.accent};}
+          .cf-pk.note.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .cf-pad.notes .cf-pk:not(.foot){border-style:dashed;border-color:var(--stg-acc, ${COLORS.accent});}
           /* Pad key states. A digit already owned by another letter, a 0 under a
              leading letter, or a digit crossed off in Notes now READS as such on
              the key itself, which is what the letter rack used to be for. */
@@ -1019,16 +1019,16 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-strip{display:grid;gap:3px;}
           .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${INK};line-height:1;}
-          .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:${COLORS.accent};line-height:1;font-variant-numeric:tabular-nums;}
+          .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:var(--stg-acc, ${COLORS.accent});line-height:1;font-variant-numeric:tabular-nums;}
           /* An unassigned letter shows a DOT, never a number. The count of
              digits still open used to render here as a pill and still read as
              the letter's value to enough people that the whole candidate
              system came out; the green .lone ring below is the one piece of
              that signal worth keeping, and it is not a numeral. */
           .cf-sc .d.dim{color:rgba(28,30,36,0.30);}
-          .cf-sc.on{border-color:${COLORS.accent};background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
+          .cf-sc.on{border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
           .cf-dock.notes .cf-sc{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:${COLORS.accent};}
+          .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});}
           .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d{color:var(--white);}
           .cf-dock.notes .cf-sc.on .d.dim{color:rgba(255,255,255,0.75);}
           .cf-sc.lone{border-color:${COLORS.green};box-shadow:inset 0 0 0 1px ${COLORS.green};}
@@ -1038,8 +1038,8 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
           .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
           .cf-db{height:44px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
-          .cf-db.on{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
-          .cf-db.go{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);font-size:13px;}
+          .cf-db.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .cf-db.go{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);font-size:13px;}
           .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
           .cf-db.warn{border-color:${COLORS.rust};color:${COLORS.rust};}
           @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-carry{height:26px;}}

@@ -728,7 +728,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
           .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
-          .ax-tile:hover:not(:disabled){border-color:${COLORS.accent};}
+          .ax-tile:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});}
           .ax-tile:disabled{cursor:default;}
           .ax-tile.yes{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .ax-tile.no{background:${COLORS.redSoft};border-color:${COLORS.redInk};color:#7f1d1d;}

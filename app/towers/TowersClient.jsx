@@ -825,17 +825,17 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-btn:hover{background:${COLORS.accentSoft};}
           .tw-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .tw-given{font-weight:700;color:${INK};}
-          .tw-user{font-weight:500;color:${COLORS.accent};}
+          .tw-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
           .tw-notes{display:grid;grid-template-rows:repeat(2,1fr);width:100%;height:100%;padding:3px;box-sizing:border-box;}
           .tw-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:11px;line-height:1;color:#8a93a3;}
           .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .tw-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .tw-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .tw-pad.armed{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};box-shadow:0 2px 0 ${COLORS.accentDeep};}
+          .tw-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 ${COLORS.accentDeep};}
           .tw-pad.armed .tw-pad-n{color:${COLORS.accentTint};}
           .tw-pad .tw-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .tw-clue{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(12px,3vw,17px);color:${INK};user-select:none;line-height:1;min-width:0;min-height:0;}
-          .tw-clue.on{color:${COLORS.accent};font-weight:700;background:${COLORS.accentSoft};border-radius:4px;}
+          .tw-clue.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:${COLORS.accentSoft};border-radius:4px;}
           .tw-mark{font-family:${MONO};font-weight:700;font-size:clamp(7px,1.8vw,9px);line-height:1;letter-spacing:0;}
           .tw-mark.ok{color:${COLORS.green};}
           .tw-mark.off{color:${COLORS.rust};}

@@ -824,10 +824,10 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.je-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .je-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .je-btn:hover{background:var(--accent-soft);}
-          .je-btn.primary{background:${COLORS.accent};border-color:${COLORS.accent};color:var(--white);}
+          .je-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
           .je-btn.primary:hover{background:${COLORS.accentDeep};}
           .je-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .je-tool.on{background:${COLORS.accent};color:var(--white);border-color:${COLORS.accent};}
+          .je-tool.on{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});}
           .je-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
           .je-cell:hover::after{content:'';position:absolute;inset:0;background:rgba(28,30,36,0.07);}
           .je-x{color:rgba(28,30,36,0.45);font-size:15px;font-weight:800;}

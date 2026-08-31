@@ -708,7 +708,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
           .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .pg-inp:focus{border-color:${COLORS.accent};box-shadow:0 0 0 3px rgba(2,132,199,0.18);}
+          .pg-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(2,132,199,0.18);}
           .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
           .pg-go:active{transform:translateY(1px);}
           .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
