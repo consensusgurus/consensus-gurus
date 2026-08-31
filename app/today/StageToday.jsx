@@ -393,6 +393,9 @@ const CSS = `
 .sty-tbl td{padding:7px 6px;border-bottom:1px solid var(--stg-line);font-size:13.5px;}
 .sty-tbl tr:last-child td{border-bottom:0;}
 .sty-tbl tr.me td{background:var(--stg-chip);font-weight:800;}
+/* The mute token is tuned against the PAGE ground; on the me row's chip it
+   lands at 4.34:1, so the supporting figures step up one token there. */
+.sty-tbl tr.me .sty-pos,.sty-tbl tr.me .sty-gp{color:var(--stg-ink2);}
 .sty-pos{width:40px;font-family:${MONO};font-size:12px;color:var(--stg-mute);}
 .sty-who{font-weight:700;}
 .sty-gp{width:70px;text-align:right;color:var(--stg-mute);font-size:12px;}
@@ -442,6 +445,10 @@ const CSS = `
 .sty-g:focus-visible,.sty-next:focus-visible,.sty-kc:focus-visible,.sty-cx:focus-visible{
   outline:2px solid var(--cc, var(--stg-ink2));outline-offset:2px;}
 
+@media (max-width:560px){
+  .sty-gp{display:none;}
+  .sty-circs{grid-template-columns:1fr;}
+}
 @media (max-width:640px){
   /* The name never wraps; the DATE is what gives way, onto its own line first
      and out of the flow entirely on the narrowest screens. */
