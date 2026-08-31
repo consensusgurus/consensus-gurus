@@ -413,8 +413,13 @@ const CSS = `
 .sty-cnum{position:absolute;top:12px;right:14px;font-family:${MONO};font-size:11.5px;
   font-weight:700;color:var(--stg-ink2);}
 .sty-cnum i{font-style:normal;color:var(--stg-mute);}
-/* A finished circuit is DIM, like a played game: the day is a record. */
-.sty-circ.full{opacity:.5;}
+/* A finished circuit is MARKED, not dimmed. The ladder dims a played rung
+   because a rung is a graphic; a card carries prose, and half-strength prose on
+   this ground reads at 2.4:1. So completion moves into the figure — the count
+   takes the category hue and the bar fills — and the words stay legible. */
+.sty-circ.full .sty-cnum{color:var(--cc);}
+.sty-circ.full .sty-cnum i{color:var(--cc);opacity:.6;}
+.sty-circ.full{border-color:color-mix(in srgb, var(--cc) 40%, transparent);}
 
 /* ── the categories ────────────────────────────────────────────────────── */
 .sty-cat{position:relative;padding-left:16px;}
