@@ -842,11 +842,11 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           .sd-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.5)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(28,30,36,0.4)'};}
           .sd-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .sd-pad.done{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#c3c8cf'};box-shadow:none;background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : '#f4f5f7'};cursor:default;}
-          .sd-pad.armed{background:${STAGE ? STAGE_C : COLORS.accent};color:${STAGE ? RAMP_INK : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.accent};box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(154,61,12,0.55)'};}
+          .sd-pad.armed{background:${STAGE ? STAGE_C : COLORS.accent};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.accent};box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(154,61,12,0.55)'};}
           .sd-pad.armed .sd-pad-n{color:${STAGE ? 'rgba(8,34,46,0.65)' : '#ffe0cc'};}
           .sd-pad .sd-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .sd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .sd-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? RAMP_INK : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
+          .sd-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
@@ -886,7 +886,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sd-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="sd-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

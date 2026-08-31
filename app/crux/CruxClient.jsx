@@ -629,7 +629,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // One source for a category's colour, so the chips, the end-of-game grid
   // reveal and the ladder can never disagree about which is which.
   const catTone = (ci) => (STAGE
-    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: RAMP_INK }
+    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: 'var(--stg-onramp, #08222e)' }
     : CAT_COLORS[ci]);
   // TEXT and FILL are different problems here, which is why there are two
   // names rather than one restyled COLORS. Near-black TEXT is invisible on
@@ -1459,7 +1459,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
                 </div>
               )}
               <div style={{ marginTop: 18 }}>
-                <button className="cl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+                <button className="cl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
                 <div style={{ marginTop: 10 }}>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
@@ -1618,7 +1618,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
               {KB.map((row, ri) => (
                 <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
                   {ri === 2 && (
-                    <button className="cl-key cl-kx" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: STAGE ? STAGE_C : COLORS.ember, color: STAGE ? RAMP_INK : T.white, fontSize: 11.5 }}>ENTER</button>
+                    <button className="cl-key cl-kx" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: STAGE ? STAGE_C : COLORS.ember, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 11.5 }}>ENTER</button>
                   )}
                   {row.split('').map((ch) => {
                     const st = keyState[ch];
@@ -1648,7 +1648,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
             <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
-              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : RAMP_INK) : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
+              style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : 'var(--stg-onramp, #08222e)') : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>
           )}

@@ -247,7 +247,7 @@ export default function ScriptClient({ puzzles = [], questionsByNum = {}, forceN
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
-  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
+  const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const depth = won ? TOTAL_Q : g.i;
   const question = playing && started && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
   const deadQuestion = g.status === 'lost' && g.i < TOTAL_Q ? QUESTIONS[g.i] : null;
@@ -614,7 +614,7 @@ export default function ScriptClient({ puzzles = [], questionsByNum = {}, forceN
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sp-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
+              <button className="sp-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
               <div style={{ marginTop: 10 }}>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}

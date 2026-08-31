@@ -213,7 +213,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
-  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
+  const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other

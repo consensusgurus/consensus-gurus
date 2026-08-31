@@ -275,7 +275,7 @@ export default function BabelClient({ puzzles, forceNum }) {
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
-  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
+  const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;
   const focusMode = playing && !showChrome;
   const ready = !!engineLex && !!dict;
@@ -786,7 +786,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               </div>
             )}
             <div style={{ marginTop: 18 }}>
-              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? RAMP_INK : T.white, fontSize: 15, padding: '11px 22px' }}>
+              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>
                 {ready ? 'Start' : dictErr ? 'Dictionary failed to load' : 'Loading the dictionary…'}
               </button>
               <div style={{ marginTop: 10 }}>

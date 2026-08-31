@@ -248,7 +248,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : COLORS.accentSoft;
-  const ON_ACC = STAGE ? RAMP_INK : 'var(--white)';
+  const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   // THE LADDER: one rung per answer, two blocks, the SPINE and the free
   // bank. The spine earns its own block because its initials spell the
   // author, which is the payoff and the reason to keep going.

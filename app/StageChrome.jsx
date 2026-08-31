@@ -210,7 +210,10 @@ export default function StageChrome({
       {panel ? (
         <div className="stg-panel" id="stg-rankings" role="region" aria-label="Rankings">
           <div className="stg-pin">
-            <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} dark />
+            {/* The panel's dark styling has to follow the REGISTER, not the stage. It
+                    was hardcoded, so on the light stage it drew the dark register's
+                    near-white ink and pale sky tabs onto a near-white panel. */}
+            <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} dark={theme !== 'light'} />
             <button type="button" className="stg-px" onClick={() => setPanel(false)}>Close</button>
           </div>
         </div>
