@@ -8,12 +8,13 @@
 // page. This component is that one line, plus the two things that hang off it.
 //
 // WHAT IT RENDERS, top to bottom:
-//   1. THE CAP. Eyebrow, name, the live figures, a Rankings chip and a Home
-//      glyph. Home gave up its words for its glyph on the run because "Back to
-//      home" ran 110px against 32px, and the chip is the only exit on the page,
-//      so the words were saying what the icon says. Rankings takes a PODIUM
-//      mark rather than a second house: two identical glyphs side by side read
-//      as one control drawn twice.
+//   1. THE CAP, which reads left to right as where you are: the MIND LOFT
+//      brand, then the category and date, then the game. The brand is also the
+//      way out, and the only one. A Home glyph used to sit at the far right and
+//      it is gone: it and a wordmark are two controls doing one job, and the
+//      glyph was the weaker, since it said "home" without saying whose. The
+//      right of the line keeps the Rankings chip, which takes a PODIUM mark
+//      rather than a second house, and the light switch.
 //   2. THE PROGRESS HAIRLINE, in the game's own category colour.
 //   3. THE STRIP. One line carrying the two facts a player wants without
 //      asking, what the best run today is and where they sit, and it is itself
@@ -33,7 +34,7 @@
 //     nothing else. That includes the primary button: see ctaFor in
 //     lib/category-ramp.js for why the brand blue does not belong here.
 import React, { useEffect, useRef, useState } from 'react';
-import { Home } from 'lucide-react';
+import MindLoftMark from './MindLoftMark';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 // The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
 // sheet that LoftFinish depends on, so the end card rendered unstyled.
@@ -42,6 +43,21 @@ import DailyBoardPanel from './quiz/[id]/DailyBoardPanel';
 import { dailyMeIdentity } from './dailyMeClient';
 import { gameColor, gameCategory, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { gameStatsShort } from '@/lib/daily-row-stats';
+
+// THE DATE COMES DOWN TO SIZE ON A PHONE (owner, 2026-08-31). "August 31, 2026"
+// is 130px of a 390px line, and the year is the least of what it says: the
+// board is today's unless the player went to the archive, in which case the
+// month and day carry that on their own.
+//
+// It shortens ONLY a real date. dateLabel is not always one: several clients
+// pass a verdict through it once the game is over ("Solved", "Partly solved",
+// "Not solved"), and a verdict must never be truncated. Anything that does not
+// match Month D, YYYY comes back null and renders whole at every width.
+const MON = /^([A-Z][a-z]{2})[a-z]*\s+(\d{1,2}),\s*\d{4}$/;
+function shortDate(s) {
+  const m = MON.exec(String(s || '').trim());
+  return m ? m[1] + ' ' + m[2] : null;
+}
 
 const ORD = ['th', 'st', 'nd', 'rd'];
 function ord(n) {
@@ -114,6 +130,8 @@ export default function StageChrome({
   const colour = gameColor(gameKey);
   const category = cat || gameCategory(gameKey) || '';
   const board = useStripBoard(quizId, boardOn);
+  const dateShort = shortDate(dateLabel);
+  const homeTo = tq ? homeHref + (homeHref.includes('?') ? tq : '?' + tq.slice(1)) : homeHref;
 
   // A leader is the one thing the strip cannot be drawn without. No leader, no
   // strip: see the suppression rule at the top.
@@ -126,8 +144,29 @@ export default function StageChrome({
       <style>{CSS}</style>
 
       <div className="stg-cap">
+        {/* THE BRAND IS THE WAY OUT, and it is the only one (owner, 2026-08-31).
+            The Home glyph and a wordmark would be two controls doing one job,
+            and the glyph was the weaker of the two: it said "home" without ever
+            saying WHOSE. So the words are back, they sit to the LEFT of the
+            identity, and the whole cap now reads left to right as where you
+            are: the site, then the category and date, then the game. */}
+        <a className="stg-brand" href={homeTo} aria-label="Mind Loft home" title="Mind Loft">
+          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-acc)" />
+          <b>Mind <em>Loft</em></b>
+        </a>
+
         <div className="stg-id">
-          <i>{[category, dateLabel].filter(Boolean).join(' · ')}</i>
+          <i>
+            {category ? <span>{category}</span> : null}
+            {category && dateLabel ? <span>{' · '}</span> : null}
+            {dateLabel && dateShort ? (
+              <>
+                <span className="stg-dl">{dateLabel}</span>
+                <span className="stg-ds">{dateShort}</span>
+              </>
+            ) : null}
+            {dateLabel && !dateShort ? <span>{dateLabel}</span> : null}
+          </i>
           <b>
             {name}
             {sunday ? <u>{sunday}</u> : null}
@@ -170,9 +209,6 @@ export default function StageChrome({
             <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span>
           ) : null}
         </button>
-        <a className="stg-cx stg-home" href={tq ? homeHref + (homeHref.includes('?') ? tq : '?' + tq.slice(1)) : homeHref} aria-label="Home" title="Home">
-          <Home size={13} strokeWidth={2.4} />
-        </a>
       </div>
 
       <LoftSheet />
@@ -259,7 +295,8 @@ const CSS = `
 .stg-cap{display:flex;align-items:center;gap:16px;padding:12px 20px;}
 .stg-id{display:flex;flex-direction:column;gap:1px;min-width:0;}
 .stg-id i{font-family:${MONO};font-style:normal;font-size:9.5px;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--stg-mute2,#66748f);}
+  text-transform:uppercase;color:var(--stg-mute2,#66748f);display:block;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;}
 .stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
 .stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg-acc);
@@ -276,7 +313,16 @@ const CSS = `
   letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2,#aab5c7);border:1px solid var(--stg-line);
   border-radius:99px;padding:5px 11px;background:none;cursor:pointer;text-decoration:none;}
 .stg-rank{margin-left:auto;}
-.stg-home{padding:5px 8px;}
+/* The brand is a LINK, not a chip: no pill, no border, because it is the one
+   control on this line that is not part of the game. The rule to its right is
+   what separates the site from the sitting. */
+.stg-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;
+  color:var(--stg-ink,#e9edf4);padding-right:15px;border-right:1px solid var(--stg-line);}
+.stg-brand b{font-size:13px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
+.stg-brand b em{font-style:normal;color:var(--stg-acc);}
+.stg-brand:hover{opacity:.82;}
+.stg-brand:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
+.stg-ds{display:none;}
 .stg-theme{padding:5px 8px;}
 .stg-theme.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
 /* THE FIRST-VISIT POINTER at the light switch: a ring pulsing out of the glyph,
@@ -335,6 +381,10 @@ const CSS = `
      without shrinking the title. */
   .stg-cap{gap:10px;padding:10px 13px;}
   .stg-id b{font-size:15px;}
+  .stg-brand{gap:6px;padding-right:9px;}
+  .stg-brand b{font-size:11.5px;}
+  .stg-dl{display:none;}
+  .stg-ds{display:inline;}
   /* The cap is ONE line again at every width. The two-row split that used to
      live here existed only to hold the figures, and the figures now have a row
      of their own below the leader strip. */
