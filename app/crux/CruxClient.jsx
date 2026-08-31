@@ -629,7 +629,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // One source for a category's colour, so the chips, the end-of-game grid
   // reveal and the ladder can never disagree about which is which.
   const catTone = (ci) => (STAGE
-    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: 'var(--stg-onramp, #08222e)' }
+    // INK ON A FIXED RAMP STEP IS ALWAYS DARK, and that is not the same rule as
+    // ink on the accent. --stg-onramp flips with the register because the ACCENT
+    // flips: pale step on dark, dark twin on light. These chips do not flip —
+    // they are always the pale CATEGORY_RAMP step — so the sweep that moved
+    // every RAMP_INK to --stg-onramp made them white-on-pastel in light mode.
+    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: RAMP_INK }
     : CAT_COLORS[ci]);
   // TEXT and FILL are different problems here, which is why there are two
   // names rather than one restyled COLORS. Near-black TEXT is invisible on

@@ -47,6 +47,8 @@
 // anchors by their own class only.
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import StageToday from './StageToday';
+import { useStageTheme } from '@/lib/stage-theme';
 import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
 import { CIRCUITS, ALL_CIRCUITS, DISPLAY_CIRCUITS, CIRCUIT_BASE, circuitById, circuitKeysFor, circuitPageHref, circuitEntryHref } from '@/lib/circuits';
 import { catBlue } from '@/lib/home-blues';
@@ -196,6 +198,16 @@ function TilesRow({ children, light = false }) {
 }
 
 export default function TodayClient({ onSignup = null } = {}) {
+  // THE HOME ON THE STAGE is its own surface, not this one re-coloured: a token
+  // remap over this page moved the text and left the artwork, which is the
+  // white-card-with-white-text failure in another costume. Read in an EFFECT,
+  // because this page is statically rendered and useSearchParams returns null
+  // here — that is what made ?stage=1 a silent no-op the first time.
+  const [stageOn, setStageOn] = useState(false);
+  useEffect(() => {
+    try { setStageOn(new URLSearchParams(window.location.search).get('stage') === '1'); } catch (e) {}
+  }, []);
+  useStageTheme();
   // Build the shelves once: the sudoku circuit pool leaves Numbers and becomes
   // its own category. Static, so the server and client render the same rows.
   const shelves = useMemo(() => {
@@ -1001,6 +1013,8 @@ export default function TodayClient({ onSignup = null } = {}) {
   const dayOrd = (v) => v + (['th', 'st', 'nd', 'rd'][((v % 100) - 20) % 10] || ['th', 'st', 'nd', 'rd'][v % 100] || 'th');
   const meInTop = meKey ? overall.slice(0, 12).some((r) => r && r.userKey === meKey) : true;
   const bestN = board && typeof board.bestN === 'number' ? board.bestN : 25;
+
+  if (stageOn) return <StageToday />;
 
   return (
     <div className="tdy">
