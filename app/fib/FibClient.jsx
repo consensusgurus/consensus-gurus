@@ -631,11 +631,21 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
     } catch (e) {}
   }
 
-  const boardMax = n > 5 ? 470 : 410;
+  // THE BOARD IS THE SUBJECT, so it gets the room its container already had
+  // (the card sits inside a 660px column, so this was leaving ~200px unused).
+  const boardMax = n > 5 ? 520 : 470;
   const track = Array(n).fill('1fr').join(' 0.44fr ');
-  const cellFs = n > 5 ? 'clamp(15px, 4vw, 24px)' : 'clamp(17px, 4.6vw, 27px)';
-  const signFs = n > 5 ? 'clamp(11px, 2.9vw, 17px)' : 'clamp(12px, 3.2vw, 19px)';
-  const noteFs = n > 5 ? 'clamp(6px, 1.5vw, 9px)' : 'clamp(7px, 1.7vw, 10px)';
+  // SIZED AGAINST THE CELL, NOT THE VIEWPORT (player report, 2026-09-01: "the
+  // numbers are too small to read, especially the pencil marks"). The board is
+  // capped, so on a phone the clamp FLOOR is what renders, and the floors were
+  // set far below the cell they sit in: a 390px phone gave a 7px pencil mark in
+  // a 14px box, and 6px in an 11.7px box on a Sunday 6x6. The house reference is
+  // Suds, whose pencil mark is a flat 9px in a 17px box and whose value runs
+  // 44-46% of the cell. These land the same ratios at BOTH ends of the clamp:
+  // n=5 phone cell 50px / desktop 69px, n=6 phone 41px / desktop 63px.
+  const cellFs = n > 5 ? 'clamp(18px, 4.9vw, 28px)' : 'clamp(21px, 5.9vw, 32px)';
+  const signFs = n > 5 ? 'clamp(13px, 3.3vw, 18px)' : 'clamp(14px, 3.7vw, 21px)';
+  const noteFs = n > 5 ? 'clamp(10px, 2.6vw, 12px)' : 'clamp(11px, 2.9vw, 14px)';
 
   const rulesBody = (
     <DailyRules
@@ -689,7 +699,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           ) : noteMask ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', width: '86%', height: '86%', alignItems: 'center', justifyItems: 'center' }}>
               {Array.from({ length: n }).map((_, k) => (
-                <span key={k} style={{ fontFamily: MONO, fontSize: noteFs, lineHeight: 1, color: '#9aa2b1' }}>
+                <span key={k} style={{ fontFamily: MONO, fontSize: noteFs, lineHeight: 1, color: 'var(--stg-mute, #9aa2b1)' }}>
                   {noteMask & (1 << (k + 1)) ? k + 1 : ''}
                 </span>
               ))}
@@ -710,7 +720,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
     const st = clueStates[ci];
     const accused = g.acc === ci;
     const isLiar = !playing && ci === PUZZLE.liar;
-    const col = isLiar ? COLORS.rust : st === 'broken' ? COLORS.amber : st === 'ok' ? '#b6bdc9' : FADED;
+    const col = isLiar ? COLORS.rust : st === 'broken' ? COLORS.amber : st === 'ok' ? 'var(--stg-ink2, #b6bdc9)' : FADED;
     boardCells.push(
       <div
         key={i}

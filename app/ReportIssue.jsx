@@ -6,9 +6,20 @@
 // Name and email are optional; only a short message is asked for.
 //
 // Rendered in two places: the shared end-of-game card (DailyEndCard) and the
-// in-game games grid (DailyGamesGrid, reachable mid-game from "more"). Both are
-// light surfaces, so one light theme covers both. Pass `self` (the game key),
-// the display `name`, and an `accent` for the send button.
+// in-game games grid (DailyGamesGrid, reachable mid-game from "more"). Pass
+// `self` (the game key), the display `name`, and an `accent` for the send button.
+//
+// A FIELD IS A SURFACE, AND IT FOLLOWS THE REGISTER ITS INK DOES (2026-09-01).
+// This used to read "both are light surfaces, so one light theme covers both",
+// and that stopped being true the day the stage arrived: INK below became
+// var(--stg-ink), which is #e9edf4 on the dark register, while every field kept
+// a hardcoded var(--white) sheet. Measured on live /fib: text at 1.11:1 against
+// its own background, and a Cancel button that was white on white. A player
+// reported it the only way left open to them, by typing into the box they could
+// not read. Note the shape of it, because it generalises to every shared
+// component that was written for a light surface: converting the INK without
+// converting the SHEET under it is worse than converting neither. Any surface
+// token here needs its off-stage fallback, so the Loft render stays byte-identical.
 
 import React, { useState, useEffect } from 'react';
 import { Flag, Check, HelpCircle } from 'lucide-react';
@@ -94,16 +105,21 @@ export default function ReportIssue({ self, name, accent = T.accent, align = 'ce
         .ri-how{color:${INK};font-weight:700;}
         .ri-form{max-width:400px;margin:6px auto 0;text-align:left;}
         .ri-h{font-size:12.5px;font-weight:800;color:${INK};margin:0 0 7px;text-align:center;}
-        .ri-form textarea,.ri-form input{width:100%;box-sizing:border-box;font-family:${SANS};font-size:13px;color:${INK};border:1.5px solid #d4d9e0;border-radius:8px;padding:9px 10px;outline:none;background:var(--white);}
+        .ri-form textarea,.ri-form input{width:100%;box-sizing:border-box;font-family:${SANS};font-size:13px;color:${INK};border:1.5px solid var(--stg-line2, #d4d9e0);border-radius:8px;padding:9px 10px;outline:none;background:var(--stg-surf2, var(--white));}
+        .ri-form textarea::placeholder,.ri-form input::placeholder{color:${FADED};opacity:1;}
         .ri-form textarea{resize:vertical;margin-bottom:7px;}
         .ri-form textarea:focus,.ri-form input:focus{border-color:${INK};}
         .ri-row{display:flex;gap:7px;margin-bottom:9px;flex-wrap:wrap;}
         .ri-row input{flex:1;min-width:130px;}
         .ri-actions{display:flex;gap:8px;justify-content:flex-end;}
-        .ri-btn{font-family:${SANS};font-weight:800;font-size:13px;border:1.5px solid ${INK};background:var(--white);color:${INK};border-radius:8px;padding:8px 14px;cursor:pointer;}
-        .ri-btn.primary{color:var(--white);}
+        .ri-btn{font-family:${SANS};font-weight:800;font-size:13px;border:1.5px solid ${INK};background:var(--stg-surf2, var(--white));color:${INK};border-radius:8px;padding:8px 14px;cursor:pointer;}
+        /* The send button wears the game's category step on the stage, ink from
+           the ramp's own on-colour, which is what every other filled control on
+           a game page does. The per-game accent prop is the off-stage fallback.
+           No backticks in here: this comment lives inside a template literal. */
+        .ri-btn.primary{color:var(--stg-onramp, var(--white));}
         .ri-btn:disabled{opacity:.5;cursor:default;}
-        .ri-sent{margin-top:6px;font-size:12.5px;font-weight:700;color:#0e7c5a;display:inline-flex;align-items:center;gap:6px;}
+        .ri-sent{margin-top:6px;font-size:12.5px;font-weight:700;color:var(--stg-good, #0e7c5a);display:inline-flex;align-items:center;gap:6px;}
       `}</style>
       {sent ? (
         <div className="ri-sent"><Check size={13} strokeWidth={3} /> Thanks. The team will take a look.</div>
@@ -126,7 +142,7 @@ export default function ReportIssue({ self, name, accent = T.accent, align = 'ce
             <button
               type="button"
               className="ri-btn primary"
-              style={{ background: btnAccent, borderColor: btnAccent }}
+              style={{ background: `var(--stg-acc, ${btnAccent})`, borderColor: `var(--stg-acc, ${btnAccent})` }}
               onClick={submit}
               disabled={busy || !msg.trim()}
             >
