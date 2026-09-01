@@ -805,7 +805,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="quilt" quizId={PUZZLE.quizId}
           name="Quilt"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

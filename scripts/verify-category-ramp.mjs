@@ -27,6 +27,7 @@
 // neither of which plain node resolves. Register the shared hook first, then
 // import dynamically, because the hook has to be installed before the import
 // is resolved. Same pattern as scripts/verify-endgame-board.mjs.
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { register } from 'node:module';
 register('./alias-loader.mjs', import.meta.url);
 
@@ -173,6 +174,44 @@ CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
 const badL = DAILY_GAMES.filter((g) => !CATEGORY_RAMP_LIGHT.includes(gameColorLight(g.key)));
 if (badL.length) fail(`${badL.length} games resolve outside the light ramp`);
 else ok(`all ${DAILY_GAMES.length} games resolve to a light step`);
+
+// ── 6. NO STAGE CLIENT MAY DISAGREE WITH THE REGISTRY ABOUT ITS OWN CATEGORY ─
+//
+// Every daily client passes a hand-written cat="..." to StageChrome. That prop
+// used to OUTRANK gameCategory(gameKey), which made it eighty hand-kept copies
+// of a fact the roster already holds, and copies drift. Two had, and only one
+// of them was noticed: when Sudoku split out of Numbers on 2026-09-01 all nine
+// grids kept announcing "Numbers" in their own eyebrow while the stage around
+// them was already painted with the Sudoku step, because every other consumer
+// read the registry. Carve had been announcing "Logic" against a registry that
+// files it under Numbers, live and unnoticed, for far longer.
+//
+// StageChrome now takes the registry first and the prop only as a fallback, so
+// a stale prop can no longer reach a reader. This check exists anyway, because
+// a prop that disagrees is still a lie sitting in the file, and the next person
+// to read it will believe it.
+{
+  const APP = new URL('../app/', import.meta.url).pathname;
+  const byKey = new Map(DAILY_GAMES.map((g) => [g.key, g.cat]));
+  let checked = 0, drifted = 0;
+  for (const dir of readdirSync(APP)) {
+    const reg = byKey.get(dir);
+    if (!reg) continue;
+    const full = APP + dir;
+    if (!existsSync(full) || !statSync(full).isDirectory()) continue;
+    for (const f of readdirSync(full)) {
+      if (!/Client\.jsx$/.test(f)) continue;
+      const m = readFileSync(full + '/' + f, 'utf8').match(/cat="([^"]+)"/);
+      if (!m) continue;
+      checked += 1;
+      if (m[1] !== reg) {
+        drifted += 1;
+        fail(`app/${dir}/${f} passes cat="${m[1]}" but the registry says "${reg}"`);
+      }
+    }
+  }
+  if (!drifted) ok(`all ${checked} stage clients agree with the registry about their category`);
+}
 
 console.log(fails ? `\n${fails} failed, ${warns} warned` : `\nramp clean, ${warns} warned`);
 process.exit(fails ? 1 : 0);

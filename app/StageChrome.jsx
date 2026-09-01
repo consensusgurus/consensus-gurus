@@ -190,7 +190,17 @@ export default function StageChrome({
   // this component stopped declaring it. Two publishers that can disagree is
   // how the --stg-ink name collision took the cap out.
   const colour = gameKey ? gameColor(gameKey) : null;
-  const category = cat || gameCategory(gameKey) || '';
+  // THE REGISTRY WINS, and the `cat` prop is only a fallback for a surface the
+  // roster does not know (2026-09-01). It was the other way round, and a prop
+  // that outranks the source of truth is a copy of the truth in eighty files:
+  // when Sudoku split out of Numbers, all nine grids kept announcing "Numbers"
+  // in their own eyebrow while the stage around them was already painted with
+  // the Sudoku step, because gameColor(gameKey) had always read the registry
+  // and only this line did not. The same drift was ALREADY live and unnoticed
+  // on Carve, which passed cat="Logic" against a registry that has it under
+  // Numbers. Both are fixed by this line rather than by editing the props, and
+  // scripts/verify-category-ramp.mjs now fails any prop that disagrees.
+  const category = gameCategory(gameKey) || cat || '';
   const board = useStripBoard(quizId, boardOn);
   const dateShort = shortDate(dateLabel);
   const homeTo = tq ? homeHref + (homeHref.includes('?') ? tq : '?' + tq.slice(1)) : homeHref;

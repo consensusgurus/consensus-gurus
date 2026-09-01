@@ -778,7 +778,7 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="sixes" quizId={PUZZLE.quizId}
           name="Sixes"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

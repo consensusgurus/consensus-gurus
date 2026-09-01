@@ -794,7 +794,7 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="mercury" quizId={PUZZLE.quizId}
           name="Mercury"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

@@ -814,7 +814,7 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="knight" quizId={PUZZLE.quizId}
           name="Knight"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

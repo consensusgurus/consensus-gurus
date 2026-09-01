@@ -808,7 +808,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="towers" quizId={PUZZLE.quizId}
           name="Towers"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

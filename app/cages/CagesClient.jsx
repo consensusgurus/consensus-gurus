@@ -874,7 +874,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="cages" quizId={PUZZLE.quizId}
           name="Cages"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

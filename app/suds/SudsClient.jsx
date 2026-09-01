@@ -819,7 +819,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           progress={FREE.length ? filledCount / FREE.length : 0}
           ladder={STAGE ? <StageLadder height={44} label="Boxes" blocks={stageBlocks} /> : null}
           name="Suds"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

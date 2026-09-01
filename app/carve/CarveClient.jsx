@@ -704,7 +704,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="carve" quizId={PUZZLE.quizId}
           name="Carve"
-          cat="Logic"
+          cat="Numbers"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}

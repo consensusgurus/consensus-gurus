@@ -802,7 +802,7 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="polka" quizId={PUZZLE.quizId}
           name="Polka"
-          cat="Numbers"
+          cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
