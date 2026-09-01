@@ -158,6 +158,19 @@ export default function StageChrome({
   boardOn = true,
   homeHref = '/',
   ladder = null,
+  // WHAT THE RANKINGS CHIP OPENS, when it is not a daily's board.
+  //
+  // The panel's whole job is "show me the standings without taking the board
+  // away", and on a daily the standings are DailyBoardPanel. A QUIZ has no
+  // registry row, no archive and no day: handed a null gameKey that component
+  // renders "null Archive" and asks the daily API a question about a game that
+  // does not exist. It also already has standings of its own, on the page the
+  // reader came from, and rebuilding those here would be two leaderboards that
+  // can disagree about the same quiz.
+  //
+  // So the caller may hand in the body. Null keeps the daily behaviour exactly,
+  // which is why none of the eighty call sites moved.
+  panelBody = null,
 }) {
   const [panel, setPanel] = useState(false);
   const started = useStarted(gameKey, num);
@@ -171,7 +184,12 @@ export default function StageChrome({
   const intro = useThemeIntro();  // and, once per browser, the switch played for them
   // Kept for callers that need the literal; the CAP reads var(--stg-acc),
   // which the client's root publishes in both registers.
-  const colour = gameColor(gameKey);
+  // A caller with no registry row (a quiz) has no category step to look up, and
+  // does not need one: the ACCENT IS PUBLISHED BY THE ROOT as --stg-acc-dk /
+  // --stg-acc-lt and read here as var(--stg-acc), which is the whole reason
+  // this component stopped declaring it. Two publishers that can disagree is
+  // how the --stg-ink name collision took the cap out.
+  const colour = gameKey ? gameColor(gameKey) : null;
   const category = cat || gameCategory(gameKey) || '';
   const board = useStripBoard(quizId, boardOn);
   const dateShort = shortDate(dateLabel);
@@ -324,8 +342,10 @@ export default function StageChrome({
             {/* The panel's dark styling has to follow the REGISTER, not the stage. It
                     was hardcoded, so on the light stage it drew the dark register's
                     near-white ink and pale sky tabs onto a near-white panel. */}
-            <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} stage dark={theme !== 'light'}
-              onClose={() => setPanel(false)} />
+            {panelBody || (
+              <DailyBoardPanel self={gameKey} quizId={quizId} maxWidth={720} stage dark={theme !== 'light'}
+                onClose={() => setPanel(false)} />
+            )}
           </div>
         </div>
       ) : null}

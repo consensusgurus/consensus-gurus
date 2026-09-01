@@ -105,6 +105,15 @@ export default function LoftFinish({
   boardLabel = null,   // heading over the leaderboard
   replaySub = null,    // overrides the registry's attempt-rule sentence
   dayTiles = null,     // [{ value, label }] replacing the four day tiles
+  // ON THE STAGE, SAID RATHER THAN GUESSED (2026-08-31, for the quiz stage).
+  //
+  // The read below infers the register from the URL, which is exactly right
+  // for a daily: the stage is sitewide there, so "on unless ?stage=0" is the
+  // truth. It is NOT the truth on a quiz, where the stage is still a review
+  // path and the same URL test would answer "yes" on a page that is painting
+  // cream. So a caller that KNOWS may say, and the URL is the fallback for the
+  // eighty that do not. null means "read the URL", exactly as before.
+  onStage: onStageProp = null,
 }) {
   // THE ENDING IS A CURTAIN on the stage. Declared FIRST so hook order never
   // changes, and RETURNED further down, after every other hook has run: an
@@ -115,10 +124,11 @@ export default function LoftFinish({
   // review path; once the stage went sitewide it left every finished game
   // showing the LOFT ending on a stage page — a cream card at the foot of a
   // near-black one. It matches lib/stage.js now: on unless '?stage=0'.
-  const [onStage, setOnStage] = useState(false);
+  const [urlStage, setUrlStage] = useState(false);
   useEffect(() => {
-    try { setOnStage(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setOnStage(true); }
+    try { setUrlStage(new URLSearchParams(window.location.search).get('stage') !== '0'); } catch (e) { setUrlStage(true); }
   }, []);
+  const onStage = onStageProp == null ? urlStage : !!onStageProp;
   const [showAll, setShowAll] = useState(false);
   // THE FAST RETRY GATE (owner, 2026-08-19). False until the player asks for
   // the full card, and only ever consulted on the games that are meant to be

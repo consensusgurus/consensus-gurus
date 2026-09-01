@@ -1,0 +1,168 @@
+// QuizClient's BOARD pass: the surfaces, hairlines and inks the chrome
+// conversion deliberately leaves alone.
+//
+//   node scripts/patch-quizclient-board.mjs
+//
+// Run AFTER patch-quiz-stage.mjs and patch-quizclient-stage.mjs. The chrome
+// conversion gives a client the stage ground and takes the old page's furniture
+// away; what it leaves is every surface the board itself paints, and on a
+// near-black ground those are twenty-four white rectangles and sixteen
+// invisible hairlines. A page in that state is a HALF-CONVERSION, which reads
+// as broken rather than as unfinished, so this is not optional follow-up work.
+//
+// ── THE TECHNIQUE: var() WITH THE ORIGINAL AS THE FALLBACK ──────────────────
+//
+// Every replacement here is `var(--stg-token, <the original expression>)`. The
+// stage tokens are defined ONLY on .stage-page (app/globals.css), so off the
+// stage every one of them is undefined and the fallback is what paints -- which
+// makes '?stage=0' byte-identical rather than merely equivalent.
+//
+// It also solves the one thing the INK / FADED / SURF consts cannot. Those are
+// declared INSIDE the component, and this file's module-level style objects
+// (fieldStyle, StatBox, ghostBtn) are evaluated at import time where no such
+// const is in scope -- rewriting one to read SURF is not a dead zone, it is
+// ReferenceError, and esbuild parses it happily.
+//
+// ── AND THE ROLE RULE ───────────────────────────────────────────────────────
+//
+// A fill, a hairline and a page ground are three different objects and bucketing
+// them by colour is how the last sweep of this kind walked past half its work:
+//
+//   a raised surface (a tile, a chip, a field)   --stg-surf
+//   a more raised one (a tray, a track)          --stg-surf2
+//   the PAGE's own ground (a sticky bar, a dock) --stg-ground
+//   a modal sheet                                --stg-panel
+//   a hairline, a rule, a border                 --stg-line
+//
+// A cream BUTTON and a cream STICKY BAR are the same literal and different
+// objects, which is why the seven cream sites below are named one at a time
+// rather than swept.
+import { readFileSync, writeFileSync } from 'node:fs';
+
+const path = process.argv[2] || 'app/quiz/[id]/QuizClient.jsx';
+let s = readFileSync(path, 'utf8');
+if (!/const QSTAGE = isQuizStage\('QuizClient'/.test(s)) {
+  throw new Error('convert the chrome first: there is no QSTAGE flag in this file');
+}
+let n = 0;
+
+// EXACTLY-ONCE anchors, for the sites whose ROLE cannot be read off the literal.
+function one(name, anchor, to) {
+  const hits = s.split(anchor).length - 1;
+  if (hits !== 1) throw new Error(`anchor "${name}" matched ${hits} times, expected exactly 1`);
+  s = s.replace(anchor, to); n += 1;
+  console.log(`  + ${name}`);
+}
+// COUNTED sweeps, for the ones whose role the literal does settle.
+function sweep(name, re, to, expect) {
+  const hits = (s.match(re) || []).length;
+  if (expect != null && hits !== expect) {
+    throw new Error(`sweep "${name}" found ${hits} sites, expected ${expect}: origin has moved, look before you patch`);
+  }
+  s = s.replace(re, to); n += hits;
+  console.log(`  · ${name}: ${hits}`);
+}
+
+// ── 1. THE PAGE'S OWN GROUND, three sites that are not surfaces ─────────────
+// A sticky bar and a fixed dock are the page showing through, not a card on it.
+// Painted --stg-surf they become a lighter band across the board, which is a
+// rectangle nobody designed -- the same mistake the daily board card made.
+one('sticky score bar', "style={{ position: 'sticky', top: 0, zIndex: 24, background: COLORS.cream }}",
+  "style={{ position: 'sticky', top: 0, zIndex: 24, background: `var(--stg-ground,${COLORS.cream})` }}");
+one('mobile answer dock', "zIndex: 40, background: COLORS.cream, borderTop:",
+  "zIndex: 40, background: `var(--stg-ground,${COLORS.cream})`, borderTop:");
+// A modal SHEET is its own register: it has to read as lifted off the page it
+// covers, which is what --stg-panel is for.
+one('modal sheet', "style={{ width: '100%', maxWidth: 480, background: COLORS.cream, borderRadius:",
+  "style={{ width: '100%', maxWidth: 480, background: `var(--stg-panel,${COLORS.cream})`, borderRadius:");
+
+// ── 2. THE FLAG PLATE STAYS WHITE, and this is a MEANING, not a style ───────
+// It is the plate a flag PNG is shown on. Half the world's flags carry white,
+// so on a near-black ground the plate is what makes them read as flags rather
+// than as shapes floating in the page. Neutralising it to a surface would
+// delete information. Marked here so the sweep below cannot take it.
+one('flag plate (kept white)', "borderRadius: 3, background: T.white, display: 'block' }}",
+  "borderRadius: 3, background: T.white /* stage: KEPT WHITE, see patch-quizclient-board.mjs */, display: 'block' }}");
+
+// ── 3. RAISED SURFACES ──────────────────────────────────────────────────────
+// The answer-progress track is the one paper site that is a TRACK rather than
+// a card: it wants the more-raised step, so that the accent bar running along
+// it has something to be brighter than. Named before the sweep below, or the
+// sweep takes it.
+one('progress track', "background: COLORS.paper, overflow: 'hid",
+  "background: `var(--stg-surf2,${COLORS.paper})`, overflow: 'hid");
+sweep('white surfaces', /background: T\.white\b(?! \/\* stage)/g,
+  'background: `var(--stg-surf,${T.white})`', 9);
+sweep('paper surfaces', /background: COLORS\.paper\b/g,
+  'background: `var(--stg-surf,${COLORS.paper})`', 4);
+sweep('trays', /background: T\.surfaceAlt\b/g,
+  'background: `var(--stg-surf2,${T.surfaceAlt})`', 2);
+// What is left of the cream literal is BUTTONS, now that the three page-ground
+// sites above are named. A button is a raised surface.
+sweep('cream buttons', /background: COLORS\.cream,/g,
+  'background: `var(--stg-surf,${COLORS.cream})`,', 4);
+
+// ── 4. HAIRLINES ────────────────────────────────────────────────────────────
+// Near-black on near-black is not a subtle border, it is no border: sixteen
+// element edges simply stop existing. This is the single biggest reason an
+// unconverted board looks like a bug rather than like a light board.
+sweep('ink borders', /(border(?:Top|Bottom|Left|Right)?: `1(?:\.5)?px solid )\$\{COLORS\.ink\}`/g,
+  '$1var(--stg-line,${COLORS.ink})`', 16);
+sweep('line borders', /(border(?:Top|Bottom|Left|Right)?: `1(?:\.5)?px solid )\$\{COLORS\.line\}`/g,
+  '$1var(--stg-line,${COLORS.line})`', 6);
+sweep('faded borders', /\$\{COLORS\.faded\}(33|55)`/g,
+  'var(--stg-line,${COLORS.faded}$1)`', 5);
+
+// ── 5. FILLS THAT CARRY MEANING, and the ink that rides on each ────────────
+//
+// Three different fills are left, and they are three different objects. Doing
+// them by hue would put all three on the accent; doing them by ALPHA would put
+// none of them anywhere. The pairing is what matters: a fill and its ink move
+// together or the element becomes invisible in one register while looking fine
+// in the other -- which is the exact bug the last accent sweep shipped, ink
+// converted and ground not, unreadable in BOTH directions at once.
+//
+//   an ACCENT fill (the old ember, the brand cta)  -> --stg-acc  + --stg-onramp
+//   a NEAR-BLACK fill (a dark chip)                -> --stg-surf2 + --stg-ink
+//   a MEANING fill (right/wrong, the challenge     -> left exactly as it is
+//     tint) 
+//
+// The near-black chip is the one the daily rule gets misread on. "A near-black
+// FILL is a perfectly good object and stays" was written about a LIGHT page,
+// where it is. On this ground it is the ground, so the chip disappears and its
+// cream ink disappears with it. It becomes a raised surface instead, which is
+// what a chip on a dark page is.
+{
+  const lines = s.split('\n');
+  let acc = 0, chip = 0, tint = 0;
+  const ACC_FILL = /background: (COLORS\.ember|T\.accent|T\.cta)\b/;
+  for (let i = 0; i < lines.length; i++) {
+    let l = lines[i];
+    if (/--stg-/.test(l)) continue;
+    if (ACC_FILL.test(l)) {
+      l = l.replace(/background: (COLORS\.ember|T\.accent|T\.cta)\b/g, 'background: `var(--stg-acc,${$1})`');
+      l = l.replace(/(?<![-\w])color: (T\.white|T\.ctaInk)\b/g, 'color: `var(--stg-onramp,${$1})`');
+      acc++;
+    } else if (/background: COLORS\.ink\b/.test(l)) {
+      l = l.replace(/background: COLORS\.ink\b/g, 'background: `var(--stg-surf2,${COLORS.ink})`');
+      l = l.replace(/(?<![-\w])color: (T\.white|COLORS\.cream)\b/g, 'color: `var(--stg-ink,${$1})`');
+      chip++;
+    }
+    // A MEANING CHIP gives up its FILL on the stage and keeps its border and
+    // its ink, so a warning stops being the brightest thing on a near-black
+    // page. --stg-chip exists for exactly this and is deliberately undefined
+    // off the stage, so the fallback keeps the old wash.
+    if (/background: COLORS\.accSoft\b/.test(l)) {
+      l = l.replace(/background: COLORS\.accSoft\b/g, 'background: `var(--stg-chip,${COLORS.accSoft})`');
+      tint++;
+    }
+    lines[i] = l;
+  }
+  s = lines.join('\n');
+  n += acc + chip + tint;
+  console.log(`  · accent fills: ${acc}   dark chips: ${chip}   meaning tints: ${tint}`);
+  if (!acc || !chip) throw new Error('expected both an accent fill and a dark chip in this client; origin has moved');
+}
+
+writeFileSync(path, s);
+console.log(`patched ${n} sites in ${path}`);
