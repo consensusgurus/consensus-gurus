@@ -193,8 +193,13 @@ function mergeServerStats(s, recent, puzzles) {
 }
 
 // The dots, drawn once as an SVG sheet over the grid, sitting on the cell
-// borders. White = ringed, black = filled; they never overlap a digit, so the
-// sheet rides above everything (zIndex 3) with pointer events off.
+// borders. They never overlap a digit, so the sheet rides above everything
+// (zIndex 3) with pointer events off.
+//
+// THE TWO FILLS ARE PINNED, NEVER TOKENS. White and black ARE the rule here,
+// and --stg-ink / --stg-cell swap between the registers, which inverted both
+// clue types on the dark stage while the rules text stayed the same. Each
+// disc carries a ring in the opposite value so it reads on either ground.
 function DotsOverlay({ dots, n }) {
   const out = [];
   for (let r = 0; r < n; r++) {
@@ -213,8 +218,8 @@ function DotsOverlay({ dots, n }) {
     <svg viewBox={`0 0 ${n} ${n}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 3 }} aria-hidden="true">
       {out.map((d) => (
         d.t === 2
-          ? <circle key={d.key} cx={d.x} cy={d.y} r={0.13} style={{ fill: 'var(--stg-ink, #1c1e24)' }} />
-          : <circle key={d.key} cx={d.x} cy={d.y} r={0.13} strokeWidth={0.045} style={{ fill: 'var(--stg-cell, #ffffff)', stroke: 'var(--stg-ink, #1c1e24)' }} />
+          ? <circle key={d.key} cx={d.x} cy={d.y} r={0.13} strokeWidth={0.045} style={{ fill: '#0b0d12', stroke: 'rgba(255,255,255,0.78)' }} />
+          : <circle key={d.key} cx={d.x} cy={d.y} r={0.13} strokeWidth={0.045} style={{ fill: '#ffffff', stroke: 'rgba(11,15,26,0.82)' }} />
       ))}
     </svg>
   );
@@ -864,7 +869,7 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
         {/* Start tile — sits where the board goes until the player presses
             Start, which begins the clock. The grid stays sealed until then. */}
         {preStart && (
-          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={STAGE ? 'stg-gate' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Polka is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>

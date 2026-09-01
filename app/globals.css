@@ -390,6 +390,19 @@ body:has(.stage-page) { background: #0b0f1a !important; }
   box-shadow: none !important;
 }
 
+/* THE START GATE IS NOT A CARD EITHER (owner, 2026-09-01). 56 of the 79 gates
+   drew a panel around their how-to and 23 did not, and the owner's call was
+   that none should. Same mechanism as stg-board directly above, and the same
+   reason for !important: every gate sets its background and border inline.
+   The PADDING is deliberately left alone here, unlike the board rule — a gate
+   is prose and wants its inset, and no grid is paying for it. */
+.stage-page .stg-gate {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
 /* On a phone the padding goes too, and the board breaks out of the page
    column's gutter to leave a 4px SLIVER of ground at each edge (owner,
    2026-08-31): enough that the outermost grid line still reads as the board's

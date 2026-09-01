@@ -676,7 +676,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
   // above an on-screen keyboard on a 390px phone, so the letter and the little
   // clue number both shrink with the grid rather than being tuned for one size.
   const cellPx = N >= 11 ? 'clamp(12px, 3.3vw, 21px)' : 'clamp(15px, 4.1vw, 25px)';
-  const numPx = N >= 11 ? 7 : 8.5;
+  const numPx = N >= 11 ? 7.5 : 9.5;
   const boardMax = N >= 11 ? 560 : 480;
   const checks = g.checks;
   // What the player finished with, in the same unit the game posts: words
@@ -749,12 +749,12 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ec-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ec-ttl h1{font-size:21px;letter-spacing:0.02em;}.ec-ttl .ec-ttl-dt{font-size:15px;}.ec-ttl-dot{display:none;}}
           .ec-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-cell)' : 'var(--white)'};}
           .ec-cell.ec-blk{background:${COLORS.ink};cursor:default;}
-          .ec-cell.ec-crossword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 26%, var(--stg-cell))' : '#f5f9ff'};}
-          .ec-cell.ec-inword{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
-          .ec-cell.ec-sel{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, var(--stg-raise))' : '#dbeafe'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
+          .ec-cell.ec-inword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 26%, var(--stg-cell))' : 'color-mix(in srgb, ' + COLORS.accent + ' 16%, transparent)'};}
+          .ec-cell.ec-sel{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 38%, var(--stg-cell))' : '#dbeafe'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
           .ec-cell.ec-wrongmark span{color:${COLORS.rust};}
           .ec-cell.ec-wrongmark{animation:ecshake .3s ease;}
-          .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:var(--stg-mute, rgba(28,30,36,0.55));pointer-events:none;}
+          .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:${STAGE ? 700 : 500};color:var(--stg-ink2, rgba(28,30,36,0.55));pointer-events:none;}
+          .ec-cell.ec-inword .ec-num,.ec-cell.ec-sel .ec-num{color:var(--stg-ink, rgba(28,30,36,0.75));}
           .ec-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .ec-cluerow:hover{background:var(--stg-surf2, ${COLORS.paper});}
           .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border: 1.5px solid var(--stg-line, rgba(28,30,36,0.4));height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
@@ -793,7 +793,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
 
         {/* start tile — the grid and clues stay sealed until Start begins the clock */}
         {preStart && (
-          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
+          <div className={STAGE ? 'stg-gate' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 10, padding: '22px', display: 'flex', flexDirection: 'column', marginBottom: 12 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'Encore is ready'}</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>

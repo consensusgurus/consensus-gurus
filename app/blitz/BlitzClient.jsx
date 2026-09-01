@@ -620,7 +620,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={STAGE ? 'stg-gate' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 5 }}>Today&rsquo;s twenty</div>
             <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 22, color: ACC, lineHeight: 1.2, marginBottom: 14 }}>Mental arithmetic, against the clock</div>
             {gateRules ? rulesBody : (

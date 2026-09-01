@@ -596,7 +596,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
 
         {preStart && (
-          <div style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
+          <div className={STAGE ? 'stg-gate' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 5 }}>Today&rsquo;s topic</div>
             <div className="dp-topic" style={{ marginBottom: 14 }}>{TOPIC}</div>
             {gateRules ? rulesBody : (
