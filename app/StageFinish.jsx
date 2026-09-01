@@ -24,6 +24,141 @@ import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
 import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
 import GameGlyph from './GameGlyph';
 
+// ── THE FLOOD ──────────────────────────────────────────────────────────────
+// THE CURTAIN ARRIVES AT FULL SIZE (owner, 2026-08-31). The band was already
+// the moment the page changes state; what it was missing is the CHANGE. It
+// simply existed, at its final height, the instant the card mounted.
+//
+// So the accent takes the whole screen first — the verdict at display size, the
+// IQ counting up under it — and then collapses onto the band's own rectangle
+// and hands over. This is the Broadcast's move (app/circuits/GauntletFinale.jsx)
+// at a daily's scale: under two seconds rather than ten, one colour rather than
+// eight, and it ends on the card the player came for.
+//
+// IT IS A REVEAL, NOT A SCREEN. It renders nothing the band does not already
+// carry, it posts nothing, it fetches nothing, and the real ending is mounted
+// and laid out underneath it the whole time — which is what makes the hand-over
+// free: the flood ends the same colour and the same shape as the band, so
+// fading it out simply lets the band's own words appear.
+//
+// THE PAINT GOES ON THE FIXED ROOT, never a full-bleed child (the Broadcast
+// learned this twice). It is a child of .stf so it inherits --stg-acc and
+// --stg-onramp from .stage-page; no stage ancestor sets transform or filter, so
+// position:fixed still resolves against the viewport. A game that ever wraps its
+// body in a transform would break that, and the fix is a portal, not a wash.
+//
+// FOUR RULES, the Broadcast's own:
+//   1. Any tap, any key, skips. It is on the way to the card, never in front.
+//   2. prefers-reduced-motion gets no flood at all.
+//   3. A page that OPENED on a finished board — an archive replay, a refresh —
+//      gets the card directly. Only a game that just ended floods.
+//   4. It never congratulates. It says what the band says.
+const FLOOD_HOLD = 1000;    // the screen is that colour, and nothing else
+const FLOOD_SHRINK = 640;   // it collapses onto the band's rectangle
+const FLOOD_FADE = 200;     // colour onto colour, so the band's words appear
+// A finish card mounts seconds after the last move: every client holds the
+// finished board for its own HOLD_LONG first. A card on screen this soon after
+// the document loaded is therefore a board that was ALREADY over — an archive
+// replay or a refresh — and those get no flood. (A client-side navigation into
+// a finished board reads as fresh and will flood; harmless, and the alternative
+// is a signal that would have to be threaded through 80 clients.)
+const FLOOD_FRESH = 2000;
+
+const floodEase = (t) => 1 - Math.pow(1 - t, 3);
+
+// The IQ counts, because a number that lands is the one thing a reader watches.
+// It owns its own frame loop so a tick re-renders this and nothing else.
+function FloodCount({ to, ms }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    const t0 = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    let raf = 0;
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / Math.max(1, ms));
+      setV(to * floodEase(p));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, ms]);
+  return <>{Math.round(v).toLocaleString()}</>;
+}
+
+function CurtainFlood({ title, detail, iq, bandRef, onDone }) {
+  const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
+  const [clip, setClip] = useState(null);
+  const doneRef = useRef(false);
+  const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    if (typeof onDone === 'function') onDone();
+  };
+
+  // The whole schedule, laid out once, every timer cleared on unmount so a skip
+  // mid-sequence cannot fire a later beat onto a card that is already up.
+  useEffect(() => {
+    const timers = [];
+    const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+    at(20, () => setPhase('up'));
+    at(FLOOD_HOLD, () => {
+      const el = bandRef && bandRef.current;
+      if (!el) { setPhase('shrink'); return; }
+      // MEASURED LATE, on purpose: by now the card has settled, so the rectangle
+      // the colour is about to land on is the one it will still be sitting on.
+      const vh = window.innerHeight;
+      const r0 = el.getBoundingClientRect();
+      // And the band has to BE in view, or the colour slides off the screen
+      // instead of collapsing into it. An instant scroll under an opaque screen
+      // is invisible, which is the one thing this moment can spend freely.
+      if (r0.top < 8 || r0.bottom > vh - 8) {
+        window.scrollTo(0, Math.max(0, window.scrollY + r0.top - Math.round(vh * 0.14)));
+      }
+      requestAnimationFrame(() => {
+        const r = el.getBoundingClientRect();
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        const px = (n) => Math.max(0, Math.round(n)) + 'px';
+        setClip(`inset(${px(r.top)} ${px(w - r.right)} ${px(h - r.bottom)} ${px(r.left)})`);
+        setPhase('shrink');
+      });
+    });
+    at(FLOOD_HOLD + FLOOD_SHRINK + 60, () => setPhase('out'));
+    at(FLOOD_HOLD + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Any key. (Any tap is the element's own onClick.)
+  useEffect(() => {
+    const go = () => finish();
+    window.addEventListener('keydown', go);
+    return () => window.removeEventListener('keydown', go);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    // aria-hidden because every word on it is read again, in place, on the card
+    // underneath — and there is nothing focusable inside it to strand.
+    <div
+      className={'stf-flood' + (phase ? ' ' + phase : '')}
+      aria-hidden="true"
+      onClick={finish}
+      style={clip ? { clipPath: clip, WebkitClipPath: clip } : undefined}
+    >
+      <div className="stf-fl-in">
+        <div className="stf-fl-v">{title}</div>
+        {detail ? <div className="stf-fl-d">{detail}</div> : null}
+        {iq && iq.gained != null ? (
+          <div className="stf-fl-iq">
+            <b>+<FloodCount to={Number(iq.gained)} ms={FLOOD_HOLD - 140} /></b>
+            <i>IQ earned</i>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 // Which dailies are finished TODAY, from the breadcrumb every client writes on
 // finishing. Read once on mount: a finish page is a snapshot, not live data.
 // THE LIVE ROSTER, not DAILY_GAMES. A retired game stays in that array so its
@@ -133,6 +268,28 @@ export default function StageFinish({
   // THE REST OF THE SITE, from the one page a reader reliably reaches (owner,
   // 2026-08-31). Three doors, and none of them can appear before the game is
   // over because this component only exists then.
+  // THE FLOOD, and the band it collapses onto. Started in an effect rather
+  // than in the initial state so the server and the first client render agree:
+  // there is no flood in the markup, it arrives after hydration.
+  const bandRef = useRef(null);
+  const [flood, setFlood] = useState(false);
+  useEffect(() => {
+    // The fast-retry ending stays quiet: it is one control, shown after a loss
+    // on the games where a replay counts, and a player takes it several times in
+    // a row. A full-screen colour every time is a wall, not a moment.
+    if (isRetry) return;
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // ?flood=1 plays it on an already-finished board, which is the ONLY way to
+    // see this without burning a real attempt: a finish card renders on a game
+    // that is over, and playing one posts a result. Verify on /<game>?p=N&flood=1.
+    const forced = /[?&]flood=1(&|$)/.test(window.location.search);
+    const since = (typeof performance !== 'undefined' && performance.now) ? performance.now() : 1e9;
+    if (!forced && since < FLOOD_FRESH) return;   // the page opened on a finished board
+    setFlood(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [cat, setCat] = useState(null);        // null | a category | 'all'
   const [arch, setArch] = useState(false);     // this game's own back catalogue
   const [played, setPlayed] = useState(() => new Set());
@@ -269,6 +426,11 @@ export default function StageFinish({
     <div className={'stf' + (outcome ? ' stf-' + outcome : '')}>
       <style>{CSS}</style>
 
+      {flood ? (
+        <CurtainFlood title={title} detail={detail} iq={iq} bandRef={bandRef}
+          onDone={() => setFlood(false)} />
+      ) : null}
+
       {/* THE CURTAIN. The one place on the stage where the accent covers
           something rather than marking it. Edge to edge, because a band with a
           margin reads as another card. */}
@@ -290,7 +452,7 @@ export default function StageFinish({
           spent one deploy on the verdict's line and crowded the one sentence
           that describes the run itself. On a phone they do not render at all
           -- see .stf-dx in the media query. */}
-      <div className="stf-curtain">
+      <div className="stf-curtain" ref={bandRef}>
         <div className="stf-cin">
           <div className="stf-ctop">
             <div className="stf-cl">
@@ -582,7 +744,43 @@ const CSS = `
 .stf-o.gold i{color:inherit;opacity:.78;}
 .stf-o:focus-visible,.stf-fwd:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 
+/* ── the flood ─────────────────────────────────────────────────────────── */
+/* Below the safe-area strip (z-index 10000, status-bar chrome) and above
+   everything else on a stage page, whose own chrome caps at 5. */
+.stf-flood{position:fixed;inset:0;z-index:9000;cursor:pointer;
+  background:var(--stg-acc);color:var(--stg-onramp,#08222e);
+  display:flex;align-items:center;justify-content:center;padding:28px 24px;
+  opacity:0;-webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0);
+  transition:opacity 180ms ease,clip-path 640ms cubic-bezier(.2,.8,.25,1),
+    -webkit-clip-path 640ms cubic-bezier(.2,.8,.25,1);}
+.stf-flood.up,.stf-flood.shrink{opacity:1;}
+/* The clip has landed by now, so the colour is exactly the band: fading it out
+   is colour onto colour, and what appears through it is the band's own words. */
+.stf-flood.out{opacity:0;transition:opacity 200ms ease;}
+
+.stf-fl-in{max-width:900px;text-align:center;opacity:0;
+  transform:translateY(12px) scale(.985);
+  transition:opacity 320ms ease,transform 420ms cubic-bezier(.2,.8,.25,1);}
+.stf-flood.up .stf-fl-in,.stf-flood.shrink .stf-fl-in{opacity:1;transform:none;}
+/* Out before the shape moves, so the words are never caught in the collapse. */
+.stf-flood.shrink .stf-fl-in{opacity:0;transform:translateY(-16px);
+  transition:opacity 240ms ease,transform 420ms ease;}
+
+.stf-fl-v{font-size:clamp(38px,8.4vw,104px);font-weight:800;letter-spacing:-.045em;
+  line-height:.98;text-wrap:balance;}
+.stf-fl-d{margin-top:14px;font-size:clamp(13px,2vw,19px);font-weight:700;opacity:.78;}
+.stf-fl-iq{margin-top:30px;}
+.stf-fl-iq b{display:block;font-size:clamp(46px,10vw,118px);font-weight:800;
+  line-height:.9;letter-spacing:-.05em;font-variant-numeric:tabular-nums;}
+.stf-fl-iq i{display:block;font-style:normal;font-family:${MONO};
+  font-size:clamp(10px,1.4vw,13px);letter-spacing:.18em;text-transform:uppercase;
+  opacity:.76;margin-top:12px;}
+
 @media (max-width:640px){
+  .stf-flood{padding:22px 18px;}
+  .stf-fl-d{margin-top:11px;}
+  .stf-fl-iq{margin-top:22px;}
+  .stf-fl-iq i{margin-top:9px;}
   .stf-curtain{padding:22px 18px 20px;}
   .stf-verdict{font-size:27px;}
   /* THE STANDINGS COME OFF THE PHONE (owner, 2026-08-31). The line under the
