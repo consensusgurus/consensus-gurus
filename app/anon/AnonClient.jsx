@@ -646,6 +646,24 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     );
   }
 
+  // The clue for the answer the cursor is in, printed the way its bank row
+  // prints it: spine letter, category, length, and `done` once it is right. It
+  // exists because the PASSAGE view hides the bank, and on a clueless acrostic
+  // the category is the only clue there is — looking at the passage should not
+  // cost you it.
+  function CurClue({ inDock }) {
+    const a = A[curAnswer];
+    if (!a) return null;
+    return (
+      <div className={inDock ? 'an-dockclue' : 'an-topclue'}>
+        {curAnswer < PUZZLE.spine && <span className="an-tag">{spineLetters[curAnswer] || '?'}</span>}
+        <span className={a.cat ? 'an-cat' : 'an-cat open'}>{a.cat || 'no category'}</span>
+        <span className="an-len">{a.w.length}</span>
+        {solved[curAnswer] && <span className="an-ok">done</span>}
+      </div>
+    );
+  }
+
   function BankRow({ ai }) {
     const a = A[ai];
     const isSpine = ai < PUZZLE.spine;
@@ -756,6 +774,18 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-segd button.on{background:${ACC};color:${ON_ACC};}
           .an-nav{margin-left:auto;display:flex;gap:6px;}
           .an-nav button{width:28px;height:28px;border-radius:6px;border:1px solid #2b4675;background:#16294a;color:#dbe9ff;cursor:pointer;font-weight:800;}
+          .an-topclue{display:flex;align-items:baseline;gap:8px;margin:-4px 0 12px;padding:0 2px;}
+          /* THE DOCK IS ITS OWN ISLAND. It carries a hardcoded navy palette that
+             predates the stage and does not read --stg-*, so the clue printed on
+             it is coloured from THAT palette: a --stg-mute here would go dark on
+             the light register and vanish against the navy. The typography is
+             still the bank row's, so the two read as the same object. */
+          .an-dockclue{display:flex;align-items:baseline;gap:8px;margin-top:8px;}
+          .an-dockclue .an-tag{color:#dbe9ff;}
+          .an-dockclue .an-cat{color:#93a8cc;}
+          .an-dockclue .an-cat.open{color:#6b80a6;}
+          .an-dockclue .an-len{color:#6b80a6;}
+          .an-dockclue .an-ok{color:#5fd3a3;}
           .an-dockbody{margin-top:7px;display:flex;gap:3px;overflow-x:auto;padding-bottom:2px;}
           .an-dcell{width:21px;height:26px;border-radius:4px;background:#16294a;border:1px solid #2b4675;display:flex;align-items:center;
             justify-content:center;font-weight:800;font-size:13px;color:var(--white);flex:none;}
@@ -857,6 +887,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                   <button className={view === 'b' ? 'on' : ''} onClick={() => setView('b')}>Bank</button>
                 </div>
               )}
+              {narrow && !railUp && view === 'q' && <CurClue />}
 
               {split ? (
                 /* THE PASSAGE IS ON THE LEFT because it is the object being read
@@ -978,7 +1009,9 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           board. On a narrow screen the two halves cannot both be on screen, so
           the rail also carries the dock: the Passage/Bank switch and the answer
           stepper on one line, and under them the stretch of the OTHER half
-          around the cell you are on. Those are the two most-pressed controls in
+          around the cell you are on, plus that answer's CLUE when the passage is
+          the half showing, since the bank that would otherwise print it is not
+          rendered at all in that view. Those are the two most-pressed controls in
           the game and they belong under the thumb, not at the top of a page the
           player has scrolled away from. At tablet width both halves are already
           visible, so a tablet gets the keys alone.
@@ -1003,6 +1036,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                   <button onClick={() => focusCell(A[(curAnswer + 1) % TOTAL].c[0])} aria-label="Next answer">&rsaquo;</button>
                 </span>
               </div>
+              {view === 'q' && <CurClue inDock />}
               <div className="an-dockbody">
                 {(view === 'b' ? passageAround(cur) : A[curAnswer].c).map((n, i) => (
                   n < 0
