@@ -147,7 +147,44 @@ function scoreOf(eaten, total) {
 // the tip. The jaws swing open on the move that swallows a mascot and clamp shut
 // when the run ends.
 const GATOR = { skin: '#3f8f3f', dark: '#2a6b2a', belly: '#8fca7a', teeth: '#ffffff' };
-function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
+
+// THE BOARD'S PALETTE, read off the stage tokens at draw time.
+//
+// Canvas cannot use a CSS variable, so the values have to be resolved from the
+// element and passed in. Doing it per draw rather than once at mount is what
+// makes the board follow the light switch and the category ramp without any
+// prop threading: both change the computed value, and the next frame picks it up.
+//
+// The gator takes the CATEGORY ACCENT rather than its old green, so the board
+// reads as part of the page instead of as a widget dropped onto it. That frees
+// the accent from also marking the next mascot, which now takes a plain ink ring:
+// on a dark stage that is the highest-contrast marker available and it never
+// competes with the animal.
+function boardPalette(el) {
+  const cs = typeof window !== 'undefined' && el ? getComputedStyle(el) : null;
+  const v = (name, fallback) => {
+    if (!cs) return fallback;
+    const got = cs.getPropertyValue(name);
+    return got && got.trim() ? got.trim() : fallback;
+  };
+  const acc = v('--stg-acc', GATOR.skin);
+  return {
+    plate: v('--stg-panel', '#ffffff'),
+    grid: v('--stg-line', '#eef1f5'),
+    edge: v('--stg-line2', v('--stg-line', '#e2e6ec')),
+    bench: v('--stg-surf2', '#333a48'),
+    benchLine: v('--stg-line2', 'rgba(255,255,255,0.30)'),
+    ink: v('--stg-ink', '#1c1e24'),
+    mute: v('--stg-mute2', '#c4ccd8'),
+    onramp: v('--stg-onramp', '#ffffff'),
+    skin: acc,
+    belly: acc,
+    dark: v('--stg-onramp', GATOR.dark),
+    teeth: v('--stg-ink', '#ffffff'),
+    accent: acc,
+  };
+}
+function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad, pal = boardPalette(null)) {
   const [hx, hy] = cellXY;
   const f = facing && (facing[0] || facing[1]) ? facing : [1, 0];
   const cx = pad + hx * cell + cell / 2, cy = pad + hy * cell + cell / 2;
@@ -174,7 +211,7 @@ function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
     ctx.fill();
     // teeth along the bite line, biggest at the front
     if (gape > 0.10) {
-      ctx.fillStyle = GATOR.teeth;
+      ctx.fillStyle = pal.teeth;
       for (let i = 0; i < 4; i++) {
         const x = len - c * 0.10 - i * c * 0.10;
         const w = c * (0.055 - i * 0.006);
@@ -189,16 +226,16 @@ function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
     ctx.restore();
   };
 
-  jaw(1, c * 0.46, c * 0.20, GATOR.belly);   // lower jaw, paler, drawn first
-  jaw(-1, c * 0.52, c * 0.26, GATOR.skin);   // upper jaw, on top
+  jaw(1, c * 0.46, c * 0.20, pal.belly);     // lower jaw, paler, drawn first
+  jaw(-1, c * 0.52, c * 0.26, pal.skin);     // upper jaw, on top
 
   // the eye ridge, sitting proud on the skull behind the snout
   ctx.save();
   ctx.rotate(-gape);
   const ex = -c * 0.14, ey = -c * 0.24;
-  ctx.fillStyle = GATOR.skin;
+  ctx.fillStyle = pal.skin;
   ctx.beginPath(); ctx.arc(ex, ey, c * 0.13, 0, 7); ctx.fill();
-  ctx.fillStyle = dead ? GATOR.dark : '#ffffff';
+  ctx.fillStyle = dead ? pal.dark : pal.teeth;
   ctx.beginPath(); ctx.arc(ex, ey, c * 0.085, 0, 7); ctx.fill();
   if (dead) {
     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = Math.max(1, c * 0.035);
@@ -214,7 +251,7 @@ function drawHead(ctx, cellXY, facing, cell, dead, chewing, pad) {
     ctx.fill();
   }
   // nostril at the very tip of the snout
-  ctx.fillStyle = GATOR.dark;
+  ctx.fillStyle = pal.dark;
   ctx.beginPath(); ctx.arc(c * 0.40, -c * 0.13, Math.max(0.8, c * 0.032), 0, 7); ctx.fill();
   ctx.restore();
 
@@ -538,6 +575,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     const cell = cellRef.current;
     const W = PUZZLE.w * cell + PAD * 2, H = PUZZLE.h * cell + PAD * 2;
     const st = gRef.current;
+    const pal = boardPalette(cvs);
     // board coordinates -> canvas coordinates, gutter included
     const px = (x) => PAD + x * cell;
     const rr = (x, y, w, h, r) => {
@@ -549,18 +587,18 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     };
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#ffffff'; rr(0, 0, W, H, 12); ctx.fill();
-    ctx.strokeStyle = '#eef1f5'; ctx.lineWidth = 1;
+    ctx.fillStyle = pal.plate; rr(0, 0, W, H, 12); ctx.fill();
+    ctx.strokeStyle = pal.grid; ctx.lineWidth = 1;
     for (let i = 1; i < PUZZLE.w; i++) { ctx.beginPath(); ctx.moveTo(px(i), PAD); ctx.lineTo(px(i), PAD + PUZZLE.h * cell); ctx.stroke(); }
     for (let i = 1; i < PUZZLE.h; i++) { ctx.beginPath(); ctx.moveTo(PAD, px(i)); ctx.lineTo(PAD + PUZZLE.w * cell, px(i)); ctx.stroke(); }
-    ctx.strokeStyle = '#e2e6ec'; ctx.lineWidth = 1;
+    ctx.strokeStyle = pal.edge; ctx.lineWidth = 1;
     rr(PAD - 0.5, PAD - 0.5, PUZZLE.w * cell + 1, PUZZLE.h * cell + 1, 4); ctx.stroke();
 
     // ---- the bleachers: bolted down, never enterable ------------------------
     for (const [wx, wy] of (PUZZLE.walls || [])) {
-      ctx.fillStyle = '#333a48';
+      ctx.fillStyle = pal.bench;
       rr(px(wx) + 1.5, px(wy) + 1.5, cell - 3, cell - 3, 4); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.30)'; ctx.lineWidth = Math.max(1, cell * 0.045);
+      ctx.strokeStyle = pal.benchLine; ctx.lineWidth = Math.max(1, cell * 0.045);
       for (let k = 1; k <= 2; k++) {
         const yy = px(wy) + (cell * k) / 3 + 1;
         ctx.beginPath(); ctx.moveTo(px(wx) + cell * 0.18, yy); ctx.lineTo(px(wx) + cell * 0.82, yy); ctx.stroke();
@@ -576,7 +614,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     const body = st.body;
     const n = body.length;
     const dirTo = (a, b) => [Math.sign(b[0] - a[0]), Math.sign(b[1] - a[1])];
-    ctx.fillStyle = GATOR.skin;
+    ctx.fillStyle = pal.skin;
     for (let i = 1; i < n; i++) {
       const [bx, by] = body[i];
       const inset = cell * 0.13;
@@ -619,7 +657,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       ctx.lineTo(cxm + d[0] * cell * 0.62, cym + d[1] * cell * 0.62);
       ctx.lineTo(cxm - perp[0] * cell * 0.30, cym - perp[1] * cell * 0.30);
       ctx.closePath();
-      ctx.fillStyle = GATOR.skin;
+      ctx.fillStyle = pal.skin;
       ctx.fill();
     }
 
@@ -628,9 +666,14 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       const [mx, my] = PUZZLE.pellets[i];
       const next = i === st.pi;
       if (next) {
-        ctx.fillStyle = COLORS.accentSoft;
+        // The accent belongs to the gator now, so the one square the player is
+        // aiming at is marked in ink instead: the strongest contrast the stage
+        // has, in either register, and it cannot be confused with the animal.
+        ctx.globalAlpha = 0.14;
+        ctx.fillStyle = pal.ink;
         rr(px(mx) + 1, px(my) + 1, cell - 2, cell - 2, 5); ctx.fill();
-        ctx.strokeStyle = COLORS.accent; ctx.lineWidth = 2;
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = pal.ink; ctx.lineWidth = 2;
         rr(px(mx) + 1, px(my) + 1, cell - 2, cell - 2, 5); ctx.stroke();
       }
       const im = sprites[CAST[i]];
@@ -642,9 +685,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         // failed, fall back to a numbered disc so the board is always playable
         ctx.beginPath();
         ctx.arc(px(mx) + cell / 2, px(my) + cell / 2, cell * 0.34, 0, 7);
-        ctx.fillStyle = next ? COLORS.accent : '#c4ccd8';
+        ctx.fillStyle = next ? pal.ink : pal.mute;
         ctx.fill();
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = next ? pal.plate : pal.onramp;
         ctx.font = `700 ${Math.round(cell * 0.44)}px ${SANS}`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText(String(i + 1), px(mx) + cell / 2, px(my) + cell / 2 + 0.5);
@@ -652,7 +695,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       ctx.globalAlpha = 1;
     }
 
-    drawHead(ctx, st.body[0], st.facing, cell, st.status !== 'playing', st.chewing, PAD);
+    drawHead(ctx, st.body[0], st.facing, cell, st.status !== 'playing', st.chewing, PAD, pal);
 
     const bl = blockRef.current;
     if (bl && Date.now() - bl.at < BLOCK_MS && bl.x >= 0 && bl.y >= 0 && bl.x < PUZZLE.w && bl.y < PUZZLE.h) {
@@ -787,19 +830,19 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     <DailyRules
       accent={COLORS.accent}
       accentSoft={COLORS.accentSoft}
-      lead={`Eat today's ${NPEL} mascots in order. Every square you touch stays yours, so your own trail is the maze.`}
-      banner={`Everyone gets the same board today${PUZZLE.sunday ? ", and today's Sunday Edition fields all " + NPEL : ''}.`}
-      sub="The bulldog always goes first. Everything after it is a fresh order every day, and some days the cast is shorter than others." 
+      lead={`Eat today's ${NPEL} mascots in order. Every square you touch stays yours, so your own trail is the maze, and today there is exactly ONE route that gets all ${NPEL}.`}
+      banner={`Everyone gets the same board today${PUZZLE.sunday ? ", and today's Sunday Edition is the bigger " + PUZZLE.w + "x" + PUZZLE.h + " board with all " + NPEL + " mascots" : ''}.`}
+      sub="The bulldog always goes first. Everything after it is a fresh order every day, and the cast gets SHORTER through the week: each mascot is a signpost on the one route, so the fewer of them there are, the more of it you have to work out." 
       steps={[
         <>Move one square at a time with the <b>arrow keys</b> or the pad. Nothing moves until you do.</>,
         <>Your body <b>never shrinks</b>. Where you have been is a wall for the rest of the run.</>,
         <>A mascot whose turn has not come is <b>solid</b>. You cannot cross the tiger to reach the gamecock.</>,
-        <>The dark <b>bleachers</b> are bolted down and you can never enter them. Going around one is forced, and which side you pick decides what you wall off.</>,
+        <>There is <b>exactly one route</b> that eats the whole cast, and it uses <b>every square on the board</b>. Nothing is spare, so there is no second way round.</>,
         <>Steering into a wall is <b>refused</b>, not punished, and costs no move. The run ends only when the head has nowhere legal left to go.</>,
         <>Boxed in early? <b>Give up</b> ends the run and <b>records it as it stands</b>, and then <b>Try again</b> re-deals the same board. <b>Restart</b> does both in one press. Only your first result counts on the leaderboard, so a second run costs nothing.</>,
       ]}
-      knack="The mascots sit close together, and that is the trap: the direct line to the next one is very often the line that walls off the one after it. When the way forward looks obvious, check what it costs you two mascots later."
-      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up or restarting records the run as it stood, and only your first result is leaderboard eligible. The cast grows through the week, and Sunday Editions field the whole cast on the same small board, so almost every square is wall by the time the last one is in reach.`}
+      knack="Work backwards from the last mascot. Because the route has to cover every square and there is only one that does, the question at each junction is never 'which way is quicker' but 'which way can still come back for that corner'. When a move looks obviously right, that is usually the one worth checking."
+      footer={`Scored on HOW FAR DOWN THE CAST YOU GOT, so you do not need all ${NPEL}: stall on the fifth and you still score five. Clearing the whole cast is a perfect 10. Ties break on fewest moves, then on time. Giving up or restarting records the run as it stood, and only your first result is leaderboard eligible. The cast SHRINKS through the week, from ten signposts on Monday to eight on Saturday, and the Sunday Edition moves up to an 8x8 board with the whole cast on it.`}
     />
   );
 

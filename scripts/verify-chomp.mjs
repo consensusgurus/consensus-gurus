@@ -91,6 +91,48 @@ const DET_WALLED = 8;         // detour floor with walls in play, every day
 const BITE_MIN = 2;           // optimum-with-walls minus optimum-without, floor
 const WALLS_MIN = 5, WALLS_MAX = 7;
 
+// THE UNIQUENESS ERA (2026-09-01), the fifth rebuild and the one that throws out
+// every dial above. The owner played the dense-bleacher candidates and ruled:
+// "there should only be one path that works", and "many of these extra barriers
+// seem to make the path EASIER to determine". Both halves are right, and the
+// second is what four rebuilds had backwards: a bleacher REMOVES branching, so it
+// shrinks what a player has to consider and hands them the route.
+//
+// The evidence for the first half is in the live bank. Boards there carry ONE to
+// TWO HUNDRED PLUS winning routes, counted exhaustively, so being roughly right is
+// usually good enough. From here a board has exactly one, and any wrong turn in 48
+// moves ends the run.
+//
+// So the gates below are: ONE ROUTE, FULL COVERAGE, and a cast that is nearly all
+// load-bearing. Detour, leg cap, turn density and wall bite are all RETIRED for
+// this era, not because they were wrong but because they were proxies for what
+// uniqueness now states directly. They still run on the two frozen eras.
+//
+// WHY THE WEEK RUNS THE OTHER WAY. Each mascot is a signpost on the single path,
+// so FEWER of them is harder and the cast falls Monday to Saturday. Sunday keeps
+// the site's Sunday Edition convention by growing the BOARD instead: 8x8 with the
+// whole cast of eleven, which measures out at exactly minimal there, on a 63-move
+// route against a weekday's 48.
+//
+// CAUTION for anyone tempted by a sixth rebuild: six separate difficulty metrics
+// were measured on the old bank and every one already read "hard" (28% of legal
+// moves lose, ~12 squares with a single survivor, 13 of 16 losing branches leave
+// the whole board reachable so the player's own "don't cut myself off" check gives
+// no warning). The boards were never short of traps. Do not add a seventh metric.
+const UNIQUE_FROM = '2026-09-01';
+// indexed by getUTCDay, 0 = Sunday
+const U_RUNGS = [
+  { w: 8, h: 8, cast: 11, forks: 28, red: 1 },   // Sun
+  { w: 7, h: 7, cast: 10, forks: 18, red: 4 },   // Mon
+  { w: 7, h: 7, cast: 10, forks: 19, red: 4 },
+  { w: 7, h: 7, cast: 9, forks: 20, red: 4 },
+  { w: 7, h: 7, cast: 9, forks: 21, red: 4 },
+  { w: 7, h: 7, cast: 9, forks: 22, red: 4 },
+  { w: 7, h: 7, cast: 8, forks: 23, red: 1 },    // Sat
+];
+const uRungOf = (p) => U_RUNGS[dowOf(p)];
+const isUnique = (p) => p.live >= UNIQUE_FROM;
+
 const FIRST_MASCOT = 'bulldog';
 const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -342,7 +384,14 @@ function carefulClears(p) {
     prevNum = p.num;
     if (p.live <= prevLive) why.push('live date not strictly increasing');
     prevLive = p.live;
-    if (p.live >= REBUILT_FROM) {
+    if (isUnique(p)) {
+      const rung = uRungOf(p);
+      if (p.w !== rung.w || p.h !== rung.h) why.push(`board is ${p.w}x${p.h}, expected ${rung.w}x${rung.h} on a ${DOW[dowOf(p)]}`);
+      if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dowOf(p)]}`);
+      if (!Array.isArray(p.cast) || p.cast.length < CAST_MIN || p.cast.length > CAST_MAX) {
+        why.push(`cast of ${p.cast && p.cast.length}, outside ${CAST_MIN}-${CAST_MAX}`);
+      }
+    } else if (p.live >= REBUILT_FROM) {
       const rung = RAMP[dowOf(p)];
       if (p.w !== 7 || p.h !== 7) why.push(`board is ${p.w}x${p.h}, expected 7x7`);
       if (p.cast && p.cast.length !== rung.cast) why.push(`cast of ${p.cast.length}, expected ${rung.cast} on a ${DOW[dowOf(p)]}`);
@@ -363,7 +412,11 @@ function carefulClears(p) {
       if (seen.has(idxOf(p, c[0], c[1]))) why.push(`pellet ${c} repeated or sitting on the start`);
       seen.add(idxOf(p, c[0], c[1]));
     }
-    if (p.live >= WALLED_FROM) {
+    if (isUnique(p)) {
+      // No bleachers at all from here: they were the thing making the route
+      // readable, so the era that gates on one path carries none.
+      if (p.walls && p.walls.length) why.push(`carries ${p.walls.length} bleacher(s); the uniqueness era has none`);
+    } else if (p.live >= WALLED_FROM) {
       const walls = wallsOf(p);
       if (!Array.isArray(p.walls) || walls.length < WALLS_MIN || walls.length > WALLS_MAX) {
         why.push(`carries ${walls.length} wall(s), outside ${WALLS_MIN}-${WALLS_MAX}`);
@@ -449,8 +502,22 @@ const MINS = new Map();
   // spare are both real, but "is Sunday the tightest" is a within-bank claim.
   const eras = [
     PUZZLES.filter((p) => p.live >= REBUILT_FROM && p.live < WALLED_FROM),
-    PUZZLES.filter((p) => p.live >= WALLED_FROM),
+    PUZZLES.filter((p) => p.live >= WALLED_FROM && p.live < UNIQUE_FROM),
   ];
+  // The uniqueness era is judged on its own terms: every board leaves ZERO spare
+  // squares, so "tightest board" cannot separate Sunday from a Tuesday. Sunday is
+  // the peak there by being BIGGER and carrying the whole cast.
+  const uni = PUZZLES.filter(isUnique);
+  if (uni.length) {
+    const sun = uni.filter((p) => p.sunday), wk = uni.filter((p) => !p.sunday);
+    if (!sun.length) bad.push('the uniqueness era authors no Sunday Edition at all');
+    for (const p of sun) {
+      if (p.cast.length !== MASCOTS.length) bad.push(`#${p.num} Sunday is not the full cast of ${MASCOTS.length}`);
+      if (p.w !== 8 || p.h !== 8) bad.push(`#${p.num} Sunday is ${p.w}x${p.h}, not the 8x8 Edition`);
+    }
+    if (wk.some((p) => p.cast.length >= MASCOTS.length)) bad.push('a weekday fields the full cast, so Sunday is not the peak');
+    if (wk.some((p) => p.w > 7 || p.h > 7)) bad.push('a weekday is bigger than 7x7, so Sunday is not the peak');
+  }
   let sunAll = [];
   for (const rows of eras) {
     if (!rows.length) continue;
@@ -467,8 +534,10 @@ const MINS = new Map();
   }
   if (bad.length) fail('sunday', bad.slice(0, 4).join('; '));
   else {
-    const covs = sunAll.map((p) => coverOf(p, MINS.get(p.num)));
-    ok('sunday', `${sunAll.length} Sunday Editions, every one 7x7 with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of the playable board`);
+    const allSun = PUZZLES.filter((p) => p.sunday && p.live >= REBUILT_FROM);
+    const sizes = [...new Set(allSun.map((p) => `${p.w}x${p.h}`))].join(' and ');
+    const covs = allSun.map((p) => coverOf(p, MINS.get(p.num))).filter(Number.isFinite);
+    ok('sunday', `${allSun.length} Sunday Editions (${sizes}), every one with the full cast of ${MASCOTS.length}, forcing ${Math.round(Math.min(...covs) * 100)}-${Math.round(Math.max(...covs) * 100)}% of the playable board`);
   }
 })();
 
@@ -481,7 +550,7 @@ const MINS = new Map();
   const legs = [], dets = [], runs = [], bites = [];
   let rows = 0;
   for (const p of PUZZLES) {
-    if (p.live < REBUILT_FROM) continue;
+    if (p.live < REBUILT_FROM || isUnique(p)) continue;
     const walled = p.live >= WALLED_FROM;
     rows += 1;
     const min = MINS.get(p.num);
@@ -527,7 +596,7 @@ const MINS = new Map();
   // closure, cast climbing) run on the WALLED era only: the 10 open-board rows
   // left between REBUILT_FROM and WALLED_FROM are a frozen remnant of a bank
   // verified whole, and its Fri/Sat means tie at 4.0 in isolation.
-  const all = PUZZLES.filter((p) => p.live >= REBUILT_FROM);
+  const all = PUZZLES.filter((p) => p.live >= REBUILT_FROM && !isUnique(p));
   const stray = [];
   for (const p of all) {
     const min = MINS.get(p.num);
@@ -537,7 +606,17 @@ const MINS = new Map();
       stray.push(`#${p.num} ${DOW[dowOf(p)]} leaves ${sp} spare square${sp === 1 ? '' : 's'}, outside its ${r.spare[0]}-${r.spare[1]}`);
     }
   }
-  const rows = PUZZLES.filter((p) => p.live >= WALLED_FROM);
+  // Once the uniqueness era exists the walled bank is a frozen 10-row slice, and
+  // a slice of a bank that was verified WHOLE cannot re-pass checks written for a
+  // whole bank: its Wed and Thu means tie at 6.0. Same reasoning, and the same
+  // treatment, as the open-board remnant above. Per-board band membership still
+  // runs on every row; the living era's ramp is checked by uramp below.
+  const rows = PUZZLES.some(isUnique) ? [] : PUZZLES.filter((p) => p.live >= WALLED_FROM);
+  if (!rows.length) {
+    if (stray.length) fail('ramp', stray.slice(0, 5).join('; '));
+    else ok('ramp', `${all.length} frozen boards all inside their old spare bands; the living era ramps by signpost count, see uramp`);
+    return;
+  }
   const by = {};
   for (const p of rows) {
     const min = MINS.get(p.num);
@@ -568,14 +647,17 @@ const MINS = new Map();
 (function variety() {
   // The living era only: pool caps written for a whole bank cannot be re-run
   // over the frozen remnant plus a new bank without double-counting eras.
-  const rows = PUZZLES.filter((p) => p.live >= WALLED_FROM);
+  const rows = PUZZLES.filter(isUnique);
   const startSeen = new Map(), cellSeen = new Map(), orders = new Set(), wallSets = new Map();
   for (const p of rows) {
     startSeen.set(String(p.start), (startSeen.get(String(p.start)) || 0) + 1);
     for (const c of p.pellets) cellSeen.set(String(c), (cellSeen.get(String(c)) || 0) + 1);
     orders.add(p.cast.join('|'));
-    const wk = wallsOf(p).map((c) => idxOf(p, c[0], c[1])).sort((a, b) => a - b).join(',');
-    wallSets.set(wk, (wallSets.get(wk) || 0) + 1);
+    const wcells = wallsOf(p);
+    if (wcells.length) {
+      const wk = wcells.map((c) => idxOf(p, c[0], c[1])).sort((a, b) => a - b).join(',');
+      wallSets.set(wk, (wallSets.get(wk) || 0) + 1);
+    }
   }
   const dupWalls = [...wallSets.values()].filter((n) => n > 1).length;
   if (rows.length && dupWalls) fail('variety', `${dupWalls} bleacher layout(s) repeat across the walled bank`);
@@ -594,6 +676,131 @@ const MINS = new Map();
   if (!hotStart && !hotCell.length && orders.size >= rows.length && !never.length && sizes.size >= 3) {
     ok('variety', `${startSeen.size} distinct start squares (busiest ${Math.max(...startSeen.values())}), busiest mascot square ${Math.max(...cellSeen.values())}, every cast order distinct across ${rows.length} boards`);
   }
+})();
+
+// ---------- 6b. THE UNIQUENESS ERA: one path, and no spare board ------------
+// The gate the owner asked for, stated directly instead of through a proxy.
+//
+// countWinning is written out FRESH here, like every other search in this file
+// and for the same reason: scripts/gen-chomp-unique.mjs has its own copy, and a
+// bug shared between the generator and the checker would pass its own bank. It
+// counts EVERY move sequence that eats the cast, of any length, not just the
+// shortest ones, which is what "only one path works" actually means. A board
+// with one optimum and ninety longer routes that also clear it is not unique,
+// and that is exactly what the old bank looked like.
+function countWinning(p, want = 2, cap = 6000000) {
+  const C = p.w * p.h, K = p.pellets.length, occ = new Uint8Array(C);
+  seedWalls(p, occ);
+  occ[idxOf(p, p.start[0], p.start[1])] = 1;
+  const bl = blocker(p, occ), reach = reacher(p, occ);
+  let n = 0, nodes = 0, capped = false;
+  const go = (x, y, pi) => {
+    if (pi >= K) { n += 1; return n >= want; }
+    if (++nodes > cap) { capped = true; return true; }
+    for (const d of DIRS) {
+      const nx = x + d[0], ny = y + d[1];
+      if (bl(pi, nx, ny)) continue;
+      const np = (nx === p.pellets[pi][0] && ny === p.pellets[pi][1]) ? pi + 1 : pi;
+      occ[idxOf(p, nx, ny)] = 1;
+      const stop = (np >= K || reach(np, nx, ny)) ? go(nx, ny, np) : false;
+      occ[idxOf(p, nx, ny)] = 0;
+      if (stop) return true;
+    }
+    return false;
+  };
+  go(p.start[0], p.start[1], 0);
+  return { n, capped };
+}
+
+// Squares along the route offering more than one legal move. On a unique board
+// every fork has exactly one survivor, so this IS the number of chances the
+// player gets to lose the run.
+function forksOn(p, route) {
+  const C = p.w * p.h, occ = new Uint8Array(C);
+  seedWalls(p, occ);
+  occ[idxOf(p, p.start[0], p.start[1])] = 1;
+  const bl = blocker(p, occ);
+  let x = p.start[0], y = p.start[1], pi = 0, forks = 0;
+  for (const d of route) {
+    if (DIRS.filter((e) => !bl(pi, x + e[0], y + e[1])).length > 1) forks += 1;
+    const nx = x + d[0], ny = y + d[1];
+    if (nx === p.pellets[pi][0] && ny === p.pellets[pi][1]) pi += 1;
+    occ[idxOf(p, nx, ny)] = 1; x = nx; y = ny;
+  }
+  return forks;
+}
+
+(function uniqueness() {
+  const rows = PUZZLES.filter(isUnique);
+  if (!rows.length) { note('unique', 'no uniqueness-era boards yet'); return; }
+  const many = [], loose = [], thin = [], soft = [], unmeasured = [];
+  const fk = [], rd = [];
+  for (const p of rows) {
+    const rung = uRungOf(p);
+    const c = countWinning(p);
+    if (c.capped) { unmeasured.push(`#${p.num} (route count capped)`); continue; }
+    if (c.n !== 1) many.push(`#${p.num} (${p.live}) has ${c.n >= 2 ? '2 or more' : c.n} winning routes, needs exactly 1`);
+
+    // FULL COVERAGE. Spare squares are what let a player wander and still win,
+    // and a board with slack is essentially never unique, so this is both a
+    // design rule and the reason the gate above can be met at all.
+    const min = MINS.get(p.num);
+    if (min == null) { unmeasured.push(`#${p.num} (no optimum)`); continue; }
+    const spare = playableOf(p) - (min + 1);
+    if (spare !== 0) loose.push(`#${p.num} (${p.live}) leaves ${spare} spare square(s); the route must fill the board`);
+
+    const sr = shortestRoute(p);
+    if (!sr.route) { unmeasured.push(`#${p.num} (no route)`); continue; }
+    const forks = forksOn(p, sr.route);
+    fk.push(forks);
+    if (forks < rung.forks) thin.push(`#${p.num} (${p.live}, ${DOW[dowOf(p)]}) offers ${forks} forks, needs ${rung.forks}`);
+
+    // REDUNDANT MASCOTS: ones that could be lifted off and still leave one path.
+    // Each is a signpost the board did not need. The cap falls through the week,
+    // which is what makes Saturday and Sunday lean and Monday generous.
+    let red = 0;
+    for (let i = 0; i < p.pellets.length; i++) {
+      const q = { ...p, pellets: p.pellets.filter((_, k) => k !== i) };
+      const c2 = countWinning(q, 2, 900000);
+      if (!c2.capped && c2.n === 1) red += 1;
+    }
+    rd.push(red);
+    if (red > rung.red) soft.push(`#${p.num} (${p.live}, ${DOW[dowOf(p)]}) carries ${red} mascot(s) it does not need, over ${rung.red}`);
+  }
+  if (many.length) fail('unique', `more than one way through: ${many.slice(0, 5).join('; ')}`);
+  if (loose.length) fail('unique', `slack on the board: ${loose.slice(0, 5).join('; ')}`);
+  if (thin.length) fail('unique', `too few chances to go wrong: ${thin.slice(0, 5).join('; ')}`);
+  if (soft.length) fail('unique', `over-signposted: ${soft.slice(0, 5).join('; ')}`);
+  if (unmeasured.length) fail('unique', `could not be measured, so they are unverified: ${unmeasured.slice(0, 6).join(', ')}`);
+  if (!many.length && !loose.length && !thin.length && !soft.length && !unmeasured.length) {
+    ok('unique', `${rows.length} boards, every one with EXACTLY ONE winning route and no square left over, ${Math.min(...fk)}-${Math.max(...fk)} forks each (live bank ran 13-18), ${Math.min(...rd)}-${Math.max(...rd)} spare signposts`);
+  }
+})();
+
+// ---------- 6c. the uniqueness ramp: signposts fall, Sunday grows -----------
+(function uniqueRamp() {
+  const rows = PUZZLES.filter(isUnique);
+  if (!rows.length) return;
+  const bad = [];
+  const order = [1, 2, 3, 4, 5, 6];        // Mon..Sat; Sunday ramps by board size
+  const casts = order.map((d) => {
+    const r = rows.filter((p) => dowOf(p) === d);
+    return r.length ? r[0].cast.length : null;
+  });
+  for (const [i, v] of casts.entries()) if (v == null) bad.push(`no boards on ${DOW[order[i]]}`);
+  if (!bad.length) {
+    for (let i = 1; i < casts.length; i++) {
+      if (casts[i] > casts[i - 1]) bad.push(`${DOW[order[i]]} fields MORE signposts (${casts[i]}) than ${DOW[order[i - 1]]} (${casts[i - 1]}); the cast falls through the week now`);
+    }
+    if (casts[0] - casts[5] < 2) bad.push(`Monday to Saturday only sheds ${casts[0] - casts[5]} mascot(s), so the week is flat`);
+    // every board of a weekday must agree with its rung, or the ramp is nominal
+    for (const p of rows) {
+      const want = uRungOf(p).cast;
+      if (p.cast.length !== want) bad.push(`#${p.num} ${DOW[dowOf(p)]} fields ${p.cast.length}, off its rung of ${want}`);
+    }
+  }
+  if (bad.length) fail('uramp', bad.slice(0, 5).join('; '));
+  else ok('uramp', `signposts fall ${order.map((d, i) => `${DOW[d]} ${casts[i]}`).join(', ')}, and Sunday grows to 8x8 with the whole cast of ${MASCOTS.length}`);
 })();
 
 // ---------- 7. scoring ------------------------------------------------------
