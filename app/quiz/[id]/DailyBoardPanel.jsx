@@ -106,11 +106,20 @@ export default function DailyBoardPanel({
   // SECOND accent: the page is already painted in the game's CATEGORY step, so
   // Mercury drew a red disc on a green page and it was the loudest thing in
   // the panel. On the stage the mark becomes the same rounded plate every
-  // other small object on that surface is, with the initial in the page's own
-  // accent, and the page keeps one colour family.
+  // other small object on that surface is, marked with the page's own accent,
+  // and the page keeps one colour family.
+  //
+  // THE ACCENT IS THE EDGE AND THE LETTER IS INK, which is not the obvious
+  // version and is the only one that survives both registers. Painting the
+  // LETTER in var(--stg-acc) reads well on the dark stage and fails on the
+  // light one: three of the nine steps are warm, and a warm step on a pale
+  // ground does not darken, it keeps its value and flips its INK (see
+  // RAMP_INK_LIGHT). So End Game's gold is #e8b43a, which as text on the pale
+  // --stg-chip is about 1.5:1. On the edge it is decoration and needs no
+  // contrast ratio; the letter takes --stg-ink and clears in either register.
   const avCss = stage
     ? 'width:24px;height:24px;border-radius:7px;background:var(--stg-chip);'
-      + 'border:1px solid var(--stg-line2);color:var(--stg-acc);font-family:' + MONO
+      + 'border:1px solid var(--stg-acc);color:var(--stg-ink);font-family:' + MONO
       + ';font-size:11.5px;font-weight:700;'
     : 'width:22px;height:22px;border-radius:50%;color:var(--white);font-size:11px;font-weight:800;';
   // And the word "Stats" stops being part of the name. On the stage a heading
