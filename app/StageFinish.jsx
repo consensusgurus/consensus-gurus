@@ -102,7 +102,7 @@ const FLOOD_COUNT = 820;    // the IQ's climb, which is also its dwell
 // is seeing for the first time. These are the two knobs for the pace of the
 // whole sequence; nothing else needs touching to make it faster or slower.
 const FLOOD_STAMP = 520;    // every other figure lands this far after the last
-const FLOOD_SETTLE = 2000;  // a beat on the finished set, to read it whole
+const FLOOD_SETTLE = 3000;  // a beat on the finished set, to read it whole
 // HOW LONG THE QUEUE WILL BLOCK ON A FIGURE THAT HAS NOT ARRIVED (owner,
 // 2026-08-31, and this is the third pass on this screen). It was anchored to
 // LoftFinish's OWN ceiling, 11 seconds, on the reasoning that the curtain
@@ -923,8 +923,8 @@ const CSS = `
 .stf-ciq{flex:none;text-align:right;}
 .stf-ciq b{display:block;font-size:34px;font-weight:800;line-height:1;
   letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
-.stf-ciq i{display:block;font-style:normal;font-family:${MONO};font-size:11.5px;
-  letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-top:7px;}
+.stf-ciq i{display:block;font-style:normal;font-size:13px;font-weight:700;
+  opacity:.78;margin-top:8px;}
 
 .stf-wrap{max-width:720px;margin:0 auto;padding:22px 4px 8px;
   display:flex;flex-direction:column;gap:20px;}
@@ -1088,7 +1088,7 @@ const CSS = `
   .stf-dx{display:none;}
   .stf-ctop{gap:14px;}
   .stf-ciq b{font-size:26px;}
-  .stf-ciq i{font-size:10px;margin-top:5px;}
+  .stf-ciq i{font-size:11.5px;margin-top:6px;}
   .stf-st{font-size:11px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
 }

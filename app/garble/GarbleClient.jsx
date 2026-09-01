@@ -761,7 +761,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               catRank={catRank}
               outcome={won ? 'won' : (score > 0 ? 'part' : 'lost')}
               title={won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved')}
-              detail={`${score} \u00b7 ${solvedCount} solved \u00b7 ${elapsed}`}
+              detail={`${score} \u00b7 ${solvedCount} correct \u00b7 ${elapsed}`}
               iq={iq}
               board={dailyBoard}
               gameRank={allTime && allTime.ready

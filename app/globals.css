@@ -297,6 +297,19 @@ body:has(.stage-page) { background: #0b0f1a !important; }
 .stage-page.stf-collapse *:has(> .stf) { display: flex; flex-direction: column; }
 .stage-page.stf-collapse *:has(> .stf) > *:not(.stf) { display: none; }
 
+/* AND THE CURTAIN MEETS THE CAP (owner, 2026-09-01). Every game wraps its body
+   in its own <key>-wrap carrying its own top padding (18px on Garble), which is
+   right while there is a board under it and wrong once the ending has replaced
+   that board: it left a strip of page between the cap and a full-bleed accent
+   band, so the band read as floating rather than as the top of the page.
+
+   EVERY ANCESTOR of the card, because the padding is not on the card's own
+   parent: on Garble it sits three levels up on .gb-wrap, and each of the 80
+   games nests differently. While collapsed those ancestors hold nothing but the
+   card, so their top padding is exactly the gap and nothing else. It comes back
+   with the class the moment 'Return to board' takes it off. */
+.stage-page.stf-collapse :has(.stf) { padding-top: 0; }
+
 /* The client's own 'Hide game board', which is the inverse of Return to board.
    It had no class on the stage and so no room around it either. */
 .stage-page .stf-hideboard {
