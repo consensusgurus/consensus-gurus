@@ -91,6 +91,19 @@ export default function DailyBoardPanel({
   const BORD = stage ? 'var(--stg-line)' : (dark ? 'rgba(255,255,255,0.12)' : '#e7eaf1');
   const SURF = stage ? 'var(--stg-surf)' : (dark ? 'rgba(255,255,255,0.05)' : 'var(--white)');
   const SOFT = stage ? 'var(--stg-chip)' : (dark ? 'rgba(125,211,252,0.12)' : '#eff4fd');
+  // The hover step above SOFT. It was a bare #e4eefc, so hovering the pill
+  // painted a pale blue sheet under BLUE ink: measured 1.42:1 on the stage
+  // (sky #7dd3fc on #e4eefc). Only a SIGNED-OUT player ever sees this pill,
+  // which is why nobody working on the site had hovered it.
+  const SOFT2 = stage ? 'var(--stg-surf2)' : (dark ? 'rgba(125,211,252,0.2)' : '#e4eefc');
+  // THE CALENDAR LEGEND MUST MATCH THE CALENDAR. These two feed both the
+  // .played cell rule and the "Played" swatch, so the legend cannot describe a
+  // board it no longer looks like. On the dark register the played cell is a
+  // green wash over near-black while the swatch was a pale mint chip, and the
+  // Unplayed and Today swatches were pure white against --stg-surf cells: three
+  // light chips explaining three dark cells.
+  const CAL_PLAYED_BG = dark ? 'rgba(52,168,110,0.22)' : '#e8f5ec';
+  const CAL_PLAYED_BD = dark ? 'rgba(127,224,173,0.35)' : '#bfe3ca';
   const [ident, setIdent] = useState(null);        // { email, username } from localStorage
   const [combined, setCombined] = useState(null);  // /api/quiz/daily-me payload
   const [gameData, setGameData] = useState(null);  // /api/quiz/daily-game payload (allTime + drops)
@@ -329,7 +342,7 @@ export default function DailyBoardPanel({
         .dbp-hd .t .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dbp-hd .s{font-family:${MONO};font-size:10.5px;letter-spacing:.04em;color:${FADED};font-weight:500;white-space:nowrap;flex-shrink:0;}
         .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:${SOFT};border:1px solid ${stage ? 'var(--stg-line2)' : (dark ? 'rgba(125,211,252,0.3)' : '#cfe0fb')};border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-        .dbp-signup:hover{background:#e4eefc;}
+        .dbp-signup:hover{background:${SOFT2};}
         .dbp-streak{font-family:${SANS};font-size:11.5px;font-weight:600;color:${SLATE};white-space:nowrap;flex-shrink:0;}
         .dbp-streak b{font-weight:800;color:${INK};}
         .dbp-streak .best{color:${FADED};}
@@ -411,7 +424,7 @@ export default function DailyBoardPanel({
         .dbp-cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
         .dbp-cal-mo{font-size:14px;font-weight:800;color:${INK};}
         .dbp-cal-nav{display:flex;gap:6px;}
-        .dbp-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:var(--white);color:${SLATE};cursor:pointer;}
+        .dbp-cal-nav button{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid ${BORD};background:${SURF};color:${SLATE};cursor:pointer;}
         .dbp-cal-nav button:disabled{opacity:.4;cursor:default;}
         .dbp-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
         .dbp-cal-wd{font-family:${MONO};font-size:9.5px;color:${FADED};text-align:center;padding-bottom:2px;}
@@ -419,7 +432,7 @@ export default function DailyBoardPanel({
         .dbp-cal-cell.empty{background:transparent;}
         .dbp-cal-cell.none{color:${stage ? 'var(--stg-dim)' : (dark ? '#4a5468' : '#c9cdd6')};}
         a.dbp-cal-cell{text-decoration:none;}
-        a.dbp-cal-cell.played{background:${dark ? 'rgba(52,168,110,0.22)' : '#e8f5ec'};color:${dark ? '#7fe0ad' : 'var(--success-deep)'};border:1px solid ${dark ? 'rgba(127,224,173,0.35)' : '#bfe3ca'};}
+        a.dbp-cal-cell.played{background:${CAL_PLAYED_BG};color:${dark ? '#7fe0ad' : 'var(--success-deep)'};border:1px solid ${CAL_PLAYED_BD};}
         a.dbp-cal-cell.unplayed{background:${SURF};color:${SLATE};border:1px solid ${BORD};}
         a.dbp-cal-cell.unplayed:hover{border-color:${BLUE};color:${BLUE};}
         a.dbp-cal-cell.today{box-shadow:0 0 0 2px ${BLUE};}
@@ -547,9 +560,12 @@ export default function DailyBoardPanel({
                   })}
                 </div>
                 <div className="dbp-cal-key">
-                  <span><span className="dbp-cal-sw" style={{ background: '#e8f5ec', border: '1px solid #bfe3ca' }} />Played</span>
-                  <span><span className="dbp-cal-sw" style={{ background: T.white, border: `1px solid ${BORD}` }} />Unplayed</span>
-                  <span><span className="dbp-cal-sw" style={{ background: T.white, boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
+                  {/* Each swatch reads the SAME value as the cell it stands
+                      for. Never hardcode one here: a legend that does not match
+                      its board is worse than no legend. */}
+                  <span><span className="dbp-cal-sw" style={{ background: CAL_PLAYED_BG, border: `1px solid ${CAL_PLAYED_BD}` }} />Played</span>
+                  <span><span className="dbp-cal-sw" style={{ background: SURF, border: `1px solid ${BORD}` }} />Unplayed</span>
+                  <span><span className="dbp-cal-sw" style={{ background: SURF, boxShadow: `0 0 0 2px ${BLUE}` }} />Today</span>
                 </div>
               </>
             ) : <div className="dbp-lbempty">No archive of {selfName} games yet.</div>

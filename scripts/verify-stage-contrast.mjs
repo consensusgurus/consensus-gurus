@@ -89,6 +89,64 @@ for (const d of readdirSync('app', { withFileTypes: true })) {
     });
   }
 }
+/* DIRECTION D — THE SHARED COMPONENTS, which is where this checker was blind.
+   Everything above walks app/<game>/<Name>Client.jsx carrying `const STAGE =
+   isStage(`. That is 80 files, and every shared component that renders INSIDE
+   .stage-page — ReportIssue, the end card, the panels, the modals — was outside
+   the scan entirely. app/ReportIssue.jsx printed --stg-ink on a hardcoded
+   var(--white) sheet at 1.11:1 for as long as the stage has existed, and a
+   PLAYER reported it (2026-09-01), by typing into the box they could not read.
+
+   The signature of a half-converted shared file: it references a stage token at
+   all (so its ink can be near-white on the dark register) AND carries a light
+   literal ground that is not itself register-aware. Reported as CANDIDATES, not
+   failures, because a shared component may legitimately sit on a light surface
+   — ReportIssue's own header comment claimed exactly that and was wrong — so
+   each one is a LIVE read, never a reasoned one.
+
+   The sweep that followed: 31 candidates over 6 files, three of them real, all
+   in DailyBoardPanel and all in states an at-rest sweep cannot reach (a :hover
+   at 1.42:1, a calendar legend describing a board it no longer looked like, and
+   a nav button at 2.07:1 that only exists once the archive tile is open). The
+   rest were sound — a .loft-* rule gated by `STAGE ? undefined : 'loft-report'`,
+   a [data-stage-theme='light'] block setting ground and ink together, and a
+   page that is not on the stage at all. */
+const SHARED_LIGHT = new RegExp([
+  String.raw`background(?:Color)?:\s*(?:T\.white|COLORS\.(?:cream|paper|tile|white|accentSoft))\b`,
+  String.raw`background(?:Color)?:\s*['"]#(?:fff|ffffff|[e-f][0-9a-f]{5})['"]`,
+  String.raw`background(?:-color)?:\s*var\(--white\)`,
+  String.raw`background(?:-color)?:\s*#(?:fff|[e-f][0-9a-f]{5})\b`,
+].join('|'), 'i');
+// Already register-aware on this line, or scoped to the light register by its
+// own selector — not a candidate either way.
+const SHARED_OK = /STAGE\s*\?|\$\{STAGE|var\(--stg-|isStage\(|\[data-stage-theme='light'\]|\bdark\s*\?/;
+const SHARED_STAGEY = /var\(--stg-|isStage\(|stage-page/;
+
+const shared = [];
+(function walkShared(dir) {
+  for (const d of readdirSync(dir, { withFileTypes: true })) {
+    if (d.name === 'node_modules' || d.name.startsWith('.')) continue;
+    const p = join(dir, d.name);
+    if (d.isDirectory()) { walkShared(p); continue; }
+    if (!/\.(jsx|js)$/.test(d.name)) continue;
+    const rel = p.replace(/\\/g, '/');
+    if (/^app\/[a-z0-9-]+\/[A-Z][A-Za-z]*Client\.jsx$/.test(rel)) continue;  // covered above
+    const src = readFileSync(p, 'utf8');
+    if (!SHARED_STAGEY.test(src)) continue;
+    src.split('\n').forEach((l, i) => {
+      if (SHARED_LIGHT.test(l) && !SHARED_OK.test(l)) {
+        shared.push(`${rel}:${i + 1}  ${l.trim().slice(0, 110)}`);
+      }
+    });
+  }
+})('app');
+
+if (shared.length) {
+  console.log(`\n… ${shared.length} light ground(s) in SHARED components that render on the stage.`);
+  console.log('   Candidates, not failures: read each one LIVE before changing it.');
+  for (const s of shared) console.log(`   ${s}`);
+}
+
 if (swatches.length) {
   console.log(`\n\u2026 ${swatches.length} legend swatch(es) skipped — a swatch must MATCH its board, so check by eye:`);
   console.log('   ' + swatches.join(' '));
