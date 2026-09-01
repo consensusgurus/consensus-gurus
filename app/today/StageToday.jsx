@@ -717,40 +717,6 @@ export default function StageToday() {
     for (const s of standing) m[s.key] = s;
     return m;
   }, [standing]);
-  // A CIRCUIT'S STANDING, and only a FINISHED circuit has one (owner,
-  // 2026-09-01). The combined board refuses to rank a player who has not played
-  // every game of a skill circuit — see rankRequiresAll in the daily-combined
-  // route — so a part-done circuit has no honest figure to show, and a finished
-  // one is exactly the case where the card no longer needs its blurb: the
-  // reader has read it, played it, and wants the result instead.
-  //
-  // ONE REQUEST PER FINISHED CIRCUIT, asked once and never re-asked (the ref,
-  // not state, so the effect cannot chase its own writes), and capped: a reader
-  // finishes one or two circuits in a day, not seventeen.
-  const circAsked = useRef(null);
-  const [circStand, setCircStand] = useState({});
-  useEffect(() => {
-    if (!circAsked.current) circAsked.current = new Set();
-    const full = circuits
-      .filter((c) => c.games.length && c.n === c.games.length && !circAsked.current.has(c.id))
-      .slice(0, 4);
-    if (!full.length) return undefined;
-    let alive = true;
-    const qs = identityQs();
-    for (const c of full) {
-      circAsked.current.add(c.id);
-      fetch(`/api/quiz/daily-combined?circuit=${encodeURIComponent(c.id)}${qs ? '&' + qs : ''}`)
-        .then((r) => r.json())
-        .then((d) => {
-          if (!alive || !d) return;
-          const rank = d.me && d.me.rank != null ? d.me.rank : null;
-          const field = d.overallField || (Array.isArray(d.overall) ? d.overall.length : 0);
-          setCircStand((m) => ({ ...m, [c.id]: rank ? { rank, field } : null }));
-        })
-        .catch(() => { if (alive) setCircStand((m) => ({ ...m, [c.id]: null })); });
-    }
-    return () => { alive = false; };
-  }, [circuits]);
 
   // TODAY'S PLAYS BY CATEGORY. totals.todayByQuiz is a play count per quizId and
   // a daily's quizId carries its key, so the day's shape falls out of a payload
@@ -860,6 +826,41 @@ export default function StageToday() {
       })
       .map(([c]) => c);
   }, [day, done, light, playsBy]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A CIRCUIT'S STANDING, and only a FINISHED circuit has one (owner,
+  // 2026-09-01). The combined board refuses to rank a player who has not played
+  // every game of a skill circuit — see rankRequiresAll in the daily-combined
+  // route — so a part-done circuit has no honest figure to show, and a finished
+  // one is exactly the case where the card no longer needs its blurb: the
+  // reader has read it, played it, and wants the result instead.
+  //
+  // ONE REQUEST PER FINISHED CIRCUIT, asked once and never re-asked (the ref,
+  // not state, so the effect cannot chase its own writes), and capped: a reader
+  // finishes one or two circuits in a day, not seventeen.
+  const circAsked = useRef(null);
+  const [circStand, setCircStand] = useState({});
+  useEffect(() => {
+    if (!circAsked.current) circAsked.current = new Set();
+    const full = circuits
+      .filter((c) => c.games.length && c.n === c.games.length && !circAsked.current.has(c.id))
+      .slice(0, 4);
+    if (!full.length) return undefined;
+    let alive = true;
+    const qs = identityQs();
+    for (const c of full) {
+      circAsked.current.add(c.id);
+      fetch(`/api/quiz/daily-combined?circuit=${encodeURIComponent(c.id)}${qs ? '&' + qs : ''}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!alive || !d) return;
+          const rank = d.me && d.me.rank != null ? d.me.rank : null;
+          const field = d.overallField || (Array.isArray(d.overall) ? d.overall.length : 0);
+          setCircStand((m) => ({ ...m, [c.id]: rank ? { rank, field } : null }));
+        })
+        .catch(() => { if (alive) setCircStand((m) => ({ ...m, [c.id]: null })); });
+    }
+    return () => { alive = false; };
+  }, [circuits]);
   // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
   // 2026-08-31: "takes up too much space"). The key is nine labelled swatches,
   // which wrap to three lines at 390 and push the first playable thing off the
