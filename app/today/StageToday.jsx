@@ -298,7 +298,7 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue,
       style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
       {res ? (
-        <span className="sty-gres">
+        <span className="sty-gres sty-rev">
           <span className="sty-grl">You:</span>
           <span className="sty-grk">#{res.rank}</span>
           <span className="sty-grf">of {res.field}</span>
@@ -368,6 +368,12 @@ export default function StageToday() {
   useEffect(() => { setWho(savedIdentity().username || ''); }, []);
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
+  // Whether daily-status has ANSWERED, which is a different question from
+  // whether `done` has anything in it: an empty `done` means "nothing finished"
+  // once the answer is in and "we do not know yet" before it. The unfinished
+  // filter below has to tell those apart, or a guest would be told they
+  // finished nothing for as long as that request is in flight.
+  const [statusIn, setStatusIn] = useState(false);
   const [day, setDay] = useState('');
   // Seventeen circuit cards is a wall on a page whose job is today's puzzles,
   // so the shelf opens on its lead three and the rest are one tap away (owner,
@@ -565,6 +571,7 @@ export default function StageToday() {
       }
       setDone(d);
       setInprog(p);
+      setStatusIn(true);
       if (data.archive) setArchive(data.archive);
     }).catch(() => {});
     return () => { alive = false; };
@@ -709,6 +716,27 @@ export default function StageToday() {
       const g = DAILY_GAME_MAP[key];
       const r = pg[key];
       if (!g || !LIVE_KEYS.has(key) || !r || r.rank == null) continue;
+      // AN UNFINISHED GAME HAS NO STANDING (owner, 2026-09-01). An abandoned
+      // row is a started-and-left run: it is filed, and it does score, so it
+      // arrives here carrying a real rank. But "you came 12th" is not true of a
+      // game the reader walked out of, and it read as one more finished game on
+      // the card and in this table. Dropping it here fixes all three at once,
+      // since the card reads standBy off this memo and the eyebrow counts it.
+      //
+      // THE TEST IS POSITIVE EVIDENCE OF A FINISH, not the absence of a flag,
+      // and it takes two signals because neither one covers both readers.
+      // `abandoned` travels on the row itself and is exact for a REGISTERED
+      // player: a real finish supersedes an earlier abandon in combineDaily, so
+      // the flag is true only when they never finished, and an explicit `false`
+      // is a finish we can vouch for the moment the board lands. A GUEST's
+      // perGame comes from guestProvisional, which carries rank and field and
+      // nothing else, so the flag is undefined and the local `done` set is the
+      // test instead — daily-status builds it from the same never-finished
+      // definition and it crosses devices.
+      //
+      // Written this way round so no row can appear ranked and then vanish: an
+      // undefined flag waits for the status rather than being read as a finish.
+      if (!(r.abandoned === false || (statusIn && done.has(key)))) continue;
       out.push({ ...r, key, g });
     }
     // BEST FIRST. The question is "how did I do", so the answer opens with the
@@ -717,7 +745,7 @@ export default function StageToday() {
       || (a.rank || 999) - (b.rank || 999)
       || a.g.name.localeCompare(b.g.name));
     return out;
-  }, [board]);
+  }, [board, done, statusIn]);
   const standBy = useMemo(() => {
     const m = {};
     for (const s of standing) m[s.key] = s;
@@ -1157,7 +1185,7 @@ export default function StageToday() {
             `inprog` are both empty on the server and on the first client
             paint, so SSR and hydration agree on "absent". */}
         {(done.size > 0 || inprog.size > 0) ? (
-        <section className="sty-day">
+        <section className="sty-day sty-rev">
           <div className="sty-eb">The day&rsquo;s progress</div>
           <StageLadder height={ladH} blocks={blocks} light={light} />
         </section>
@@ -1175,7 +1203,7 @@ export default function StageToday() {
         {/* The SECTION's rule is neutral because this row is not a category:
             the cards inside it carry their own categories' colours. */}
         {mineTot ? (
-          <section className="sty-cat sty-mine" style={{ '--cc': 'var(--stg-ink2)' }}>
+          <section className="sty-cat sty-mine sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
             <div className="sty-cathead" onClick={headClick(MINE_ID)}>
               <h2>My games</h2>
               <b>{mineDone}<i>/{mineTot}</i></b>
@@ -1201,7 +1229,7 @@ export default function StageToday() {
                       <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
                     </div>
                     {circStand[c.id] ? (
-                      <div className="sty-cres">
+                      <div className="sty-cres sty-rev">
                         <span className="sty-grl">You:</span>
                         <span className="sty-grk">#{circStand[c.id].rank}</span>
                         <span className="sty-grf">of {circStand[c.id].field}</span>
@@ -1243,7 +1271,7 @@ export default function StageToday() {
              block on the page wearing a bare eyebrow. Its rule is neutral for
              the reason My games' is: a circuit spans categories, so there is no
              single hue that would be honest here. */
-          <section className="sty-cat sty-circsec" style={{ '--cc': 'var(--stg-ink2)' }}>
+          <section className="sty-cat sty-circsec sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
             <div className="sty-cathead" onClick={headClick(CIRC_ID)}>
               <h2>Circuits</h2>
               <b>{circuits.filter((c) => c.n === c.games.length).length}<i>/{circuits.length}</i></b>
@@ -1263,7 +1291,7 @@ export default function StageToday() {
                     <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
                   </div>
                   {circStand[c.id] ? (
-                    <div className="sty-cres">
+                    <div className="sty-cres sty-rev">
                       <span className="sty-grl">You:</span>
                       <span className="sty-grk">#{circStand[c.id].rank}</span>
                       <span className="sty-grf">of {circStand[c.id].field}</span>
@@ -1359,7 +1387,7 @@ export default function StageToday() {
             what it cost you and how long it took. The rank still carries how it
             placed, which is the only part of the ladder this table needs. */}
         {standing.length ? (
-          <section id="sty-standing">
+          <section id="sty-standing" className="sty-rev">
             <div className="sty-eb">
               Your standing
               <em>
@@ -1370,8 +1398,8 @@ export default function StageToday() {
             <div className="sty-sscroll">
               <table className="sty-tbl sty-stbl">
                 <tbody>
-                  {standing.map((r) => (
-                    <tr key={r.key} style={{ '--cc': hueFor(r.g.cat) }}>
+                  {standing.map((r, i) => (
+                    <tr key={r.key} className="sty-revr" style={{ '--cc': hueFor(r.g.cat), '--i': i }}>
                       <td className="sty-sg">
                         <a href={`${routeOf(r.g)}?stage=1${tq}`}>
                           <Glyph k={r.key} size={15} />{r.g.name}
@@ -1392,12 +1420,13 @@ export default function StageToday() {
             can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
         {top.length ? (
-          <section id="sty-board" ref={lbRef}>
+          <section id="sty-board" className="sty-rev" ref={lbRef}>
             <div className="sty-eb">Today&rsquo;s board <em>&middot; {boardCount}</em></div>
             <table className="sty-tbl">
               <tbody>
                 {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
-                  <tr key={(r && r.userKey) || i} className={meKey && r.userKey === meKey ? 'me' : undefined}>
+                  <tr key={(r && r.userKey) || i} style={{ '--i': i }}
+                    className={'sty-revr' + (meKey && r.userKey === meKey ? ' me' : '')}>
                     <td className="sty-pos">{r.rank || i + 1}</td>
                     <td className="sty-who">{r.username || 'Player'}</td>
                     <td className="sty-gp">{typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}/${total}` : ''}</td>
@@ -1438,8 +1467,8 @@ export default function StageToday() {
             {live.length ? (
               <div className="sty-live" style={{ '--lrows': Math.ceil(live.length / 2) }}>
                 {live.map((fp, i) => (
-                  <a key={`${fp.quizId}-${i}`} className="sty-lrow" href={`${routeOf(fp.game)}?stage=1${tq}`}
-                    style={{ '--cc': hueFor(fp.game.cat) }}>
+                  <a key={`${fp.quizId}-${i}`} className="sty-lrow sty-revr" href={`${routeOf(fp.game)}?stage=1${tq}`}
+                    style={{ '--cc': hueFor(fp.game.cat), '--i': i }}>
                     <Glyph k={fp.game.key} size={15} />
                     <span className="sty-lname">{fp.game.name}</span>
                     <span className="sty-lsc">{fp.score}<i>/{fp.total}</i></span>
@@ -1451,7 +1480,7 @@ export default function StageToday() {
               <div className="sty-lnone">{feed ? 'No plays yet today.' : 'Loading the feed…'}</div>
             )}
             {standing.length ? (
-              <div className="sty-lstats">
+              <div className="sty-lstats sty-rev">
                 {catPlays.length ? (
                   <div className="sty-lviz">
                     <div className="sty-eb">The day by category</div>
@@ -2079,4 +2108,25 @@ const CSS = `
 .sty-circ:hover .sty-star{opacity:1;}
 .sty-minec{margin-top:7px;}
 @media (prefers-reduced-motion:reduce){.sty-cav{transition:none;}}
+
+/* ── A SECTION FADES IN AS ITS DATA LANDS (owner, 2026-09-01) ──
+   The page is fed by four separate requests (day status, the combined board,
+   totals, the feed) and every section they fill used to snap into place as its
+   payload happened to arrive, which read as the page assembling itself in
+   pieces. Each of those sections is rendered only once it has something to
+   say, so it MOUNTS at the moment its data lands and this animation plays once
+   off the mount: no state, no effect, nothing to keep in step with the fetch.
+   Opacity and a 6px rise, never height or scale, so the ResizeObserver on the
+   board (which watches box size, not transforms) reads one height throughout.
+   NO APOSTROPHES anywhere in this stylesheet: it is a text child of a style
+   element, so React escapes them. */
+@keyframes sty-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.sty-rev{animation:sty-in .34s cubic-bezier(.2,.7,.3,1) both;}
+/* The rows of a table or a feed come in as a run rather than a block, capped
+   so a long standing never keeps the reader waiting on its last row. */
+.sty-revr{animation:sty-in .3s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay:calc(min(var(--i,0),9) * 26ms);}
+@media (prefers-reduced-motion:reduce){
+  .sty-rev,.sty-revr{animation:none;}
+}
 `;

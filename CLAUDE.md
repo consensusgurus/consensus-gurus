@@ -5774,6 +5774,26 @@ on the page.
   above and its `me.perGame` is keyed by every game the reader scored today. The
   rank on it is the registered-only board rank the route already substitutes, so
   this cannot disagree with a game's own board about where you came.
+- **AN UNFINISHED GAME HAS NO STANDING, and the test is POSITIVE EVIDENCE of a
+  finish** (owner, 2026-09-01, the day after this shipped). An abandoned row is
+  a started-and-left run: it is filed, and per the standing abandon-equals-count
+  rule it does score, so it reached `me.perGame` carrying a real rank and the
+  home printed "You: #12 of 30" on the card and a ranked row in this table for a
+  game the reader walked out of. ONE FILTER in the `standing` memo fixes all
+  three surfaces, because the card reads `standBy` off that same memo and the
+  eyebrow counts its length. It takes TWO SIGNALS, because neither covers both
+  readers: `abandoned` travels on the row and is exact for a REGISTERED player
+  (a real finish supersedes an earlier abandon in `combineDaily`, so it is true
+  only when they never finished), while a GUEST's perGame comes from
+  `guestProvisional`, which carries rank and field and nothing else, so their
+  test is the local `done` set, which daily-status builds from the same
+  never-finished definition and which crosses devices. Written as
+  `r.abandoned === false || (statusIn && done.has(key))` rather than as the
+  absence of a flag, so an undefined flag WAITS for the status instead of
+  reading as a finish: the negative form let a guest's row appear ranked and
+  then vanish when the status landed a moment later. `statusIn` is a separate
+  flag because an empty `done` means "nothing finished" once the answer is in
+  and "we do not know yet" before it, and only the answer can tell them apart.
 - The cap gains a fourth `sty-cx` anchor, FIRST of the three, drawn only when
   there is a day to show so it never points at a section that is not there.
   Retired games are filtered out, since an archived day still scores. **The
@@ -5781,6 +5801,28 @@ on the page.
   auto-placement drops it into the figures row, where a bordered icon among four
   text figures reads as a fifth figure that lost its label. It is five columns
   now: `'id st lb lf tg' 'fg fg fg fg fg'`.
+- **EVERY DATA-FED SECTION FADES IN AS ITS PAYLOAD LANDS** (owner, 2026-09-01:
+  "it just appears piecemeal"). The page is fed by four separate requests, day
+  status, the combined board, totals and the feed, and each section they fill
+  used to snap into place whenever its request happened to answer, which read as
+  the page assembling itself in pieces rather than arriving. FADE ONLY, no
+  skeletons: the owner chose the cheap treatment over reserving each section's
+  height, so the page still moves as sections arrive, it just no longer snaps.
+  - **It is a CSS animation off the MOUNT, with no state and no effect.** Every
+    one of these sections is rendered only once it has something to say, so it
+    mounts at the moment its data lands and `.sty-rev` plays once, on its own.
+    Anything that needs to keep an animation in step with a fetch by hand is
+    doing it the hard way; render the section conditionally instead.
+  - **OPACITY AND A 6px RISE, never height and never scale.** `#sty-board` is
+    measured by a ResizeObserver that feeds the standing's height, and a
+    ResizeObserver watches BOX SIZE, which a translate does not change and a
+    scale does. A skeleton or a height animation on that section would have made
+    the pair jitter.
+  - Rows stagger off an `--i` index (`.sty-revr`), capped at nine steps so a
+    long standing never keeps the reader waiting on its last row. React writes a
+    numeric custom property verbatim, so `style={{ '--i': i }}` is safe.
+  - **NO APOSTROPHES in the CSS**, per the standing rule: the stylesheet is a
+    text child of a `<style>` element, so React escapes them.
 - ⚠️ **The three cap anchors do not scroll this page under automation**, and a
   handler that calls `preventDefault` and then fails to scroll is strictly worse
   than a plain anchor, so one was written, measured, and REVERTED on 2026-09-01.
