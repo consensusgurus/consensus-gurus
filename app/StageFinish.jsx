@@ -84,8 +84,8 @@ export default function StageFinish({
   // accent band every other ending gets -- with the replay control under it and
   // nothing else. It shares this component rather than restating the curtain
   // somewhere else precisely so the two endings cannot drift into two different
-  // bands. A boolean, not the object: `retry` is a fresh literal every render
-  // and cannot go in a dependency array.
+  // bands, and so that the retry ending collapses the gameplay area on exactly
+  // the same terms every other ending does (see the effect below).
   const isRetry = !!retry;
   // THE COLLAPSE IS THE CARD'S TO RELEASE. A finished page hides the board, the
   // leader strip and the play figures (app/globals.css), and it is keyed on a
@@ -94,13 +94,20 @@ export default function StageFinish({
   // card's mere presence overrode it, so the button did nothing (owner,
   // 2026-08-31). Anything that asks for the board back takes the class off
   // first; everything else leaves it on.
+  // THE RETRY ENDING COLLAPSES TOO, and the reason is the ANIMATION rather
+  // than the card (owner, 2026-08-31). It shipped earlier today leaving the
+  // board up, on the argument that the position you just lost is the argument
+  // for playing it again. What that missed is that the board does not go quiet
+  // when the game ends: the engine's winning move animates in, and the client
+  // prints its own line under it. The player watches that land -- every client
+  // holds the finished board for HOLD_LONG before any of this renders, which is
+  // exactly the window the animation plays in -- and THEN the curtain arrives,
+  // into a page that was still carrying the gameplay area. Two things about the
+  // same result, colliding.
+  //
+  // So the losing move plays out, and then the board goes. The hold shows the
+  // ending; the curtain replaces it.
   useEffect(() => {
-    // THE RETRY ENDING DOES NOT COLLAPSE. Every other finish hides the board
-    // because the game is over and the card is the page now. A retry ending is
-    // the opposite case: the position you just lost is the argument for playing
-    // it again ("the win is still sitting in this position"), so it stays up
-    // and the curtain falls underneath it.
-    if (isRetry) return undefined;
     const root = document.querySelector('.stage-page');
     if (!root) return undefined;
     root.classList.add('stf-collapse');
@@ -119,7 +126,7 @@ export default function StageFinish({
       document.removeEventListener('click', back);
       root.classList.remove('stf-collapse');
     };
-  }, [isRetry]);
+  }, []);
   // THE REST OF THE SITE, from the one page a reader reliably reaches (owner,
   // 2026-08-31). Three doors, and none of them can appear before the game is
   // over because this component only exists then.
