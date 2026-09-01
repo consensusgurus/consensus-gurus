@@ -36,7 +36,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -353,6 +353,18 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   const playing = g.status === 'playing';
   const LOFT = isLoft('links');
   const STAGE = isStage('links', searchParams);
+  // ONE SOURCE for a group's colour, so the rules chips, the banked boxes, the
+  // loss reveal and the masthead can never disagree about which group is which.
+  // Same helper, same four steps, as Crux: the two games are the same shape and
+  // should read as siblings.
+  //
+  // INK ON A FIXED RAMP STEP IS ALWAYS DARK, and that is not the same rule as ink
+  // on the accent. --stg-onramp flips with the register because the ACCENT flips;
+  // these four do not flip, they are always the pale step, so sweeping them to
+  // onramp would make them white-on-pastel in light mode.
+  const catTone = (ci) => (STAGE
+    ? { bg: CATEGORY_RAMP[ci % CATEGORY_RAMP.length], tc: RAMP_INK }
+    : CAT_COLORS[ci]);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('links');
   const Cap = STAGE ? StageChrome : LoftCap;
   const STAGE_ACC = { '--stg-acc-dk': gameColor('links'), '--stg-acc-lt': gameColorLight('links') };
@@ -541,14 +553,14 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
     <DailyRules
       lead="Sixteen words hide four threads of four, one shared category each."
       chips={[
-        { label: 'Yellow, easiest', style: { background: CAT_COLORS[0].bg, color: CAT_COLORS[0].tc, border: `1.5px solid ${CAT_COLORS[0].tc}` } },
-        { label: 'Green', style: { background: CAT_COLORS[1].bg, color: CAT_COLORS[1].tc, border: `1.5px solid ${CAT_COLORS[1].tc}` } },
-        { label: 'Blue', style: { background: CAT_COLORS[2].bg, color: CAT_COLORS[2].tc, border: `1.5px solid ${CAT_COLORS[2].tc}` } },
-        { label: 'Red, trickiest', style: { background: CAT_COLORS[3].bg, color: CAT_COLORS[3].tc, border: `1.5px solid ${CAT_COLORS[3].tc}` } },
+        { label: 'Easiest', style: { background: catTone(0).bg, color: catTone(0).tc, border: `1.5px solid ${catTone(0).tc}` } },
+        { label: 'Easier', style: { background: catTone(1).bg, color: catTone(1).tc, border: `1.5px solid ${catTone(1).tc}` } },
+        { label: 'Harder', style: { background: catTone(2).bg, color: catTone(2).tc, border: `1.5px solid ${catTone(2).tc}` } },
+        { label: 'Trickiest', style: { background: catTone(3).bg, color: catTone(3).tc, border: `1.5px solid ${catTone(3).tc}` } },
       ]}
       steps={[
         <><b>Tap four words</b> you think share a thread, then <b>Submit</b>.</>,
-        <>Right, and the thread banks in its color, yellow easiest through red trickiest.</>,
+        <>Right, and the thread banks in its own color, easiest at the top through trickiest at the foot.</>,
         <>Wrong, and one of your <b>four mistakes</b> is gone. <b>&ldquo;One away&rdquo;</b> is the only hint you get.</>,
       ]}
       knack={<>The words that look like they belong together usually don&apos;t. That&rsquo;s the puzzle.</>}
@@ -622,7 +634,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.ember})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; More traps</span>}
           blocks={'LINKS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : CAT_COLORS[i - 1].bg, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 46, height: 46, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 28, background: i === 0 ? COLORS.ink : catTone(i - 1).bg, color: i === 0 ? T.white : catTone(i - 1).tc, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -657,7 +669,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
         {/* banked groups */}
         {g.solved.map((ci) => {
-          const cc = CAT_COLORS[ci];
+          const cc = catTone(ci);
           return (
             <div key={ci} className={justSolved === ci ? 'lk-bank' : undefined} style={{ background: cc.bg, border: '1.5px solid rgba(28,30,36,0.35)', borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center', boxShadow: '2px 2px 0 rgba(28,30,36,0.10)' }}>
               <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em', color: cc.tc }}>{PUZZLE.groups[ci].name}</div>
@@ -681,7 +693,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
 
         {/* loss reveal: the threads you missed */}
         {lost && unsolvedCis.map((ci) => {
-          const cc = CAT_COLORS[ci];
+          const cc = catTone(ci);
           return (
             <div key={ci} style={{ background: STAGE ? SURF : T.white, border: `1.5px dashed ${cc.bg}`, borderRadius: 10, padding: '10px 14px', marginBottom: 8, textAlign: 'center' }}>
               <div style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '.04em', color: cc.tc }}>{PUZZLE.groups[ci].name}</div>
