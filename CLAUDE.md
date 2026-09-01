@@ -5650,16 +5650,50 @@ asks after a few games. A card said `done` and the ladder lit a rung, both
 binary; `#sty-board` reports the COMBINED day. Where you came in Crux was nowhere
 on the page.
 
-- **`#sty-standing`** is a full-width section ABOVE `.sty-pair`, not a third
-  column in it: it is the reader's own day, so it outranks both who did best and
-  what is being played, and three columns of figures at 900px is none of them
-  read. Four columns: game, the run, `#rank of field`, points. Sorted BEST FIRST
-  (points, then rank, then name), because the question is "how did I do".
+- **`#sty-standing` PAIRS WITH THE BOARD** (`.sty-pair.sty-trio`, areas
+  `'st bd' 'lv lv'` above 900px). They answer the same question from opposite
+  ends, how did I do and how did everyone do, so they share a row; the FEED,
+  which is a list rather than a table, takes the full width underneath where its
+  rows tile instead of running single file down a half. With no standing the
+  trio class is absent and the layout falls back to the old board-and-feed pair
+  off the SAME DOM order. Sorted BEST FIRST (points, then rank, then name).
+- **The standing scrolls to the board's MEASURED height.** Sixteen rows beside
+  eleven left the section ragged, and a row-count guess is wrong on a small
+  field, which genuinely renders fewer than ten. A ResizeObserver on
+  `#sty-board` publishes `--sty-lbh` and `.sty-sscroll` takes it less its own
+  heading. No feedback loop: the pair is `align-items:start`, so the standing's
+  height never moves the board's. **Below 900px there is no scroller at all** — a
+  scrolling panel inside a scrolling page is the worst thing a phone can be
+  handed. The observer's dep is `!!myOut`, not `myOut`: the object is rebuilt
+  every render and passing it tore the observer down and rebuilt it each pass.
 - **The run is ONE column**, `gameStats(row, game.miss)` — `4/10 · 3 busts ·
   2:11`. See rule 4 above for why it is not three columns with a shared header.
+- **NO POINTS COLUMN** (owner, 2026-09-01). The board beside it IS the points
+  table; this one is for the run, and the rank carries how it placed.
 - **A played GAME CARD swaps its tagline for its result** (`.sty-gres`): the tag
   says what the game IS, which is what a reader needs before they play it and
-  nothing they need after. No extra row, no extra height.
+  nothing they need after. It reads **`You: #3 of 10`** — the label because a
+  bare `#3` on a card in a grid of cards reads as something about the game
+  rather than about the reader, and NO SCORE, because the rank already answers
+  what the card is being asked (owner, 2026-09-01).
+- **A FINISHED circuit card reports its standing in place of its blurb**, and
+  only a finished one: the combined board refuses to rank a player who has not
+  played every game of a skill circuit (`rankRequiresAll`), so a part-done
+  circuit has no honest figure, and a finished one is exactly when the reader
+  has already read the blurb. One `daily-combined?circuit=<id>` request per
+  finished circuit, asked once through a REF rather than state so the effect
+  cannot chase its own writes, capped at four.
+- **PLAYED GOES TO THE END OF EVERY SECTION** (`playedLast`, a stable two-way
+  partition). A row is a list of what to play and the played ones are a record;
+  sitting mid-row they made the reader skip past this morning to find this
+  afternoon. Applied to My games, A-to-Z and every category row; circuits
+  already sorted finished last.
+- **The feed's wide panel is WIDE-ONLY and renders nothing under 1100px**, where
+  the feed is exactly what it was. Above it, the half-screen the full-width feed
+  was wasting carries the day's plays drawn by category in the nine ramp steps
+  (from `totals.todayByQuiz`, whose quizIds carry their game keys), the reader's
+  share of the day's plays and time as two meters, and what their finished games
+  add up to. Every figure is a count of something already on the page.
 - **`.sty-g.done` wears `opacity:.42`, and opacity on a parent cannot be undone
   by a child**, so a rank printed inside one lands near 2:1 whatever colour it is
   given. A card that has something to say therefore states "played" in COLOUR
@@ -5672,7 +5706,17 @@ on the page.
   this cannot disagree with a game's own board about where you came.
 - The cap gains a fourth `sty-cx` anchor, FIRST of the three, drawn only when
   there is a day to show so it never points at a section that is not there.
-  Retired games are filtered out, since an archived day still scores.
+  Retired games are filtered out, since an archived day still scores. **The
+  phone cap is a GRID WITH NAMED AREAS**, so a new control needs an area or
+  auto-placement drops it into the figures row, where a bordered icon among four
+  text figures reads as a fifth figure that lost its label. It is five columns
+  now: `'id st lb lf tg' 'fg fg fg fg fg'`.
+- ⚠️ **The three cap anchors do not scroll this page under automation**, and a
+  handler that calls `preventDefault` and then fails to scroll is strictly worse
+  than a plain anchor, so one was written, measured, and REVERTED on 2026-09-01.
+  Every measurement came through the browser harness, which then froze the
+  renderer twice, so whether a real reader's click works is still unestablished.
+  Establish that FIRST, by hand, before writing another handler.
 
 ## The Daily Five: a five-game run with one combined board (owner, 2026-08-17)
 

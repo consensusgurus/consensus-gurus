@@ -68,6 +68,18 @@ const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
 
 const routeOf = (g) => g.href || `/${g.key}`;
 
+// PLAYED GOES TO THE END OF ITS SECTION (owner, 2026-09-01). A row is a list of
+// what to play, and the ones already played are a record: they were sitting in
+// the middle of every category, so the reader had to skip past this morning to
+// find this afternoon. A stable two-way partition, so the order inside each
+// half is whatever the section already chose.
+function playedLast(list, done) {
+  if (!list || !done || !done.size) return list;
+  const open = [], shut = [];
+  for (const g of list) (done.has(g.key) ? shut : open).push(g);
+  return open.concat(shut);
+}
+
 // A daily's quizId is '<key>-M-D-YY', so the key is everything before the first
 // numeric part. Quiz plays that are not dailies resolve to nothing and are left
 // out: this is the daily home, and its feed is the dailies.
@@ -281,9 +293,9 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue,
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
       {res ? (
         <span className="sty-gres">
+          <span className="sty-grl">You:</span>
           <span className="sty-grk">#{res.rank}</span>
           <span className="sty-grf">of {res.field}</span>
-          <span className="sty-grs">{res.score}/{res.total}</span>
         </span>
       ) : (
         <span className="sty-gt">{g.tag}</span>
@@ -705,10 +717,76 @@ export default function StageToday() {
     for (const s of standing) m[s.key] = s;
     return m;
   }, [standing]);
-  const standPts = useMemo(
-    () => Math.round(standing.reduce((a, s) => a + (Number(s.points) || 0), 0) * 10) / 10,
-    [standing],
-  );
+  // A CIRCUIT'S STANDING, and only a FINISHED circuit has one (owner,
+  // 2026-09-01). The combined board refuses to rank a player who has not played
+  // every game of a skill circuit — see rankRequiresAll in the daily-combined
+  // route — so a part-done circuit has no honest figure to show, and a finished
+  // one is exactly the case where the card no longer needs its blurb: the
+  // reader has read it, played it, and wants the result instead.
+  //
+  // ONE REQUEST PER FINISHED CIRCUIT, asked once and never re-asked (the ref,
+  // not state, so the effect cannot chase its own writes), and capped: a reader
+  // finishes one or two circuits in a day, not seventeen.
+  const circAsked = useRef(null);
+  const [circStand, setCircStand] = useState({});
+  useEffect(() => {
+    if (!circAsked.current) circAsked.current = new Set();
+    const full = circuits
+      .filter((c) => c.games.length && c.n === c.games.length && !circAsked.current.has(c.id))
+      .slice(0, 4);
+    if (!full.length) return undefined;
+    let alive = true;
+    const qs = identityQs();
+    for (const c of full) {
+      circAsked.current.add(c.id);
+      fetch(`/api/quiz/daily-combined?circuit=${encodeURIComponent(c.id)}${qs ? '&' + qs : ''}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!alive || !d) return;
+          const rank = d.me && d.me.rank != null ? d.me.rank : null;
+          const field = d.overallField || (Array.isArray(d.overall) ? d.overall.length : 0);
+          setCircStand((m) => ({ ...m, [c.id]: rank ? { rank, field } : null }));
+        })
+        .catch(() => { if (alive) setCircStand((m) => ({ ...m, [c.id]: null })); });
+    }
+    return () => { alive = false; };
+  }, [circuits]);
+
+  // TODAY'S PLAYS BY CATEGORY. totals.todayByQuiz is a play count per quizId and
+  // a daily's quizId carries its key, so the day's shape falls out of a payload
+  // the page already has. Drawn in the nine ramp steps, which is the only colour
+  // family this surface spends.
+  const catPlays = useMemo(() => {
+    const t = totals && totals.todayByQuiz ? totals.todayByQuiz : null;
+    if (!t) return [];
+    const m = new Map();
+    for (const qid of Object.keys(t)) {
+      const g = gameOfQuizId(qid);
+      if (!g || !LIVE_KEYS.has(g.key)) continue;
+      m.set(g.cat, (m.get(g.cat) || 0) + (Number(t[qid]) || 0));
+    }
+    return RAMP_ORDER.filter((c) => m.get(c)).map((c) => [c, m.get(c)]);
+  }, [totals]);
+  const catPlayMax = catPlays.reduce((a, r) => Math.max(a, r[1]), 0);
+  // A share bar never draws as nothing: a reader who played one of nine hundred
+  // is still ON the board, and a 0.1% bar that rounds to no pixels reads as an
+  // error rather than as a small number.
+  const pctOf = (a, b) => (b > 0 ? Math.max(2, Math.min(100, (a / b) * 100)) : 0);
+  const avgPlay = totals && totals.today ? Math.round((totals.todayTime || 0) / totals.today) : 0;
+
+  // WHAT THE READER'S OWN DAY ADDS UP TO, from the same rows the standing table
+  // lists. Every figure is a count of something already on screen, so nothing
+  // here can disagree with the table above it.
+  const myDay = useMemo(() => {
+    if (!standing.length) return null;
+    return {
+      played: standing.length,
+      firsts: standing.filter((r) => r.rank === 1).length,
+      top3: standing.filter((r) => r.rank <= 3).length,
+      clean: standing.filter((r) => r.total && r.score === r.total).length,
+      secs: standing.reduce((a, r) => a + (Number(r.timeElapsed) || 0), 0),
+    };
+  }, [standing]);
 
   // Resolvable dailies only, most recent first, capped: a feed is a glance at
   // what is happening, not a log.
@@ -788,6 +866,29 @@ export default function StageToday() {
   // screen — and every one of those counts is repeated on its own category row
   // further down. The graphic itself still says which categories are done,
   // because that is what its colour is for; it just says it in less height.
+  // THE STANDING SCROLLS TO THE BOARD'S HEIGHT (owner, 2026-09-01). Paired at
+  // full width they are two tables of different lengths, and a sixteen-row
+  // standing beside an eleven-row board left the right-hand column short and the
+  // section ragged. The board is measured rather than guessed at a row count,
+  // because a small field genuinely renders fewer than ten rows. No feedback
+  // loop: the standing's height does not affect the board's, since the pair is
+  // align-items:start.
+  const lbRef = useRef(null);
+  const [lbH, setLbH] = useState(null);
+  useEffect(() => {
+    const el = lbRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const set = () => setLbH(Math.round(el.getBoundingClientRect().height));
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+    // myOut is an object rebuilt every render, so the dep is its PRESENCE:
+    // passing the object itself tore down and rebuilt the observer on every
+    // pass, which is a lot of churn for a height that only moves when the
+    // board gains or loses its trailing "you" row.
+  }, [top.length, standing.length, !!myOut]);
+
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
@@ -1078,7 +1179,7 @@ export default function StageToday() {
             </div>
             {pinned.length ? (
               <div className={'sty-games' + (isOpen(MINE_ID) ? '' : ' shut')}>
-                {pinned.map((g) => (
+                {playedLast(pinned, done).map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
                     hue={hueFor(g.cat)} res={standBy[g.key]} />
@@ -1095,7 +1196,15 @@ export default function StageToday() {
                       <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
                       <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
                     </div>
-                    <div className="sty-cb">{c.blurb}</div>
+                    {circStand[c.id] ? (
+                      <div className="sty-cres">
+                        <span className="sty-grl">You:</span>
+                        <span className="sty-grk">#{circStand[c.id].rank}</span>
+                        <span className="sty-grf">of {circStand[c.id].field}</span>
+                      </div>
+                    ) : (
+                      <div className="sty-cb">{c.blurb}</div>
+                    )}
                     <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
                   </a>
                 ))}
@@ -1149,7 +1258,15 @@ export default function StageToday() {
                     <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
                     <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
                   </div>
-                  <div className="sty-cb">{c.blurb}</div>
+                  {circStand[c.id] ? (
+                    <div className="sty-cres">
+                      <span className="sty-grl">You:</span>
+                      <span className="sty-grk">#{circStand[c.id].rank}</span>
+                      <span className="sty-grf">of {circStand[c.id].field}</span>
+                    </div>
+                  ) : (
+                    <div className="sty-cb">{c.blurb}</div>
+                  )}
                   <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
                 </a>
               ))}
@@ -1170,7 +1287,7 @@ export default function StageToday() {
               <b>{alpha.filter((g) => done.has(g.key)).length}<i>/{alpha.length}</i></b>
             </div>
             <div className="sty-games">
-              {alpha.map((g) => (
+              {playedLast(alpha, done).map((g) => (
                 // A TO Z MIXES CATEGORIES exactly as My games does, so each card
                 // carries its own hue: the list loses the rows that grouped the
                 // games, and the colour is the only thing left saying what a
@@ -1198,7 +1315,7 @@ export default function StageToday() {
                 ) : null}
               </div>
               <div className={'sty-games' + (isOpen(secId) ? '' : ' shut')}>
-                {games.map((g) => (
+                {playedLast(games, done).map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
                     res={standBy[g.key]} />
@@ -1208,58 +1325,70 @@ export default function StageToday() {
           );
         })}
 
-        {/* THE DAY'S TWO RECORDS SIT SIDE BY SIDE when there is room for them
-            (owner, 2026-08-31): the standings are who did best and the feed is
-            what is being played, and reading one usually means wanting the
-            other. Below 900px they stack, standings first. */}
-        {/* YOUR STANDING SITS ABOVE THE TWO PUBLIC RECORDS, and it is full
-            width rather than a third column in the pair: it is the reader's own
-            day, so it outranks both who did best and what is being played, and
-            three columns of figures at 900px is none of them read.
+        {/* THE DAY'S THREE RECORDS, and the grid decides which of them share a
+            row (owner, 2026-09-01). Your standing and the board are the two
+            tables, they answer the same question from opposite ends — how did I
+            do, how did everyone do — and a reader looking at one wants the other
+            beside it rather than a screen away. So they pair, and the feed,
+            which is a list rather than a table, takes the full width underneath
+            where its rows can tile instead of running single file down a half.
 
-            ONE COLUMN FOR THE RUN, not three. The figures a player wants are
-            the score, the game's own miss figure and the clock, and the miss
-            figure is a DIFFERENT THING in every game — busts in Hands, digs in
-            Sweep, unplaced tiles in Tuck, nothing at all in Suds. No shared
-            column header is true of all of them, which is exactly the mistake
-            gameStats was making until today, so the word travels in the CELL
-            with its own number and the column is headed by neither. */}
+            Without a standing there is nothing to pair, so the layout falls back
+            to what it was: board and feed side by side. One DOM order serves
+            both, since the areas are only declared on .sty-trio.
+
+            THE STANDING SCROLLS TO THE BOARD'S MEASURED HEIGHT. Sixteen rows
+            beside eleven left the section ragged, and a row-count guess is wrong
+            on a small field, which genuinely renders fewer than ten. */}
+        <div className={'sty-pair' + (standing.length ? ' sty-trio' : '')}
+          style={lbH ? { '--sty-lbh': lbH + 'px' } : undefined}>
+
+        {/* ONE COLUMN FOR THE RUN, not three. The figures a player wants are the
+            score, the game's own miss figure and the clock, and the miss figure
+            is a DIFFERENT THING in every game: busts in Hands, digs in Sweep,
+            unplaced tiles in Tuck, nothing at all in Suds. No shared column
+            header is true of all of them, so the word travels in the CELL with
+            its own number and the column is headed by neither.
+
+            NO POINTS COLUMN (owner, 2026-09-01). The board beside it is the
+            points table, and what this one is for is the RUN: what you scored,
+            what it cost you and how long it took. The rank still carries how it
+            placed, which is the only part of the ladder this table needs. */}
         {standing.length ? (
           <section id="sty-standing">
             <div className="sty-eb">
               Your standing
               <em>
-                {' \u00b7 '}{standing.length} played
-                {' \u00b7 '}{standPts} pts
-                {myRow && myRow.rank ? ` \u00b7 #${myRow.rank} overall` : ''}
+                {' · '}{standing.length} played
+                {myRow && myRow.rank ? ` · #${myRow.rank} overall` : ''}
               </em>
             </div>
-            <table className="sty-tbl sty-stbl">
-              <tbody>
-                {standing.map((s) => (
-                  <tr key={s.key} style={{ '--cc': hueFor(s.g.cat) }}>
-                    <td className="sty-sg">
-                      <a href={`${routeOf(s.g)}?stage=1${tq}`}>
-                        <Glyph k={s.key} size={15} />{s.g.name}
-                      </a>
-                    </td>
-                    <td className="sty-srun">{gameStats(s, s.g.miss) || '\u2014'}</td>
-                    <td className="sty-srk">#{s.rank}<i>{' of '}{s.field}</i></td>
-                    <td className="sty-pts">{Math.round((Number(s.points) || 0) * 10) / 10}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="sty-sscroll">
+              <table className="sty-tbl sty-stbl">
+                <tbody>
+                  {standing.map((r) => (
+                    <tr key={r.key} style={{ '--cc': hueFor(r.g.cat) }}>
+                      <td className="sty-sg">
+                        <a href={`${routeOf(r.g)}?stage=1${tq}`}>
+                          <Glyph k={r.key} size={15} />{r.g.name}
+                        </a>
+                      </td>
+                      <td className="sty-srun">{gameStats(r, r.g.miss) || '—'}</td>
+                      <td className="sty-srk">#{r.rank}<i>{' of '}{r.field}</i></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </section>
         ) : null}
 
-        <div className="sty-pair">
         {/* THE STANDINGS COME LAST (owner, 2026-08-31: the leaderboard does not
             need to be at the top of the page). The top of a home is for what you
             can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
         {top.length ? (
-          <section id="sty-board">
+          <section id="sty-board" ref={lbRef}>
             <div className="sty-eb">Today&rsquo;s board <em>&middot; {boardCount}</em></div>
             <table className="sty-tbl">
               <tbody>
@@ -1282,32 +1411,93 @@ export default function StageToday() {
 
             THE FIGURES ARE THE DAY'S, AND THE ROWS CARRY NO NAMES. That is the
             existing feed's rule and it is kept deliberately: promoting one
-            person's run into a headline is a different product. */}
+            person's run into a headline is a different product.
+
+            THE PANEL BESIDE IT IS WIDE-ONLY, and it exists because the feed at
+            full width is a wall of ten short rows with half a screen spare. It
+            spends that room on the two figures the eyebrow could only state —
+            the day's plays and the time played — drawn as the shape of the day
+            by category, and on what the reader's own finished games add up to.
+            Under 1100px it is not rendered at all and the feed is exactly what
+            it was. */}
         <section id="sty-live">
           <div className="sty-eb">
             Live feed
             {totals ? (
               <em>
-                {' \u00b7 '}{(totals.today || 0).toLocaleString()} plays
-                {totals.todayTime ? ` \u00b7 ${hhmm(totals.todayTime)} played` : ''}
+                {' · '}{(totals.today || 0).toLocaleString()} plays
+                {totals.todayTime ? ` · ${hhmm(totals.todayTime)} played` : ''}
               </em>
             ) : null}
           </div>
-          {live.length ? (
-            <div className="sty-live">
-              {live.map((f, i) => (
-                <a key={`${f.quizId}-${i}`} className="sty-lrow" href={`${routeOf(f.game)}?stage=1${tq}`}
-                  style={{ '--cc': hueFor(f.game.cat) }}>
-                  <Glyph k={f.game.key} size={15} />
-                  <span className="sty-lname">{f.game.name}</span>
-                  <span className="sty-lsc">{f.score}<i>/{f.total}</i></span>
-                  <span className="sty-lwhen">{ago(f.playedAt)}</span>
-                </a>
-              ))}
-            </div>
-          ) : (
-            <div className="sty-lnone">{feed ? 'No plays yet today.' : 'Loading the feed…'}</div>
-          )}
+          <div className="sty-lwide">
+            {live.length ? (
+              <div className="sty-live">
+                {live.map((fp, i) => (
+                  <a key={`${fp.quizId}-${i}`} className="sty-lrow" href={`${routeOf(fp.game)}?stage=1${tq}`}
+                    style={{ '--cc': hueFor(fp.game.cat) }}>
+                    <Glyph k={fp.game.key} size={15} />
+                    <span className="sty-lname">{fp.game.name}</span>
+                    <span className="sty-lsc">{fp.score}<i>/{fp.total}</i></span>
+                    <span className="sty-lwhen">{ago(fp.playedAt)}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="sty-lnone">{feed ? 'No plays yet today.' : 'Loading the feed…'}</div>
+            )}
+            {standing.length ? (
+              <div className="sty-lstats">
+                {catPlays.length ? (
+                  <div className="sty-lviz">
+                    <div className="sty-eb">The day by category</div>
+                    {catPlays.map((cp) => (
+                      <div className="sty-lbar" key={cp[0]} style={{ '--cc': hueFor(cp[0]) }}>
+                        <span className="sty-lbn">{cp[0]}</span>
+                        <span className="sty-lbt">
+                          <i style={{ width: `${catPlayMax ? (cp[1] / catPlayMax) * 100 : 0}%` }} />
+                        </span>
+                        <span className="sty-lbv">{cp[1].toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                {myDay && totals ? (
+                  <div className="sty-lviz">
+                    <div className="sty-eb">Your share of it</div>
+                    <div className="sty-lbar sty-lmine">
+                      <span className="sty-lbn">Plays</span>
+                      <span className="sty-lbt">
+                        <i style={{ width: `${pctOf(myDay.played, totals.today)}%` }} />
+                      </span>
+                      <span className="sty-lbv">
+                        {myDay.played}<i>{' of '}{(totals.today || 0).toLocaleString()}</i>
+                      </span>
+                    </div>
+                    <div className="sty-lbar sty-lmine">
+                      <span className="sty-lbn">Time</span>
+                      <span className="sty-lbt">
+                        <i style={{ width: `${pctOf(myDay.secs, totals.todayTime)}%` }} />
+                      </span>
+                      <span className="sty-lbv">
+                        {hhmm(myDay.secs) || '0:00'}<i>{' of '}{hhmm(totals.todayTime) || '0:00'}</i>
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
+                <div className="sty-lfigs">
+                  {totals && totals.todayPlayers ? (
+                    <div><b>{totals.todayPlayers.toLocaleString()}</b><i>players today</i></div>
+                  ) : null}
+                  {avgPlay ? <div><b>{hhmm(avgPlay)}</b><i>average play</i></div> : null}
+                  {myDay ? <div><b>{myDay.played}</b><i>you finished</i></div> : null}
+                  {myDay ? <div><b>{myDay.firsts}</b><i>you won</i></div> : null}
+                  {myDay ? <div><b>{myDay.top3}</b><i>top three</i></div> : null}
+                  {myDay ? <div><b>{myDay.clean}</b><i>full marks</i></div> : null}
+                </div>
+              </div>
+            ) : null}
+          </div>
         </section>
 
         </div>
@@ -1610,11 +1800,74 @@ const CSS = `
   .sty-srun{font-size:11.5px;}
 }
 
+/* PAIRED WITH THE BOARD, AND SCROLLED TO ITS HEIGHT. The trio only declares its
+   areas above 900px; below it the three sections stack in DOM order, standing
+   first, and the standing is its natural length with no scroller, because a
+   scrolling panel inside a scrolling page is the worst thing a phone can be
+   handed. */
+.sty-sscroll{min-width:0;}
+@media (min-width:900px){
+  .sty-trio{grid-template-areas:'st bd' 'lv lv';}
+  .sty-trio #sty-standing{grid-area:st;min-width:0;}
+  .sty-trio #sty-board{grid-area:bd;min-width:0;}
+  .sty-trio #sty-live{grid-area:lv;min-width:0;}
+  /* --sty-lbh is the BOARD's measured height, heading included; the scroller
+     sits under a heading of its own, so it takes that height less one. The
+     fallback is a sane eleven rows for the frame before the measure lands. */
+  .sty-trio .sty-sscroll{max-height:calc(var(--sty-lbh, 372px) - 24px);overflow-y:auto;
+    overscroll-behavior:contain;}
+  .sty-trio .sty-sscroll::-webkit-scrollbar{width:9px;}
+  .sty-trio .sty-sscroll::-webkit-scrollbar-thumb{background:var(--stg-line2);border-radius:9px;}
+  .sty-trio .sty-sscroll::-webkit-scrollbar-track{background:transparent;}
+  /* At full width the feed tiles again: the single-file rule below is for a
+     feed sharing the row with the board, which this one no longer does. */
+  .sty-trio .sty-live{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+}
+
+/* ── the day, drawn, beside the feed ───────────────────────────────────── */
+/* WIDE ONLY. Under 1100px this is not rendered and the feed is exactly what it
+   was: a phone has no room to spend and nothing here is worth a scroll. */
+.sty-lwide{display:grid;gap:22px;min-width:0;}
+.sty-lstats{display:none;}
+@media (min-width:1100px){
+  .sty-trio .sty-lwide{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}
+  .sty-trio .sty-lstats{display:grid;gap:16px;align-content:start;}
+}
+.sty-lviz{display:grid;gap:5px;}
+.sty-lviz .sty-eb{margin-bottom:3px;}
+.sty-lbar{display:grid;grid-template-columns:74px minmax(0,1fr) auto;align-items:center;gap:9px;}
+.sty-lbn{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--stg-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* The track is a component boundary rather than text, so it owes 3:1 and takes
+   the raised surface; the fill is the category's own step. */
+.sty-lbt{display:block;height:7px;border-radius:999px;background:var(--stg-surf2);overflow:hidden;}
+.sty-lbt i{display:block;height:100%;background:var(--cc);border-radius:999px;
+  transition:width .35s ease;}
+.sty-lmine{--cc:var(--stg-acc);}
+.sty-lbv{font-family:${MONO};font-size:11px;font-weight:700;color:var(--stg-ink2);
+  white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sty-lbv i{font-style:normal;font-weight:600;color:var(--stg-mute);}
+.sty-lfigs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
+  border-top:1px solid var(--stg-line);padding-top:13px;}
+.sty-lfigs b{display:block;font-size:17px;font-weight:800;line-height:1.1;
+  font-variant-numeric:tabular-nums;}
+.sty-lfigs i{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--stg-mute);}
+
 /* ── a played card reports its result ──────────────────────────────────── */
 .sty-gres{display:flex;align-items:baseline;gap:7px;margin-top:2px;font-size:11.5px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .sty-grk{font-weight:800;color:var(--stg-ink);}
-.sty-grf,.sty-grs{font-weight:600;color:var(--stg-mute);}
+/* "You:" NAMES THE FIGURE (owner, 2026-09-01). A bare #3 of 10 on a card in a
+   grid of cards reads as something about the game; the two characters in front
+   of it say whose result it is, and the score came off in the same pass because
+   the rank already answers the question the card is being asked. */
+.sty-grl{font-family:${MONO};font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--stg-mute);}
+.sty-grf{font-weight:600;color:var(--stg-mute);}
+/* The same line on a circuit card, which is a block rather than a flex child. */
+.sty-cres{display:flex;align-items:baseline;gap:7px;margin-top:5px;font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* PLAYED IS DIM, BUT A RESULT IS NOT. .done wears opacity:.42, and opacity on a
    parent cannot be undone by a child, so a rank printed inside one lands around
    2:1 whatever colour it is given. A card that has something to say therefore
@@ -1713,14 +1966,20 @@ const CSS = `
      is and how to move around it: the name, the date, and the three controls.
      Bar two is who you are and how the day is going — or, for a reader with no
      account, the one thing worth offering them. */
-  .sty-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;
-    grid-template-areas:'id lb lf tg' 'fg fg fg fg';
+  /* FIVE COLUMNS, because there are four controls now (owner, 2026-09-01).
+     Your standing was added without an area of its own, so auto-placement put
+     it in the figures row with the IQ and the ranks, where a bordered icon
+     among four text figures reads as a fifth figure that lost its label. It
+     belongs with the other three ways out of the page. */
+  .sty-cap{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;
+    grid-template-areas:'id st lb lf tg' 'fg fg fg fg fg';
     align-items:center;gap:0 8px;padding:0 14px;}
   .sty-id{grid-area:id;flex:none;min-width:0;padding:9px 0;}
   .sty-brand{gap:7px;}
   .sty-brand svg{width:17px;height:17px;}
   .sty-all{font-size:9px;gap:5px;}
   .sty-tg{grid-area:tg;}
+  .sty-st{grid-area:st;}
   .sty-lb{grid-area:lb;}
   .sty-lf{grid-area:lf;}
   .sty-date{display:none;}
