@@ -873,7 +873,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   // personal shelves open and every category stays a title. Nobody else gets an
   // open shelf until they open one.
   const hasPins = !!(canPin && pinned.length);
-  const openDefault = (id) => (id === CIRC_ID ? true : (id === MINE_ID ? hasPins : false));
+  const openDefault = (id) => (id === CIRC_ID || id === 'tdy-cat-word' ? true : (id === MINE_ID ? hasPins : false));   // Circuits and Word open for everyone (owner, 2026-09-01)
   const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
     ? !!shelfOpen[id]
     : openDefault(id));

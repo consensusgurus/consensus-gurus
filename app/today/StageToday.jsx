@@ -254,6 +254,10 @@ const leadRankOf = (id) => {
 const SHELF_OPEN_KEY = 'sot_shelf_open';
 const MINE_ID = 'sty-mine';
 const CIRC_ID = 'sty-circs';
+// The Word category's section id, the same shape the render derives for every
+// category (`cat-${cat}` with spaces dashed), named here so the open-by-default
+// rule can point at it.
+const WORD_ID = 'cat-Word';
 
 // THE CIRCUITS SHELF OPENS FOR EVERYONE, first visit included, on ONE ROW led
 // by the Gauntlet, the Daily Five and Sudoku in that order (owner, 2026-09-01,
@@ -937,8 +941,10 @@ export default function StageToday() {
   // page's own invitation. My games opens only for a reader with stars, since
   // it is empty for anyone else, and every category stays a title until opened.
   // A stored override (a shelf shut by hand) still wins over either default.
+  // The Word category opens too (owner, 2026-09-01, same day): it is the
+  // biggest shelf and the one a new reader is most likely to know a game on.
   const hasPins = mineTot > 0;
-  const openDefault = (id) => (id === CIRC_ID ? true : (id === MINE_ID ? hasPins : false));
+  const openDefault = (id) => (id === CIRC_ID || id === WORD_ID ? true : (id === MINE_ID ? hasPins : false));
   const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
     ? !!shelfOpen[id]
     : openDefault(id));
