@@ -53,7 +53,27 @@ import GameGlyph from './GameGlyph';
 //   3. A page that OPENED on a finished board — an archive replay, a refresh —
 //      gets the card directly. Only a game that just ended floods.
 //   4. It never congratulates. It says what the band says.
-const FLOOD_HOLD = 1000;    // the screen is that colour, and nothing else
+//   5. IT WAITS FOR THE FIGURES. See the hold, directly below.
+// THE HOLD IS THE CARD'S OWN LOADING STATE (owner, 2026-08-31). It was a flat
+// second, which meant the colour could collapse onto a card that was still
+// reading "Calculating" — the player watched an ending land on a row of
+// placeholders and then watched the real figures arrive underneath it. The
+// screen is already covered and already says the one thing that is certainly
+// known (the verdict), so it is the right place to spend that wait: it holds on
+// Solved until the IQ, the board and the rank tiles are in, and only then
+// collapses onto a card with every number already on it.
+//
+// READINESS IS NOT REDEFINED HERE. LoftFinish already computes it once, as
+// `figuresShow` — the flag its own Calculating block is keyed on — and passes
+// it in as `ready`. One definition, so the curtain and the card underneath it
+// can never disagree about whether the card is finished. `ready` undefined (any
+// caller that does not pass it) means the old flat hold, unchanged.
+const FLOOD_MIN = 700;      // the floor: an ending is a beat, never a flash
+const FLOOD_SETTLE = 420;   // and a beat AFTER the last figure lands, to read it
+// The backstop, and pathological only: LoftFinish gives up waiting at 11s and
+// shows what it has, so this sits just past that. It exists so a caller that
+// passes `ready` and never flips it cannot strand a player on a coloured screen.
+const FLOOD_MAX = 12000;
 const FLOOD_SHRINK = 640;   // it collapses onto the band's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the band's words appear
 // A finish card mounts seconds after the last move: every client holds the
@@ -84,23 +104,49 @@ function FloodCount({ to, ms }) {
   return <>{Math.round(v).toLocaleString()}</>;
 }
 
-function CurtainFlood({ title, detail, iq, bandRef, onDone }) {
+function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
   const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
+  const [held, setHeld] = useState(false);    // the floor has passed
+  const [expired, setExpired] = useState(false);   // the backstop has fired
   const doneRef = useRef(false);
+  const goneRef = useRef(false);              // the collapse has been started
+  // ONE list for every timer this component ever schedules, cleared once on
+  // unmount. NOT a cleanup per effect: the collapse effect below re-runs when
+  // its gate changes, and a cleanup there would clear the collapse it had
+  // already scheduled and then decline to reschedule it, stranding the player
+  // on a coloured screen.
+  const timersRef = useRef([]);
+  const at = (ms, fn) => { timersRef.current.push(setTimeout(fn, ms)); };
   const finish = () => {
     if (doneRef.current) return;
     doneRef.current = true;
     if (typeof onDone === 'function') onDone();
   };
 
-  // The whole schedule, laid out once, every timer cleared on unmount so a skip
-  // mid-sequence cannot fire a later beat onto a card that is already up.
+  // Fade in, and the two edges of the hold. Both timers are anchored to the
+  // MOUNT rather than to `ready`, for the reason LoftFinish's own ceiling is:
+  // a timer that starts only while something is outstanding can be cleared by
+  // the one read that lands and then never fire for the one that does not.
   useEffect(() => {
-    const timers = [];
-    const at = (ms, fn) => timers.push(setTimeout(fn, ms));
     at(20, () => setPhase('up'));
-    at(FLOOD_HOLD, () => {
+    at(FLOOD_MIN, () => setHeld(true));
+    at(FLOOD_MAX, () => setExpired(true));
+    return () => { timersRef.current.forEach(clearTimeout); timersRef.current = []; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // THE COLLAPSE, once the floor has passed AND the card is finished. `ready`
+  // === false is the only thing that waits: null or undefined is a caller that
+  // does not report readiness, and true is a card with every figure in.
+  const waiting = ready === false && !expired;
+  useEffect(() => {
+    if (!held || waiting || goneRef.current) return;
+    goneRef.current = true;
+    // A BEAT AFTER THE LAST FIGURE, not the instant it arrives. The IQ lands on
+    // this screen and counts up; collapsing on the same tick would pop the
+    // number and take it away in one motion.
+    at(FLOOD_SETTLE, () => {
       const el = bandRef && bandRef.current;
       if (!el) { setPhase('shrink'); return; }
       // MEASURED LATE, on purpose: by now the card has settled, so the rectangle
@@ -122,11 +168,10 @@ function CurtainFlood({ title, detail, iq, bandRef, onDone }) {
         setPhase('shrink');
       });
     });
-    at(FLOOD_HOLD + FLOOD_SHRINK + 60, () => setPhase('out'));
-    at(FLOOD_HOLD + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
-    return () => timers.forEach(clearTimeout);
+    at(FLOOD_SETTLE + FLOOD_SHRINK + 60, () => setPhase('out'));
+    at(FLOOD_SETTLE + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [held, waiting]);
 
   // Any key. (Any tap is the element's own onClick.)
   useEffect(() => {
@@ -150,7 +195,7 @@ function CurtainFlood({ title, detail, iq, bandRef, onDone }) {
         {detail ? <div className="stf-fl-d">{detail}</div> : null}
         {iq && iq.gained != null ? (
           <div className="stf-fl-iq">
-            <b>+<FloodCount to={Number(iq.gained)} ms={FLOOD_HOLD - 140} /></b>
+            <b>+<FloodCount to={Number(iq.gained)} ms={620} /></b>
             <i>IQ earned</i>
           </div>
         ) : null}
@@ -207,6 +252,10 @@ export default function StageFinish({
   // callers still pass it, harmlessly, so putting that figure back is a one-line
   // change here rather than a sweep through 80 clients.
   title, detail, iq = null, board = null, streak = null,
+  // Whether every figure on this card has arrived. LoftFinish's own
+  // `figuresShow`, passed through so the flood can hold on the verdict until
+  // there is a finished card under it. See FLOOD_MIN above.
+  ready = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
   archive = null,
   retry = null,
@@ -439,7 +488,7 @@ export default function StageFinish({
       <style>{CSS}</style>
 
       {flood ? (
-        <CurtainFlood title={title} detail={detail} iq={iq} bandRef={bandRef}
+        <CurtainFlood title={title} detail={detail} iq={iq} ready={ready} bandRef={bandRef}
           onDone={() => setFlood(false)} />
       ) : null}
 

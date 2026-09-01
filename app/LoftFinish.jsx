@@ -930,6 +930,13 @@ export default function LoftFinish({
         title={retryVerdict || title} detail={detail} iq={iq} board={board} day={day} streak={streak}
         missLabel={missLabel} gameRank={gameRank} outcome={outcome} options={options} name={name}
         archive={archive}
+        /* THE CURTAIN HOLDS ON THE VERDICT UNTIL THIS IS TRUE (owner,
+           2026-08-31). It is the SAME flag the Calculating block below is keyed
+           on, deliberately: one definition of "the card is finished", so the
+           full-screen ending cannot collapse onto a row of placeholders. The
+           fast-retry branch above passes nothing, because it neither floods nor
+           shows a figure. */
+        ready={figuresShow}
       />
     );
   }
