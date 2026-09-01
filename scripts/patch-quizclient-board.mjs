@@ -164,5 +164,49 @@ sweep('faded borders', /\$\{COLORS\.faded\}(33|55)`/g,
   if (!acc || !chip) throw new Error('expected both an accent fill and a dark chip in this client; origin has moved');
 }
 
+// ── 6. THE MODULE-LEVEL HELPERS, which no const can reach ──────────────────
+//
+// ghostBtn, labelStyle, fieldStyle and StatBox sit at the FOOT of this file,
+// past the component's closing brace, and they paint text too. The chrome
+// converter deliberately cannot touch them: INK and FADED are declared inside
+// the component, so a rewrite out here is `ReferenceError: FADED is not
+// defined` -- which 500'd all ~1,200 quiz pages once, with the flag off,
+// because a module-level style object is evaluated whatever the flag says.
+//
+// var() is the answer for exactly this reason: a custom property is resolved by
+// the BROWSER against whatever element the style lands on, so it needs no
+// lexical scope at all. Undefined off the stage, so the fallback paints and
+// '?stage=0' stays byte-identical.
+{
+  const lines = s.split('\n');
+  const start = lines.findIndex((l) => /^export default function [A-Za-z_$][\w$]*\(\{ quizId/.test(l));
+  let end = lines.length - 1;
+  for (let i = start + 1; i < lines.length; i++) { if (/^\}\s*$/.test(lines[i])) { end = i; break; } }
+  let h = 0;
+  for (let i = 0; i < lines.length; i++) {
+    if (i > start && i <= end) continue;
+    let l = lines[i];
+    // NO `--stg-` SKIP HERE. The earlier sweeps have already converted these
+    // same lines' BORDERS, so a guard that skips any line already carrying a
+    // token skips exactly the lines that still need their text moved -- which
+    // left three near-black inks on a near-black page and reported success.
+    // The patterns below cannot double-convert, because each requires the bare
+    // COLORS.x form that a converted site no longer has.
+    const before = l;
+    l = l.replace(/(?<![-\w])color: COLORS\.faded\b/g, 'color: `var(--stg-mute,${COLORS.faded})`');
+    l = l.replace(/(?<![-\w])color: COLORS\.soft\b/g, 'color: `var(--stg-mute,${COLORS.soft})`');
+    l = l.replace(/(?<![-\w])color: COLORS\.ink\b/g, 'color: `var(--stg-ink,${COLORS.ink})`');
+    // A TERNARY ink, where the accent arm and the near-black arm both have to
+    // move or the element is legible in one state and not the other.
+    l = l.replace(/(?<![-\w])color: ([A-Za-z]+) \? COLORS\.ember : COLORS\.ink\b/g,
+      'color: $1 ? `var(--stg-acc,${COLORS.ember})` : `var(--stg-ink,${COLORS.ink})`');
+    if (l !== before) { lines[i] = l; h += 1; }
+  }
+  s = lines.join('\n');
+  n += h;
+  console.log(`  · module-level helper text: ${h}`);
+  if (!h) throw new Error('expected module-level helpers painting text in this client; origin has moved');
+}
+
 writeFileSync(path, s);
 console.log(`patched ${n} sites in ${path}`);

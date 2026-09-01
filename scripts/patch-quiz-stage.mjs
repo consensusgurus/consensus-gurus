@@ -224,22 +224,43 @@ edit('footer', /^( *)<Footer \/>$/gm, '$1{!QSTAGE && <Footer />}', { expect: hit
 // pattern converts border colours too, which are fills. That bug quietly moved
 // a border on the first daily this technique was used on.
 //
-// SCOPE-BOUND. INK and FADED are declared INSIDE the component, and several of
-// these clients define helper components ABOVE it, where that const is not an
-// ancestor scope at all. Rewriting a colour up there is not a dead zone, it is
-// ReferenceError, and esbuild parses it happily.
-function belowDecl(id, re, to) {
-  const at = s.split('\n').findIndex((l) => new RegExp('^\\s*const\\s+' + id + '\\s*=').test(l));
-  if (at < 0) return;
+// SCOPE-BOUND, AND THE BOUND IS THE COMPONENT'S BODY, NOT "BELOW THE LINE".
+//
+// ⚠️ THIS TOOK THE WHOLE QUIZ SURFACE DOWN ONCE. INK and FADED are declared
+// INSIDE the component, so a colour rewritten anywhere else is not a temporal
+// dead zone, it is `ReferenceError: FADED is not defined` -- and esbuild parses
+// it happily, so only rendering the page catches it.
+//
+// The daily converter bounds this by DECLARATION LINE, on the reasoning that a
+// client's helper components sit ABOVE the main one. That is true of the eighty
+// dailies and FALSE of QuizClient, which defines ghostBtn, labelStyle,
+// fieldStyle and StatBox at the FOOT of the file. One `color: COLORS.faded` in
+// StatBox, forty lines past the end of the component, 500'd every one of ~1,200
+// quiz pages -- with the flag off, because a module-level style object is
+// evaluated whatever the flag says.
+//
+// So the bound is the component's own braces: from the declaration down to the
+// first line that is a bare `}` in column zero, which is where a top-level
+// function ends in this codebase. A line-number proxy for "in scope" is only
+// ever a guess, and this is the guess being wrong.
+const COMP_END = (() => {
   const lines = s.split('\n');
+  const start = lines.findIndex((l) => COMP.test(l));
+  for (let i = start + 1; i < lines.length; i++) if (/^\}\s*$/.test(lines[i])) return i;
+  return lines.length;
+})();
+function belowDecl(id, re, to) {
+  const lines = s.split('\n');
+  const at = lines.findIndex((l) => new RegExp('^\\s*const\\s+' + id + '\\s*=').test(l));
+  if (at < 0) return;
   let h = 0;
-  for (let i = at + 1; i < lines.length; i++) {
+  for (let i = at + 1; i <= Math.min(COMP_END, lines.length - 1); i++) {
     const next = lines[i].replace(re, to);
     if (next !== lines[i]) { h += 1; lines[i] = next; }
   }
   s = lines.join('\n');
   n += h;
-  console.log(`  · ${id} text (below decl): ${h}`);
+  console.log(`  · ${id} text (in component): ${h}`);
 }
 belowDecl('INK', /(?<![-\w])color: COLORS\.ink\b/g, 'color: INK');
 belowDecl('FADED', /(?<![-\w])color: COLORS\.faded\b/g, 'color: FADED');

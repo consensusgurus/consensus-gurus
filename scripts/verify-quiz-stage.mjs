@@ -172,6 +172,47 @@ for (const f of readdirSync(DIR)) {
       + 'that is a temporal dead zone and it throws on render');
   }
 
+  // ── EVERY STAGE CONST IS USED ONLY INSIDE THE COMPONENT THAT DECLARES IT ──
+  //
+  // ⚠️ THIS CHECK EXISTS BECAUSE ITS ABSENCE TOOK THE QUIZ SURFACE DOWN.
+  // The converter rewrites `color: COLORS.faded` to `color: FADED`, and FADED
+  // is declared inside the component. QuizClient defines four helpers at the
+  // FOOT of the file, past the component's closing brace, and one rewritten
+  // colour landed in one of them: `ReferenceError: FADED is not defined`, a 500
+  // on all ~1,200 quiz pages, with the flag off, because a module-level style
+  // object is evaluated whatever the flag says.
+  //
+  // esbuild parses it. eslint's no-undef is not run per client here. A render
+  // catches it and nothing else does, which is exactly the shape of bug worth a
+  // checker. The bound is the component's own braces: from `export default
+  // function X({ quizId` down to the first bare `}` in column zero.
+  {
+    const start = lines.findIndex((l) => /^export default function [A-Za-z_$][\w$]*\(\{ quizId/.test(l));
+    let end = lines.length - 1;
+    for (let i = start + 1; i < lines.length; i++) { if (/^\}\s*$/.test(lines[i])) { end = i; break; } }
+    const NAMES = ['QSTAGE', 'stageTheme', 'INK', 'FADED', 'SURF', 'SURF_B', 'QACC', 'ON_ACC', 'Cap', 'stageBlocks'];
+    // Declared at the top level by this file itself? Then it is genuinely in
+    // scope everywhere and is not one of the converter's component-locals.
+    const topLevel = new Set(
+      lines.filter((l, i) => (i < start || i > end) && /^(?:export )?(?:const|let|function) /.test(l))
+        .map((l) => (l.match(/^(?:export )?(?:const|let|function) (\w+)/) || [])[1])
+        .filter(Boolean)
+    );
+    for (let i = 0; i < lines.length; i++) {
+      if (i > start && i <= end) continue;      // inside the component: fine
+      for (const name of NAMES) {
+        if (topLevel.has(name)) continue;
+        if (!new RegExp('(?<![\\w$.])' + name + '(?![\\w$])').test(lines[i])) continue;
+        // A comment mentioning the name is not a use of it.
+        const code = lines[i].replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/, '');
+        if (!new RegExp('(?<![\\w$.])' + name + '(?![\\w$])').test(code)) continue;
+        fail(`${rel}:${i + 1} uses ${name} OUTSIDE the component that declares it `
+          + `(component body is lines ${start + 1}-${end + 1}): that is a ReferenceError at render, `
+          + 'not a dead zone, and it 500s the page whatever the flag says');
+      }
+    }
+  }
+
   // THE TAKEOVER. The stage pattern's first rule is that the page is the thing:
   // no site masthead above it, no footer below it, no paper grain on a
   // near-black ground. An UNGATED one of those is a piece of the old page

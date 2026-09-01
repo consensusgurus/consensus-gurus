@@ -61,6 +61,12 @@ export default function QuizLoftFinish({
   onReplay,
   onShare,
   onJoin,
+  // WHICH ENDING. LoftFinish decides between its own card and the stage's
+  // curtain, and on a daily it decides from the URL, which is correct there
+  // because the stage is sitewide. On a quiz the stage is still a review path,
+  // so the page SAYS which one it is rather than letting the card guess and
+  // open a curtain at the foot of a cream page. Null hands the decision back.
+  stage = null,
 }) {
   const iq = useIqStanding({ quizId: quiz.id, active: true });
   const day = useDayStats();
@@ -115,6 +121,7 @@ export default function QuizLoftFinish({
 
   return (
     <LoftFinish
+      onStage={stage}
       title={title}
       detail={detail}
       outcome={outcome}
