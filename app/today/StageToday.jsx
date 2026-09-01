@@ -756,14 +756,21 @@ export default function StageToday() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [circuits.length]);
-  // The peek is ONE circuit now (see LEAD_CIRCUIT). circPeek is kept because
-  // the measured column count is still what decides whether the grid has room
-  // for the rest once Show all is pressed.
+  // THE SHELF OPENS ON EXACTLY ONE FULL ROW (owner, 2026-09-01). One card in a
+  // seven-column grid is a hole rather than a shelf, so the peek is however many
+  // circuits FIT across, measured off the grid's own computed columns rather
+  // than guessed from a breakpoint.
+  //
+  // The Trivia Gauntlet leads it whatever its state. The sort below sends a
+  // FINISHED circuit to the end, which is right for the shelf in general and
+  // wrong for the one circuit the page is built around: finish the Gauntlet at
+  // 7/7 and it would leave the front on the very day it was played.
   const circPeek = narrow ? CIRC_PEEK_NARROW : Math.max(1, circCols);
   const circLead = useMemo(() => {
     const lead = circuits.filter((c) => c.id === LEAD_CIRCUIT);
-    return lead.length ? lead : circuits.slice(0, 1);
-  }, [circuits]);
+    const rest = circuits.filter((c) => c.id !== LEAD_CIRCUIT);
+    return [...lead, ...rest].slice(0, Math.max(1, circPeek));
+  }, [circuits, circPeek]);
 
   // The starred CIRCUITS, resolved against today's cards so a circuit carries
   // the day's real roster. Declared below `circuits` on purpose: this body runs
