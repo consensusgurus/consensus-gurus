@@ -77,8 +77,11 @@ const COLORS = {
 };
 // The board itself: the same warm walnut as Mate, because it IS chess and the
 // two should read as siblings.
-const LIGHT_SQ = '#efd9b5';
-const DARK_SQ = '#b58863';
+// The squares come off the stage's own pair now, so the board follows the light
+// switch. Beech and walnut were two mid-tone woods: the brightest surface on a
+// near-black page, and a palette belonging to nothing else on the site.
+const LIGHT_SQ = 'var(--stg-sq-l, #efd9b5)';
+const DARK_SQ = 'var(--stg-sq-d, #b58863)';
 const SEL_SQ = 'rgba(161,98,7,0.5)';
 const LAST_SQ = 'rgba(224,174,74,0.55)';
 

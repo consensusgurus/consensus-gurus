@@ -73,11 +73,15 @@ const COLORS = {
   green: T.successDeep,
   gold: '#b45309',
 };
-const FELT = '#0d5175';
-const FELT_EDGE = '#082f49';
-const CARD_FACE = '#fdfcf9';
+// The felt carried no information and was the largest object in the game, so it is
+// a surface now, and the table's EDGE carries the category instead. A card face
+// is light in either register, so it takes the same token a chessboard's light
+// square does. Loft (?stage=0) still renders the original felt via the fallback.
+const FELT = 'var(--stg-surf2, #0d5175)';
+const FELT_EDGE = 'color-mix(in srgb, var(--stg-acc, #082f49) 60%, transparent)';
+const CARD_FACE = 'var(--stg-sq-l, #fdfcf9)';
 const CARD_EDGE = 'rgba(20,22,28,0.30)';
-const RED_PIP = '#c8282e';
+const RED_PIP = 'var(--stg-bad, #c8282e)';
 const BLACK_PIP = T.ink;
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";

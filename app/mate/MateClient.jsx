@@ -82,8 +82,11 @@ const COLORS = {
 };
 // The board itself. Warm walnut, the colours a chess player expects, so the
 // game reads as chess before a word of copy is seen.
-const LIGHT_SQ = '#efd9b5';
-const DARK_SQ = '#b58863';
+// The squares come off the stage's own pair now, so the board follows the light
+// switch. Beech and walnut were two mid-tone woods: the brightest surface on a
+// near-black page, and a palette belonging to nothing else on the site.
+const LIGHT_SQ = 'var(--stg-sq-l, #efd9b5)';
+const DARK_SQ = 'var(--stg-sq-d, #b58863)';
 const SEL_SQ = 'rgba(107,68,35,0.55)';
 const LAST_SQ = 'rgba(232,180,58,0.55)';
 

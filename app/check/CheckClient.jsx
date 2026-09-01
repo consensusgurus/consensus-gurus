@@ -69,8 +69,11 @@ const COLORS = {
   accent: '#166e5a',        // Check identity — board green
   accentSoft: '#e6f3ef', green: T.successDeep,
 };
-const LIGHT_SQ = '#e9e2d0';
-const DARK_SQ = '#4f6b58';
+// Check shipped its own bone-and-green board, the odd one out of the four chess
+// games. Same pair as the others now. The red and black PIECES are meaning and
+// are left alone: both read on either square in either register.
+const LIGHT_SQ = 'var(--stg-sq-l, #e9e2d0)';
+const DARK_SQ = 'var(--stg-sq-d, #4f6b58)';
 const RED_PC = T.danger, RED_PC_DK = '#7a2318';
 const BLK_PC = '#26282e', BLK_PC_DK = '#0e0f12';
 

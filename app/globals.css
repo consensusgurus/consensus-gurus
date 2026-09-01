@@ -207,6 +207,23 @@ button, input, textarea, select { border-radius: 8px; }
      Deliberately UNDEFINED outside .stage-page, so every fallback keeps the
      Loft's original wash. */
   --stg-chip: rgba(255, 255, 255, 0.08);
+  /* THE BOARD LADDER. A game board needs more raised steps than the browse
+     furniture does: a chess square, a Parker car and an Othello disc all have to
+     be tellable from each other and from the board under them, and two surface
+     tokens cannot do that. Four steps, picked against THIS ground and checked on
+     it. Do not derive the light set from these by flipping the numbers. */
+  --stg-b1: rgba(255, 255, 255, 0.055);
+  --stg-b2: rgba(255, 255, 255, 0.095);
+  --stg-b3: rgba(255, 255, 255, 0.145);
+  --stg-b4: rgba(255, 255, 255, 0.215);
+  /* A CHESSBOARD'S TWO SQUARES ARE ITS INTERFACE, not decoration, so they are
+     real values rather than two lifts. Drawn as lifts the alternation was
+     something you had to hunt for, and there was nothing for a white piece to be
+     white against. The site's own rule for a game page is that the brightest
+     thing on it should be the board. Also used for a playing card's face, which
+     is light in either register for the same reason. */
+  --stg-sq-l: #e9edf4;
+  --stg-sq-d: #39414f;
   /* A climb and a slip: the one semantic pair on a stage, kept out of the
      category family on purpose. Each register gets the legible end. */
   --stg-up: #6ee7b7;
@@ -365,6 +382,15 @@ body:has(.stage-page) .qch-bar { display: none !important; }
   --stg-dim: #666c77;
   --stg-onramp: #ffffff;
   --stg-chip: #e4e9f1;
+  /* The board ladder, near-black over white. Picked against a pale ground, not
+     converted from the dark set. b1 is .05 rather than the .035 a naive port
+     would give: at .035 a Parker car was carried entirely by its edge. */
+  --stg-b1: rgba(11, 15, 26, 0.05);
+  --stg-b2: rgba(11, 15, 26, 0.09);
+  --stg-b3: rgba(11, 15, 26, 0.14);
+  --stg-b4: rgba(11, 15, 26, 0.20);
+  --stg-sq-l: #ffffff;
+  --stg-sq-d: #94a1b5;
   --stg-up: #047857;
   --stg-dn: #be123c;
   --stg-good: #047857;

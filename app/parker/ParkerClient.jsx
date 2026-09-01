@@ -71,15 +71,70 @@ const COLORS = {
   accent: '#7c5c2e',        // Parker identity — weathered tarmac gold
   accentSoft: '#f6efe2', green: T.successDeep,
 };
-const LOT = '#e7e2d8';        // the lot surface
-const LOT_LINE = '#c9c2b4';
-const WALL = '#2f2a24';
+const LOT = 'var(--stg-surf, #e7e2d8)';        // the lot surface
+const LOT_LINE = 'var(--stg-line, #c9c2b4)';
+// The wall is the strongest rule on the board, which is what makes a gap in it
+// mean anything. A dark brown frame vanished into a near-black page.
+const WALL = 'var(--stg-line2, #2f2a24)';
 const RED_BLOCK = T.danger;
-const RED_EDGE = '#7a2318';
+const RED_EDGE = 'var(--stg-onramp, #7a2318)';
 // Muted paint for the other blocks, cycled by index so a board reads as traffic
 // rather than as a colour test.
+// THE FLEET. Eighteen paints picked against a cream floor became four steps of
+// lift with a one pixel edge in the category colour, which is exactly the shape
+// of an unplayed tile on the home. The colour is still there and still doing its
+// one job, telling one car from the car beside it; what changed is that it comes
+// from the category rather than from this file, so it follows the light switch
+// and a Logic board is recognisably a Logic board.
+//
+// PAINT and TRUCK are kept, unused by the stage path, because ?stage=0 renders
+// the Loft board and the fallbacks below only cover the single-value constants.
 const PAINT = ['#6b7f9e', '#8a9a6b', '#a8846b', '#7f9e94', '#9e8a6b', '#6b8a9e', '#a89a6b', '#8a6b7f', '#7f8a6b', '#9e6b6b', '#6b9e8a', '#8a7f9e'];
 const TRUCK = ['#3f4a5c', '#4c5c3f', '#5c4c3f', '#3f5c55', '#5c553f', '#3f4f5c'];
+const BLOCK_LIFT = ['var(--stg-b1)', 'var(--stg-b2)', 'var(--stg-b3)', 'var(--stg-b4)'];
+const BLOCK_EDGE = [0.34, 0.48, 0.64, 0.82];
+
+// WHICH LIFT A BLOCK GETS IS DECIDED BY THE BOARD, not by its place in the array.
+// Four steps into a thirteen block lot means repeats, and a repeat only matters
+// when the two blocks TOUCH, so each block takes the step none of its neighbours
+// holds and the board has used least. Deterministic, so a board looks the same on
+// every load, which `PAINT[i % 12]` never was: it could and did put two olives
+// side by side.
+//
+// Computed from the STARTING layout and then fixed for the whole game. Blocks
+// move, so adjacency changes as you play, but a car that changes colour while it
+// slides is far worse than two same-weight cars that happen to meet later.
+function blockCells(p) {
+  const out = [];
+  for (let k = 0; k < p.len; k++) out.push(p.horiz ? [p.fixed, p.pos + k] : [p.pos + k, p.fixed]);
+  return out;
+}
+function blockTones(pieces) {
+  const cells = pieces.map(blockCells);
+  const touch = pieces.map(() => []);
+  for (let a = 0; a < pieces.length; a++) {
+    for (let b = a + 1; b < pieces.length; b++) {
+      const hit = cells[a].some((x) => cells[b].some((y) => Math.abs(x[0] - y[0]) + Math.abs(x[1] - y[1]) === 1));
+      if (hit) { touch[a].push(b); touch[b].push(a); }
+    }
+  }
+  const col = pieces.map(() => -1);
+  const used = BLOCK_LIFT.map(() => 0);
+  // Block 0 is the red one and never takes a lift, so the walk starts at 1.
+  for (let i = 1; i < pieces.length; i++) {
+    const taken = {};
+    touch[i].forEach((j) => { if (col[j] >= 0) taken[col[j]] = 1; });
+    let best = -1;
+    for (let h = 0; h < BLOCK_LIFT.length; h++) {
+      if (taken[h]) continue;
+      if (best < 0 || used[h] < used[best]) best = h;
+    }
+    if (best < 0) best = 0;
+    col[i] = best;
+    used[best] += 1;
+  }
+  return col;
+}
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -193,6 +248,8 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
   const STORE_KEY = `sot_park_${PUZZLE.num}`;
   const START = useMemo(() => fromData(PUZZLE.pieces), [PUZZLE]);
+  // Off START, not off `blocks`: the tone map has to be stable for the whole game.
+  const blockTone = useMemo(() => blockTones(START), [START]);
 
   const [g, setG] = useState(() => freshState());
   const gRef = useRef(g);
@@ -695,7 +752,13 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
               {blocks.map((p, i) => {
                 const isRed = i === 0;
                 const truck = p.len >= 3;
-                const fill = isRed ? RED_BLOCK : truck ? TRUCK[i % TRUCK.length] : PAINT[i % PAINT.length];
+                const tone = blockTone[i] || 0;
+                const fill = isRed ? RED_BLOCK
+                  : STAGE ? BLOCK_LIFT[tone]
+                  : truck ? TRUCK[i % TRUCK.length] : PAINT[i % PAINT.length];
+                const carEdge = STAGE
+                  ? `${truck ? 2 : 1}px solid color-mix(in srgb, var(--stg-acc) ${Math.round(BLOCK_EDGE[tone] * 100)}%, transparent)`
+                  : 'none';
                 const top = p.horiz ? p.fixed : p.pos;
                 const left = p.horiz ? p.pos : p.fixed;
                 const w = p.horiz ? p.len : 1, h = p.horiz ? 1 : p.len;
@@ -706,9 +769,14 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
                       left: `calc(${left * cellPct}% + 3px)`, top: `calc(${top * cellPct}% + 3px)`,
                       width: `calc(${w * cellPct}% - 6px)`, height: `calc(${h * cellPct}% - 6px)`,
                       background: fill, zIndex: 2,
-                      outline: on ? `3px solid ${COLORS.ink}` : hintBlock === i ? `3px solid ${COLORS.green}` : 'none',
+                      // The accent at full strength is the one tone the fleet never
+                      // reaches, so the block you are holding needs no second colour
+                      // to be found. The hint takes the site's own assist amber:
+                      // green is its confirm, and it sits next door to Logic's lime.
+                      outline: on ? `3px solid var(--stg-acc, ${COLORS.ink})`
+                        : hintBlock === i ? `3px solid var(--stg-warn, ${COLORS.green})` : 'none',
                       outlineOffset: on || hintBlock === i ? '1px' : 0,
-                      border: isRed ? `2px solid ${RED_EDGE}` : 'none',
+                      border: isRed ? `2px solid ${RED_EDGE}` : carEdge,
                     }} />
                 );
               })}
