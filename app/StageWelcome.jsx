@@ -42,7 +42,6 @@
 // already fetches; a figure with no value is skipped rather than guessed, and a
 // case with no figures at all does not show.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDayStatus, etToday } from './useDayStats';
 
 // ── the ending's constants, not a new set ──────────────────────────────────
@@ -123,10 +122,6 @@ function daysBetween(mdy, todayYmd) {
   return d >= 0 && d < 3650 ? d : null;
 }
 
-// WHAT THE READER'S PLACE WAS LAST TIME THEY LOOKED, so "you have been passed"
-// is a real figure rather than an invented one. Stored per ET day and read once;
-// there is no server record of a rank at an earlier hour, and adding one would
-// be a table for a decoration.
 // ONCE PER ET DAY, AND THAT IS THE POINT (owner, live, 2026-08-31: "this
 // animation should not display EVERY time a person returns to main page. now it
 // displays whenever a game completes and user goes back to main").
@@ -138,19 +133,6 @@ function daysBetween(mdy, todayYmd) {
 // right unit. Stamped the moment it decides to show, so a reload during the
 // sequence cannot replay it either.
 const DAY = 'sot_welcome_day';
-const SEEN = 'sot_welcome_seen_rank';
-function priorRank(today) {
-  try {
-    const v = JSON.parse(localStorage.getItem(SEEN) || 'null');
-    return v && v.d === today && typeof v.r === 'number' ? v.r : null;
-  } catch (e) { return null; }
-}
-function stampRank(today, r) {
-  try {
-    if (typeof r === 'number') localStorage.setItem(SEEN, JSON.stringify({ d: today, r }));
-  } catch (e) {}
-}
-
 export default function StageWelcome({ capRef }) {
   const [on, setOn] = useState(false);     // decided in an effect: server renders null
   const [data, setData] = useState(null);  // the daily-status payload
@@ -252,26 +234,36 @@ export default function StageWelcome({ capRef }) {
     // combined board went with it.
     if (data.playedToday) {
       const rank = num(data.dayRank);
-      const was = priorRank(today);
-      const lost = (was != null && rank != null && rank > was) ? rank - was : null;
-      const g = data.bestGain;
+      // PLACES MOVED TODAY, not the best-improved game (owner, live, 2026-08-31:
+      // "i can't tell what the third stat is... four ten?"). The old figure put a
+      // game NAME beside a signed number, and half this roster is named after
+      // numbers (Four, Sixes), so it read as two numerals. That is structural
+      // rather than one unlucky name, so the figure goes, not its label.
+      //
+      // WHICH BOARD, because the figure above it is a different one: rankChange
+      // is movement on the global IQ board since the ET day started, and it is
+      // the only "places moved today" the server keeps. A drop measured against
+      // the reader's own earlier position on TODAY'S combined board would need a
+      // history of that rank through the day, and nothing stores one.
+      const moved = num(data.rankChange);
+      const streak = num(data.streak);
       return {
-
-        rank,
         figs: [
           num(data.todayXp) ? { k: 'iq', lead: true, count: num(data.todayXp), pre: '+', lab: 'IQ today', good: true } : null,
           rank ? {
             k: 'pos', v: `#${rank}`,
-            sub: lost ? `-${lost}` : null, bad: true,
             lab: num(data.dayField) ? `of ${data.dayField} today` : 'today',
           } : null,
-          (g && g.game && num(g.delta) > 0)
+          // Nobody passing you and you passing nobody is the common case for a
+          // settled rank, so the streak stands in rather than leaving the row a
+          // figure short.
+          moved
             ? {
-              k: 'gain',
-              v: (DAILY_GAME_MAP[g.game] || {}).name || g.game,
-              sub: `+${g.delta}`, good: true, lab: 'best gain today',
+              k: 'moved', v: String(Math.abs(moved)),
+              good: moved > 0, bad: moved < 0,
+              lab: moved > 0 ? 'places gained today' : 'places lost today',
             }
-            : null,
+            : (streak ? { k: 'streak', v: String(streak), lab: 'day streak' } : null),
         ].filter(Boolean),
       };
     }
@@ -281,7 +273,6 @@ export default function StageWelcome({ capRef }) {
     if (gap === 1) {
       const st = num(data.streak);
       return {
-
         figs: [
           st ? { k: 'streak', lead: true, count: st, lab: 'day streak' } : null,
           num(data.communityRank) ? {
@@ -297,7 +288,6 @@ export default function StageWelcome({ capRef }) {
     // the best it reached rather than as something lost.
     if (gap != null && gap >= 2) {
       return {
-
         figs: [
           { k: 'away', lead: true, count: gap, lab: gap === 1 ? 'day away' : 'days away' },
           num(data.communityRank) ? {
@@ -311,11 +301,6 @@ export default function StageWelcome({ capRef }) {
 
     return { figs: [] };
   }, [data]);
-
-  // The place we are showing becomes the place the NEXT arrival compares to.
-  useEffect(() => {
-    if (view && view.rank != null) stampRank(etToday(), view.rank);
-  }, [view]);
 
   // ── the two edges of the hold, anchored to mount ─────────────────────────
   useEffect(() => {

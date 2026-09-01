@@ -81,10 +81,6 @@ export async function GET(request) {
     // closed row can show the figure without waiting on the drawer's own fetch.
     const archiveAll = new Map();   // game key -> Set(dated quiz id)
     const archiveMine = new Map();
-    // This player's own finished daily rows, kept with their scores so the
-    // day-over-day block below can run off rows already in hand rather than a
-    // second query. [game key, dated quiz id, score, total].
-    const mineByGame = [];
     const bump = (m, key, qid) => { let v = m.get(key); if (!v) { v = new Set(); m.set(key, v); } v.add(qid); };
     for (const r of (data || [])) {
       const qid = r && r.quiz_id;
@@ -113,7 +109,6 @@ export async function GET(request) {
       // than its completion (Babel, see SOLVES_ON_SCORE).
       const solved = dailySolvedRow(r);
       if (solved) completed.add(qid); else unsolved.add(qid);
-      mineByGame.push([gkey, qid, r.score, r.total]);
     }
     // A SOLVED ATTEMPT WINS (owner, 2026-08-09). A replayable game can carry
     // several rows for one drop: lose it, come back, solve it. The losing row
@@ -208,13 +203,10 @@ export async function GET(request) {
         }
       }
     } catch (e) {}
-    // WHEN THEY LAST PLAYED, and WHICH GAME THEY ARE MOST IMPROVED AT TODAY.
-    // Both come off rows already in hand, so neither costs a query, and both are
-    // for the home's arrival (app/StageWelcome.jsx): lastPlayed is what tells a
-    // resumption from a return, and bestGain is what lets its figures close on
-    // something that went up rather than on the place it lost.
+    // WHEN THEY LAST PLAYED.
+    // It comes off rows already in hand, so it costs no query, and it is what
+    // tells the home's arrival (app/StageWelcome.jsx) a resumption from a return.
     let lastPlayed = null;
-    let bestGain = null;
     try {
       const et2 = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
       const todayKey = `${et2.getMonth() + 1}-${et2.getDate()}-${et2.getFullYear() % 100}`;
@@ -224,36 +216,6 @@ export async function GET(request) {
         if (!m) continue;
         const t = Date.UTC(2000 + Number(m[3]), Number(m[1]) - 1, Number(m[2]));
         if (t > newest) { newest = t; lastPlayed = `${m[1]}-${m[2]}-${m[3]}`; }
-      }
-      // Today's best run in each game against the last day that game was played.
-      // COMPARED AS A RATIO, because scores are not comparable across games (a
-      // sudoku scores out of 56 and a quiz out of 10), and REPORTED as the raw
-      // delta in that game's own units, which is the number the reader
-      // recognises. A game played today for the first time has nothing to
-      // improve on and is skipped rather than counted as a gain.
-      const nowBy = new Map();
-      const wasBy = new Map();
-      for (const [g, qid, score, total] of mineByGame) {
-        const m = /-(\d+)-(\d+)-(\d+)$/.exec(qid);
-        if (!m || !(Number(total) > 0) || typeof score !== 'number') continue;
-        const day = `${m[1]}-${m[2]}-${m[3]}`;
-        const t = Date.UTC(2000 + Number(m[3]), Number(m[1]) - 1, Number(m[2]));
-        if (day === todayKey) {
-          const cur = nowBy.get(g);
-          if (!cur || score > cur.score) nowBy.set(g, { score, total: Number(total) });
-        } else {
-          const cur = wasBy.get(g);
-          if (!cur || t > cur.t) wasBy.set(g, { t, score, total: Number(total) });
-        }
-      }
-      let bestLift = 0;
-      for (const [g, now] of nowBy) {
-        const was = wasBy.get(g);
-        if (!was || !(was.total > 0)) continue;
-        const lift = (now.score / now.total) - (was.score / was.total);
-        const delta = Math.round(now.score - was.score);
-        if (lift <= 0 || delta <= 0) continue;
-        if (lift > bestLift) { bestLift = lift; bestGain = { game: g, delta }; }
       }
     } catch (e) {}
     // Today's IQ Points (ET), for the "Your day" strip. Computed HERE rather than
@@ -377,7 +339,7 @@ export async function GET(request) {
     for (const [k, all] of archiveAll) {
       archive[k] = { total: all.size, played: (archiveMine.get(k) || new Set()).size };
     }
-    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, streak, streakGame, streakGameDays, playedToday, todayXp, rankChange, dayRank, dayField, communityRank, communityTotal, communityCredits, archive, lastPlayed, bestGain }, { headers: CACHE_HEADERS });
+    return NextResponse.json({ played: [...played], completed: [...completed], unsolved: [...unsolved], abandoned, inProgress, streaks, streak, streakGame, streakGameDays, playedToday, todayXp, rankChange, dayRank, dayField, communityRank, communityTotal, communityCredits, archive, lastPlayed }, { headers: CACHE_HEADERS });
   } catch (e) {
     console.error('daily-status exception', e);
     return NextResponse.json({ played: [], completed: [], abandoned: [], unsolved: [], inProgress: [] });
