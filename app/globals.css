@@ -308,7 +308,11 @@ body:has(.stage-page) { background: #0b0f1a !important; }
    games nests differently. While collapsed those ancestors hold nothing but the
    card, so their top padding is exactly the gap and nothing else. It comes back
    with the class the moment 'Return to board' takes it off. */
-.stage-page.stf-collapse :has(.stf) { padding-top: 0; }
+/* !important because EVERY game sets that padding INLINE (Garble:
+   style="padding: 18px 38px 80px"), and an inline style outranks any
+   stylesheet rule however specific. The selector matched all along and simply
+   lost. Same trap as the dark-board contrast pass. */
+.stage-page.stf-collapse :has(.stf) { padding-top: 0 !important; }
 
 /* The client's own 'Hide game board', which is the inverse of Return to board.
    It had no class on the stage and so no room around it either. */
