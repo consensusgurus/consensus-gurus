@@ -54,6 +54,7 @@ import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/st
 import ThemePop from '../ThemePop';
 import StageLadder from '../StageLadder';
 import StageWelcome from '../StageWelcome';
+import PremierePop from '../PremierePop';
 import MindLoftMark from '../MindLoftMark';
 // THE FOOTER IS SHARED (2026-08-31). It used to be drawn here, because this
 // was the only stage surface that needed one; the circuit pages needed the
@@ -1043,6 +1044,9 @@ export default function StageToday() {
     <div className="sty stage-page" data-stage-theme={stageTheme}>
       <style>{CSS}</style>
       <StageWelcome capRef={capRef} />
+      {/* NEW-GAME PREMIERES: once per launch, returning players who have not
+          played it, after the arrival has finished. See app/PremierePop.jsx. */}
+      <PremierePop />
 
       {/* 1. THE CAP. One line: the identity, then the day's figures, then the
              controls at the right edge, as on every board. */}
