@@ -352,10 +352,10 @@ export default function StageToday() {
   // exactly right, and a wheel scroll works normally. So it is the ANIMATION
   // being interrupted, not the page refusing to move.
   //
-  // Rather than hunt whatever interrupts it, the link does its own scroll and
-  // then CHECKS that it arrived, falling back to an instant jump when it did
-  // not. A link that visibly does nothing is worse than one that jumps. The
-  // hash is still written, so the address bar and the back button behave.
+  // Rather than hunt whatever interrupts it, the link does its own scroll with
+  // the animation explicitly switched off for the length of it. A link that
+  // visibly does nothing is worse than one that jumps. The hash is still
+  // written, so the address bar and the back button behave.
   const jumpTo = (id) => (e) => {
     if (typeof document === 'undefined') return;
     const el = document.getElementById(id);
@@ -363,13 +363,19 @@ export default function StageToday() {
     e.preventDefault();
     // rect.top + scrollY is invariant under scrolling, so this is the same
     // absolute target before and after the animation.
-    const target = () => Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12);
-    const to = target();
-    try { window.scrollTo({ top: to, behavior: 'smooth' }); }
-    catch (err) { window.scrollTo(0, to); }
-    window.setTimeout(() => {
-      if (Math.abs(window.scrollY - target()) > 40) window.scrollTo(0, target());
-    }, 500);
+    // THE INLINE OVERRIDE IS THE PART THAT WORKS, and it took three tries to
+    // find it. On this page `window.scrollTo({ behavior: 'auto' })` is NOT
+    // honoured: measured live, the two-argument form, the options form and the
+    // native hash jump all left scrollY at 0 or 96 against a 1512 target, while
+    // a wheel scroll moved normally. Setting scroll-behavior:auto ON THE ROOT
+    // first, scrolling, and putting the previous value back lands exactly
+    // (elTop 12, the intended offset), every time. The scroll applies
+    // synchronously under 'auto', so the style can go back in the same task.
+    const root = document.documentElement;
+    const prev = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12));
+    root.style.scrollBehavior = prev;
     try { window.history.replaceState(null, '', '#' + id); } catch (err) {}
   };
   // The day's own numbers, from the hook the site header already uses, so this
