@@ -178,6 +178,85 @@ sweep('faded borders', /\$\{COLORS\.faded\}(33|55)`/g,
 // move.
 sweep('raw-hex body ink', /color: '#4a4339'/g, "color: `var(--stg-ink2,#4a4339)`", 3);
 
+// ── 5c. TERNARY ARMS: THE STATE YOU ONLY SEE WHILE PLAYING ─────────────────
+//
+// ⚠️ EVERY SWEEP ABOVE MATCHES `background: <name>` AT THE START OF THE VALUE,
+// so a colour that is one ARM of a ternary is invisible to all of them. That is
+// where a board keeps its STATES -- empty, active, found, revealed -- and a
+// state is drawn only while somebody is playing, which is precisely the moment
+// no at-rest scan is looking.
+//
+// It cost a deploy. The at-rest page reported ONE light surface (the accent
+// bar); pressing Start put TEN white answer slots and a white input on the
+// near-black ground, each carrying the stage's near-white ink, so the slots
+// were unreadable in BOTH directions at once -- the exact shape of the bug the
+// last accent sweep shipped, ground not moved while ink was.
+//
+// So this pass is VALUE-SEGMENT AWARE rather than prefix-anchored: it finds a
+// `background:` or `color:`, walks to the end of that property's value (the
+// next comma at PAREN DEPTH ZERO, because rgba(20,22,28,0.3) has three commas
+// of its own), and converts the light names ANYWHERE inside it. A ternary, a
+// nested ternary and a bare value are all the same shape to it.
+//
+// MEANING COLOURS ARE LEFT: '#fdecec' says "you missed this one" and '#fbb615'
+// is a badge. Neutralising those to a surface deletes what they say.
+{
+  const BG = { 'T.white': '--stg-surf', 'COLORS.paper': '--stg-surf', 'COLORS.cream': '--stg-surf',
+    'T.surfaceAlt': '--stg-surf2', 'COLORS.ink': '--stg-surf2', 'T.surface': '--stg-surf' };
+  const FG = { 'COLORS.cream': '--stg-ink', 'COLORS.ink': '--stg-ink',
+    'COLORS.faded': '--stg-mute', 'COLORS.soft': '--stg-mute' };
+  let bgN = 0, fgN = 0;
+  const valueEnd = (str, from) => {
+    let d = 0;
+    for (let i = from; i < str.length; i++) {
+      const c = str[i];
+      if (c === '(' || c === '[' || c === '{') d++;
+      else if (c === ')' || c === ']' || c === '}') { if (d === 0) return i; d--; }
+      else if (c === ',' && d === 0) return i;
+    }
+    return str.length;
+  };
+  const pass = (prop, map, onlyTernary) => {
+    const lines = s.split('\n');
+    let hits = 0;
+    for (let i = 0; i < lines.length; i++) {
+      let l = lines[i];
+      let out = '', at = 0;
+      const re = new RegExp('(?<![-\\w])' + prop + ': ', 'g');
+      let m;
+      while ((m = re.exec(l))) {
+        const vs = m.index + m[0].length;
+        const ve = valueEnd(l, vs);
+        let seg = l.slice(vs, ve);
+        // Already converted, or a bare value an earlier named pass owns.
+        if (!seg.includes('var(--stg-') && (!onlyTernary || seg.includes('?'))) {
+          for (const [name, token] of Object.entries(map)) {
+            const nre = new RegExp('(?<![\\w$.])' + name.replace('.', '\\.') + '(?![\\w$])', 'g');
+            if (nre.test(seg)) {
+              seg = seg.replace(nre, '`var(' + token + ',${' + name + '})`');
+              hits += 1;
+            }
+          }
+        }
+        out += l.slice(at, vs) + seg;
+        at = ve;
+        re.lastIndex = at;
+      }
+      if (at) { lines[i] = out + l.slice(at); }
+    }
+    s = lines.join('\n');
+    return hits;
+  };
+  bgN = pass('background', BG, false);
+  // `color:` is restricted to TERNARIES on purpose: the bare ones are already
+  // owned by the INK / FADED consts the chrome pass declared, and converting
+  // them again would be two mechanisms for one decision.
+  fgN = pass('color', FG, true);
+  n += bgN + fgN;
+  console.log(`  · ternary-aware backgrounds: ${bgN}   ternary inks: ${fgN}`);
+  if (!bgN) throw new Error('expected state-bearing background ternaries in this client; origin has moved');
+}
+
 // ── 6. THE MODULE-LEVEL HELPERS, which no const can reach ──────────────────
 //
 // ghostBtn, labelStyle, fieldStyle and StatBox sit at the FOOT of this file,

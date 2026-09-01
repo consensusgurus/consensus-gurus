@@ -1375,7 +1375,7 @@ export default function QuizClient({ quizId }) {
     return (
       <button
         onClick={() => setTab(key)}
-        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? T.white : 'transparent', color: active ? COLORS.ink : COLORS.faded, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: active ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
+        style={{ flex: '1 0 auto', justifyContent: 'center', background: active ? `var(--stg-surf,${T.white})` : 'transparent', color: active ? `var(--stg-ink,${COLORS.ink})` : `var(--stg-mute,${COLORS.faded})`, border: 'none', borderRadius: 7, padding: '9px 14px', whiteSpace: 'nowrap', fontFamily: SANS, fontSize: 13, fontWeight: active ? 700 : 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, boxShadow: active ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}
       >
         {icon}
         {label}
@@ -1412,7 +1412,7 @@ export default function QuizClient({ quizId }) {
                     {LB_POPS.map(([k, label]) => {
                       const on = lbPop === k;
                       return (
-                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? T.white : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                        <button key={k} onClick={() => setLbPop(k)} style={{ padding: '6px 14px', background: on ? `var(--stg-surf,${T.white})` : 'transparent', color: on ? `var(--stg-ink,${COLORS.ink})` : `var(--stg-mute,${COLORS.soft})`, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
                       );
                     })}
                   </div>
@@ -1420,7 +1420,7 @@ export default function QuizClient({ quizId }) {
                     {LB_FILTERS.map(([k, label]) => {
                       const on = lbFilter === k;
                       return (
-                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? T.white : 'transparent', color: on ? COLORS.ink : COLORS.soft, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
+                        <button key={k} onClick={() => setLbFilter(k)} style={{ padding: '6px 14px', background: on ? `var(--stg-surf,${T.white})` : 'transparent', color: on ? `var(--stg-ink,${COLORS.ink})` : `var(--stg-mute,${COLORS.soft})`, border: 'none', borderRadius: 7, fontFamily: SANS, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' }}>{label}</button>
                       );
                     })}
                   </div>
@@ -1439,8 +1439,8 @@ export default function QuizClient({ quizId }) {
                   {lb.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : T.white, borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
-                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : COLORS.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
+                        <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : `var(--stg-mute,${COLORS.faded})` }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
                         <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: FADED, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
                           {row.playedAt ? <span style={{ fontFamily: MONO, fontSize: 10.5, color: FADED }}>{fmtWhen(row.playedAt)}</span> : null}
@@ -1614,8 +1614,8 @@ export default function QuizClient({ quizId }) {
   // inline (non-popup) mobile layout.
   const mapBarDock = mobile === true && mapMode && started && !ended && !mPlayOverlay;
   const mapBarStyle = mapBarDock
-    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: COLORS.ink, color: COLORS.cream, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? COLORS.ink : COLORS.paper, color: started && !ended ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: `var(--stg-surf2,${COLORS.ink})`, color: COLORS.cream, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? `var(--stg-surf2,${COLORS.ink})` : `var(--stg-surf,${COLORS.paper})`, color: started && !ended ? `var(--stg-ink,${COLORS.cream})` : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
 
   // Neutral rather than the accent: the rail sits directly under the cap's
   // progress hairline, which is already drawn in the accent, and two accented
@@ -1851,7 +1851,7 @@ export default function QuizClient({ quizId }) {
                 const live = started && !ended;
                 return (<>
                   <span style={{ ...base, fontVariantNumeric: 'tabular-nums' }} title="Your score">{dispScore}<span style={{ fontSize: 11, color: FADED, fontWeight: 700 }}>/{total}</span></span>
-                  <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : COLORS.ink }} title="Time left">{clock}</span>
+                  <span style={{ ...base, fontFamily: MONO, fontVariantNumeric: 'tabular-nums', minWidth: `calc(${clockMax.length}ch + 26px)`, color: time <= 10 && live ? COLORS.ember : `var(--stg-ink,${COLORS.ink})` }} title="Time left">{clock}</span>
                 </>);
               })()}
               {(started || ended) && !bottomDock && !mapMode && !tileMode && (!matched || ordered) && (
@@ -1870,7 +1870,7 @@ export default function QuizClient({ quizId }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? COLORS.paper : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
+                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
                 />
               )}
               {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
@@ -1896,10 +1896,10 @@ export default function QuizClient({ quizId }) {
               </div>
             )}
             </div>
-            {!bottomDock && <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : COLORS.faded, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>}
+            {!bottomDock && <div style={{ fontFamily: MONO, fontSize: 12, minHeight: 15, marginTop: 2, marginBottom: 8, color: hintBad ? COLORS.ember : `var(--stg-mute,${COLORS.faded})`, ...(portraitPhoto ? { maxWidth: PHOTO_COL, marginLeft: 'auto', marginRight: 'auto' } : null) }}>{hint}</div>}
             {bottomDock && started && (
               <div style={{ position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: `var(--stg-ground,${COLORS.cream})`, borderTop: `1px solid var(--stg-line,${COLORS.line})`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', padding: '9px 14px', paddingBottom: kbInset > 0 ? 9 : 'calc(9px + env(safe-area-inset-bottom))' }}>
-                {hint && <div style={{ fontFamily: MONO, fontSize: 12, marginBottom: 6, color: hintBad ? COLORS.ember : COLORS.faded, textAlign: 'center', minHeight: 14 }}>{hint}</div>}
+                {hint && <div style={{ fontFamily: MONO, fontSize: 12, marginBottom: 6, color: hintBad ? COLORS.ember : `var(--stg-mute,${COLORS.faded})`, textAlign: 'center', minHeight: 14 }}>{hint}</div>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
                   ref={inputRef}
@@ -1916,7 +1916,7 @@ export default function QuizClient({ quizId }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? COLORS.paper : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
+                  style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
                 />
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
               <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: QSTAGE ? QACC : T.cta, color: QSTAGE ? ON_ACC : T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
@@ -1964,7 +1964,7 @@ export default function QuizClient({ quizId }) {
                 {(() => {
                   if (mapImgPrompt && started && !ended && curName) {
                     const src = (answers.find((a) => a.t === curName) || {}).img;
-                    if (src) return (<span key={curName} style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', alignItems: 'center' }}><img src={src} alt="Mystery flag" style={{ height: 44, maxWidth: 88, objectFit: 'contain', border: '1px solid rgba(20,22,28,0.25)', borderRadius: 3, background: T.white /* stage: KEPT WHITE, see patch-quizclient-board.mjs */, display: 'block' }} /></span>);
+                    if (src) return (<span key={curName} style={{ flex: '1 1 auto', minWidth: 0, display: 'flex', alignItems: 'center' }}><img src={src} alt="Mystery flag" style={{ height: 44, maxWidth: 88, objectFit: 'contain', border: '1px solid rgba(20,22,28,0.25)', borderRadius: 3, background: `var(--stg-surf,${T.white})` /* stage: KEPT WHITE, see patch-quizclient-board.mjs */, display: 'block' }} /></span>);
                   }
                   const clueText = ended ? 'Game over' : started ? (mapCapitalPrompt ? (curName ? capOf(curName) : '—') : (curName || '—')) : 'Press Play to start'; return (<span key={clueText} style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(16px, 4.2vw, 21px)', lineHeight: 1.15, flex: '1 1 auto', minWidth: 0, overflowWrap: 'break-word', transform: 'translateZ(0)' }}>{clueText}</span>); })()}
                 {started && !ended && !quiz.erase && (
@@ -1994,7 +1994,7 @@ export default function QuizClient({ quizId }) {
                         <span aria-hidden="true" style={{ fontFamily: MONO, fontSize: tallTiles || squareTiles ? 40 : 26, color: FADED, opacity: 0.3 }}>?</span>
                       )}
                     </div>
-                    <div style={{ minHeight: 30, marginTop: 5, textAlign: 'center', fontFamily: SERIF, fontWeight: 600, fontSize: 13, lineHeight: 1.12, color: f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded }}>
+                    <div style={{ minHeight: 30, marginTop: 5, textAlign: 'center', fontFamily: SERIF, fontWeight: 600, fontSize: 13, lineHeight: 1.12, color: f ? COLORS.forest : reveal ? COLORS.rust : `var(--stg-mute,${COLORS.faded})` }}>
                       {f || reveal ? a.t : <span style={{ fontFamily: MONO, fontSize: 17, opacity: 0.4 }}>?</span>}
                     </div>
                   </li>
@@ -2024,7 +2024,7 @@ export default function QuizClient({ quizId }) {
                       <span>{i + 1} / {answers.length}</span>
                       <span>{solved} solved</span>
                     </div>
-                    <div style={{ borderRadius: 14, border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '44'}`, background: f ? T.white : reveal ? '#f6ead9' : COLORS.paper, padding: '34px 22px', textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
+                    <div style={{ borderRadius: 14, border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '44'}`, background: f ? `var(--stg-surf,${T.white})` : reveal ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '34px 22px', textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
                       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(26px, 5vw, 40px)', lineHeight: 1.1, color: INK }}>{a.label}</div>
                       {f ? (
                         <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: COLORS.forest }}>{a.t}</div>
@@ -2039,7 +2039,7 @@ export default function QuizClient({ quizId }) {
                           onKeyDown={(e) => onSlotKey(i, e)}
                           placeholder={started ? `Type the ${quiz.noun || 'answer'}\u2026` : 'Press Play to begin\u2026'}
                           autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                          style={{ width: '100%', maxWidth: 360, fontFamily: SANS, fontSize: 18, padding: '13px 16px', borderRadius: 8, border: `1.5px solid var(--stg-line,${COLORS.ink})`, background: !started || ended ? COLORS.paper : T.white, color: INK, textAlign: 'center', opacity: !started || ended ? 0.5 : 1 }}
+                          style={{ width: '100%', maxWidth: 360, fontFamily: SANS, fontSize: 18, padding: '13px 16px', borderRadius: 8, border: `1.5px solid var(--stg-line,${COLORS.ink})`, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : `var(--stg-surf,${T.white})`, color: INK, textAlign: 'center', opacity: !started || ended ? 0.5 : 1 }}
                         />
                       )}
                     </div>
@@ -2059,7 +2059,7 @@ export default function QuizClient({ quizId }) {
                   ? { whiteSpace: 'normal', overflowWrap: 'normal', wordBreak: 'normal' } // multi-word: wrap at spaces, never mid-word
                   : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }; // single word: ellipsis, don't break
                 return (
-                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.accBorder : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.line}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? COLORS.accSoft : T.white, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.accBorder : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.line}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? COLORS.accSoft : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -2081,7 +2081,7 @@ export default function QuizClient({ quizId }) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                        style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 16, padding: '9px 12px', borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? COLORS.paper : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
+                        style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 16, padding: '9px 12px', borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : T.paper, color: INK, opacity: !started || ended ? 0.5 : 1 }}
                       />
                     ) : isActive ? (
                       <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above</span>
@@ -2105,7 +2105,7 @@ export default function QuizClient({ quizId }) {
                       const f = found[gi];
                       const rev = ended && revealed && !f;
                       return (
-                        <div key={gi} style={{ borderRadius: 10, border: `1px solid ${f ? COLORS.forest : rev ? COLORS.rust : COLORS.faded + '33'}`, borderRadius: 8, background: f ? T.white : rev ? '#f6ead9' : COLORS.paper, padding: '9px 11px', transition: 'all .2s' }}>
+                        <div key={gi} style={{ borderRadius: 10, border: `1px solid ${f ? COLORS.forest : rev ? COLORS.rust : COLORS.faded + '33'}`, borderRadius: 8, background: f ? `var(--stg-surf,${T.white})` : rev ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '9px 11px', transition: 'all .2s' }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                             <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, flex: 'none' }}>{gi + 1}</span>
                             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: INK, lineHeight: 1.2 }}>{a.clue}</span>
@@ -2307,7 +2307,7 @@ export default function QuizClient({ quizId }) {
                 </p>
                 <button
                   onClick={() => { setQOpen(false); setQSent(false); setQMsg(''); setQName(''); setQEmail(''); }}
-                  style={{ cursor: 'pointer', background: COLORS.ink, color: COLORS.cream, borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, padding: '12px 20px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
+                  style={{ cursor: 'pointer', background: `var(--stg-surf2,${COLORS.ink})`, color: COLORS.cream, borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, padding: '12px 20px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 600 }}
                 >
                   Close
                 </button>
@@ -2383,7 +2383,7 @@ const fieldStyle = { width: '100%', fontFamily: SANS, fontSize: 16, padding: '12
 function StatBox({ label, value, accent }) {
   return (
     <div style={{ background: `var(--stg-surf,${T.white})`, borderRadius: 12, border: `1px solid var(--stg-line,${COLORS.line})`, padding: '16px 14px', textAlign: 'center' }}>
-      <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 28, lineHeight: 1, color: accent ? `var(--stg-acc,${COLORS.ember})` : `var(--stg-ink,${COLORS.ink})` }}>{value}</div>
+      <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 28, lineHeight: 1, color: accent ? COLORS.ember : `var(--stg-ink,${COLORS.ink})` }}>{value}</div>
       <div style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: `var(--stg-mute,${COLORS.soft})`, marginTop: 7 }}>{label}</div>
     </div>
   );
