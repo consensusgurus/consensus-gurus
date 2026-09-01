@@ -116,6 +116,61 @@ const CIRC_LEAD = ['gauntlet', 'five'];
 // thousand rows of the home page.
 const QUIZ_PEEK = 15;
 
+// A PEEK IS A SPREAD, NOT A BATCH, and newest-first alone does not give one.
+// Quizzes ship in families of a dozen at a time, so the newest fifteen in a
+// topic are routinely the same quiz fifteen times: Geography's peek opened as
+// four "Click the Countries of X No Outline" followed by eight "Erase X by
+// Capital (No Skips)", which tells a reader nothing about what is in the topic
+// and reads like a bug.
+//
+// So the peek takes at most two per family off the newest-first list. A family
+// is recognised by TWO keys, because one does not catch them all and the two
+// failure modes are different:
+//
+//   - the PREFIX key, everything before a colon or else the first three words,
+//     catches "Which Is Closer: X" and "LSAT Logic Games: X", whose titles vary
+//     only at the end;
+//   - the ENDS key, first word plus last word, catches "Erase X by Capital (No
+//     Skips)", whose titles vary in the MIDDLE and so share no prefix.
+//
+// Digits are stripped before keying, so "Name All 64 Crayola Colors" and "Name
+// All 48 Crayola Colors" are one family rather than two. A quiz is held back
+// when EITHER of its keys is already at the cap.
+//
+// It is a heuristic and it is asked to do one job: thin a shipped batch. It
+// will occasionally hold back two quizzes that merely rhyme, which costs
+// nothing, because the topic still has hundreds behind "show all" in true
+// newest-first order. The ORDER is the route's; this only chooses which fifteen
+// are shown first.
+const FAMILY_CAP = 2;
+function words(text) {
+  return String(text || '').toLowerCase().replace(/[^a-z ]+/g, ' ').split(/\s+/).filter(Boolean);
+}
+function keysOf(title) {
+  const head = String(title || '').split(':')[0];
+  const hw = words(head);
+  const w = words(title);
+  const prefix = (hw.length < w.length ? hw : w.slice(0, 3)).join(' ');
+  const ends = w.length ? w[0] + ' ' + w[w.length - 1] : '';
+  return [prefix, ends].filter(Boolean);
+}
+function peekOf(list, n) {
+  const seen = new Map();
+  const picked = [];
+  const held = [];
+  for (const q of list) {
+    if (picked.length >= n) break;
+    const ks = keysOf(q.title);
+    if (ks.some((k) => (seen.get(k) || 0) >= FAMILY_CAP)) { held.push(q); continue; }
+    for (const k of ks) seen.set(k, (seen.get(k) || 0) + 1);
+    picked.push(q);
+  }
+  // A topic with fewer families than n still shows n: the cap thins a batch, it
+  // never shortens the peek.
+  for (const q of held) { if (picked.length >= n) break; picked.push(q); }
+  return picked;
+}
+
 // THE PRE-LOAD SKELETON, and it is a skeleton rather than the answer.
 // /api/quiz/topics is the authority on which topics exist, what they are
 // called and what is in them; this list exists only so the section has its
@@ -1000,7 +1055,7 @@ export default function StageToday() {
               const open = openTopics.has(t.id);
               const all = fullTopics.has(t.id);
               const list = t.quizzes || [];
-              const shown = all ? list : list.slice(0, QUIZ_PEEK);
+              const shown = all ? list : peekOf(list, QUIZ_PEEK);
               return (
                 <div key={t.id} className={'sty-topic' + (open ? ' on' : '')}>
                   <button
@@ -1444,7 +1499,14 @@ const CSS = `
    the surface ladder is enough to say it is a different thing. */
 .sty-foot{background:var(--stg-raise);border-top:1px solid var(--stg-line);
   padding:34px 22px 22px;}
-.sty-fin{display:flex;flex-wrap:wrap;gap:30px 38px;align-items:flex-start;}
+/* SPREAD, because it is full bleed. Packed left, the five link columns ended
+   at 1094px of a 2116px window and the footer read as a narrow block sitting in
+   an empty band rather than as the foot of the page. The rest of this surface
+   fills the screen for the same reason (see .sty-wrap), so the footer does too.
+   The columns keep their own gap as a floor, so a narrow window packs them
+   normally instead of stretching two of them across it. */
+.sty-fin{display:flex;flex-wrap:wrap;gap:30px 38px;align-items:flex-start;
+  justify-content:space-between;}
 .sty-fbrand{flex:1 1 250px;max-width:320px;min-width:0;}
 .sty-fbrand .sty-brand b{font-size:15px;font-weight:800;letter-spacing:-0.01em;}
 .sty-fbrand .sty-brand b em{font-style:normal;color:var(--stg-acc);}
