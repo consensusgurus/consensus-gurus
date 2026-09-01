@@ -1,0 +1,907 @@
+<title>Stat Hub on the Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+
+<style>
+/* ============================================================================
+   THE STAT HUB, REDRAWN ON THE STAGE.
+
+   Every colour here is a token the live site already publishes: the stage
+   register pair in app/globals.css and the nine steps of lib/category-ramp.js.
+   Nothing new was invented. The two registers are the site's own, and the
+   switch in the cap is the site's own control.
+
+   :root is the DARK register, because that is the product's default. An
+   explicit light choice (data-theme="light", or the switch in the cap) takes
+   the light register.
+   ========================================================================= */
+
+:root {
+  --ground: #0b0f1a;
+  --raise:  #0e131f;
+
+  --surf:  rgba(255,255,255,.045);
+  --surf2: rgba(255,255,255,.08);
+  --line:  rgba(255,255,255,.11);
+  --line2: rgba(255,255,255,.17);
+  --line3: rgba(255,255,255,.42);
+
+  --ink:   #e9edf4;
+  --ink2:  #aab5c7;
+  --mute:  #8b95a8;
+  --mute2: #78859d;
+  --dim:   #747f97;
+
+  --onramp: #08222e;   /* ink that rides ON a ramp step */
+  --up: #6ee7b7;
+  --dn: #fb7185;
+
+  /* the nine steps, dark register */
+  --c-word:   #7dd3fc;
+  --c-num:    #6ee7b7;
+  --c-logic:  #bef264;
+  --c-end:    #e8b43a;
+  --c-triv:   #fb923c;
+  --c-geo:    #fb7185;
+  --c-cards:  #e879f9;
+  --c-crowd:  #c084fc;
+  --c-arcade: #fbbf24;
+
+  --acc: var(--c-word);          /* the page's one accent: sky, as the Run's */
+  --rung-off: rgba(255,255,255,.10);
+}
+
+:root[data-theme="light"] {
+  --ground: #eef1f6;
+  --raise:  #ffffff;
+
+  --surf:  #ffffff;
+  --surf2: #e4e9f1;
+  --line:  rgba(11,15,26,.14);
+  --line2: rgba(11,15,26,.24);
+  --line3: rgba(11,15,26,.45);
+
+  --ink:   #0b0d12;
+  --ink2:  #3f4757;
+  --mute:  #646c7a;
+  --mute2: #626c83;
+  --dim:   #666c77;
+
+  --onramp: #ffffff;
+  --up: #047857;
+  --dn: #be123c;
+
+  --c-word:   #0369a1;
+  --c-num:    #047857;
+  --c-logic:  #1a7f37;
+  --c-end:    #a16207;
+  --c-triv:   #c2410c;
+  --c-geo:    #be123c;
+  --c-cards:  #a21caf;
+  --c-crowd:  #6d28d9;
+  --c-arcade: #b45309;
+
+  --rung-off: rgba(11,15,26,.10);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: Manrope, system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 22px 90px; }
+
+/* ---- the cap: one line, the way every stage page opens ------------------ */
+.cap {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 15px 22px 14px;
+  max-width: 1180px; margin: 0 auto;
+}
+.mark { display: flex; align-items: center; gap: 9px; flex: none; }
+.mark b { font-size: 15.5px; font-weight: 800; letter-spacing: -.2px; }
+.mark b i { font-style: normal; color: var(--acc); }
+.diamond {
+  width: 15px; height: 15px; border: 2px solid var(--acc);
+  border-radius: 3px; transform: rotate(45deg);
+}
+.eyebrow {
+  font-size: 10.5px; font-weight: 800; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--mute2);
+}
+.cap-figs { display: flex; gap: 26px; margin-left: auto; flex-wrap: wrap; }
+.fig { text-align: right; line-height: 1.15; }
+.fig b { display: block; font-size: 15px; font-weight: 800; white-space: nowrap; }
+.fig span {
+  display: block; margin-top: 3px; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim);
+}
+.fig .of { font-size: 11.5px; font-weight: 700; color: var(--mute); }
+.cap-btns { display: flex; gap: 8px; flex: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line2); background: none; color: var(--ink2);
+  border-radius: 99px; padding: 7px 14px;
+  font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer;
+}
+.chip:hover { background: var(--surf); color: var(--ink); }
+.chip:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+
+/* ---- the jump bar: no ground until it pins ------------------------------ */
+.jump {
+  position: sticky; top: 0; z-index: 20;
+  border-bottom: 1px solid transparent;
+  transition: background .15s, border-color .15s;
+}
+.jump.pinned { background: var(--ground); border-bottom-color: var(--line); }
+.jump-in {
+  max-width: 1180px; margin: 0 auto; padding: 9px 22px;
+  display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+}
+.jump-in::-webkit-scrollbar { display: none; }
+.jump a {
+  flex: none; text-decoration: none; color: var(--mute);
+  font-size: 11px; font-weight: 800; letter-spacing: .11em;
+  text-transform: uppercase; padding: 6px 11px; border-radius: 99px;
+}
+.jump a:hover { color: var(--ink); background: var(--surf); }
+.jump a.on { color: var(--ink); box-shadow: inset 0 -2px 0 var(--acc); border-radius: 0; }
+
+/* ---- sections ---------------------------------------------------------- */
+section { padding: 34px 0 8px; border-top: 1px solid var(--line); }
+section:first-of-type { border-top: 0; }
+.shead { display: flex; align-items: baseline; gap: 13px; flex-wrap: wrap; margin-bottom: 4px; }
+h2 {
+  margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .065em;
+  text-transform: uppercase; color: var(--ink);
+}
+.shead .sub { font-size: 12px; font-weight: 700; color: var(--mute); }
+.shead .right { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--dim); }
+.note { font-size: 11.5px; line-height: 1.6; color: var(--dim); margin: 14px 0 0; max-width: 76ch; }
+
+/* ---- section 1: standing, one graphic in three layers ------------------- */
+.layers { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 34px; margin-top: 20px; }
+.lab {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--dim); margin-bottom: 12px;
+}
+
+.level { display: flex; align-items: baseline; gap: 13px; flex-wrap: wrap; }
+.level .n { font-size: 46px; font-weight: 800; letter-spacing: -1.6px; line-height: .95; }
+.level .iq { font-size: 20px; font-weight: 800; color: var(--ink2); }
+.tier {
+  font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink2); border: 1px solid var(--line2); padding: 3px 9px; border-radius: 5px;
+}
+.delta { font-size: 12.5px; font-weight: 800; color: var(--up); }
+.delta.flat { color: var(--dim); }
+.delta.dn { color: var(--dn); }
+
+.track { margin-top: 18px; }
+.track .bar { height: 5px; border-radius: 99px; background: var(--rung-off); overflow: hidden; }
+.track .bar i { display: block; height: 100%; background: var(--acc); }
+.track .ends {
+  display: flex; justify-content: space-between; margin-top: 7px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--dim);
+}
+
+/* the field: the four rows at the top, drawn to scale */
+.scale { display: grid; gap: 9px; }
+.srow { display: grid; grid-template-columns: 26px minmax(78px, 118px) 1fr auto; gap: 11px; align-items: center; }
+.srow .r { font-size: 11.5px; font-weight: 800; color: var(--dim); }
+.srow .nm { font-size: 13px; font-weight: 700; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow .t { height: 9px; border-radius: 2px; background: var(--rung-off); }
+.srow .t i { display: block; height: 100%; border-radius: 2px; background: var(--line3); }
+.srow .v { font-size: 13px; font-weight: 800; color: var(--ink2); }
+.srow.me .nm, .srow.me .v { color: var(--ink); }
+.srow.me .r { color: var(--acc); }
+.srow.me .t i { background: var(--acc); }
+
+.hand { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--line); }
+.hand-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.hand .gap { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
+.hand .who { font-size: 12.5px; font-weight: 600; color: var(--mute); max-width: 46ch; line-height: 1.5; }
+.cta {
+  margin-left: auto; flex: none; border: 0; cursor: pointer;
+  background: var(--acc); color: var(--onramp);
+  font: inherit; font-size: 13px; font-weight: 800;
+  padding: 11px 22px; border-radius: 8px;
+}
+.cta:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.strip { display: flex; flex-wrap: wrap; gap: 0 40px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); }
+.strip .fig { text-align: left; }
+.strip .fig b { font-size: 17px; }
+
+/* ---- section 2: the ramp ------------------------------------------------ */
+.ladderwrap { overflow-x: auto; padding-bottom: 2px; }
+.ladder { display: flex; gap: 10px; margin: 20px 0 8px; align-items: flex-end; min-width: 640px; }
+.block { display: flex; flex-direction: column; gap: 6px; min-width: 68px; }
+.rungs { display: flex; gap: 2px; }
+.rung { flex: 1 1 0; height: 26px; border-radius: 2px; background: var(--rung-off); min-width: 3px; }
+.blab {
+  font-size: 9px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--dim); white-space: nowrap; line-height: 1.5;
+}
+.blab b { display: block; font-weight: 800; color: var(--mute2); letter-spacing: .06em; }
+.legend { display: flex; gap: 20px; margin-top: 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; color: var(--dim); }
+.legend i { width: 11px; height: 11px; border-radius: 2px; display: inline-block; }
+
+/* ---- tables ------------------------------------------------------------- */
+.tw { overflow-x: auto; margin-top: 18px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 640px; }
+th {
+  text-align: right; padding: 0 0 9px; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .11em; text-transform: uppercase; color: var(--dim);
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+th:first-child, td:first-child { text-align: left; }
+td { padding: 10px 0; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th + th, td + td { padding-left: 18px; }
+tbody tr:hover td { background: var(--surf); }
+tr.me td { background: var(--surf2); }
+tr.me td:first-child { box-shadow: inset 3px 0 0 var(--acc); padding-left: 9px; }
+.nm2 { font-weight: 700; }
+tr.me .nm2 { font-weight: 800; }
+.you { font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--acc); margin-left: 7px; }
+.big { font-weight: 800; }
+.of { font-size: 11px; font-weight: 700; color: var(--dim); }
+.rk {
+  display: inline-block; margin-left: 7px; padding: 2px 6px; border-radius: 4px;
+  background: var(--surf2); color: var(--mute); font-size: 10.5px; font-weight: 800;
+}
+.rk.top { background: var(--acc); color: var(--onramp); }
+.guest { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin-left: 7px; }
+.cdot { display: inline-block; width: 3px; height: 15px; border-radius: 2px; margin-right: 10px; vertical-align: -3px; }
+.podium { font-weight: 800; }
+
+/* ---- section 3: today --------------------------------------------------- */
+.ladderpts { display: flex; gap: 3px; align-items: flex-end; margin: 18px 0 6px; max-width: 420px; }
+.ladderpts div { flex: 1 1 0; text-align: center; }
+.ladderpts i { display: block; background: var(--rung-off); border-radius: 2px 2px 0 0; }
+.ladderpts.on i { background: var(--acc); }
+.ladderpts b { display: block; font-size: 9.5px; font-weight: 800; color: var(--dim); margin-top: 5px; }
+.ladderpts div.mine i { background: var(--acc); }
+.ladderpts div.mine b { color: var(--acc); }
+
+/* ---- section 6: trophies ------------------------------------------------ */
+.band { margin-top: 24px; }
+.band > .lab { margin-bottom: 11px; }
+.trophies { display: grid; grid-template-columns: repeat(auto-fill, minmax(232px, 1fr)); gap: 1px; }
+.tr { box-shadow: 0 0 0 1px var(--line); padding: 13px 15px; display: flex; flex-direction: column; gap: 5px; }
+.tr .top { display: flex; align-items: center; gap: 9px; }
+.tr .tn { font-size: 13px; font-weight: 800; }
+.tr .metal {
+  font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 4px; color: var(--onramp); flex: none;
+}
+.m-bronze { background: var(--c-triv); }
+.m-silver { background: var(--ink2); }
+.m-gold   { background: var(--c-end); }
+.m-diam   { background: var(--c-word); }
+.tr .req { font-size: 11.5px; line-height: 1.45; color: var(--mute); }
+.tr .pct { font-size: 10.5px; font-weight: 700; color: var(--dim); }
+.tr.locked { opacity: .42; }
+.tr.locked .metal { background: none; border: 1px solid var(--line2); color: var(--dim); }
+
+/* ---- section 7: duels --------------------------------------------------- */
+.duel { display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.verdict {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 4px; flex: none;
+}
+.v-won { background: var(--up); color: var(--onramp); }
+.v-pend { border: 1px solid var(--line2); color: var(--mute); }
+.v-dec { border: 1px solid var(--line2); color: var(--dim); }
+.duel .score { font-size: 13px; font-weight: 800; flex: none; }
+.duel .subj { font-size: 12.5px; color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duel .act { margin-left: auto; font-size: 11.5px; font-weight: 800; color: var(--acc); flex: none; }
+.form { display: inline-flex; gap: 3px; margin-left: 10px; vertical-align: -1px; }
+.form i { width: 7px; height: 7px; border-radius: 99px; background: var(--up); display: inline-block; }
+.form i.l { background: var(--dn); }
+
+/* ---- section 8: community ----------------------------------------------- */
+.share { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-top: 22px; }
+.link {
+  display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; font-weight: 600; color: var(--ink2);
+  background: var(--surf); border: 1px solid var(--line);
+  padding: 9px 13px; border-radius: 7px;
+}
+.commbar { height: 9px; border-radius: 2px; background: var(--rung-off); min-width: 90px; }
+.commbar i { display: block; height: 100%; border-radius: 2px; background: var(--line3); }
+tr.me .commbar i { background: var(--acc); }
+
+/* ---- the reasoning note at the foot ------------------------------------- */
+.why { margin-top: 46px; padding-top: 26px; border-top: 1px solid var(--line2); }
+.why h3 { margin: 0 0 14px; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.why dl { margin: 0; display: grid; grid-template-columns: minmax(150px, 190px) 1fr; gap: 12px 24px; }
+.why dt { font-size: 12px; font-weight: 800; color: var(--ink2); }
+.why dd { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--mute); max-width: 74ch; }
+
+@media (max-width: 900px) {
+  .layers { grid-template-columns: 1fr; gap: 30px; }
+  .cap-figs { gap: 18px; width: 100%; margin-left: 0; }
+  .why dl { grid-template-columns: 1fr; gap: 4px 0; }
+  .why dd { margin-bottom: 12px; }
+}
+@media (max-width: 640px) {
+  .wrap, .cap, .jump-in { padding-left: 15px; padding-right: 15px; }
+  .level .n { font-size: 38px; }
+  .ladder { gap: 5px; }
+  .rung { height: 20px; }
+  .blab { font-size: 8px; }
+  .cap-figs { gap: 14px 20px; }
+  .fig b { font-size: 13.5px; }
+  .strip { gap: 0 26px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* solo modes for review: ?m=<section id> */
+body.solo section, body.solo .why, body.solo .jump { display: none; }
+body.solo section.solo-on { display: block; }
+</style>
+
+<header class="cap">
+  <span class="mark"><span class="diamond"></span><b>Mind <i>Loft</i></b></span>
+  <span class="eyebrow">Stat Hub · Monday, August 31</span>
+  <div class="cap-figs">
+    <span class="fig"><b>Gator85</b><span>Player</span></span>
+    <span class="fig"><b style="color:var(--up)">+183</b><span>IQ today</span></span>
+    <span class="fig"><b>#10 <span class="of">of 137</span></b><span>Today</span></span>
+    <span class="fig"><b>#4 <span class="of">of 3,735</span></b><span>Rank</span></span>
+  </div>
+  <div class="cap-btns">
+    <button class="chip" id="lightsw" type="button">Light</button>
+    <a class="chip" href="#you">Today →</a>
+  </div>
+</header>
+
+<nav class="jump" id="jump"><div class="jump-in">
+  <a href="#you" class="on">Standing</a>
+  <a href="#ramp">Categories</a>
+  <a href="#today">Today</a>
+  <a href="#field">Ranking</a>
+  <a href="#quizzes">Quizzes</a>
+  <a href="#trophies">Trophies</a>
+  <a href="#duels">Duels</a>
+  <a href="#community">Community</a>
+</div></nav>
+
+<main class="wrap">
+
+  <!-- ===================================================== 1. STANDING === -->
+  <section id="you">
+    <div class="shead">
+      <h2>Standing</h2>
+      <span class="sub">Master tier · 79 days played</span>
+      <span class="right">Public profile →</span>
+    </div>
+
+    <div class="layers">
+      <div>
+        <div class="lab">Yours</div>
+        <div class="level">
+          <span class="n">Level 34</span>
+          <span class="iq">14,604 IQ</span>
+          <span class="tier">Master</span>
+          <span class="delta">▲ 1,340 this week</span>
+        </div>
+        <div class="track">
+          <div class="bar"><i style="width:81%"></i></div>
+          <div class="ends"><span>Level 34</span><span>271 IQ to level 35</span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="lab">The field</div>
+        <div class="scale" id="scale"></div>
+      </div>
+    </div>
+
+    <div class="hand">
+      <div class="lab">The chase</div>
+      <div class="hand-row">
+        <span class="gap">3,966 IQ to #3</span>
+        <span class="who">e4n sits at 18,570. rookie is 964 behind you and gaining 4,187 a week.</span>
+        <button class="cta" type="button">Chase #3</button>
+      </div>
+    </div>
+
+    <div class="strip">
+      <span class="fig"><b>15 <span class="of">of 78</span></b><span>Played today</span></span>
+      <span class="fig"><b>1,001</b><span>Quizzes played</span></span>
+      <span class="fig"><b>6,760</b><span>Correct answers</span></span>
+      <span class="fig"><b>62%</b><span>Accuracy</span></span>
+      <span class="fig"><b>32 <span class="of">of 50</span></b><span>Trophies</span></span>
+      <span class="fig"><b>#1 <span class="of">of 569</span></b><span>Community</span></span>
+    </div>
+  </section>
+
+  <!-- ================================================== 2. CATEGORIES === -->
+  <section id="ramp">
+    <div class="shead">
+      <h2>Your nine categories</h2>
+      <span class="sub">80 dailies · 9,240 IQ earned here</span>
+      <span class="right">15 played today</span>
+    </div>
+
+    <div class="ladderwrap"><div class="ladder" id="ladder"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--c-word)"></i> Played today</span>
+      <span><i style="background:var(--c-word);opacity:.42"></i> In progress</span>
+      <span><i style="background:var(--rung-off)"></i> Not started</span>
+    </div>
+
+    <div class="tw"><table id="cattab">
+      <thead><tr>
+        <th>Category</th><th>Today</th><th>Archive</th><th>Accuracy</th><th>IQ</th><th>Rank</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="note">One rung per daily, one block per category, so a block is as wide as the
+      category is big. The rank chip is your standing among the players active in that
+      category, not against all 3,735.</p>
+  </section>
+
+  <!-- ======================================================= 3. TODAY === -->
+  <section id="today">
+    <div class="shead">
+      <h2>Today</h2>
+      <span class="sub">#10 of 137 · 121 of 375 points</span>
+      <span class="right">Best 25 of the day's 78 games</span>
+    </div>
+
+    <div class="lab" style="margin-top:20px">What a finish pays</div>
+    <div class="ladderpts" id="pts"></div>
+    <p class="note" style="margin-top:9px">Every game pays the same table. Finish outside the top ten
+      and you still earn 1. Your daily total is your best 25 games, so a wide day beats a deep one.</p>
+
+    <div class="tw"><table id="dailytab">
+      <thead><tr><th>#</th><th>Player</th><th>Games</th><th>Points</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===================================================== 4. RANKING === -->
+  <section id="field">
+    <div class="shead">
+      <h2>The ranking</h2>
+      <span class="sub">3,735 players</span>
+      <span class="right">Tap a column to sort</span>
+    </div>
+    <div class="tw"><table id="fieldtab">
+      <thead><tr>
+        <th>Rank</th><th>Player</th><th>IQ ↓</th><th>7-day</th>
+        <th>Correct</th><th>Completed</th><th>Days</th><th>Accuracy</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="note">Top 2,000 shown, guests included. 3,725 more below you.</p>
+  </section>
+
+  <!-- ===================================================== 5. QUIZZES === -->
+  <section id="quizzes">
+    <div class="shead">
+      <h2>Quizzes</h2>
+      <span class="sub">1,001 of 4,166 played · 5,364 IQ earned here</span>
+      <span class="right">Site totals below</span>
+    </div>
+
+    <div class="strip" style="margin-top:18px;padding-top:0;border-top:0">
+      <span class="fig"><b>75,650</b><span>Total plays</span></span>
+      <span class="fig"><b>1,077,865</b><span>Correct answers</span></span>
+      <span class="fig"><b>19,747</b><span>Perfect quizzes</span></span>
+      <span class="fig"><b>21mo 11d</b><span>Time spent</span></span>
+    </div>
+
+    <div class="tw"><table id="depttab">
+      <thead><tr>
+        <th>Department</th><th>Played</th><th>Completed</th><th>Accuracy</th><th>IQ</th><th>Rank</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- ==================================================== 6. TROPHIES === -->
+  <section id="trophies">
+    <div class="shead">
+      <h2>Trophies</h2>
+      <span class="sub">32 of 50 unlocked</span>
+      <span class="right">Rarity is the share of players holding it</span>
+    </div>
+    <div id="trophybands"></div>
+  </section>
+
+  <!-- ======================================================= 7. DUELS === -->
+  <section id="duels">
+    <div class="shead">
+      <h2>Duels</h2>
+      <span class="sub">4 won, 0 lost<span class="form"><i></i><i></i><i></i><i></i></span></span>
+      <span class="right">#1 on the ladder</span>
+    </div>
+
+    <div class="lab" style="margin-top:22px">Waiting on an opponent</div>
+    <div class="duel">
+      <span class="verdict v-pend">Pending</span>
+      <span class="score">You challenged Gator88</span>
+      <span class="subj">Name the Closest Countries to the Great Wall of China</span>
+      <span class="act">Nudge</span>
+    </div>
+
+    <div class="lab" style="margin-top:26px">Latest</div>
+    <div id="duellist"></div>
+
+    <div class="lab" style="margin-top:26px">The ladder</div>
+    <div class="tw"><table id="ladtab">
+      <thead><tr><th>#</th><th>Player</th><th>Record</th><th>Win rate</th><th>Form</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- =================================================== 8. COMMUNITY === -->
+  <section id="community">
+    <div class="shead">
+      <h2>Community</h2>
+      <span class="sub">#1 of 569 · 17 players brought in</span>
+      <span class="right">Rolling 90 days</span>
+    </div>
+
+    <div class="share">
+      <div>
+        <div class="lab" style="margin-bottom:8px">Your share link</div>
+        <code class="link">mindloftdaily.com/quizzes?ref=gator85</code>
+      </div>
+      <button class="chip" id="copybtn" type="button">Copy link</button>
+    </div>
+    <p class="note" style="margin-top:12px">Someone who opens your link is credited to you the
+      first time they finish a game. The window rolls, so the board is who is bringing people
+      in now, not who did once.</p>
+
+    <div class="tw"><table id="commtab">
+      <thead><tr><th>#</th><th>Player</th><th>Brought in</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- =============================================== WHAT CHANGED, WHY === -->
+  <div class="why">
+    <h3>What changed, and why</h3>
+    <dl>
+      <dt>No tabs inside tabs</dt>
+      <dd>The page carried four tabs, and one of those held five more, so eight of the
+        nine views were behind two clicks. It is one page now, seven sections in flow,
+        with a jump bar. The pattern's rule is that the page is the thing.</dd>
+
+      <dt>The cards are gone</dt>
+      <dd>A white card on a near-black ground is a second ground nobody asked for. Every
+        section sits on the page ground and is separated by a hairline, the way a
+        converted board is.</dd>
+
+      <dt>Standing is one graphic in three layers</dt>
+      <dd>Yours (level, tier, IQ), the field (where you sit among the four at the top),
+        and the handover (the chase, and the one filled control on the page). The old
+        page split those across a stat bar, a card, a podium and a progress rail.</dd>
+
+      <dt>Categories take the ramp</dt>
+      <dd>Nine blocks, one per category, block width honest to how many dailies it holds.
+        Same graphic as the home's "The day", counting your archive instead of today.
+        The colours are <code>lib/category-ramp.js</code> exactly, both registers.</dd>
+
+      <dt>Figures, never prose</dt>
+      <dd>"Each game is worth 15, by where you finish, 15 for 1st, 12 for 2nd…" was four
+        lines of small print. It is the ladder drawn, with your rung lit.</dd>
+
+      <dt>One accent</dt>
+      <dd>Sky, the step the Gauntlet run's CTA already takes, because the Stat Hub spans
+        every category and cannot claim one. The nine steps are the only other colour on
+        the page, and they only ever mean "this category".</dd>
+
+      <dt>The community board is a section, not a chip</dt>
+      <dd>Being #1 of 569 was a figure in a stat bar with nowhere to go, and
+        <code>/quizzes/leaderboard</code> redirects back here. It is a real board now, with
+        your share link beside it, since the board and the one action it asks for belong
+        on the same screen.</dd>
+
+      <dt>Both registers</dt>
+      <dd>The switch in the cap is the stage's own. Nothing here is a new token: the
+        palette is <code>.stage-page</code> and its light twin from <code>globals.css</code>.</dd>
+    </dl>
+    <p class="note">Mockup only. Figures are the live Gator85 account read from the site on
+      31 August 2026; per-category IQ splits are illustrative, since the current page does
+      not surface them.</p>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  var $ = function (s) { return document.querySelector(s); };
+
+  /* ---- the light switch, and the artifact viewer's own theme ------------ */
+  var sw = $('#lightsw');
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    sw.textContent = t === 'light' ? 'Dark' : 'Light';
+  }
+  var qt = new URLSearchParams(location.search).get('t');
+  setTheme(qt === 'light' || document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+  sw.addEventListener('click', function () {
+    setTheme(document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  });
+
+  /* ---- the jump bar takes a ground only once it pins -------------------- */
+  var jump = $('#jump');
+  var probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;top:0;height:1px;width:1px';
+  document.body.appendChild(probe);
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (e) {
+      jump.classList.toggle('pinned', !e[0].isIntersecting);
+    }).observe(probe);
+  }
+  var links = [].slice.call(document.querySelectorAll('.jump a'));
+  var secs = [].slice.call(document.querySelectorAll('main section'));
+  function markActive() {
+    var cur = secs[0];
+    secs.forEach(function (s) { if (s.getBoundingClientRect().top <= 150) cur = s; });
+    links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + cur.id); });
+  }
+  addEventListener('scroll', markActive, { passive: true });
+  // the tables are filled further down this script, so the first pass has to
+  // wait for layout or every section is still stacked at the top.
+  addEventListener('load', markActive);
+  setTimeout(markActive, 0);
+  setTimeout(markActive, 400);
+
+  /* ---- 1. the field, drawn to scale ------------------------------------ */
+  var top4 = [
+    ['1', 'VicMcDoogle', 20558, 0],
+    ['2', 'Darrren1', 18602, 0],
+    ['3', 'e4n', 18570, 0],
+    ['4', 'Gator85', 14604, 1]
+  ];
+  $('#scale').innerHTML = top4.map(function (r) {
+    return '<div class="srow' + (r[3] ? ' me' : '') + '">' +
+      '<span class="r">#' + r[0] + '</span>' +
+      '<span class="nm">' + r[1] + '</span>' +
+      '<span class="t"><i style="width:' + Math.round(r[2] / 20558 * 100) + '%"></i></span>' +
+      '<span class="v">' + r[2].toLocaleString() + '</span></div>';
+  }).join('');
+
+  /* ---- 2. the ramp ------------------------------------------------------ */
+  var CATS = [
+    ['Word',    'word',   16, 2, 1, 41, 2140, 6,  '68%'],
+    ['Numbers', 'num',    16, 3, 0, 38, 1880, 4,  '71%'],
+    ['Logic',   'logic',  16, 2, 1, 33, 1705, 9,  '64%'],
+    ['End Game','end',     7, 1, 0, 52, 1062, 3,  '58%'],
+    ['Trivia',  'triv',   13, 3, 0, 29, 1318, 11, '55%'],
+    ['Geography','geo',    4, 1, 0, 61,  604, 2,  '77%'],
+    ['Cards',   'cards',   3, 1, 0, 24,  244, 7,  '49%'],
+    ['Crowd',   'crowd',   3, 1, 0, 19,  191, 5,  '44%'],
+    ['Arcade',  'arcade',  2, 1, 0, 14,   96, 12, '39%']
+  ];
+  $('#ladder').innerHTML = CATS.map(function (c) {
+    var col = 'var(--c-' + c[1] + ')', n = c[2], done = c[3], part = c[4], out = '';
+    for (var i = 0; i < n; i++) {
+      var st = i < done ? 'background:' + col
+             : i < done + part ? 'background:' + col + ';opacity:.42' : '';
+      out += '<span class="rung" style="' + st + '"></span>';
+    }
+    return '<div class="block" style="flex:' + n + ' 1 0">' +
+      '<span class="rungs">' + out + '</span>' +
+      '<span class="blab">' + c[0] + '<b>' + c[3] + ' / ' + n + '</b></span></div>';
+  }).join('');
+
+  $('#cattab tbody').innerHTML = CATS.map(function (c) {
+    return '<tr><td><i class="cdot" style="background:var(--c-' + c[1] + ')"></i>' +
+      '<span class="nm2">' + (c[0] === 'Crowd' ? 'Crowd Psychology' : c[0]) + '</span></td>' +
+      '<td>' + c[3] + ' <span class="of">of ' + c[2] + '</span></td>' +
+      '<td>' + c[5] + '%</td><td>' + c[8] + '</td>' +
+      '<td class="big">' + c[6].toLocaleString() + '</td>' +
+      '<td><span class="rk' + (c[7] <= 3 ? ' top' : '') + '">#' + c[7] + '</span></td></tr>';
+  }).join('');
+
+  /* ---- 3. today --------------------------------------------------------- */
+  var PTS = [15, 12, 10, 8, 7, 6, 5, 4, 3, 2, 1];
+  $('#pts').innerHTML = PTS.map(function (p, i) {
+    return '<div' + (i === 9 ? ' class="mine"' : '') + '>' +
+      '<i style="height:' + (p / 15 * 44 + 6) + 'px"></i><b>' + p + '</b></div>';
+  }).join('') + '<div style="flex:0 0 46px;text-align:left;padding-left:8px">' +
+    '<i style="height:6px;background:transparent"></i><b style="text-align:left">11th+</b></div>';
+
+  var DAILY = [
+    [1, 'rookie', 38, '357'], [2, 'Darrren1', 30, '288.5'], [3, 'TL68', 24, '204'],
+    [4, 'Bee80', 31, '192'], [5, 'Grimmy', 18, '186'], [6, 'VicMcDoogle', 22, '168'],
+    [7, 'steinni1', 16, '149.5'], [8, 'ccMaryJane', 17, '128'], [9, 'dyj', 14, '126.5'],
+    [10, 'Gator85', 15, '121']
+  ];
+  $('#dailytab tbody').innerHTML = DAILY.map(function (r) {
+    var me = r[1] === 'Gator85';
+    return '<tr' + (me ? ' class="me"' : '') + '><td><span class="' + (r[0] <= 3 ? 'podium' : '') + '">' + r[0] + '</span></td>' +
+      '<td class="nm2">' + r[1] + (me ? '<span class="you">you</span>' : '') + '</td>' +
+      '<td>' + r[2] + ' <span class="of">of 78</span></td>' +
+      '<td class="big">' + r[3] + ' <span class="of">/375</span></td></tr>';
+  }).join('');
+
+  /* ---- 4. the ranking --------------------------------------------------- */
+  var FIELD = [
+    [1, 'VicMcDoogle', 20558, 3050, 2976, 1039, 46, 79, 0],
+    [2, 'Darrren1', 18602, 4797, 2241, 904, 31, 73, 0],
+    [3, 'e4n', 18570, 2467, 2571, 949, 52, 77, 0],
+    [4, 'Gator85', 14604, 1408, 6760, 536, 79, 62, 1],
+    [5, 'rookie', 13640, 4187, 1707, 713, 25, 81, 0],
+    [6, 'steinni1', 12734, 2754, 1693, 609, 48, 70, 0],
+    [7, 'Guest·9A6A', 11401, 1615, 3833, 550, 52, 76, 2],
+    [8, 'charchuk', 10392, 0, 2165, 511, 34, 78, 0],
+    [9, 'Guest·4465', 10070, 1352, 1294, 526, 46, 79, 2],
+    [10, 'Gator88', 10005, 1987, 1104, 535, 54, 74, 0]
+  ];
+  $('#fieldtab tbody').innerHTML = FIELD.map(function (r) {
+    var d = r[3] > 0 ? '<span style="color:var(--up)">▲ ' + r[3].toLocaleString() + '</span>'
+                     : '<span style="color:var(--dim)">±0</span>';
+    return '<tr' + (r[8] === 1 ? ' class="me"' : '') + '>' +
+      '<td><span class="' + (r[0] <= 3 ? 'podium' : '') + '">' + r[0] + '</span></td>' +
+      '<td class="nm2">' + r[1] + (r[8] === 1 ? '<span class="you">you</span>' : '') +
+        (r[8] === 2 ? '<span class="guest">guest</span>' : '') + '</td>' +
+      '<td class="big">' + r[2].toLocaleString() + '</td><td>' + d + '</td>' +
+      '<td>' + r[4].toLocaleString() + '</td><td>' + r[5].toLocaleString() + '</td>' +
+      '<td>' + r[6] + '</td><td>' + r[7] + '%</td></tr>';
+  }).join('');
+
+  /* ---- 5. quiz departments ---------------------------------------------- */
+  var DEPT = [
+    ['Geography', 'geo', 94, '30 (5%)', 61, 2098, 7, 1252],
+    ['Sports', 'end', 47, '12 (5%)', 67, 1193, 1, 366],
+    ['Word Puzzles', 'word', 53, '43 (8%)', 85, 845, 13, 827],
+    ['Science & Nature', 'num', 49, '22 (5%)', 51, 667, 4, 295],
+    ['Business', 'logic', 30, '4 (3%)', 64, 596, 1, 303],
+    ['Movies', 'geo', 26, '7 (4%)', 67, 499, 3, 153],
+    ['History', 'triv', 32, '15 (12%)', 63, 399, 9, 249],
+    ['Entertainment', 'cards', 28, '18 (1%)', 58, 386, 13, 253],
+    ['Food & Drink', 'arcade', 20, '5 (0%)', 64, 348, 1, 262],
+    ['Literature', 'crowd', 11, '2 (2%)', 44, 193, 4, 65],
+    ['Travel', 'num', 17, '2 (2%)', 49, 186, 2, 213],
+    ['Arts & Culture', 'crowd', 6, '0 (0%)', 48, 66, 12, 51],
+    ['Music', 'end', 4, '1 (1%)', 58, 41, 8, 42],
+    ['Gaming', 'cards', 5, '0 (0%)', 39, 36, 4, 37],
+    ['Standardized Tests', 'word', 1, '0 (0%)', 8, 20, 3, 15]
+  ];
+  $('#depttab tbody').innerHTML = DEPT.map(function (d) {
+    return '<tr><td><i class="cdot" style="background:var(--c-' + d[1] + ')"></i>' +
+      '<span class="nm2">' + d[0] + '</span></td>' +
+      '<td>' + d[2] + '</td><td>' + d[3] + '</td><td>' + d[4] + '%</td>' +
+      '<td class="big">' + d[5].toLocaleString() + '</td>' +
+      '<td><span class="rk' + (d[6] <= 3 ? ' top' : '') + '">#' + d[6] +
+      '</span> <span class="of">of ' + d[7].toLocaleString() + '</span></td></tr>';
+  }).join('');
+
+  /* ---- 6. trophies ------------------------------------------------------ */
+  var BANDS = [
+    ['Standing', [
+      ['Crown Holder', 'gold', 'Hold the best score on any quiz leaderboard.', '4%', 1],
+      ['Crown Collector', 'diam', 'Hold the best score on 5 quiz leaderboards at once.', '<1%', 1],
+      ['Top Ten', 'diam', 'Reach the top 10 of the global IQ ranking.', '<1%', 1],
+      ['Podium', 'gold', 'Reach the top 3 in any category.', '<1%', 1],
+      ['Double Digits', 'silver', 'Reach level 10.', '3%', 1],
+      ['Master Tier', 'diam', 'Reach level 18 and the Master tier.', '1%', 1]
+    ]],
+    ['Perfection', [
+      ['Spotless', 'bronze', 'Score 100% on a quiz.', '46%', 1],
+      ['Perfectionist', 'silver', 'Ace 10 different quizzes.', '7%', 1],
+      ['Immaculate', 'gold', 'Ace 50 different quizzes.', '3%', 1],
+      ['Giant Slayer', 'gold', 'Score 100% on one of the hardest quizzes on the site.', '0%', 0],
+      ['Hot Hand', 'silver', 'Score three perfects in a single day.', '14%', 1]
+    ]],
+    ['Daily puzzles', [
+      ['Daily Debut', 'bronze', 'Play your first daily puzzle.', '54%', 1],
+      ['Sampler', 'silver', 'Play 10 different daily games.', '6%', 1],
+      ['Completionist', 'silver', 'Play every live daily game at least once.', '0%', 0],
+      ['Devotee', 'gold', 'Play 100 daily puzzles.', '2%', 1],
+      ["Day's Best", 'gold', 'Post the top score on a daily board.', '7%', 1],
+      ['Serial Champion', 'diam', 'Post the top score on ten daily boards.', '<1%', 1]
+    ]]
+  ];
+  $('#trophybands').innerHTML = BANDS.map(function (b) {
+    return '<div class="band"><div class="lab">' + b[0] + '</div><div class="trophies">' +
+      b[1].map(function (t) {
+        return '<div class="tr' + (t[4] ? '' : ' locked') + '">' +
+          '<span class="top"><span class="tn">' + t[0] + '</span>' +
+          '<span class="metal m-' + t[1] + '">' + t[1].replace('diam', 'diamond') + '</span></span>' +
+          '<span class="req">' + t[2] + '</span>' +
+          '<span class="pct">' + t[3] + ' of players have this</span></div>';
+      }).join('') + '</div></div>';
+  }).join('');
+
+  /* ---- 7. duels --------------------------------------------------------- */
+  var DUELS = [
+    ['won', 'You 5 - 1', 'asdfkrpstlm', 'Name the Closest Countries to Milford Sound', 'Rematch'],
+    ['won', 'You 6 - 0', 'asdfkrpstlm', 'Click the US States No Outline', 'Rematch'],
+    ['won', 'You 978 - 53', 'asdfkrpstlm', 'NYC Restaurant Geo Guesser (Pt. 1)', 'Rematch'],
+    ['won', 'You 5 - 2', 'asdfkrpstlm', 'The White Lotus Character Match', 'Rematch'],
+    ['declined', '', 'ttttt', 'Name the Closest Countries to Antarctica', ''],
+    ['declined', '', 'testtttt', 'Name the Closest Countries to Antarctica', '']
+  ];
+  $('#duellist').innerHTML = DUELS.map(function (d) {
+    var cls = d[0] === 'won' ? 'v-won' : 'v-dec';
+    return '<div class="duel"><span class="verdict ' + cls + '">' + d[0] + '</span>' +
+      (d[1] ? '<span class="score">' + d[1] + ' ' + d[2] + '</span>'
+            : '<span class="score" style="color:var(--mute)">' + d[2] + '</span>') +
+      '<span class="subj">' + d[3] + '</span>' +
+      (d[4] ? '<span class="act">' + d[4] + '</span>' : '') + '</div>';
+  }).join('');
+
+  var LAD = [[1, 'Gator85', '4-0', 100, 4, 1], [2, 'Alice', '1-0', 100, 1, 0],
+             [3, 'anuj42', '1-0', 100, 1, 0], [4, 'Morvey', '1-0', 100, 1, 0],
+             [5, 'QTARD', '1-0', 100, 1, 0]];
+  $('#ladtab tbody').innerHTML = LAD.map(function (r) {
+    var f = ''; for (var i = 0; i < r[4]; i++) f += '<i></i>';
+    return '<tr' + (r[5] ? ' class="me"' : '') + '>' +
+      '<td><span class="' + (r[0] <= 3 ? 'podium' : '') + '">' + r[0] + '</span></td>' +
+      '<td class="nm2">' + r[1] + (r[5] ? '<span class="you">you</span>' : '') + '</td>' +
+      '<td>' + r[2] + '</td><td>' + r[3] + '%</td>' +
+      '<td><span class="form">' + f + '</span></td></tr>';
+  }).join('');
+
+  /* ---- 8. community ----------------------------------------------------- */
+  var COMM = [
+    ['Gator85', 17, 1], ['Gayle F', 10, 0], ['LookAtLeo', 7, 0], ['Jimbo', 3, 0],
+    ['Annie', 3, 0], ['Johnsbigsister', 3, 0], ['Gator88', 3, 0], ['Sophie', 2, 0],
+    ['fractal', 2, 0], ['akira', 2, 0]
+  ];
+  $('#commtab tbody').innerHTML = COMM.map(function (r, i) {
+    return '<tr' + (r[2] ? ' class="me"' : '') + '>' +
+      '<td><span class="' + (i < 3 ? 'podium' : '') + '">' + (i + 1) + '</span></td>' +
+      '<td class="nm2">' + r[0] + (r[2] ? '<span class="you">you</span>' : '') + '</td>' +
+      '<td class="big">' + r[1] + '</td>' +
+      '<td style="width:44%"><span class="commbar"><i style="width:' +
+      Math.round(r[1] / 17 * 100) + '%"></i></span></td></tr>';
+  }).join('');
+
+  var cb = $('#copybtn');
+  cb.addEventListener('click', function () {
+    cb.textContent = 'Copied';
+    setTimeout(function () { cb.textContent = 'Copy link'; }, 1600);
+  });
+
+  /* ---- solo modes for review: ?m=<section id> --------------------------- */
+  var m = new URLSearchParams(location.search).get('m');
+  if (m) {
+    document.body.classList.add('solo');
+    var el = document.getElementById(m);
+    if (el) el.classList.add('solo-on');
+  }
+
+  /* ---- VERIFY: a contact sheet of every section, temporary -------------- */
+  var VERIFY = false;
+  if (VERIFY && !m) {
+    var ids = [['field', ''], ['quizzes', ''], ['trophies', ''], ['duels', ''],
+               ['community', ''], ['you', 'light'], ['ramp', 'light'], ['trophies', 'light']];
+    var html = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:8px;background:#0b0f1a">';
+    ids.forEach(function (p) {
+      var u = new URL(location.href); u.searchParams.set('m', p[0]);
+      if (p[1]) u.searchParams.set('t', p[1]);
+      html += '<div style="width:380px;height:340px;overflow:hidden;border:1px solid #333">' +
+        '<iframe src="' + u.toString() + '" style="width:1266px;height:1133px;border:0;' +
+        'transform:scale(.3);transform-origin:0 0"></iframe></div>';
+    });
+    ['ramp', 'community'].forEach(function (id) {
+      var u2 = new URL(location.href); u2.searchParams.set('m', id);
+      html += '<div style="width:392px;height:340px;overflow:hidden;border:1px solid #333">' +
+        '<iframe src="' + u2.toString() + '" style="width:392px;height:340px;border:0"></iframe></div>';
+    });
+    document.body.innerHTML = html + '</div>';
+  }
+})();
+</script>
