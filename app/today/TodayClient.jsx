@@ -164,7 +164,7 @@ const CIRC_ID = 'tdy-circuits';
 // Seventeen tiles was the whole family laid out for a reader who had not asked
 // for any particular one, and the family already has its own index page. The
 // row's last tile opens the rest in place, which is also where their stars are.
-const LEAD_CIRCUIT = 'gauntlet';
+const LEAD_CIRCUITS = ['gauntlet', 'five', 'sudoku'];   // the shelf's front three (owner, 2026-09-01)
 
 // A pinned CIRCUIT is stored as `c:<id>` (owner, 2026-09-01). One favorites
 // column, one star control, two kinds of thing in it: the prefix is what stops
@@ -873,7 +873,7 @@ export default function TodayClient({ onSignup = null } = {}) {
   // personal shelves open and every category stays a title. Nobody else gets an
   // open shelf until they open one.
   const hasPins = !!(canPin && pinned.length);
-  const openDefault = (id) => (id === MINE_ID || id === CIRC_ID ? hasPins : false);
+  const openDefault = (id) => (id === CIRC_ID ? true : (id === MINE_ID ? hasPins : false));
   const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
     ? !!shelfOpen[id]
     : openDefault(id));
@@ -1104,8 +1104,9 @@ export default function TodayClient({ onSignup = null } = {}) {
   // the family, which lib/circuits already orders for exactly this.
   const circRow = useMemo(() => {
     if (circAll) return circuitShelves;
-    const lead = circuitShelves.filter((c) => c.id === LEAD_CIRCUIT);
-    return lead.length ? lead : circuitShelves.slice(0, 1);
+    const byId = new Map(circuitShelves.map((c) => [c.id, c]));
+    const lead = LEAD_CIRCUITS.map((id) => byId.get(id)).filter(Boolean);
+    return lead.length ? lead : circuitShelves.slice(0, 3);
   }, [circuitShelves, circAll]);
 
   const circTot = circuitShelves.length;

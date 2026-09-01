@@ -131,10 +131,12 @@ function fmtDate(ymd) {
 const CIRC_PEEK_NARROW = 3;
 const AZ_KEY = 'sot_stage_az';
 
-// The two the shelf leads with, by id. lib/circuits.js orders DISPLAY_CIRCUITS
-// the same way; this repeats it because the home's sort has to interleave that
+// The three the shelf leads with, by id: the Trivia Gauntlet, the Daily Five,
+// then Sudoku (owner, 2026-09-01). lib/circuits.js orders DISPLAY_CIRCUITS the
+// same way; this repeats it because the home's sort has to interleave that
 // lead with the reader's own progress, which that module knows nothing about.
-const CIRC_LEAD = ['gauntlet', 'five'];
+// On a phone the shelf's peek is exactly these three (CIRC_PEEK_NARROW).
+const CIRC_LEAD = ['gauntlet', 'five', 'sudoku'];
 
 // HOW MANY QUIZZES A TOPIC SHOWS BEFORE "show all". The catalogue is over
 // eighteen hundred quizzes and Geography alone is four hundred and thirty
@@ -253,11 +255,11 @@ const SHELF_OPEN_KEY = 'sot_shelf_open';
 const MINE_ID = 'sty-mine';
 const CIRC_ID = 'sty-circs';
 
-// THE CIRCUITS SHELF SHOWS ONE CIRCUIT: the Trivia Gauntlet (owner,
-// 2026-09-01). Seventeen cards, or even the lead three, was the family laid out
-// for a reader who had not asked for any particular one. Show all still opens
-// the rest, and that is also where their stars are.
-const LEAD_CIRCUIT = 'gauntlet';
+// THE CIRCUITS SHELF OPENS FOR EVERYONE, first visit included, on ONE ROW led
+// by the Gauntlet, the Daily Five and Sudoku in that order (owner, 2026-09-01,
+// second ruling that day; it had been gauntlet-led and stars-only). Show all
+// still opens the rest, and that is also where the other circuits' stars are.
+const LEAD_CIRCUITS = CIRC_LEAD;
 
 // A starred CIRCUIT is stored as `c:<id>` in the same favorites column the
 // game stars write to (owner, 2026-09-01). My games is one shelf of the things
@@ -904,14 +906,16 @@ export default function StageToday() {
   // circuits FIT across, measured off the grid's own computed columns rather
   // than guessed from a breakpoint.
   //
-  // The Trivia Gauntlet leads it whatever its state. The sort below sends a
-  // FINISHED circuit to the end, which is right for the shelf in general and
-  // wrong for the one circuit the page is built around: finish the Gauntlet at
-  // 7/7 and it would leave the front on the very day it was played.
+  // The Gauntlet, the Five and Sudoku lead it whatever their state, in that
+  // order. The sort below sends a FINISHED circuit to the end, which is right
+  // for the shelf in general and wrong for the three the page is built around:
+  // finish the Gauntlet at 7/7 and it would leave the front on the very day it
+  // was played. A phone's peek is exactly the three.
   const circPeek = narrow ? CIRC_PEEK_NARROW : Math.max(1, circCols);
   const circLead = useMemo(() => {
-    const lead = circuits.filter((c) => c.id === LEAD_CIRCUIT);
-    const rest = circuits.filter((c) => c.id !== LEAD_CIRCUIT);
+    const byId = new Map(circuits.map((c) => [c.id, c]));
+    const lead = LEAD_CIRCUITS.map((id) => byId.get(id)).filter(Boolean);
+    const rest = circuits.filter((c) => !LEAD_CIRCUITS.includes(c.id));
     return [...lead, ...rest].slice(0, Math.max(1, circPeek));
   }, [circuits, circPeek]);
 
@@ -928,11 +932,13 @@ export default function StageToday() {
     + pinnedCircs.filter((c) => c.n === c.games.length).length;
 
   // ── which sections are open ─────────────────────────────────────────
-  // A reader with stars is a reader who has been here before, so their two
-  // personal sections open and every category stays a title. Nobody else gets
-  // an open section until they open one.
+  // The Circuits shelf opens for EVERY reader, first visit included (owner,
+  // 2026-09-01): its one row is the Gauntlet, the Five and Sudoku, which is the
+  // page's own invitation. My games opens only for a reader with stars, since
+  // it is empty for anyone else, and every category stays a title until opened.
+  // A stored override (a shelf shut by hand) still wins over either default.
   const hasPins = mineTot > 0;
-  const openDefault = (id) => (id === MINE_ID || id === CIRC_ID ? hasPins : false);
+  const openDefault = (id) => (id === CIRC_ID ? true : (id === MINE_ID ? hasPins : false));
   const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
     ? !!shelfOpen[id]
     : openDefault(id));
