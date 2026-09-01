@@ -565,7 +565,7 @@ export default function QuotesClient({ puzzles = [], questionsByNum = {}, forceN
           outcome={playing ? null : (won ? 'won' : (depth > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           figures={playing ? [
             { v: `${depth}/${TOTAL_Q}`, k: 'straight' },

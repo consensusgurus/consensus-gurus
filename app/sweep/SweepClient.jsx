@@ -636,7 +636,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : verdictTone}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : verdictWord}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [

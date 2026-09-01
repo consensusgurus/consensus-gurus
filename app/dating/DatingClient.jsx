@@ -734,7 +734,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · Six events' : null}
           figures={playing ? [

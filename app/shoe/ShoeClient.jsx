@@ -519,7 +519,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · 7 hands, the whole deck' : null}
           figures={playing

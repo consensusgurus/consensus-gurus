@@ -1043,7 +1043,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition \u00b7 6\u00d76' : null}
           figures={playing ? [

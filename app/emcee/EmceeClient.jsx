@@ -715,7 +715,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · 7×7' : null}
           figures={playing ? [

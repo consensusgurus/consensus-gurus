@@ -629,7 +629,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? `Sunday Edition · Par ${par}` : null}
           figures={playing ? [

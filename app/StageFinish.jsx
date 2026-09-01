@@ -341,7 +341,12 @@ export default function StageFinish({
     [options],   // eslint-disable-line react-hooks/exhaustive-deps
   );
   const forward = opts.find((o) => o.tone === 'similar') || null;
-  const rest = opts.filter((o) => o !== forward);
+  // SHARE IS THE FOOT OF THE GRID (owner, 2026-08-31). It ranked 0, which put
+  // it directly under the lead pair and above Play another: a card whose most
+  // emphatic tile sat in the middle of the run. It is pulled out here and
+  // rendered after everything else, full width on a phone.
+  const goldOpt = opts.find((o) => o.kind === 'gold') || null;
+  const rest = opts.filter((o) => o !== forward && o !== goldOpt);
 
   const archiveRows = Array.isArray(archive) ? archive : [];
   const archiveBtn = (
@@ -576,7 +581,8 @@ export default function StageFinish({
             // this game, or every day of it. All 80 clients already pass
             // `archive` to LoftFinish; the stage ending simply never took it.
             return (o.tone === 'another' && archiveRows.length)
-              ? [node, archiveBtn] : node;
+              ? <div key={`pair${i}`} className="stf-pair">{node}{archiveBtn}</div>
+              : node;
           })}
           {/* No 'Play another'? The archive still belongs on the card. */}
           {archiveRows.length && !rest.some((o) => o.tone === 'another') ? archiveBtn : null}
@@ -587,6 +593,14 @@ export default function StageFinish({
             onClick={() => setCat((v) => (v === 'all' ? null : 'all'))}>
             <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${LIVE().length}`}</i>
           </button>
+          {/* Last, and on a phone the whole width. */}
+          {goldOpt ? (goldOpt.href
+            ? <a className="stf-o gold" href={goldOpt.href} onClick={goldOpt.onClick}>
+                <b>{goldOpt.label}</b>{goldOpt.sub ? <i>{goldOpt.sub}</i> : null}
+              </a>
+            : <button type="button" className="stf-o gold" onClick={goldOpt.onClick}>
+                <b>{goldOpt.label}</b>{goldOpt.sub ? <i>{goldOpt.sub}</i> : null}
+              </button>) : null}
         </div>
 
         {/* The list opens under the button that asked for it, newest first. */}
@@ -600,10 +614,12 @@ export default function StageFinish({
                 <a key={a.num} className={'stf-archr' + (a.done ? ' done' : '')} href={a.href}>
                   <span className="d">{a.dateLabel}{a.sunday ? <i>Sunday</i> : null}</span>
                   <span className="n">No. {a.num}</span>
-                  {/* Played is STATED, not implied: a bare score next to a row
-                      that says Play reads as noise. */}
+                  {/* WHOSE score, said out loud (owner, 2026-08-31). A bare
+                      figure ahead of the word Played read as a crowd count. */}
                   <span className="v">{a.done
-                    ? <>{a.score != null ? <b>{a.score}</b> : null}<em>Played</em></>
+                    ? (a.score != null
+                        ? <><em>You scored</em><b>{a.score}</b></>
+                        : <em>Played</em>)
                     : 'Play'}</span>
                 </a>
               ))}
@@ -704,7 +720,13 @@ const CSS = `
 .stf-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
 .stf-tbl td{padding:7px 6px;border-bottom:1px solid var(--stg-line);font-size:13.5px;}
 .stf-tbl tr:last-child td{border-bottom:0;}
-.stf-tbl tr.me td{background:var(--stg-chip);font-weight:800;}
+.stf-tbl tr.me td{background:var(--stg-acc);color:var(--stg-onramp,#fff);font-weight:800;
+  border-bottom-color:transparent;}
+/* The three cells that set their own colour need it taken back off them, or
+   the mute grey and the ink2 survive on top of the fill. */
+.stf-tbl tr.me .stf-pos,.stf-tbl tr.me .stf-sc,.stf-tbl tr.me .stf-pt{color:var(--stg-onramp,#fff);}
+.stf-tbl tr.me td:first-child{border-radius:7px 0 0 7px;}
+.stf-tbl tr.me td:last-child{border-radius:0 7px 7px 0;}
 .stf-pos{width:44px;font-family:${MONO};font-size:12px;color:var(--stg-mute);}
 .stf-who{font-weight:700;}
 .stf-sc,.stf-pt{width:56px;text-align:right;color:var(--stg-ink2);}
@@ -741,6 +763,9 @@ const CSS = `
 /* The gold Share keeps its own weight: it is the one option that asks for
    something rather than offering something. */
 .stf-o.gold{background:var(--stg-acc);color:var(--stg-onramp,#08222e);border-color:transparent;}
+/* The pair keeps its own two-up track whatever the parent is doing, so 'Play
+   another' and the archive sit beside each other at every width. */
+.stf-pair{grid-column:1/-1;display:grid;gap:7px;grid-template-columns:1fr 1fr;}
 .stf-o.gold i{color:inherit;opacity:.78;}
 .stf-o:focus-visible,.stf-fwd:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
 
@@ -800,5 +825,7 @@ const CSS = `
      Written as :has() rather than a class on that one call site, so any future
      single-tile row is right without anyone remembering this. */
   .stf-opts:has(> :only-child){grid-template-columns:1fr;}
+  /* Share is the one tile a phone gives a whole row to. */
+  .stf-opts > .stf-o.gold{grid-column:1/-1;}
 }
 `;

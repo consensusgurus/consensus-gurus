@@ -728,7 +728,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (landed ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Target hit' : landed ? `${landed} of ${TARGETS.length}` : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · 3 targets' : null}
           figures={capFigures}

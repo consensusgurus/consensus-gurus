@@ -610,7 +610,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (filled > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (filled > 0 ? 'Partly solved' : 'Not solved'))}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · 4x4' : null}
           figures={playing

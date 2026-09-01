@@ -83,6 +83,23 @@ const BANDS = [
   { max: Infinity, key: 'cold', label: 'over 2,500 mi', color: '#475569', bg: '#e2e8f0', border: 'rgba(71,85,105,0.4)', sq: '⬜' },
 ];
 const bandOf = (mi) => BANDS.find((b) => mi <= b.max);
+
+// THE BANDS ARE A HUE ON THE STAGE, not a pastel (owner, 2026-08-31). Each
+// band's paper is hardcoded light (#fef3c7 and friends), which is correct on
+// cream and unreadable on the dark register, where the row's own type is
+// var(--stg-ink). So on the stage the band names a THEME TOKEN instead --
+// those flip per register, unlike a literal -- and the fill is mixed out of
+// it over var(--stg-raise), the one background that is opaque in both.
+const STAGE_HUE = { hot: 'var(--stg-bad)', warm: 'var(--stg-warn)', cool: 'var(--stg-cool)', cold: 'var(--stg-mute)' };
+function bandSkin(b, stage) {
+  if (!stage) return { bg: b.bg, border: b.border, color: b.color };
+  const h = STAGE_HUE[b.key] || 'var(--stg-acc)';
+  return {
+    bg: `color-mix(in srgb, ${h} 13%, var(--stg-raise))`,
+    border: `color-mix(in srgb, ${h} 48%, transparent)`,
+    color: h,
+  };
+}
 const fmtMi = (mi) => mi.toLocaleString('en-US');
 
 // Distance is computed, banded, and scored in MILES everywhere (haversineMiles,
@@ -604,14 +621,14 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   // mi / km segmented control (display units only, never affects scoring)
   function UnitToggle() {
     return (
-      <span role="group" aria-label="Distance units" style={{ display: 'inline-flex', border: '1.5px solid rgba(28,30,36,0.28)', borderRadius: 7, overflow: 'hidden', flex: '0 0 auto' }}>
+      <span role="group" aria-label="Distance units" style={{ display: 'inline-flex', border: `1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.28)'}`, borderRadius: 7, overflow: 'hidden', flex: '0 0 auto' }}>
         {['mi', 'km'].map((u) => (
           <button
             key={u}
             onClick={() => changeUnit(u)}
             aria-pressed={unit === u}
             title={u === 'km' ? 'Show distances in kilometers' : 'Show distances in miles'}
-            style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, lineHeight: 1.6, border: 'none', cursor: 'pointer', padding: '2px 9px', background: unit === u ? COLORS.ink : `var(--stg-surf, ${T.white})`, color: unit === u ? T.white : COLORS.faded }}
+            style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, lineHeight: 1.6, border: 'none', cursor: 'pointer', padding: '2px 9px', background: unit === u ? (STAGE ? 'var(--stg-acc)' : COLORS.ink) : `var(--stg-surf, ${T.white})`, color: unit === u ? (STAGE ? 'var(--stg-onramp, #fff)' : T.white) : FADED }}
           >
             {u}
           </button>
@@ -624,9 +641,14 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   function GuessRow({ x, i, last }) {
     const solvedRow = g.status !== 'playing' && x.mi === 0;
     const b = bandOf(x.mi);
-    const bg = solvedRow ? COLORS.greenSoft : b.bg;
-    const border = solvedRow ? 'rgba(21,128,61,0.5)' : b.border;
-    const color = solvedRow ? '#166534' : b.color;
+    const skin = bandSkin(b, STAGE);
+    const bg = solvedRow
+      ? (STAGE ? 'color-mix(in srgb, var(--stg-good) 15%, var(--stg-raise))' : COLORS.greenSoft)
+      : skin.bg;
+    const border = solvedRow
+      ? (STAGE ? 'color-mix(in srgb, var(--stg-good) 50%, transparent)' : 'rgba(21,128,61,0.5)')
+      : skin.border;
+    const color = solvedRow ? (STAGE ? 'var(--stg-good)' : '#166534') : skin.color;
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: bg, border: `1.5px solid ${border}`, borderRadius: 9, padding: '8px 12px', animation: last ? ' pgrow .25s ease' : undefined }}>
         <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, width: 14, flex: '0 0 auto' }}>{i + 1}</span>
@@ -650,10 +672,14 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft} accentDeep={COLORS.accentDeep}
       lead="One secret city a day. Find it with distance alone."
       chips={[
-        { label: `Cold ${fmtDistIn(2500, unit)}+`, style: { background: '#eef2f7', border: '1.5px solid #475569', color: '#475569' } },
-        { label: 'Cool', style: { background: '#eef2f7', border: '1.5px solid #0a1730', color: '#0a1730' } },
-        { label: 'Warm', style: { background: STAGE ? 'var(--stg-surf2)' : '#fef3c7', border: '1.5px solid #92610b', color: '#92610b' } },
-        { label: `Hot, within ${fmtDistIn(200, unit)}`, style: { background: '#fee2e2', border: '1.5px solid #9a3d0c', color: '#9a3d0c' } },
+        ...['cold', 'cool', 'warm', 'hot'].map((k) => {
+          const b = BANDS.find((x) => x.key === k);
+          const s = bandSkin(b, STAGE);
+          const label = k === 'cold' ? `Cold ${fmtDistIn(2500, unit)}+`
+            : k === 'hot' ? `Hot, within ${fmtDistIn(200, unit)}`
+            : (k === 'cool' ? 'Cool' : 'Warm');
+          return { label, style: { background: s.bg, border: `1.5px solid ${s.border}`, color: s.color } };
+        }),
       ]}
       steps={[
         <>Guess <b>any world city</b> to begin. There are <b>no clues</b> and <b>no guess limit</b>. Type a city, or a <b>country</b> to see the cities in it.</>,
@@ -688,7 +714,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (finalScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : 'Not solved')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition · Tricky' : null}
           figures={playing ? [
@@ -707,12 +733,12 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           @keyframes pgfade{from{opacity:0;}}
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
-          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
+          .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
           .pg-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
           .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid var(--stg-acc, ${COLORS.accent});background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
           .pg-go:active{transform:translateY(1px);}
-          .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
-          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));padding:10px 13px;cursor:pointer;}
+          .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:${STAGE ? 'var(--stg-raise)' : 'var(--white)'};border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,0.42);overflow:hidden;z-index:20;}
+          .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-raise)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));padding:10px 13px;cursor:pointer;}
           .pg-sug button:last-child{border-bottom:none;}
           .pg-sug button:hover,.pg-sug button.on{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .pg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -772,7 +798,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {/* These figures move UP into the cap on a loft page; printing
               them twice is the one thing to avoid. */}
           {!LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: `1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.18)'}`, paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the secret city</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
             <span style={{ whiteSpace: 'nowrap' }}>guess <b style={{ color: INK, fontWeight: 500 }}>{guesses.length}</b>{playing ? ' so far' : ''}</span>
@@ -782,7 +808,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
               control), not a figure, so it belongs with the board rather
               than in the cap. Restyled off the retired mono texture. */}
           {LOFT && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, borderBottom: '1px solid rgba(28,30,36,0.12)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: FADED, borderBottom: `1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.12)'}`, paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span>Name the secret city</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex' }}><UnitToggle /></span>
           </div>
@@ -881,7 +907,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? 'var(--stg-raise)' : PAPER, border: `1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.18)'}`, borderRadius: 10, padding: '12px 14px' }}>
                   <MapPin size={30} strokeWidth={2.2} style={{ color: won ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, flex: '0 0 auto' }} />
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     <b style={{ fontSize: 16 }}>{TARGET.name}, {TARGET.country}.</b> <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.blurb}</span>
@@ -1015,7 +1041,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                   Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The tile opens today&apos;s city, every day.
                 </p>
               )}
-              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
+              <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: STAGE ? 'var(--stg-acc)' : COLORS.ink, color: STAGE ? 'var(--stg-onramp, #fff)' : T.white, cursor: 'pointer' }}>Got it</button>
             </div>
           </div>
         )}
@@ -1070,7 +1096,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
               <button onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} aria-label="Close" style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: FADED }}><X size={20} /></button>
             </div>
             {rulesBody}
-            <button className="pg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: COLORS.ink, color: T.white }}>Play</button>
+            <button className="pg-btn" onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }} style={{ marginTop: 14, background: STAGE ? 'var(--stg-acc)' : COLORS.ink, color: STAGE ? 'var(--stg-onramp, #fff)' : T.white, borderColor: 'transparent' }}>Play</button>
           </div>
         </div>
       )}

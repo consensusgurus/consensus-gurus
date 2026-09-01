@@ -532,7 +532,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           outcome={playing ? null : (won ? 'won' : (foundCount > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (foundCount > 0 ? 'Partly solved' : 'Not solved'))}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           figures={playing ? [
             { v: `${foundCount}/${TOTAL}`, k: 'borders' },

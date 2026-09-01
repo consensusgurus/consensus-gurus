@@ -786,7 +786,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (score > 0 ? 'won' : 'lost')}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (score > 0 ? 'complete' : 'not complete')}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [

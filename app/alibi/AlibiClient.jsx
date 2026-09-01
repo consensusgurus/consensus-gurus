@@ -647,7 +647,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           outcome={playing ? null : (won ? 'won' : (score > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (score > 0 ? 'Partly solved' : 'Not solved'))}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [

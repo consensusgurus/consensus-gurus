@@ -1333,7 +1333,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           outcome={playing ? null : (won ? 'won' : (endScore > 0 ? 'part' : 'lost'))}
           num={PUZZLE.num}
           tiles={playing ? null : upNext}
-          dateLabel={playing ? PUZZLE.dateLabel : (won ? 'Solved' : (endScore > 0 ? 'Partly solved' : 'Not solved'))}
+          dateLabel={PUZZLE.dateLabel}
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday ? 'Sunday Edition' : null}
           figures={playing ? [
