@@ -28,7 +28,7 @@ export const metadata = {
   openGraph: {
     title: 'Links — A Daily Word Grouping Puzzle',
     description:
-      'Sixteen words, four hidden threads, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Mind Loft.',
+      'Sixteen words, four hidden groups, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Mind Loft.',
     url: '/links',
     type: 'website',
     siteName: 'Mind Loft',
@@ -37,7 +37,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Links — A Daily Word Grouping Puzzle',
     description:
-      'Sixteen words, four hidden threads, four mistakes to spare.',
+      'Sixteen words, four hidden groups, four mistakes to spare.',
   },
 };
 

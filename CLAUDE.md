@@ -6750,3 +6750,54 @@ just the ones with nothing stored.
   and makes itself `position:relative`, or the bubble cannot find the glyph to measure
   against. Four caps draw one today: `StageChrome` (every daily), `today/StageToday` (the
   home), `circuits/CircuitFrame`, and `quizzes/hub/StatHubClient`.
+
+## Thread (`/thread`) — nine films described badly, one hidden thread (launched 2026-09-01)
+
+Key/route/folder `thread`, category **Trivia**, registry `miss: 'Wrong calls'`, accent
+`#8b2c6b` / navy `#e9a3d0`. Day 1 is 2026-09-01 (the Tom Hanks board from the design
+study, https://claude.ai/code/artifact/a844b779-3b92-4318-bc73-47ec73b9503a), bank runs to
+**2026-09-13**, with Sunday Editions on 9/6 and 9/13. Wired by `scripts/wire-thread.mjs`
+(anchored on the `focus` rows, idempotent) off a same-step `git archive FETCH_HEAD` export.
+
+**The game.** Nine tiles, each a LOGLINE: a true, useless one-sentence description of a
+film by someone who watched it and missed the point ("A delivery man takes four years to
+deliver one package"). Type titles in any order, no penalty for a miss; the box matches on
+every keystroke through `app/thread/match.js` and clears on a hit. Every film is a point.
+The tenth answer is the THREAD, what all nine share (an actor, a director, a year, a city,
+a way of ending), called at any moment: **+6 with a third or fewer of the board still
+open, +4 with up to two thirds, +2 after that**; three wrong calls lock it at 0 and the
+films still score. Score /15. Part of every board is PLANTED to read as a false thread,
+and a wrong call that names a planted one says how many tiles it covers ("Spielberg covers
+3 of the 9"), which is information, so it is worth a strike. Tapping a tile shows its
+letter pattern, free. Give up locks an uncalled thread; once every thread has landed the
+same control reads "Reveal the rest" and keeps the score.
+
+**Sunday Edition:** sixteen tiles, two threads of eight, interleaved. A call names either
+thread and its eight light up. Score /28, tiers by thirds of sixteen (0-5 / 6-10 / 11-16).
+The design study's "assign the eight before a thread pays" sort step was NOT built; a
+landed thread reveals its own tiles.
+
+**Ranking.** The board posts `progress` = tiles still open when the thread was called
+(summed over both calls on a Sunday), so the comparator runs score, then earlier call,
+then clock, with the wrong-call count skipped as the standing `progress` rule requires.
+First attempt stands. The abandon flush is gated on `acted` (a tile solved or a call
+made), so opening the page and leaving files nothing.
+
+**Authoring, all enforced by `scripts/verify-thread.mjs`:** a logline never contains its
+own title, any of its keys, or any thread key; the true thread covers every tile and every
+decoy strictly fewer; no film returns inside 60 days and no thread ever returns; the
+collision audit runs each title through the REAL matcher and requires it to credit its own
+tile and nothing else (that caught 'e t' firing inside "the third", so a multi-word key
+under four characters is token-only); Sunday flags sit on real Sundays. No facts to
+freeze, no dictionary. The sentence is the craft: a flat summary is a dead tile.
+
+**Two things done on the way.** Links' registry tag and rules copy said "hidden threads";
+two games cannot both mean "thread" with only one called that, so Links says **groups**
+everywhere a reader sees it (registry, grid, strip, promo, end card, archive card, its own
+page metadata and share text, the OG card). And `lib/game-glyphs.js` gained `thread` (a
+strand with one loop) plus the `focus` glyph Focus had shipped without; the PNG tiles
+under `public/games/` are single-colour fallbacks for the legacy grid only, the stage
+surfaces draw the glyph.
+
+**Not in a circuit** (Gauntlet is at its cap and Thread is not a question bank), not in
+the Daily Five bank. Share text carries one logline and never a title or the thread.

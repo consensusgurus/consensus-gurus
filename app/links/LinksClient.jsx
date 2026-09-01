@@ -1,6 +1,6 @@
 'use client';
 
-// Links — sixteen words, four hidden threads.
+// Links — sixteen words, four hidden groups.
 //
 // A 4x4 grid of sixteen words hides four groups of four. Select four tiles
 // and submit: a right guess banks the group as a colored bar (yellow, green,
@@ -524,7 +524,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
   }
   function copyShare() {
     const text = playing
-      ? `Links #${PUZZLE.num} — sixteen words, four hidden threads. Can you untangle them?\n${shareUrl()}`
+      ? `Links #${PUZZLE.num} — sixteen words, four hidden groups. Can you untangle them?\n${shareUrl()}`
       : shareText();
     if (notifyShareCredit(text)) return;
     try {
