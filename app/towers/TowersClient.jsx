@@ -835,7 +835,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .tw-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
           .tw-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 var(--stg-acc, ${COLORS.accentDeep});}
-          .tw-pad.armed .tw-pad-n{color:${COLORS.accentTint};}
+          .tw-pad.armed .tw-pad-n{color:${STAGE ? 'color-mix(in srgb, var(--stg-onramp, #08222e) 68%, transparent)' : COLORS.accentTint};}
           .tw-pad .tw-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .tw-clue{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(12px,3vw,17px);color:${INK};user-select:none;line-height:1;min-width:0;min-height:0;}
           .tw-clue.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border-radius:4px;}
@@ -843,7 +843,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-mark.ok{color:${COLORS.green};}
           .tw-mark.off{color:${COLORS.rust};}
           .tw-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .tw-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
+          .tw-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>

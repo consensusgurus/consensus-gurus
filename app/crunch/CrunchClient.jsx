@@ -641,7 +641,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           .cr-tile:active{transform:translateY(1px);}
           .cr-tile.on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:2px;}
           .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid var(--blue-deep);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
-          .cr-op.on{background:${COLORS.ink};color:var(--white);}
+          .cr-op.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};}
           .cr-op:disabled{opacity:0.35;cursor:default;}
           .cr-rack.shake{animation:crshake .34s ease;}
           @keyframes crshake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}

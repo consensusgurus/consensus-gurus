@@ -928,7 +928,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${INK};min-width:0;min-height:0;line-height:1;}
           .et-clue.done{color:#c3c8d4;}
           .et-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .et-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
+          .et-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
 
         <div style={{ maxWidth: shellMax, margin: '0 auto' }}>

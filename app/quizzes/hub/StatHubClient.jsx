@@ -1086,7 +1086,11 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
   return (
     <div>
       {/* 1. The combined daily leaderboard (full board + per-game tabs). */}
-      <DailyCombinedLeaderboard light allTimeToggle initialTab={initialGame} key={initialGame || 'overall'} />
+      {/* `stage`, not `light`: the hub moved to the stage and the light board is
+          the pre-stage white card, which painted a white rectangle on a near-black
+          page (and painted it first, which read as the page pre-firing an old
+          leaderboard). /daily is still light and still passes `light`. */}
+      <DailyCombinedLeaderboard stage allTimeToggle initialTab={initialGame} key={initialGame || 'overall'} />
 
       {/* 2. Day-by-day champion history. */}
       <div id="daily-champions" className="card" style={{ padding: '16px 18px', marginTop: 16, scrollMarginTop: 16 }}>

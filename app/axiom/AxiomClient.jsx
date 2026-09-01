@@ -736,7 +736,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
           .ax-tile.marked{background:var(--stg-surf, ${COLORS.paper});border-style:dashed;border-color:rgba(28,30,36,0.32);color:${FADED};text-decoration:line-through;text-decoration-thickness:1.5px;opacity:0.7;}
           .ax-tile.marked:hover:not(:disabled){opacity:1;}
           .ax-tool{font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:5px 10px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.1;}
-          .ax-tool.on{background:${COLORS.ink};color:var(--white);border-color:var(--stg-ink, ${COLORS.ink});}
+          .ax-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
           .ax-rule{display:flex;align-items:flex-start;gap:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:9px;padding:10px 12px;margin-bottom:7px;width:100%;text-align:left;font-family:${SANS};cursor:pointer;}
           .ax-rule.struck{opacity:0.5;}
           .ax-rule.struck .ax-rule-t{text-decoration:line-through;}
