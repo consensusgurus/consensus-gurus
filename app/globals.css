@@ -464,9 +464,18 @@ body:has(.stage-page) .qch-bar { display: none !important; }
 
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;
-  --stg-mute: #646c7a;
-  --stg-mute2: #626c83;
-  --stg-dim: #666c77;
+  /* THE BAR IS --stg-surf2, NOT THE GROUND (2026-09-01). The dark block's rule
+     says these three carry real text and must clear 4.5, and they did, on the
+     page ground. Almost none of them SITS on the page ground: a chip, a panel,
+     a table cell and a bar's empty half are all --stg-surf2, which is darker
+     than the ground, and against that these read 4.33 / 4.29 / 4.33. Measured
+     live on the Stat Hub, where 24 of 28 contrast misses were this one pairing
+     and nothing else. Darkened until each clears 4.5 on surf2 (4.68 / 4.63 /
+     4.66), which leaves them 5.1 on the ground. Keep BOTH grounds in mind when
+     these next move, and keep the ordering ink > ink2 > mute > mute2 > dim. */
+  --stg-mute: #5f6774;
+  --stg-mute2: #5d6780;
+  --stg-dim: #616774;
   /* PER CATEGORY, not per register (owner, 2026-08-31). Six of the nine light
      steps are mid-tones that carry white; the three warm ones stay pastel and
      carry the near-black instead, because gold darkened until it holds white

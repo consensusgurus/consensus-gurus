@@ -21,6 +21,12 @@ import { T } from '@/lib/theme';
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 // gold / silver / bronze for the top-3 podium highlight (light theme)
 const MEDAL = [T.gold, '#a9b0bd', '#c8814b'];
+// The ink that rides ON a medal disc. It was T.white, which is 1.91:1 on gold,
+// 2.18 on silver and 3.14 on bronze, and a medal is the same three colours in
+// every register so no theme could fix it. Near-black clears all three (9.3 /
+// 8.3 / 5.7) and matches the convention the rest of the site already uses for
+// a medal: pale disc, dark numeral.
+const MEDAL_INK = '#14181f';
 const MEDAL_BG = ['#fdf8ec', '#f4f5f7', '#f8f1e9'];
 const MEDAL_BD = ['#f0e2ba', '#e3e5ea', '#e8d6c2'];
 
@@ -364,7 +370,7 @@ function RankNum({ n, th }) {
   if ((th.light || th.stage) && n >= 1 && n <= 3) {
     const sz = d ? 19 : 23;
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sz, height: sz, borderRadius: '50%', background: MEDAL[n - 1], color: T.white, fontFamily: FONT, fontWeight: 900, fontSize: d ? 11 : 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: sz, height: sz, borderRadius: '50%', background: MEDAL[n - 1], color: MEDAL_INK, fontFamily: FONT, fontWeight: 900, fontSize: d ? 11 : 13, fontVariantNumeric: 'tabular-nums', boxShadow: '0 1px 2px rgba(20,22,28,0.18)' }}>{n}</span>
     );
   }
   return <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: d ? 14 : 17, color: n <= 3 ? th.rankTop : th.rankOther, fontVariantNumeric: 'tabular-nums' }}>{n}</span>;
