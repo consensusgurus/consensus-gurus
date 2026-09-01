@@ -39,6 +39,7 @@ import { withRef } from '@/lib/referrals';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { DAILY_GAME_MAP, dailyScoreText } from '@/lib/daily-games';
 import CircuitScorecard from '../circuits/CircuitScorecard';
+import CircuitFrame from '../circuits/CircuitFrame';
 import useCircuitBoard from '../circuits/useCircuitBoard';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -182,6 +183,7 @@ export default function DailyFiveSummary() {
   ];
 
   return (
+    <CircuitFrame label="Run summary">
     <div className="d5s">
       <style dangerouslySetInnerHTML={{ __html: `
         .d5s{max-width:860px;margin:0 auto;padding:10px 18px 70px;
@@ -240,5 +242,6 @@ export default function DailyFiveSummary() {
         Return to main
       </a>
     </div>
+    </CircuitFrame>
   );
 }

@@ -1,5 +1,4 @@
 import DailyFiveSummary from './DailyFiveSummary';
-import CircuitFrame from '../circuits/CircuitFrame';
 
 // /daily-five — a run summary. Where a run ENDS: the board for that run, then
 // one abridged result per game.
@@ -9,15 +8,17 @@ import CircuitFrame from '../circuits/CircuitFrame';
 // the same query /api/quiz/daily-combined already takes. The client reads the
 // param, so this server component stays static.
 //
-// ON THE STAGE, with the rest of the circuit family (2026-08-31). It wore
+// ON THE STAGE, with the rest of the circuit family (2026-09-01). It wore
 // QuizNavHeader's masthead and stat bar and NavyFrame's re-inked site footer,
-// which is the chrome every other daily surface left that day. CircuitFrame
-// carries the stage cap, the register switch and the stage footer instead.
+// which is the chrome every other daily surface left on 2026-08-31.
 //
-// NO ACCENT PASSED. Which circuit this is comes from the query string and is
-// read by the CLIENT (readCircuitParam), so the server cannot know it, and a
-// hue that arrived after hydration would repaint the page under the reader.
-// The stage's default sky is the honest answer for a page that serves fifteen.
+// ⚠️ THE FRAME IS RENDERED BY DailyFiveSummary, NOT FROM HERE. Wrapping the
+// summary in CircuitFrame at this level put a client component's `children`
+// across the server boundary into another client component, and the route went
+// inert: React #329, a render crash, leaving SSR markup with no effects, so the
+// page read "0 of 0 played" with no date. That is the same signature this route
+// showed at its August launch. Client rendering client is the shape
+// /circuits/<id> already proved. Do not hoist the frame back up here.
 //
 // NOINDEX, on purpose. Every word on this page is either a leaderboard that
 // changes hourly or one viewer's own results, so there is nothing here for a
@@ -33,9 +34,5 @@ export const metadata = {
 };
 
 export default function DailyFivePage() {
-  return (
-    <CircuitFrame label="Run summary">
-      <DailyFiveSummary />
-    </CircuitFrame>
-  );
+  return <DailyFiveSummary />;
 }

@@ -331,8 +331,12 @@ const CSS = `
 .clp-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
 .clp-c:hover{border-color:var(--cc);}
 .clp-c:focus-visible{outline:2px solid var(--cc);outline-offset:2px;}
+/* INK2, NOT MUTE. --stg-mute is tuned against the PAGE ground; on --stg-chip it
+   measures 4.34:1, which is the same number and the same cause as the me-row's
+   figures on the stage home. A supporting figure standing on a chip steps up
+   one token. */
 .clp-num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--stg-chip);
-  color:var(--stg-mute);font-family:${MONO};font-size:11px;font-weight:700;
+  color:var(--stg-ink2);font-family:${MONO};font-size:11px;font-weight:700;
   display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
 .clp-c.played{border-color:color-mix(in srgb, var(--cc) 40%, transparent);}
 .clp-c.played .clp-num{color:var(--cc);}
