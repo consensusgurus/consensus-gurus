@@ -729,8 +729,25 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
 
           <div style={{ maxWidth: 430, margin: '0 auto', position: 'relative' }}>
             <div key={shake} className={`pk-lot${shake ? ' shake' : ''}`}>
-              {/* the exit gap, cut through the right wall on the escape row */}
-              <div style={{ position: 'absolute', right: -10, top: `${EXIT_ROW * cellPct}%`, width: 10, height: `${cellPct}%`, background: LOT }} />
+              {/* THE EXIT, cut through the right wall on the escape row.
+                  Painting it the lot colour was enough on the Loft, where a cream
+                  slot sits in a dark brown frame. On the stage the wall and the
+                  lot are two weights of the same white and the gap read as
+                  nothing at all, which on a game whose whole object is "get the
+                  red one out" is the one thing that cannot be missed.
+
+                  So the opening is MARKED rather than merely left empty: an
+                  accent-tinted slot, with the two cut ends of the wall lit in the
+                  accent above and below it. All three sit inside the wall's own
+                  10px band, because at 390px the lot fills the column and
+                  anything hanging past it is clipped or pushes the page sideways.
+
+                  Off the stage every token is undefined: the slot falls back to
+                  the lot cream and both lips to transparent, so the Loft board is
+                  exactly what it was. */}
+              <div style={{ position: 'absolute', right: -10, top: `${EXIT_ROW * cellPct}%`, width: 10, height: `${cellPct}%`, background: `color-mix(in srgb, var(--stg-acc, ${LOT}) 26%, var(--stg-ground, ${LOT}))` }} />
+              <div aria-hidden="true" style={{ position: 'absolute', right: -10, top: `${EXIT_ROW * cellPct}%`, width: 10, height: 3, background: 'var(--stg-acc, transparent)' }} />
+              <div aria-hidden="true" style={{ position: 'absolute', right: -10, top: `calc(${(EXIT_ROW + 1) * cellPct}% - 3px)`, width: 10, height: 3, background: 'var(--stg-acc, transparent)' }} />
               {/* lot markings */}
               {Array.from({ length: N - 1 }).map((_, i) => (
                 <React.Fragment key={i}>

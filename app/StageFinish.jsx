@@ -596,5 +596,11 @@ const CSS = `
   .stf-ciq i{font-size:10px;margin-top:5px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
   .stf-opts{grid-template-columns:1fr 1fr;}
+  /* A LONE TILE TAKES THE WHOLE ROW. The retry ending puts exactly one option
+     here ("Show end game card"), so a two-column track left it at half width
+     under a full-width "Replay instantly" and the pair read as a mistake.
+     Written as :has() rather than a class on that one call site, so any future
+     single-tile row is right without anyone remembering this. */
+  .stf-opts:has(> :only-child){grid-template-columns:1fr;}
 }
 `;
