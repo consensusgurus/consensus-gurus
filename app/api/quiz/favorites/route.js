@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase-server';
 import { isMissingColumn } from '@/lib/quiz-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
 import { DAILY_KEYS } from '@/lib/daily-games';
+import { ALL_CIRCUITS } from '@/lib/circuits';
 
 // /api/quiz/favorites -- the games a player pinned (owner, 2026-08-02).
 //
@@ -47,6 +48,17 @@ export const fetchCache = 'force-no-store';
 const FAV_MAX = null;
 const KEY_SET = new Set(DAILY_KEYS);
 
+// A CIRCUIT CAN BE PINNED TOO (owner, 2026-09-01), stored as `c:<id>`. My games
+// is one shelf of the things a player wants in front of them, and a circuit is
+// one of those things; it is not a second feature, a second column or a second
+// control, just a second kind of key in the same text array. The prefix is what
+// stops a circuit id ever colliding with a game key, and it is why nothing else
+// needed touching: every consumer that reads this column for GAMES matches on
+// exact daily keys and simply never matches a prefixed one.
+const CIRC_PIN = 'c:';
+const CIRC_SET = new Set(ALL_CIRCUITS.map((c) => CIRC_PIN + c.id));
+const knownKey = (k) => KEY_SET.has(k) || CIRC_SET.has(k);
+
 function identOf(searchParams) {
   return {
     anonId: (searchParams.get('anonId') || '').trim() || null,
@@ -61,7 +73,7 @@ function cleanKeys(arr) {
   const out = [];
   for (const k of arr) {
     const key = typeof k === 'string' ? k.trim() : '';
-    if (KEY_SET.has(key) && !out.includes(key)) out.push(key);
+    if (knownKey(key) && !out.includes(key)) out.push(key);
     if (FAV_MAX && out.length >= FAV_MAX) break;
   }
   return out;
@@ -123,7 +135,7 @@ export async function POST(request) {
   const key = typeof body.key === 'string' ? body.key.trim() : '';
   const on = body.on !== false;
 
-  if (!KEY_SET.has(key)) {
+  if (!knownKey(key)) {
     return NextResponse.json({ ok: false, error: 'unknown_game' }, { status: 400 });
   }
   try {

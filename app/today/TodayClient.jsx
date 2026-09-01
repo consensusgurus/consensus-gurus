@@ -137,6 +137,46 @@ function secId(shelf) {
 // per-screen preference, so it needs no column and no migration.
 const CAT_ORDER_KEY = 'sot_cat_order';
 
+// WHICH SHELVES ARE OPEN, and a first load opens NONE of them (owner,
+// 2026-09-01). Seventy games in ten sideways rows is a lot of page to hand a
+// reader who has not asked for any of it, so the page now opens as a run of
+// TITLES: every shelf paints its own coloured band, and the band is the
+// control that opens it.
+//
+// THE TILES STAY IN THE HTML, hidden with display:none rather than dropped
+// from the render. That is not about animation: this page is the crawl path to
+// every daily, and a collapse that removed the tiles would take ~70 internal
+// links with it. It also keeps TilesRow's ResizeObserver on a real element, so
+// a row measures its own overflow the moment it is shown.
+//
+// OPENING A SHELF STICKS, per browser, beside the category order and for the
+// same reason it gave: pins are a set worth carrying between devices, a shelf
+// order and a shelf's open state are per-screen preferences, so neither needs a
+// column or a migration. The stored value is an explicit OVERRIDE map, never a
+// list of open shelves: a shelf the reader has never touched keeps following
+// the default (which changes the day they pin something), and a shelf they shut
+// by hand stays shut even where the default would open it.
+const SHELF_OPEN_KEY = 'sot_shelf_open';
+const MINE_ID = 'tdy-mine';
+const CIRC_ID = 'tdy-circuits';
+
+// THE CIRCUITS ROW SHOWS ONE CIRCUIT (owner, 2026-09-01): the Trivia Gauntlet.
+// Seventeen tiles was the whole family laid out for a reader who had not asked
+// for any particular one, and the family already has its own index page. The
+// row's last tile opens the rest in place, which is also where their stars are.
+const LEAD_CIRCUIT = 'gauntlet';
+
+// A pinned CIRCUIT is stored as `c:<id>` (owner, 2026-09-01). One favorites
+// column, one star control, two kinds of thing in it: the prefix is what stops
+// a circuit id ever colliding with a game key, and every consumer that reads
+// that column for GAMES (sortByMyGames, the old console) simply never matches a
+// prefixed key, so none of them needed touching. /api/quiz/favorites validates
+// the prefix against ALL_CIRCUITS. No migration: the column is a text array.
+const CIRC_PIN = 'c:';
+const circPinKey = (id) => CIRC_PIN + id;
+const isCircPin = (k) => typeof k === 'string' && k.slice(0, 2) === CIRC_PIN;
+const circPinId = (k) => (isCircPin(k) ? k.slice(2) : null);
+
 function jumpTo(e, id) {
   try {
     const el = document.getElementById(id);
@@ -281,6 +321,12 @@ export default function TodayClient({ onSignup = null } = {}) {
   const [archive, setArchive] = useState(null);
   // null = the default order. An array = the reader dragged their own.
   const [catOrder, setCatOrder] = useState(null);
+  // NULL until the browser's own overrides are read, which keeps the server and
+  // the first client paint agreeing on the default (everything shut).
+  const [shelfOpen, setShelfOpen] = useState(null);
+  // The circuits row past its one lead tile. Not persisted: it is a look at the
+  // family, not a preference about the page.
+  const [circAll, setCircAll] = useState(false);
   // 'az' | 'order' | null, the bar's two dropdowns.
   const [sheet, setSheet] = useState(null);
   // The chip track scrolls, and until 2026-08-25 the only ways to scroll it
@@ -333,6 +379,19 @@ export default function TodayClient({ onSignup = null } = {}) {
   }, []);
 
   useEffect(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SHELF_OPEN_KEY) || 'null');
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        const clean = {};
+        for (const k of Object.keys(raw)) if (typeof raw[k] === 'boolean') clean[k] = raw[k];
+        setShelfOpen(clean);
+      } else {
+        setShelfOpen({});
+      }
+    } catch (e) { setShelfOpen({}); }
+  }, []);
+
+  useEffect(() => {
     const upd = () => setBarTop(pinnedBarH());
     upd();
     window.addEventListener('resize', upd);
@@ -381,15 +440,6 @@ export default function TodayClient({ onSignup = null } = {}) {
     if (!archive) return shelves;
     return shelves.slice().sort((a, b) => (catPlays[b.name] || 0) - (catPlays[a.name] || 0));
   }, [shelves, catOrder, archive, catPlays]);
-
-  // Pins, filtered to games actually on today's slate: the route caps and
-  // cleans against the roster, which still holds retired games.
-  const pinned = useMemo(() => {
-    if (!canPin || !favorites || !favorites.length) return [];
-    const onSlate = new Map();
-    for (const s of shelves) for (const g of s.games) onSlate.set(g.key, g);
-    return favorites.map((k) => onSlate.get(k)).filter(Boolean);
-  }, [favorites, canPin, shelves]);
 
   const azGames = useMemo(() => {
     const all = [];
@@ -470,6 +520,29 @@ export default function TodayClient({ onSignup = null } = {}) {
       return { kind: 'circuit', id: c.id, name: c.name, blurb: c.blurb || '', color, games };
     }).filter(Boolean);
   }, [today]);
+
+  // MY GAMES HOLDS BOTH KINDS (owner, 2026-09-01). Pins, resolved against
+  // today's slate: the route cleans against the roster, which still holds
+  // retired games, and a circuit resolves through circuitShelves so it carries
+  // the day's real roster rather than a fixed array.
+  //
+  // DECLARED HERE, BELOW circuitShelves, and that placement is load-bearing:
+  // this memo's body runs during render, so reading a `const` declared further
+  // down the component is a TDZ ReferenceError, not a stale value.
+  const pinned = useMemo(() => {
+    if (!canPin || !favorites || !favorites.length) return [];
+    const onSlate = new Map();
+    for (const s of shelves) for (const g of s.games) onSlate.set(g.key, g);
+    const circs = new Map(circuitShelves.map((c) => [circPinKey(c.id), c]));
+    return favorites.map((k) => {
+      if (isCircPin(k)) {
+        const c = circs.get(k);
+        return c ? { ...c, pinKey: k, href: circuitEntryHref(c.id) } : null;
+      }
+      const g = onSlate.get(k);
+      return g ? { ...g, pinKey: k } : null;
+    }).filter(Boolean);
+  }, [favorites, canPin, shelves, circuitShelves]);
 
   // ── play state: DailyStrip's three passes ──
   const [done, setDone] = useState(() => new Set());
@@ -681,10 +754,11 @@ export default function TodayClient({ onSignup = null } = {}) {
   // walk of the slate starts in Trivia. Feeds the By game leaderboard.
   const flat = useMemo(() => orderedShelves.flatMap((s) => s.games.map((g) => ({ g, shelf: s }))), [orderedShelves]);
 
-  // A finished category collapses to a band with the scores; "Show tiles"
-  // reopens it. `done` is empty on the server, so nothing is collapsed at
-  // first paint and hydration agrees.
-  const [openDone, setOpenDone] = useState(() => new Set());
+  // A finished category still collapses to the green band with its scores, but
+  // it is no longer its own piece of state: EVERY shelf collapses now, so the
+  // done band is simply what a shut shelf looks like once all of it is done,
+  // and "Show tiles" is the same toggle as the band above it. The old
+  // `openDone` set is gone.
 
   // Completed games sink to the FAR RIGHT of their row (owner, 2026-08-24). A
   // shelf is read left to right as "what should I play next", so a game you
@@ -739,7 +813,9 @@ export default function TodayClient({ onSignup = null } = {}) {
   const pinBtn = (key) => {
     if (!canPin) return null;
     const on = favorites.indexOf(key) >= 0;
-    const nm = DAILY_GAME_MAP[key] ? DAILY_GAME_MAP[key].name : key;
+    const nm = isCircPin(key)
+      ? ((circuitById(circPinId(key)) || {}).name || 'this circuit')
+      : (DAILY_GAME_MAP[key] ? DAILY_GAME_MAP[key].name : key);
     return (
       <button
         type="button"
@@ -772,15 +848,58 @@ export default function TodayClient({ onSignup = null } = {}) {
     );
   };
 
-  const mineDone = pinned.filter((g) => done.has(g.key)).length;
+  // A pinned CIRCUIT is done when every game on its card today is done, which
+  // is exactly what the circuits shelf's own counter says. One pair of helpers
+  // so the meter, the CTA and the tile all answer the question the same way.
+  const itemDone = (it) => (it.kind === 'circuit'
+    ? (it.games.length > 0 && it.games.every((g) => done.has(g.key)))
+    : done.has(it.key));
+  const itemProg = (it) => (it.kind === 'circuit'
+    ? it.games.some((g) => inprog.has(g.key) && !done.has(g.key))
+    : inprog.has(it.key));
+
+  const mineDone = pinned.filter(itemDone).length;
   const mineCta = (() => {
     if (!pinned.length) return null;
-    const paused = pinned.find((g) => inprog.has(g.key) && !done.has(g.key));
+    const paused = pinned.find((it) => itemProg(it) && !itemDone(it));
     if (paused) return { label: `Resume \u00b7 ${paused.name}`, href: paused.href, gold: true };
-    const next = pinned.find((g) => !done.has(g.key));
+    const next = pinned.find((it) => !itemDone(it));
     if (next) return { label: `Play \u00b7 ${next.name}`, href: next.href, gold: false };
     return { label: 'All done today', href: pinned[0].href, gold: false };
   })();
+
+  // ── which shelves are open ──────────────────────────────────────────
+  // A reader with pins is a reader who has been here before, so their two
+  // personal shelves open and every category stays a title. Nobody else gets an
+  // open shelf until they open one.
+  const hasPins = !!(canPin && pinned.length);
+  const openDefault = (id) => (id === MINE_ID || id === CIRC_ID ? hasPins : false);
+  const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
+    ? !!shelfOpen[id]
+    : openDefault(id));
+  const setOpen = (id, on) => {
+    setShelfOpen((cur) => {
+      const next = { ...(cur || {}), [id]: !!on };
+      try { localStorage.setItem(SHELF_OPEN_KEY, JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  };
+  // The header band is the toggle, but it also carries the CTA and the star, so
+  // a click that landed on a control of its own is not a click on the band.
+  const headClick = (id) => (e) => {
+    try { if (e.target && e.target.closest && e.target.closest('a,button')) return; } catch (x) {}
+    setOpen(id, !isOpen(id));
+  };
+  const togBtn = (id) => (
+    <button
+      type="button"
+      className={'tdy-tog' + (isOpen(id) ? ' on' : '')}
+      aria-expanded={isOpen(id)}
+      aria-controls={id + '-body'}
+      aria-label={isOpen(id) ? 'Collapse this shelf' : 'Show the games on this shelf'}
+      onClick={(e) => { e.stopPropagation(); setOpen(id, !isOpen(id)); }}
+    >{'\u2304'}</button>
+  );
 
   // ── the hand-dragged category order ─────────────────────────────────
   const applyOrder = (names) => {
@@ -979,6 +1098,16 @@ export default function TodayClient({ onSignup = null } = {}) {
   // The circuits shelf counts CIRCUITS, not games: a circuit is done when every
   // game on today's card is done, which is exactly what its own progress ring
   // says. Empty on the server (done starts empty), so hydration agrees.
+  // ONE TILE IN THE ROW, and it is the Trivia Gauntlet (owner, 2026-09-01).
+  // `circAll` opens the rest in place. The fallback keeps the row from going
+  // empty on a day the lead circuit has no card: it falls back to the head of
+  // the family, which lib/circuits already orders for exactly this.
+  const circRow = useMemo(() => {
+    if (circAll) return circuitShelves;
+    const lead = circuitShelves.filter((c) => c.id === LEAD_CIRCUIT);
+    return lead.length ? lead : circuitShelves.slice(0, 1);
+  }, [circuitShelves, circAll]);
+
   const circTot = circuitShelves.length;
   const circDone = circuitShelves.filter((c) => c.games.every((g) => done.has(g.key))).length;
 
@@ -1043,7 +1172,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                   type="button"
                   className={'tdy-jc mine' + (here === 'tdy-mine' ? ' here' : '')}
                   style={{ '--pc': `${Math.round((100 * mineDone) / pinned.length)}%` }}
-                  onClick={(e) => jumpTo(e, 'tdy-mine')}
+                  onClick={(e) => { setOpen(MINE_ID, true); jumpTo(e, 'tdy-mine'); }}
                 >
                   <span className="nm">{'\u2605 My games'}</span>
                   <span className="ct">{`${mineDone}/${pinned.length}`}</span>
@@ -1054,7 +1183,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                   type="button"
                   className={'tdy-jc' + (circDone >= circTot ? ' full' : '') + (here === 'tdy-circuits' ? ' here' : '')}
                   style={{ '--cc': '#233a63', '--pc': `${Math.round((100 * circDone) / circTot)}%` }}
-                  onClick={(e) => jumpTo(e, 'tdy-circuits')}
+                  onClick={(e) => { setOpen(CIRC_ID, true); jumpTo(e, 'tdy-circuits'); }}
                 >
                   <span className="dot" aria-hidden="true" />
                   <span className="nm">Circuits</span>
@@ -1071,7 +1200,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                     type="button"
                     className={'tdy-jc' + (tot > 0 && dn >= tot ? ' full' : '') + (here === id ? ' here' : '')}
                     style={{ '--cc': s.color, '--pc': `${tot ? Math.round((100 * dn) / tot) : 0}%` }}
-                    onClick={(e) => jumpTo(e, id)}
+                    onClick={(e) => { setOpen(id, true); jumpTo(e, id); }}
                   >
                     <span className="dot" aria-hidden="true" />
                     <span className="nm">{s.name}</span>
@@ -1151,7 +1280,7 @@ export default function TodayClient({ onSignup = null } = {}) {
         {canPin && pinned.length ? (
           <section className="tdy-row" id="tdy-mine" style={{ scrollMarginTop: 112 }}>
             <div className="tdy-shc" style={{ '--cc': '#2b3241' }}>
-              <div className="tdy-hd">
+              <div className="tdy-hd" onClick={headClick(MINE_ID)}>
                 <div>
                   <div className="eb">{`Yours \u00b7 ${pinned.length} pinned`}</div>
                   <div className="tdy-hnm">
@@ -1168,28 +1297,58 @@ export default function TodayClient({ onSignup = null } = {}) {
                     href={mineCta.href}
                   >{mineCta.label}</a>
                 ) : null}
+                {togBtn(MINE_ID)}
               </div>
+              <div id={MINE_ID + '-body'} className={'tdy-body' + (isOpen(MINE_ID) ? '' : ' shut')}>
               <TilesRow>
-                {pinned.map((g) => {
-                  const leader = leaderOf(g.key);
-                  const cls = ['tdy-t'];
-                  if (done.has(g.key)) cls.push('done');
-                  else if (inprog.has(g.key)) cls.push('paused');
+                {pinned.map((it) => {
+                  const fin = itemDone(it);
+                  const cls = [it.kind === 'circuit' ? 'tdy-ct' : 'tdy-t'];
+                  if (fin) cls.push('done');
+                  else if (itemProg(it)) cls.push('paused');
+                  if (it.kind === 'circuit') {
+                    const dn = it.games.filter((g) => done.has(g.key)).length;
+                    return (
+                      <a
+                        key={it.pinKey}
+                        className={cls.join(' ')}
+                        href={it.href}
+                        style={{ '--cc': it.color }}
+                        title={`${it.name}: ${it.games.map((g) => g.name).join(', ')}`}
+                      >
+                        <span className="tdy-pl">
+                          <span className="tdy-cgrid">
+                            {it.games.map((g) => (
+                              <img key={g.key} src={g.img} alt="" aria-hidden="true" loading="lazy" />
+                            ))}
+                          </span>
+                          {fin ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span> : null}
+                          {pinBtn(it.pinKey)}
+                        </span>
+                        <b>{it.name}</b>
+                        <span className={'tdy-st' + (fin ? ' tk' : '')}>
+                          <i>{fin ? `All ${it.games.length}` : `${dn}/${it.games.length} done`}</i>
+                        </span>
+                      </a>
+                    );
+                  }
+                  const leader = leaderOf(it.key);
                   return (
-                    <a key={g.key} className={cls.join(' ')} href={g.href}>
+                    <a key={it.pinKey} className={cls.join(' ')} href={it.href}>
                       <span className="tdy-pl">
-                        <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                        {done.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span>
-                          : inprog.has(g.key) ? <span className="tdy-bdg" aria-hidden="true">{'\u25B6'}</span> : null}
-                        {pinBtn(g.key)}
+                        <img src={it.img} alt="" aria-hidden="true" loading="lazy" />
+                        {fin ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span>
+                          : itemProg(it) ? <span className="tdy-bdg" aria-hidden="true">{'\u25B6'}</span> : null}
+                        {pinBtn(it.key)}
                       </span>
-                      <b>{g.name}</b>
-                      <span className="tdy-st"><i>{playsLine(g)}</i></span>
+                      <b>{it.name}</b>
+                      <span className="tdy-st"><i>{playsLine(it)}</i></span>
                       <span className="tdy-ld">{CROWN}<i>{leader || 'Nobody yet'}</i></span>
                     </a>
                   );
                 })}
               </TilesRow>
+              </div>
             </div>
           </section>
         ) : null}
@@ -1204,7 +1363,7 @@ export default function TodayClient({ onSignup = null } = {}) {
         {circTot ? (
           <section className="tdy-row" id="tdy-circuits" style={{ scrollMarginTop: 112 }}>
             <div className="tdy-shc circuits" style={{ '--cc': '#233a63' }}>
-              <div className="tdy-hd">
+              <div className="tdy-hd" onClick={headClick(CIRC_ID)}>
                 <div>
                   <div className="eb">{`Sets \u00b7 ${circTot} circuits`}</div>
                   <div className="tdy-hnm">
@@ -1216,9 +1375,11 @@ export default function TodayClient({ onSignup = null } = {}) {
                   </div>
                 </div>
                 <a className="tdy-cta" href={CIRCUIT_BASE}>All circuits</a>
+                {togBtn(CIRC_ID)}
               </div>
+              <div id={CIRC_ID + '-body'} className={'tdy-body' + (isOpen(CIRC_ID) ? '' : ' shut')}>
               <TilesRow>
-                {circuitShelves.map((c) => {
+                {circRow.map((c) => {
                   const dn = c.games.filter((g) => done.has(g.key)).length;
                   const tot = c.games.length;
                   const all = tot > 0 && dn >= tot;
@@ -1237,6 +1398,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                           ))}
                         </span>
                         {all ? <span className="tdy-bdg" aria-hidden="true">{'\u2713'}</span> : null}
+                        {pinBtn(circPinKey(c.id))}
                       </span>
                       <b>{c.name}</b>
                       <span className={'tdy-st' + (all ? ' tk' : '')}>
@@ -1245,7 +1407,15 @@ export default function TodayClient({ onSignup = null } = {}) {
                     </a>
                   );
                 })}
+                {circuitShelves.length > circRow.length || circAll ? (
+                  <button
+                    type="button"
+                    className="tdy-ct more"
+                    onClick={() => setCircAll(!circAll)}
+                  >{circAll ? 'Show less' : `The other ${circuitShelves.length - circRow.length} circuits`}</button>
+                ) : null}
               </TilesRow>
+              </div>
             </div>
           </section>
         ) : null}
@@ -1277,28 +1447,32 @@ export default function TodayClient({ onSignup = null } = {}) {
           const dn = shelf.games.filter((g) => done.has(g.key)).length;
           const tot = shelf.games.length;
           const allDone = tot > 0 && dn >= tot;
-          const collapsed = allDone && !openDone.has(shelf.name);
-          if (collapsed) {
+          const id = secId(shelf);
+          const open = isOpen(id);
+          // A category that is both SHUT and finished says so with the green
+          // band rather than its own colour: it is the one shut state that has
+          // something to report, and it still links every game it names.
+          if (!open && allDone) {
             return (
-              <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
+              <section key={(shelf.kind || 'cat') + shelf.name} id={id} style={{ scrollMarginTop: 112 }} className="tdy-row">
                 <div className="tdy-catdone">
                   <b className="nm">{shelf.name}</b>
                   <span className="ck">{`All ${tot} done`}</span>
                   {shelf.games.map((g) => (
                     <a key={g.key} className="it" href={g.href}>
                       <img src={g.img} alt="" aria-hidden="true" loading="lazy" />
-                      <span>{`${g.name} ✓`}</span>
+                      <span>{`${g.name} \u2713`}</span>
                     </a>
                   ))}
-                  <button type="button" className="show" onClick={() => setOpenDone((cur) => new Set([...cur, shelf.name]))}>Show tiles</button>
+                  <button type="button" className="show" onClick={() => setOpen(id, true)}>Show tiles</button>
                 </div>
               </section>
             );
           }
           return (
-            <section key={(shelf.kind || 'cat') + shelf.name} id={secId(shelf)} style={{ scrollMarginTop: 112 }} className="tdy-row">
+            <section key={(shelf.kind || 'cat') + shelf.name} id={id} style={{ scrollMarginTop: 112 }} className="tdy-row">
               <div className="tdy-shc" style={{ '--cc': shelf.color }}>
-                <div className="tdy-hd">
+                <div className="tdy-hd" onClick={headClick(id)}>
                   <div>
                     <div className="eb">{shelf.kind === 'circuit' ? `Circuit · ${shelf.games.length} today` : (shelf.name === 'Sudoku' ? `Category · ${shelf.games.length} grids` : `Category · ${shelf.games.length} ${shelf.games.length === 1 ? 'game' : 'games'}`)}</div>
                     <div className="tdy-hnm">
@@ -1322,7 +1496,9 @@ export default function TodayClient({ onSignup = null } = {}) {
                     ) : null}
                   </div>
                   <a className={cta.gold ? 'tdy-cta resume' : 'tdy-cta'} href={cta.href}>{cta.label}</a>
+                  {togBtn(id)}
                 </div>
+                <div id={id + '-body'} className={'tdy-body' + (open ? '' : ' shut')}>
                 <TilesRow>
                   {sinkDone(shelf.games).map((g) => {
                     const leader = leaderOf(g.key);
@@ -1344,6 +1520,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                     );
                   })}
                 </TilesRow>
+                </div>
               </div>
             </section>
           );
@@ -2155,4 +2332,22 @@ const CSS = `
   .tdy-azw{max-width:none;}
   .tdy-teaser{border-radius:0;border-left-width:4px;border-right:none;margin:0;}
 }
+
+/* ── A SHUT SHELF IS ITS TITLE BAND (owner, 2026-09-01) ──
+   display:none rather than an unrendered row, so the tiles stay in the HTML:
+   this page is the crawl path to every daily, and dropping them would drop ~70
+   internal links with them. The band itself is unchanged, which is what makes
+   the shut page a run of the same coloured bands the open one is built from. */
+.tdy-body.shut{display:none;}
+.tdy-hd{cursor:pointer;}
+.tdy-tog{font-family:inherit;flex:none;margin-left:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;line-height:1;font-weight:800;color:var(--white);background:rgba(255,255,255,.16);border:0;border-radius:999px;cursor:pointer;padding:0;transition:transform .18s,background .14s;}
+.tdy-tog:hover{background:rgba(255,255,255,.32);}
+.tdy-tog.on{transform:rotate(180deg);}
+/* The circuits row's last tile opens the other sixteen where they are, so the
+   header keeps the one link that leaves the page and the row keeps its own way
+   through to the rest (and to their stars). */
+.tdy-ct{position:relative;}
+.tdy-ct.more{justify-content:center;text-align:center;color:var(--blue-deep);background:none;border:0;font-family:inherit;cursor:pointer;font-size:11.5px;font-weight:800;line-height:1.35;padding:11px 6px;}
+.tdy-ct.more:hover{color:var(--accent);text-decoration:underline;}
+@media(hover:hover){.tdy-ct:hover .tdy-pinb{opacity:1;}}
 `;
