@@ -816,6 +816,13 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
     if (wash) shadow.push(`inset 0 0 0 999px ${wash}`);
     return {
       background: bg,
+      // The cage tints are pale in BOTH registers, so the digits are dark in
+      // both, exactly as Quilt's are. Without this the entered numbers took
+      // .cg-user's accent (a mint green in the dark register) and sat on a
+      // pastel cage at a contrast ratio near 1.5, which on a board that opens
+      // completely empty means every number a player writes is invisible.
+      // An inline colour also outranks .cg-user, which is the point.
+      color: '#0b0d12',
       boxShadow: shadow.length ? shadow.join(', ') : undefined,
       zIndex: isSel ? 1 : undefined,
       borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,

@@ -827,8 +827,16 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
     // with the Loft value as the fallback, so the Loft render is unchanged.
     let bg = `var(--stg-surf, ${T.white})`;
     if (peer) bg = 'var(--stg-chip, #f3f5f8)';
-    if (sameVal) bg = '#dcedef';
-    if (isSel) bg = '#bde0e4';
+    // The selected square and its matching digits are the two fills a HAND was
+    // still painting as pale teal, while the digits themselves had already moved
+    // to the stage's near-white ink. In the dark register that put #e9edf4 on
+    // #bde0e4, a contrast ratio of about 1.2, so selecting a square made its own
+    // number disappear: the one square you are looking at was the one you could
+    // not read. Both are now a wash of the stage accent over whatever the ground
+    // is, exactly as Suds paints them, so the ink stays legible in either
+    // register. The Loft values are kept as the non-stage branch.
+    if (sameVal) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : '#dcedef';
+    if (isSel) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 28%, transparent)' : '#bde0e4';
     return {
       background: bg,
       boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
