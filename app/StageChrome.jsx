@@ -266,7 +266,13 @@ export default function StageChrome({
           aria-expanded={panel}
           aria-controls="stg-rankings"
         >
-          <span className="stg-se">Today</span>
+          {/* IT SAYS WHAT THE ROW IS, NOT WHEN IT IS (owner, 2026-08-31). The
+              eyebrow read "Today", which dated a row whose date the cap above
+              it already carries, and left the one thing the row is actually
+              for — that this is the person to beat — to be inferred from a
+              name and a score. Every figure on the strip is today's; none of
+              them is the leader unless the label says so. */}
+          <span className="stg-se">Leader</span>
           <b className="stg-sn">{leader.username || 'Guest'}</b>
           {/* THE LEADER'S OWN RESULT, in the game's units. This used to render
               the row's score with the word "points" after it, which on Suds

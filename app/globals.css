@@ -272,6 +272,70 @@ body:has(.stage-page) { background: #0b0f1a !important; }
 }
 .stage-page .stf-hideboard:hover { border-color: var(--stg-line2); color: var(--stg-ink); }
 
+/* THE BOARD CARD IS GONE ON THE STAGE (owner, 2026-08-31).
+
+   It was the LOFT's device and it stopped making sense the day the stage took
+   over. On the Loft the card WAS the play surface's ground: one light panel on
+   a navy page. On the stage the ground already is that surface, so the card
+   painted --stg-surf underneath a board that paints --stg-surf itself, and the
+   two stacked into a faintly lighter rectangle that nobody designed. Measured
+   on /plot: card background and grid background were both
+   rgba(255,255,255,0.045), the same token twice.
+
+   What it cost: on a 386px phone the card's padding and hairline took 32 of the
+   351 available pixels, about a TENTH of the play surface, or 3.2px off every
+   cell of a ten-wide board. For a hairline and a radius.
+   
+   WHY THIS IS ONE RULE AND NOT 77 HAND EDITS: `stg-board` is placed by
+   scripts/patch-stg-board.mjs on the element that already carried `loft-card`,
+   which the Loft conversion had put on exactly one element per client — the
+   board wrapper. Read that script's header before changing the selector.
+
+   !important IS REQUIRED, not defensive. Every one of those 75 sites sets its
+   background, border, radius and padding as an INLINE style, and an inline
+   style beats a stylesheet. A rule here without it does nothing at all, which
+   is the failure mode that reads as "the CSS did not ship". */
+.stage-page .stg-board {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* On a phone the padding goes too, and the board breaks out of the page
+   column's gutter to leave a 4px SLIVER of ground at each edge (owner,
+   2026-08-31): enough that the outermost grid line still reads as the board's
+   edge rather than as the screen's. Measured on /plot at 386px the grid goes
+   319 -> 363px, +14%, and a cell on a ten-wide board 31.9 -> 36.3px.
+
+   THE BREAKOUT CANNOT OVERFLOW, and that is by construction rather than by
+   luck. The gutters are NOT uniform across the roster (measured: plot 10px,
+   suds and cages 12px, tally and crux 14px), so a fixed negative margin would
+   be wrong on most games and would hang a board off the screen. Instead the
+   first rule SETS the gutter and publishes it as --stg-gut on the wrap, and the
+   second subtracts the value it just set. --stg-gut INHERITS down to the board,
+   so the two can never disagree.
+   
+   And where the first rule does not match, the second is inert: the fallback
+   4px makes the margin calc(4px - 4px) = 0 and the board simply does not break
+   out. That matters because [class$="-wrap"] tests the WHOLE class attribute,
+   so a wrapper carrying a second class silently falls outside it, and five
+   games (babel, blocks, chomp, glyph, sweep) have no wrapper class at all.
+   Those keep today's layout minus the card, rather than overflowing. */
+@media (max-width: 700px) {
+  .stage-page > [class$="-wrap"] {
+    --stg-gut: 12px;
+    padding-left: var(--stg-gut) !important;
+    padding-right: var(--stg-gut) !important;
+  }
+  .stage-page .stg-board {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: calc(4px - var(--stg-gut, 4px)) !important;
+    margin-right: calc(4px - var(--stg-gut, 4px)) !important;
+  }
+}
+
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 

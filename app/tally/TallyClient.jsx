@@ -307,6 +307,36 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+
+  // TALLY'S TWO MARKS, BOTH IN THE CATEGORY COLOUR ON THE STAGE (owner,
+  // 2026-08-31). This SUPERSEDES the old rule that the certainty marks were
+  // navy precisely so they would not be the green of a balanced line: neither
+  // literal survived the move to a near-black page.
+  //
+  //   * NAVY DID NOT WORK AT ALL. COLORS.ember is #233a63, and on --stg-surf2
+  //     over the #0b0f1a ground it measures 1.34:1. That is not a dim mark, it
+  //     is an invisible one, and it took the whole notes system with it: the
+  //     rails on a marked tile, the check on a certain one, and every swatch in
+  //     the legend under the board.
+  //   * THE DARK GREEN WAS THE WRONG GREEN. COLORS.green is #15803d, Tally's
+  //     registry hue, picked once against a light card. The stage's colour for
+  //     this game is its CATEGORY step (Numbers: mint #6ee7b7 dark, #047857
+  //     light), and a solid #15803d chip on near-black read as neither.
+  //
+  // So both are var(--stg-acc), and they stay apart by SHAPE rather than hue: a
+  // note is rails and an outline, a line the board agrees with is a solid fill.
+  // Reading the token also gets the LIGHT register right for free, which no
+  // literal can do.
+  const NOTE = STAGE ? 'var(--stg-acc)' : COLORS.ember;
+  const AGREE = STAGE ? 'var(--stg-acc)' : COLORS.green;
+  // The ink that sits ON a filled accent chip. --stg-onramp is #08222e dark and
+  // #ffffff light, which is exactly this job: white would fail on mint and dark
+  // would fail on #047857.
+  const AGREE_INK = STAGE ? 'var(--stg-onramp,#08222e)' : T.white;
+  // A ring keyed to navy is the same invisible mark as the rails were, so on the
+  // stage it is the accent at low alpha, mixed from the token rather than
+  // hardcoded as an rgba of a colour this game no longer uses.
+  const RING = STAGE ? 'color-mix(in srgb, var(--stg-acc) 34%, transparent)' : 'rgba(21,128,61,0.2)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
@@ -952,9 +982,9 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
   function targetChip(i, isRow, key) {
     const st = lineState(i, isRow);
     const locked = lineMarked(i, isRow);
-    const bg = st.ok ? COLORS.green : locked ? '#eef1f8' : T.white;
-    const bd = st.ok ? COLORS.green : locked ? COLORS.ember : st.bad ? 'rgba(180,83,9,0.75)' : 'rgba(28,30,36,0.4)';
-    const tc = st.ok ? T.white : st.bad ? COLORS.amber : COLORS.ink;
+    const bg = st.ok ? AGREE : locked ? (STAGE ? 'var(--stg-surf2)' : '#eef1f8') : SURF;
+    const bd = st.ok ? AGREE : locked ? NOTE : st.bad ? `var(--stg-bad, rgba(180,83,9,0.75))` : SURF_B;
+    const tc = st.ok ? AGREE_INK : st.bad ? `var(--stg-bad, ${COLORS.amber})` : INK;
     const label = isRow ? 'row' : 'column';
     return (
       <div key={key} className={`tl-tgt${playing ? ' live' : ''}`} role={playing ? 'button' : undefined} tabIndex={playing ? 0 : undefined}
@@ -963,8 +993,8 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
         title={playing ? `${locked ? 'Clear' : 'Mark'} every tile here as in the right ${label}` : undefined}
         aria-label={playing ? `${isRow ? 'Row' : 'Column'} ${i + 1} target ${isRow ? ROWT[i] : COLT[i]} — ${locked ? 'clear' : 'mark'} the right-${label} note on its tiles` : undefined}
         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: 13, border: `${locked && !st.ok ? 2 : 1.5}px solid ${bd}`, background: bg, fontFamily: MONO, lineHeight: 1.02, padding: '2px 0', minHeight: 34, boxSizing: 'border-box' }}>
-        <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? T.white : locked ? COLORS.ember : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
-        {!st.ok && <span style={{ fontSize: 8.5, color: st.bad ? COLORS.amber : locked ? COLORS.ember : T.muted }}>{st.bad ? `${st.over ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
+        <span style={{ fontSize: 15, fontWeight: 500, color: st.ok ? AGREE_INK : locked ? NOTE : tc }}>{isRow ? ROWT[i] : COLT[i]}</span>
+        {!st.ok && <span style={{ fontSize: 8.5, color: st.bad ? `var(--stg-bad, ${COLORS.amber})` : locked ? NOTE : FADED }}>{st.bad ? `${st.over ? 'over' : 'under'} ${Math.abs(st.sum - st.tgt)}` : `now ${st.sum}`}</span>}
       </div>
     );
   }
@@ -1041,45 +1071,50 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-cell{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:21px;font-weight:500;color:${INK};box-sizing:border-box;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
           .tl-blocked{background:${COLORS.ink};}
           .tl-given{background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));position:relative;}
-          .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:rgba(28,30,36,0.3);}
-          .tl-empty{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px dashed rgba(28,30,36,0.4);cursor:pointer;}
-          .tl-empty.hot{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.16);}
+          .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:${STAGE ? 'var(--stg-mute)' : 'rgba(28,30,36,0.3)'};}
+          .tl-empty{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px dashed ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.4)'};cursor:pointer;}
+          .tl-empty.hot{border:2px solid ${AGREE};box-shadow:0 0 0 3px ${RING};}
           .tl-placed{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
           .tl-placed:active{transform:translateY(1px);}
-          /* certainty marks, all navy — deliberately NOT the green used for a
-             balanced line, since green means the board agrees and navy means the
-             player does. Rails show which half is proven: rails top+bottom pin
-             the tile into its horizontal band (right row), rails left+right pin
-             it into the vertical one (right column), both = the exact square. */
-          .tl-placed.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:4px solid ${COLORS.ember};border-bottom:4px solid ${COLORS.ember};}
-          .tl-placed.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:4px solid ${COLORS.ember};border-right:4px solid ${COLORS.ember};}
-          .tl-placed.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${COLORS.ember};box-shadow:0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09);}
-          .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${COLORS.ember};}
+          /* The certainty marks. Rails show which half is proven: rails top and
+             bottom pin the tile into its horizontal band (right row), rails left
+             and right pin it into the vertical one (right column), both = the
+             exact square. On the stage they are the CATEGORY colour, and they
+             stay apart from a balanced line by SHAPE, rails against a fill,
+             rather than by hue. See NOTE / AGREE at the top of the component for
+             why the old navy-versus-green split did not survive the stage. */
+          .tl-placed.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:4px solid ${NOTE};border-bottom:4px solid ${NOTE};}
+          .tl-placed.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:4px solid ${NOTE};border-right:4px solid ${NOTE};}
+          .tl-placed.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${NOTE};box-shadow:${STAGE ? `0 0 0 2px ${RING}` : '0 2.5px 0 rgba(14,29,64,0.6), inset 0 -3px 0 rgba(14,29,64,0.09)'};}
+          .tl-placed.mk-both::after{content:'\\2713';position:absolute;top:1px;right:4px;font-family:${SANS};font-size:10px;font-weight:800;line-height:1;color:${NOTE};}
           /* a half-marked tile is draggable along the line it has proven. The
              axis-specific touch-action lets the page still scroll the OTHER
              way, so a row tile never eats a vertical swipe. */
           .tl-placed.tl-slide-row{cursor:ew-resize;touch-action:pan-y;}
           .tl-placed.tl-slide-col{cursor:ns-resize;touch-action:pan-x;}
-          .tl-placed.tl-drag{box-shadow:0 7px 15px rgba(14,29,64,0.3);}
+          /* A DARK DROP SHADOW ON A NEAR-BLACK PAGE IS NOT A SHADOW. The stage
+             says "lifted" with a ring of the accent instead, which is the same
+             language the hot square and the selected rack tile use. */
+          .tl-placed.tl-drag{box-shadow:${STAGE ? `0 0 0 3px ${RING}, 0 7px 15px rgba(0,0,0,0.55)` : '0 7px 15px rgba(14,29,64,0.3)'};}
           .tl-placed.tl-drag:active{transform:none;}
           /* legend swatches under the board reuse the same language at 22px */
           .tl-key{width:22px;height:22px;border-radius:5px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};flex:none;box-sizing:border-box;position:relative;}
-          .tl-key.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:3px solid ${COLORS.ember};border-bottom:3px solid ${COLORS.ember};}
-          .tl-key.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.ember};border-right:3px solid ${COLORS.ember};}
-          .tl-key.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${COLORS.ember};}
-          .tl-key.mk-both::after{content:'\\2713';position:absolute;top:0;right:2px;font-family:${SANS};font-size:9px;font-weight:800;line-height:1.1;color:${COLORS.ember};}
+          .tl-key.mk-row{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-top:3px solid ${NOTE};border-bottom:3px solid ${NOTE};}
+          .tl-key.mk-col{background:${STAGE ? 'var(--stg-surf2)' : '#f5f7fc'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${NOTE};border-right:3px solid ${NOTE};}
+          .tl-key.mk-both{background:${STAGE ? 'var(--stg-surf2)' : '#eef1f8'};border:2px solid ${NOTE};}
+          .tl-key.mk-both::after{content:'\\2713';position:absolute;top:0;right:2px;font-family:${SANS};font-size:9px;font-weight:800;line-height:1.1;color:${NOTE};}
           .tl-legend{border-top: 1px solid var(--stg-line, rgba(28,30,36,0.14));margin-top:14px;padding-top:11px;}
           .tl-legend li{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
           @media(max-width:560px){.tl-legend li{align-items:flex-start;}}
           .tl-act{font-family:${SANS};font-weight:800;font-size:12.5px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.35));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:7px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;}
-          .tl-act:hover:not(:disabled){border-color:${COLORS.ember};color:${COLORS.ember};}
+          .tl-act:hover:not(:disabled){border-color:${NOTE};color:${NOTE};}
           .tl-act:disabled{opacity:0.38;cursor:default;}
           .tl-tgt{cursor:default;}
           .tl-tgt.live{cursor:pointer;}
-          .tl-tgt.live:hover{box-shadow:0 0 0 2px rgba(14,29,64,0.18);}
+          .tl-tgt.live:hover{box-shadow:0 0 0 2px ${STAGE ? RING : 'rgba(14,29,64,0.18)'};}
           .tl-rtile{width:42px;height:42px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-size:20px;font-weight:500;color:${INK};cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);}
           .tl-rtile:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.5);}
-          .tl-rtile.sel{border:2px solid ${COLORS.green};box-shadow:0 0 0 3px rgba(21,128,61,0.2), 0 2.5px 0 rgba(28,30,36,0.5);}
+          .tl-rtile.sel{border:2px solid ${AGREE};box-shadow:0 0 0 3px ${RING}, 0 2.5px 0 rgba(28,30,36,0.5);}
           .tl-rtile.used{visibility:hidden;}
         `}</style>
 
@@ -1141,7 +1176,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{g.moves}</b> &middot; fewest <b style={{ color: INK, fontWeight: 500 }}>{FEWEST}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>lines <b style={{ color: linesOk === 2 * N ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{linesOk}</b>/{2 * N}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>lines <b style={{ color: linesOk === 2 * N ? AGREE : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{linesOk}</b>/{2 * N}</span>
           </div>
           )}
 
@@ -1205,6 +1240,42 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
                     : 'Tap a tile, then a square. Tap a placed tile to cycle it: right row, right column, certain, back to the rack. Hold it to lift it at once.'}
                 </span>
               </div>
+
+              {/* CONTROLS, WITH THE TILES THEY ACT ON (owner, 2026-08-31).
+                  They used to sit at the very foot of the card, under the whole
+                  notes legend, which is ten lines of body copy. That put Undo
+                  further from the rack than any other control on the page, and
+                  on a phone it sat off the bottom of the screen for the whole
+                  game. Undo and Clear board both put tiles BACK ON THE RACK, so
+                  the rack is where a player looks for them.
+
+                  The hairline reads --stg-line first: it was a flat
+                  rgba(28,30,36,0.10), which is a dark rule on a near-black page
+                  and drew nothing at all. */}
+              {started && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--stg-line, rgba(28,30,36,0.10))', flexWrap: 'wrap' }}>
+              <button className="tl-act" onClick={undo} disabled={!hist.length}
+                title="Step the board back one change (Ctrl+Z). Your move count stands: undo restores the grid, not the score.">
+                <Undo2 size={14} /> Undo
+              </button>
+              <button className="tl-act" onClick={clearBoard} disabled={!anyPlaced}
+                title="Lift every tile back to the rack. Free, exactly like lifting them one at a time, and Undo puts the board back.">
+                <Eraser size={14} /> Clear board
+              </button>
+              {hintOk && !g.hintUsed && (
+                <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint, first play only)"
+                  style={{ background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
+                  <Lightbulb size={14} /> Hint
+                </button>
+              )}
+              {identity && g.moves > 0 && (
+                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and fills the solution' : 'Reveal & end'}
+                </button>
+              )}
+              </div>
+              )}
             </>
           )}
 
@@ -1223,33 +1294,6 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
             </div>
           )}
 
-        {/* Controls. Undo / Clear board plus the situational Hint and Reveal.
-            They sit INSIDE the board card: on the navy stage a bare row has
-            nothing to sit on, and the card is meant to hold the whole game. */}
-        {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <button className="tl-act" onClick={undo} disabled={!hist.length}
-              title="Step the board back one change (Ctrl+Z). Your move count stands: undo restores the grid, not the score.">
-              <Undo2 size={14} /> Undo
-            </button>
-            <button className="tl-act" onClick={clearBoard} disabled={!anyPlaced}
-              title="Lift every tile back to the rack. Free, exactly like lifting them one at a time, and Undo puts the board back.">
-              <Eraser size={14} /> Clear board
-            </button>
-            {hintOk && !g.hintUsed && (
-              <button className="tl-btn" onClick={useHint} title="Fill one correct square (one hint, first play only)"
-                style={{ background: STAGE ? 'var(--stg-surf2)' : '#fdf6e3', border: '1.5px solid rgba(230,185,63,0.7)', color: '#8a6d1a', padding: '6px 12px', fontSize: 12.5 }}>
-                <Lightbulb size={14} /> Hint
-              </button>
-            )}
-            {identity && g.moves > 0 && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and fills the solution' : 'Reveal & end'}
-              </button>
-            )}
-          </div>
-        )}
           <div className={STAGE ? undefined : 'loft-sol'}>
           {/* result */}
           {!playing && (

@@ -1484,7 +1484,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           <div className={LOFT && !STAGE && !playing ? (revealed ? 'loft-flip' : 'loft-flip on') : undefined}>
           <div className={LOFT && !STAGE && !playing ? 'loft-flip-in' : undefined}>
           <div className={LOFT && !STAGE && !playing ? 'loft-face' : undefined}>
-          <div className={STAGE ? 'cl-panel' : (LOFT ? 'cl-panel loft-card' : 'cl-panel')} style={STAGE
+          <div className={STAGE ? 'cl-panel stg-board' : (LOFT ? 'cl-panel loft-card' : 'cl-panel')} style={STAGE
             // NO CARD. The board sits on the ground, which is the whole point
             // of the stage: a white panel here reads as a cut-out, and a dark
             // panel reads as a second ground nobody asked for.
