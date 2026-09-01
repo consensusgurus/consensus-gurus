@@ -1439,7 +1439,7 @@ export default function QuizClient({ quizId }) {
                   {lb.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? `var(--stg-chip,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? `var(--stg-acc,${COLORS.accBorder})` : `var(--stg-line,${COLORS.line})`}` }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? `var(--stg-acc-tint,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? `var(--stg-acc,${COLORS.accBorder})` : `var(--stg-line,${COLORS.line})`}` }}>
                         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : `var(--stg-mute,${COLORS.faded})` }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
                         <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: FADED, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
@@ -1699,7 +1699,7 @@ export default function QuizClient({ quizId }) {
           </div>
           )}
           {runActive && (
-            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: `var(--stg-chip,${COLORS.accSoft})` }}>
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: `var(--stg-acc-tint,${COLORS.accSoft})` }}>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -1874,7 +1874,7 @@ export default function QuizClient({ quizId }) {
                 />
               )}
               {(started || ended) && !bottomDock && (<div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: QSTAGE ? QACC : T.cta, color: QSTAGE ? ON_ACC : T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: QSTAGE ? (started || ended ? 'var(--stg-surf2)' : QACC) : T.cta, color: QSTAGE ? (started || ended ? 'var(--stg-mute)' : ON_ACC) : T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: (started || ended) && !QSTAGE ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -1919,7 +1919,7 @@ export default function QuizClient({ quizId }) {
                   style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 17, height: 50, boxSizing: 'border-box', padding: '0 16px', border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : `var(--stg-surf,${T.paper})`, color: INK, opacity: !started || ended ? 0.5 : 1 }}
                 />
               <div style={{ position: 'relative', display: 'flex', flex: (matched && !ordered) || mapMode || tileMode ? 1 : 'none' }}>
-              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: QSTAGE ? QACC : T.cta, color: QSTAGE ? ON_ACC : T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: started || ended ? 0.5 : 1 }}>
+              <button onClick={start} disabled={started || ended} style={{ flex: 1, fontFamily: MONO, fontSize: 13, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '0 22px', height: 50, border: 'none', background: QSTAGE ? (started || ended ? 'var(--stg-surf2)' : QACC) : T.cta, color: QSTAGE ? (started || ended ? 'var(--stg-mute)' : ON_ACC) : T.ctaInk, cursor: started || ended ? 'default' : 'pointer', opacity: (started || ended) && !QSTAGE ? 0.5 : 1 }}>
                 {ended ? 'Done' : started ? 'Playing' : (matched && !ordered) ? (quiz.noun ? 'Play' : 'Play — name each year') : 'Play'}
               </button>
               {/* Correct/wrong verdict pops over the Play button (replaces the old
@@ -2046,7 +2046,7 @@ export default function QuizClient({ quizId }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 12 }}>
                       <button onClick={() => go(-1)} disabled={navDisabled || navTarget(-1) === i} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: `1.5px solid var(--stg-line,${COLORS.ink})`, background: 'transparent', color: INK, cursor: (navDisabled || navTarget(-1) === i) ? 'default' : 'pointer', opacity: (navDisabled || navTarget(-1) === i) ? 0.4 : 1 }}>&larr; Back</button>
                       <span style={{ fontFamily: MONO, fontSize: 12, color: FADED }}>{f ? 'Solved' : reveal ? 'Missed' : (started ? 'Type your answer' : 'Press Play')}</span>
-                      <button onClick={() => go(1)} disabled={navDisabled || navTarget(1) === i} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: `var(--stg-acc,${COLORS.ember})`, color: `var(--stg-onramp,${T.white})`, cursor: (navDisabled || navTarget(1) === i) ? 'default' : 'pointer', opacity: (navDisabled || navTarget(1) === i) ? 0.4 : 1 }}>Next &rarr;</button>
+                      <button onClick={() => go(1)} disabled={navDisabled || navTarget(1) === i} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 700, padding: '11px 20px', borderRadius: 8, border: 'none', background: (navDisabled || navTarget(1) === i) ? `var(--stg-surf2,${COLORS.ember})` : `var(--stg-acc,${COLORS.ember})`, color: (navDisabled || navTarget(1) === i) ? `var(--stg-mute,${T.white})` : `var(--stg-onramp,${T.white})`, cursor: (navDisabled || navTarget(1) === i) ? 'default' : 'pointer', opacity: (navDisabled || navTarget(1) === i) ? 'var(--stg-inert-op,0.4)' : 1 }}>Next &rarr;</button>
                     </div>
                   </div>
                 );
@@ -2059,7 +2059,7 @@ export default function QuizClient({ quizId }) {
                   ? { whiteSpace: 'normal', overflowWrap: 'normal', wordBreak: 'normal' } // multi-word: wrap at spaces, never mid-word
                   : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }; // single word: ellipsis, don't break
                 return (
-                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? `var(--stg-acc,${COLORS.accBorder})` : isActive ? COLORS.ember : reveal ? COLORS.rust : `var(--stg-line,${COLORS.line})`}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? `var(--stg-chip,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? `var(--stg-acc,${COLORS.accBorder})` : isActive ? COLORS.ember : reveal ? COLORS.rust : `var(--stg-line,${COLORS.line})`}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? `var(--stg-acc-tint,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (

@@ -246,6 +246,24 @@ button, input, textarea, select { border-radius: 8px; }
      could never be re-themed by CSS. One place decides; every call site reads
      var(--stg-acc) and follows. */
   --stg-acc: var(--stg-acc-dk, #7dd3fc);
+  /* A TINT OF WHATEVER THE ACCENT IS. The one thing --stg-chip cannot do: a
+     chip gives its colour UP (a warning that stops shouting on a near-black
+     page), while a tint is how a surface says THIS ONE IS YOURS -- a found
+     answer, your row on a leaderboard, the run you are in the middle of. Those
+     are the opposite job, and neutralising them deletes the signal. Defined
+     only inside .stage-page so every call site keeps a real fallback. */
+  --stg-acc-tint: color-mix(in srgb, var(--stg-acc) 18%, transparent);
+  /* OPACITY IS NOT A DISABLED STATE HERE. Fading an element composites it
+     toward the ground, and the two registers go opposite ways: on cream it
+     lightens a saturated fill and leaves the label readable, on near-black it
+     drags the fill into a muddy mid-tone and pulls the near-black label up to
+     meet it. A control that is unavailable says so with its ROLE instead (an
+     inert raised surface, muted ink) at full strength. This token lets a
+     component with no stage flag of its own express that a value of
+     var(--stg-inert-op, 0.5) resolves to 1 here and to 0.5 everywhere else.
+     Defined once
+     on the base block, so both registers inherit it. */
+  --stg-inert-op: 1;
 }
 
 /* The light register. The ground goes GREY rather than white so that a raised
@@ -408,6 +426,10 @@ body:has(.stage-page) .qch-bar { display: none !important; }
   --stg-fieldink: 11, 15, 26;
 
   --stg-acc: var(--stg-acc-lt, #0369a1);
+  /* The light step is a deep mid-tone rather than a pastel, so the same 18%
+     would be a heavier wash than the dark register's. 12% lands at roughly the
+     same distance from its own ground. */
+  --stg-acc-tint: color-mix(in srgb, var(--stg-acc) 12%, transparent);
 }
 
 /* THE FIRST-LOAD DEMONSTRATION of the light switch (useThemeIntro in
