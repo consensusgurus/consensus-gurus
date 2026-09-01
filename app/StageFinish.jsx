@@ -68,7 +68,10 @@ const RANK = { reveal: -3, board: -2, replay: -1, another: 3, similar: 4, main: 
 const rankOf = (o) => (RANK[o.tone] != null ? RANK[o.tone] : (o.kind === 'gold' ? 0 : 5));
 
 export default function StageFinish({
-  title, detail, iq = null, board = null, day = null, streak = null,
+  // `day` is gone with the today's-board FIGURE it was the only reader of. The
+  // callers still pass it, harmlessly, so putting that figure back is a one-line
+  // change here rather than a sweep through 80 clients.
+  title, detail, iq = null, board = null, streak = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
   archive = null,
   retry = null,
@@ -203,6 +206,17 @@ export default function StageFinish({
   const fwdTag = forward && forward.sub && forward.sub.includes('·')
     ? forward.sub.split('·').slice(1).join('·').trim() : '';
 
+  // The two standings that used to be figures. Strings, not elements, so the
+  // line under the verdict reads as one sentence of figures rather than as a
+  // row of blocks that happens to be inline. gameRank arrives split into a
+  // value and its own label ('#5' + 'of 348 Four all time'), which is why this
+  // rejoins them rather than composing the label here.
+  const standings = [];
+  if (gameRank && gameRank.value != null) {
+    standings.push(`${gameRank.value} ${gameRank.label || 'all time'}`);
+  }
+  if (streak) standings.push(`${streak} day streak`);
+
   // Placed AFTER every hook above, so the two endings run the same hooks in
   // the same order on every render.
   if (isRetry) {
@@ -251,31 +265,51 @@ export default function StageFinish({
       {/* THE CURTAIN. The one place on the stage where the accent covers
           something rather than marking it. Edge to edge, because a band with a
           margin reads as another card. */}
+      {/* THE IQ IS THE ONE FIGURE THAT BELONGS ON THE BAND (owner, 2026-08-31).
+          It was the first of four stats in a row underneath, all at the same
+          weight, which asked the reader to find the number they came for among
+          three they did not. It is what the run was WORTH, so it goes on the
+          verdict's own band, opposite the verdict, and it is set larger than the
+          stats ever were.
+
+          IT IS PINNED TO THE CONTENT COLUMN, not the viewport. The band is
+          full-bleed, so a right-aligned figure inside it would sit against the
+          screen edge with nothing under it; .stf-cin is the same 720px .stf-wrap
+          uses, so the number lands over the blocks it belongs to.
+
+          The other three stats: today's board is gone (the table directly below
+          says it, in full), and the all-time rank and the streak drop into the
+          line under the verdict, which is already where a run's figures are
+          read. On a phone that line is the score and the clock and nothing else
+          -- see .stf-dx in the media query. */}
       <div className="stf-curtain">
         <div className="stf-cin">
-          <div className="stf-verdict">{title}</div>
-          {detail ? <div className="stf-detail">{detail}</div> : null}
+          <div className="stf-ctop">
+            <div className="stf-cl">
+              <div className="stf-verdict">{title}</div>
+              {(detail || standings.length) ? (
+                <div className="stf-detail">
+                  {detail}
+                  {standings.length ? (
+                    <span className="stf-dx">{detail ? ' \u00b7 ' : ''}{standings.join(' \u00b7 ')}</span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+            {iq && iq.gained != null ? (
+              <div className="stf-ciq">
+                <b>+{Number(iq.gained).toLocaleString()}</b>
+                <i>IQ earned</i>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
 
       <div className="stf-wrap">
-        {/* FIGURES, NEVER PROSE — and only the ones that are real. */}
-        <div className="stf-figs">
-          {iq && iq.gained != null ? (
-            <div><b className="stf-up">+{Number(iq.gained).toLocaleString()}</b><i>IQ earned</i></div>
-          ) : null}
-          {day && day.ready && day.dayRank != null ? (
-            <div><b>#{Number(day.dayRank).toLocaleString()}{day.dayField != null ? <i>/{Number(day.dayField).toLocaleString()}</i> : null}</b><i>today&rsquo;s board</i></div>
-          ) : null}
-          {gameRank && gameRank.value != null ? (
-            <div><b>{gameRank.value}</b><i>{gameRank.label || 'all time'}</i></div>
-          ) : null}
-          {streak ? <div><b>{streak}</b><i>day streak</i></div> : null}
-        </div>
-
-        {/* THE BOARD, DIRECTLY UNDER THE FIGURES (owner, 2026-08-31). The
-            figures already say #22 of 137; the table is what that number means,
-            and it used to sit four blocks below its own headline. */}
+        {/* THE BOARD LEADS NOW. It used to sit under a row of four figures whose
+            first line said #22 of 137; the table is what that number means, and
+            the figure that announced it has moved onto the band. */}
         {rows.length ? (
           <section>
             <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}</div>
@@ -452,24 +486,26 @@ const CSS = `
 .stf-curtain{background:var(--stg-acc);color:var(--stg-onramp,#08222e);
   margin:0 calc(50% - 50vw);padding:30px calc(50vw - 50% + 4px) 26px;}
 .stf-cin{max-width:720px;margin:0 auto;}
+.stf-ctop{display:flex;align-items:flex-end;gap:22px;}
+.stf-cl{flex:1;min-width:0;}
 .stf-verdict{font-size:36px;font-weight:800;letter-spacing:-0.03em;line-height:1.05;
   text-wrap:balance;}
 .stf-detail{margin-top:7px;font-size:14px;font-weight:700;opacity:.78;}
+/* Bigger than the 22px the stats row used, smaller than the verdict: it is the
+   second thing on the band, not the first. It takes the band's own ink rather
+   than the green the figures row gave it, because green on the accent is the
+   one colour pairing the stage does not have. */
+.stf-ciq{flex:none;text-align:right;}
+.stf-ciq b{display:block;font-size:34px;font-weight:800;line-height:1;
+  letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+.stf-ciq i{display:block;font-style:normal;font-family:${MONO};font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;opacity:.72;margin-top:6px;}
 
 .stf-wrap{max-width:720px;margin:0 auto;padding:22px 4px 8px;
   display:flex;flex-direction:column;gap:20px;}
 .stf-eb{font-family:${MONO};font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--stg-mute);margin-bottom:8px;}
 .stf-eb em{font-style:normal;color:var(--stg-ink2);}
-
-.stf-figs{display:flex;flex-wrap:wrap;gap:12px 26px;}
-.stf-figs>div{min-width:0;}
-.stf-figs b{display:block;font-size:22px;font-weight:800;line-height:1.1;
-  font-variant-numeric:tabular-nums;letter-spacing:-0.01em;}
-.stf-figs b i{font-style:normal;font-weight:600;font-size:13px;color:var(--stg-mute);}
-.stf-figs>div>i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--stg-mute);}
-.stf-up{color:var(--stg-up);}
 
 /* ── the hand-forward ──────────────────────────────────────────────────── */
 .stf-fwd{display:flex;align-items:center;gap:16px;text-decoration:none;
@@ -537,9 +573,16 @@ const CSS = `
 @media (max-width:640px){
   .stf-curtain{padding:22px 18px 20px;}
   .stf-verdict{font-size:27px;}
+  /* THE STANDINGS COME OFF THE PHONE (owner, 2026-08-31). The line under the
+     verdict is the run itself -- the score, the misses, the clock -- and at
+     390px appending a rank and a streak to it wraps that sentence onto a third
+     and fourth line to say what the card says again further down. The IQ stays,
+     smaller: it is the number the reader came for. */
+  .stf-dx{display:none;}
+  .stf-ctop{gap:14px;}
+  .stf-ciq b{font-size:26px;}
+  .stf-ciq i{font-size:8.5px;margin-top:4px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
-  .stf-figs{gap:10px 18px;}
-  .stf-figs b{font-size:19px;}
   .stf-opts{grid-template-columns:1fr 1fr;}
 }
 `;
