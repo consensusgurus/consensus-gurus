@@ -71,6 +71,14 @@ export default function DailyBoardPanel({
   // the panel follows whichever register is showing and wears the game's own
   // CATEGORY accent rather than the site blue.
   stage = false,
+  // WHAT THE FOOT BUTTON DOES. Given a handler, the panel's own control closes
+  // the WHOLE section rather than collapsing the board inside it, which is what
+  // the stage wants: there the section is mounted by the cap's Rankings chip,
+  // so the button at its foot has to be that chip's opposite, not a second and
+  // quieter kind of hiding one level down. Without a handler (the Loft's board
+  // slot) it keeps collapsing in place, which is all a host that never unmounts
+  // the panel can offer.
+  onClose = null,
 }) {
   // Shadowing the module tokens, which is what makes this one prop rather
   // than an override list. Everything the stylesheet below interpolates
@@ -92,6 +100,28 @@ export default function DailyBoardPanel({
 
   const selfName = GAME_NAMES[self] || self;
   const accent = ACCENTS[self] || BLUE;
+  // THE INITIAL IS AN EDGE ON THE STAGE, NOT A FILL (owner, 2026-08-31). Off
+  // stage it is a disc filled with the game's own brand colour, which is the
+  // Loft's vocabulary and is right there. On the stage that colour is a
+  // SECOND accent: the page is already painted in the game's CATEGORY step, so
+  // Mercury drew a red disc on a green page and it was the loudest thing in
+  // the panel. On the stage the mark becomes the same rounded plate every
+  // other small object on that surface is, with the initial in the page's own
+  // accent, and the page keeps one colour family.
+  const avCss = stage
+    ? 'width:24px;height:24px;border-radius:7px;background:var(--stg-chip);'
+      + 'border:1px solid var(--stg-line2);color:var(--stg-acc);font-family:' + MONO
+      + ';font-size:11.5px;font-weight:700;'
+    : 'width:22px;height:22px;border-radius:50%;color:var(--white);font-size:11px;font-weight:800;';
+  // And the word "Stats" stops being part of the name. On the stage a heading
+  // is a bold thing plus a mono label (see the home's category heads and the
+  // cap's name over "player"), so the NAME carries the weight and the noun
+  // becomes the label. Off stage it stays one bold string, a margin standing in
+  // for the space it used to be.
+  const sfxCss = stage
+    ? 'font-family:' + MONO + ';font-size:10px;letter-spacing:.13em;text-transform:uppercase;'
+      + 'font-weight:600;color:' + FADED + ';margin-left:9px;align-self:center;'
+    : 'margin-left:6px;';
   // The header for this game's `guessesUsed` column. Every game posts that one
   // shared field but means a different thing by it (Parker = moves, Garble =
   // misses, Axiom = tests), so the word comes from the registry. A null/absent
@@ -285,7 +315,8 @@ export default function DailyBoardPanel({
         .dbp{font-family:${SANS};background:${(stage || dark) ? 'transparent' : 'var(--white)'};border:1.5px solid ${stage ? 'var(--stg-line)' : (dark ? 'rgba(255,255,255,0.10)' : 'rgba(20,22,28,0.12)')};border-radius:14px;padding:15px 16px 14px;}
         .dbp-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;}
         .dbp-hd .t{font-size:16px;font-weight:800;letter-spacing:-.01em;color:${INK};display:flex;align-items:center;gap:8px;min-width:0;}
-        .dbp-hd .t .av{width:22px;height:22px;border-radius:50%;color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+        .dbp-hd .t .av{${avCss}display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .dbp-hd .t .sfx{${sfxCss}flex-shrink:0;}
         .dbp-hd .t .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .dbp-hd .s{font-family:${MONO};font-size:10.5px;letter-spacing:.04em;color:${FADED};font-weight:500;white-space:nowrap;flex-shrink:0;}
         .dbp-signup{display:inline-flex;align-items:center;gap:6px;font-family:${SANS};font-size:12px;font-weight:800;color:${BLUE};background:${SOFT};border:1px solid ${stage ? 'var(--stg-line2)' : (dark ? 'rgba(125,211,252,0.3)' : '#cfe0fb')};border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
@@ -387,8 +418,8 @@ export default function DailyBoardPanel({
         .dbp-cal-key span{display:inline-flex;align-items:center;gap:5px;}
         .dbp-cal-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0;}
 
-        .dbp-full{width:100%;margin-top:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:transparent;border:1.5px solid var(--accent-border);display:inline-flex;align-items:center;justify-content:center;gap:5px;}
-        .dbp-full:hover{background:#f5f8ff;}
+        .dbp-full{width:100%;margin-top:11px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:${SANS};font-size:12.5px;font-weight:800;color:${BLUE};background:transparent;border:1.5px solid ${stage ? 'var(--stg-line2)' : 'var(--accent-border)'};display:inline-flex;align-items:center;justify-content:center;gap:5px;}
+        .dbp-full:hover{background:${stage ? 'var(--stg-chip)' : '#f5f8ff'};}
 
         /* Phone: the three tiles stay side by side, tighter — same as the end
            card's max-width:640px block. */
@@ -406,8 +437,18 @@ export default function DailyBoardPanel({
 
       <div className="dbp-hd">
         <span className="t">
-          {registered && username ? <span className="av" style={{ background: accent }}>{String(username).slice(0, 1).toUpperCase()}</span> : null}
-          <span className="nm">{registered && username ? `${username} Stats` : 'Your Stats'}</span>
+          {registered && username ? (
+            <>
+              {/* The fill is inline OFF stage only: on the stage the colour is
+                  the page's accent and comes from the token in avCss, so an
+                  inline background here would outrank it. */}
+              <span className="av" style={stage ? undefined : { background: accent }}>
+                {String(username).slice(0, 1).toUpperCase()}
+              </span>
+              <span className="nm">{username}</span>
+              <span className="sfx">Stats</span>
+            </>
+          ) : <span className="nm">Your Stats</span>}
         </span>
         {registered
           ? (streak ? <span className="dbp-streak">Current {selfName} streak: <b>{streak.current || 0}</b> <span className="best">({streak.best || 0} best)</span></span> : null)
@@ -511,9 +552,22 @@ export default function DailyBoardPanel({
         </div>
       ) : null}
 
-      <button type="button" className="dbp-full" onClick={() => { if (open) { setOpen(false); } else { setSel('today'); setOpen(true); } }} aria-expanded={open}>
-        {open ? 'Hide leaderboard' : 'Show leaderboard'}
-        <ChevronDown size={14} strokeWidth={2.6} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
+      {/* IT SAYS RANKINGS, because that is what the thing is called everywhere
+          else a reader meets it: the cap's chip, the region's own label, the
+          heading on the board. Calling it a leaderboard at the foot of the
+          panel it opens was the one place the site used a different word for
+          the same section. */}
+      <button
+        type="button"
+        className="dbp-full"
+        onClick={() => {
+          if (onClose) { onClose(); return; }
+          if (open) { setOpen(false); } else { setSel('today'); setOpen(true); }
+        }}
+        aria-expanded={onClose ? true : open}
+      >
+        {(onClose || open) ? 'Hide rankings' : 'Show rankings'}
+        <ChevronDown size={14} strokeWidth={2.6} style={{ transform: (onClose || open) ? 'rotate(180deg)' : 'none', transition: 'transform .15s ease' }} />
       </button>
     </div>
   );
