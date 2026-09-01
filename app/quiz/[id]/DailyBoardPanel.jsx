@@ -371,6 +371,9 @@ export default function DailyBoardPanel({
         .dbp-tile.m3::before{background:linear-gradient(90deg,#b8703c,#e2b189);}
         .dbp-tile.m3 .dbp-tile-lbl{color:#8c5527;}
         .dbp-tile.m3 .dbp-tile-rk{color:#7d4a1f;}
+        .dbp-tile.m1 .dbp-tile-of,.dbp-tile.m1 .dbp-tile-cx{color:#7d5c0c;}
+        .dbp-tile.m2 .dbp-tile-of,.dbp-tile.m2 .dbp-tile-cx{color:#4f5868;}
+        .dbp-tile.m3 .dbp-tile-of,.dbp-tile.m3 .dbp-tile-cx{color:#74471f;}
         .dbp-tile-lbl{font-family:${SANS};font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:${BLUE};padding:0 18px;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:28px;}
         .dbp-tile-rk{font-size:43px;font-weight:800;letter-spacing:-.035em;color:${NAVY};line-height:1.02;margin-top:2px;display:block;font-variant-numeric:tabular-nums;}
         .dbp-tile-rk .prov{font-size:12px;font-weight:700;color:${FADED};}

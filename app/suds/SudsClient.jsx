@@ -736,18 +736,18 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
     // Plain, peer, same digit, selected. On the stage each is a lift of the
     // ground rather than a tint of white, and the two that MEAN something
     // (your digit elsewhere, and where you are) carry the category step.
-    let bg = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
-    if (peer) bg = STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : '#f3f5f8';
-    if (sameVal) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : '#ffe9d8';
-    if (isSel) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 28%, transparent)' : '#ffd9bd';
+    let bg = STAGE ? 'var(--stg-cell)' : T.white;
+    if (peer) bg = STAGE ? 'color-mix(in srgb, var(--stg-ink) 18%, var(--stg-cell))' : '#f3f5f8';
+    if (sameVal) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 34%, var(--stg-cell))' : '#ffe9d8';
+    if (isSel) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 48%, var(--stg-cell))' : '#ffd9bd';
     return {
       background: bg,
       boxShadow: isSel ? `inset 0 0 0 2.5px ${STAGE ? STAGE_C : COLORS.accent}` : undefined,
       zIndex: isSel ? 1 : undefined,
       // The box rules have to stay the STRONGEST line on the grid, or a
       // sudoku loses its nine boxes and becomes an 81 cell square.
-      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)')}`,
-      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)')}`,
+      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-cell-line,rgba(255,255,255,0.36))' : 'rgba(28,30,36,0.18)')}`,
+      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? (STAGE ? 'var(--stg-line3,rgba(255,255,255,0.42))' : 'rgba(28,30,36,0.85)') : (STAGE ? 'var(--stg-cell-line,rgba(255,255,255,0.36))' : 'rgba(28,30,36,0.18)')}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };

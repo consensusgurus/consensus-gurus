@@ -39,7 +39,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK, FEED_SOFT, FEED_SOFT_INK } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -661,9 +661,9 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
     return (
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="mc-cluerow"
-        style={{ background: active ? (STAGE ? 'color-mix(in srgb, var(--stg-acc) 18%, transparent)' : COLORS.accentSoft) : (cross ? 'rgba(192,38,211,0.025)' : 'none'), borderLeft: active ? `3px solid var(--stg-acc, ${COLORS.accent})` : (cross ? '3px solid rgba(192,38,211,0.15)' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? `var(--stg-ink2, rgba(162,28,175,0.5))` : FADED), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
-        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
+        style={{ background: active ? (STAGE ? FEED_STRONG : COLORS.accentSoft) : (cross ? (STAGE ? FEED_SOFT : 'rgba(192,38,211,0.025)') : 'none'), borderLeft: active ? `3px solid ${STAGE ? FEED_STRONG_INK : COLORS.accent}` : (cross ? `3px solid ${STAGE ? FEED_STRONG : 'rgba(192,38,211,0.15)'}` : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? (STAGE ? FEED_STRONG_INK : COLORS.accent) : (cross ? (STAGE ? FEED_SOFT_INK : 'rgba(162,28,175,0.5)') : FADED), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: active && STAGE ? FEED_STRONG_INK : INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
   };
@@ -743,8 +743,8 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-cell)' : 'var(--white)'};}
           .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
           .mc-cell.mc-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#fdf6fe'};}
-          .mc-cell.mc-inword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, transparent)' : COLORS.accentSoft};}
-          .mc-cell.mc-sel{background:${STAGE ? 'var(--stg-surf2)' : '#f6d9f9'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
+          .mc-cell.mc-inword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 26%, var(--stg-cell))' : COLORS.accentSoft};}
+          .mc-cell.mc-sel{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 48%, var(--stg-cell))' : '#f6d9f9'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
           .mc-cell.mc-wrongmark span{color:${COLORS.rust};}
           .mc-cell.mc-wrongmark{animation:mcshake .3s ease;}
           .mc-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:${STAGE ? 'var(--stg-mute)' : 'rgba(28,30,36,0.55)'};pointer-events:none;}

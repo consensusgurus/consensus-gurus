@@ -42,7 +42,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK, FEED_SOFT, FEED_SOFT_INK } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -664,9 +664,9 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
     return (
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="ec-cluerow"
-        style={{ background: active ? COLORS.accentSoft : (cross ? 'var(--stg-acc, rgba(29,78,216,0.03))' : 'none'), borderLeft: active ? `3px solid var(--stg-acc, ${COLORS.accent})` : (cross ? '3px solid var(--stg-acc, rgba(29,78,216,0.18))' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? 'var(--stg-mute, rgba(30,64,175,0.5))' : `var(--stg-mute, ${COLORS.faded})`), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
-        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
+        style={{ background: active ? (STAGE ? FEED_STRONG : COLORS.accentSoft) : (cross ? (STAGE ? FEED_SOFT : 'rgba(29,78,216,0.03)') : 'none'), borderLeft: active ? `3px solid ${STAGE ? FEED_STRONG_INK : COLORS.accent}` : (cross ? `3px solid ${STAGE ? FEED_STRONG : 'rgba(29,78,216,0.18)'}` : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? (STAGE ? FEED_STRONG_INK : COLORS.accent) : (cross ? (STAGE ? FEED_SOFT_INK : 'rgba(30,64,175,0.5)') : `var(--stg-mute, ${COLORS.faded})`), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: active && STAGE ? FEED_STRONG_INK : INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
   };
@@ -749,7 +749,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ec-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ec-ttl h1{font-size:21px;letter-spacing:0.02em;}.ec-ttl .ec-ttl-dt{font-size:15px;}.ec-ttl-dot{display:none;}}
           .ec-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-cell)' : 'var(--white)'};}
           .ec-cell.ec-blk{background:${COLORS.ink};cursor:default;}
-          .ec-cell.ec-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#f5f9ff'};}
+          .ec-cell.ec-crossword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 26%, var(--stg-cell))' : '#f5f9ff'};}
           .ec-cell.ec-inword{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
           .ec-cell.ec-sel{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, var(--stg-raise))' : '#dbeafe'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
           .ec-cell.ec-wrongmark span{color:${COLORS.rust};}

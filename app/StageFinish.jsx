@@ -102,7 +102,7 @@ const FLOOD_COUNT = 820;    // the IQ's climb, which is also its dwell
 // is seeing for the first time. These are the two knobs for the pace of the
 // whole sequence; nothing else needs touching to make it faster or slower.
 const FLOOD_STAMP = 520;    // every other figure lands this far after the last
-const FLOOD_SETTLE = 3000;  // a beat on the finished set, to read it whole
+const FLOOD_SETTLE = 4500;  // a beat on the finished set, to read it whole
 // HOW LONG THE QUEUE WILL BLOCK ON A FIGURE THAT HAS NOT ARRIVED (owner,
 // 2026-08-31, and this is the third pass on this screen). It was anchored to
 // LoftFinish's OWN ceiling, 11 seconds, on the reasoning that the curtain

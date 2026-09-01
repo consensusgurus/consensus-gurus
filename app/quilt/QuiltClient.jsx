@@ -761,8 +761,8 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
       color: '#0b0d12',
       boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
-      borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
-      borderBottom: `${wallB ? 2.5 : 1}px solid ${wallB ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
+      borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
+      borderBottom: `${wallB ? 2.5 : 1}px solid ${wallB ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };

@@ -829,8 +829,8 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
       color: '#0b0d12',
       boxShadow: shadow.length ? shadow.join(', ') : undefined,
       zIndex: isSel ? 1 : undefined,
-      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
-      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
+      borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
+      borderBottom: `${r % 3 === 2 && r !== 8 ? 2.5 : 1}px solid ${r % 3 === 2 && r !== 8 ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };

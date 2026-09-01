@@ -733,12 +733,12 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
     // Same conversion Sixes needed: the digits moved to the stage's ink while
     // the cells stayed white, so the whole grid rendered pale-on-white. Tokens
     // with the Loft value as the fallback, so the Loft render is unchanged.
-    let bg = `var(--stg-surf, ${T.white})`;
-    if (peer) bg = 'var(--stg-chip, #f3f5f8)';
-    if (sameVal) bg = `var(--stg-surf2, ${COLORS.accentTint})`;
-    if (isSel) bg = `var(--stg-chip, ${COLORS.accentPick})`;
-    const thin = '1px solid rgba(28,30,36,0.22)';
-    const heavy = '2.5px solid rgba(28,30,36,0.85)';
+    let bg = STAGE ? 'var(--stg-cell)' : T.white;
+    if (peer) bg = STAGE ? 'color-mix(in srgb, var(--stg-ink) 18%, var(--stg-cell))' : '#f3f5f8';
+    if (sameVal) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 34%, var(--stg-cell))' : COLORS.accentTint;
+    if (isSel) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 48%, var(--stg-cell))' : COLORS.accentPick;
+    const thin = '1px solid var(--stg-cell-line, rgba(28,30,36,0.22))';
+    const heavy = '2.5px solid var(--stg-line3, rgba(28,30,36,0.85))';
     return {
       background: bg,
       boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
