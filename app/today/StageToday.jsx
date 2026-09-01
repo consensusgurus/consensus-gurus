@@ -215,6 +215,43 @@ const leadRankOf = (id) => {
   return i < 0 ? CIRC_LEAD.length : i;
 };
 
+// WHICH SECTIONS ARE OPEN, and a first load opens NONE of them (owner,
+// 2026-09-01). Eighty games in nine grids is a lot of page to hand a reader who
+// has not asked for any of it, so the slate opens as a run of TITLES: every
+// section paints its own ruled head with its count, and the head is the control
+// that opens it.
+//
+// THE CARDS STAY IN THE HTML, hidden with display:none rather than dropped from
+// the render. That is not about animation: this page is the crawl path to every
+// daily, and a collapse that removed the cards would take ~80 internal links
+// with it.
+//
+// OPENING A SECTION STICKS, per browser, beside sot_cat_order and the A to Z
+// view flag and for the same reason all three gave: a view preference belongs
+// to the screen, not to the account. The stored value is an explicit OVERRIDE
+// map, never a list of open sections: a section the reader has never touched
+// keeps following the default (which changes the day they star something), and
+// one they shut by hand stays shut where the default would open it.
+const SHELF_OPEN_KEY = 'sot_shelf_open';
+const MINE_ID = 'sty-mine';
+const CIRC_ID = 'sty-circs';
+
+// THE CIRCUITS SHELF SHOWS ONE CIRCUIT: the Trivia Gauntlet (owner,
+// 2026-09-01). Seventeen cards, or even the lead three, was the family laid out
+// for a reader who had not asked for any particular one. Show all still opens
+// the rest, and that is also where their stars are.
+const LEAD_CIRCUIT = 'gauntlet';
+
+// A starred CIRCUIT is stored as `c:<id>` in the same favorites column the
+// game stars write to (owner, 2026-09-01). My games is one shelf of the things
+// a reader wants in front of them and a circuit is one of those things; the
+// prefix is what stops a circuit id colliding with a game key, and it is why
+// every consumer that reads that column for GAMES needed no change at all.
+const CIRC_PIN = 'c:';
+const circPinKey = (id) => CIRC_PIN + id;
+const isCircPin = (k) => typeof k === 'string' && k.slice(0, 2) === CIRC_PIN;
+const circPinId = (k) => (isCircPin(k) ? k.slice(2) : null);
+
 // ONE DRAWING PER GAME, PAINTED BY THE SURFACE. The glyph is a single stroke
 // path in currentColor, so the card's own --cc (its category step) colours it,
 // and it flips with the register for free. See lib/game-glyphs.js for why these
@@ -247,6 +284,29 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue 
         </button>
       ) : null}
     </a>
+  );
+}
+
+// The same star as GameCard's, on a circuit card. It sits IN the header row
+// rather than floating at the corner, because that corner already holds the
+// circuit's own N/M count.
+function CircStar({ c, canPin, favorites, toggleFavorite }) {
+  if (!canPin) return null;
+  const key = circPinKey(c.id);
+  const on = !!(favorites && favorites.includes(key));
+  return (
+    <button
+      type="button"
+      className={'sty-star' + (on ? ' on' : '')}
+      aria-label={on ? `Unstar ${c.name}` : `Star ${c.name}`}
+      title={on ? 'Remove from My games' : 'Add to My games'}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(key); }}
+    >
+      <svg viewBox="0 0 24 24" width="13" height="13" fill={on ? 'currentColor' : 'none'}
+        stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 4l2.4 5 5.6.8-4 3.9 1 5.5-5-2.7-5 2.7 1-5.5-4-3.9 5.6-.8z" />
+      </svg>
+    </button>
   );
 }
 
@@ -304,6 +364,20 @@ export default function StageToday() {
   const [az, setAz] = useState(false);
   useEffect(() => {
     try { setAz(localStorage.getItem(AZ_KEY) === '1'); } catch (e) {}
+  }, []);
+
+  // NULL until this browser's overrides are read, which is what keeps the
+  // server and the first client paint agreeing on the default: everything shut.
+  const [shelfOpen, setShelfOpen] = useState(null);
+  useEffect(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(SHELF_OPEN_KEY) || 'null');
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+        const clean = {};
+        for (const k of Object.keys(raw)) if (typeof raw[k] === 'boolean') clean[k] = raw[k];
+        setShelfOpen(clean);
+      } else setShelfOpen({});
+    } catch (e) { setShelfOpen({}); }
   }, []);
   const toggleAz = () => {
     setAz((v) => {
@@ -682,7 +756,63 @@ export default function StageToday() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [circuits.length]);
+  // The peek is ONE circuit now (see LEAD_CIRCUIT). circPeek is kept because
+  // the measured column count is still what decides whether the grid has room
+  // for the rest once Show all is pressed.
   const circPeek = narrow ? CIRC_PEEK_NARROW : Math.max(1, circCols);
+  const circLead = useMemo(() => {
+    const lead = circuits.filter((c) => c.id === LEAD_CIRCUIT);
+    return lead.length ? lead : circuits.slice(0, 1);
+  }, [circuits]);
+
+  // The starred CIRCUITS, resolved against today's cards so a circuit carries
+  // the day's real roster. Declared below `circuits` on purpose: this body runs
+  // during render, so reading a const declared further down is a TDZ throw.
+  const pinnedCircs = useMemo(() => {
+    if (!favorites || !favorites.length) return [];
+    const byId = new Map(circuits.map((c) => [c.id, c]));
+    return favorites.filter(isCircPin).map((k) => byId.get(circPinId(k))).filter(Boolean);
+  }, [favorites, circuits]);
+  const mineTot = pinned.length + pinnedCircs.length;
+  const mineDone = pinned.filter((g) => done.has(g.key)).length
+    + pinnedCircs.filter((c) => c.n === c.games.length).length;
+
+  // ── which sections are open ─────────────────────────────────────────
+  // A reader with stars is a reader who has been here before, so their two
+  // personal sections open and every category stays a title. Nobody else gets
+  // an open section until they open one.
+  const hasPins = mineTot > 0;
+  const openDefault = (id) => (id === MINE_ID || id === CIRC_ID ? hasPins : false);
+  const isOpen = (id) => (shelfOpen && Object.prototype.hasOwnProperty.call(shelfOpen, id)
+    ? !!shelfOpen[id]
+    : openDefault(id));
+  const setOpen = (id, on) => {
+    setShelfOpen((cur) => {
+      const next = { ...(cur || {}), [id]: !!on };
+      try { localStorage.setItem(SHELF_OPEN_KEY, JSON.stringify(next)); } catch (e) {}
+      return next;
+    });
+  };
+  // The head is the toggle, but it also carries the reorder arrows, so a click
+  // that landed on a control of its own is not a click on the head.
+  const headClick = (id) => (e) => {
+    try { if (e.target && e.target.closest && e.target.closest('a,button')) return; } catch (x) {}
+    setOpen(id, !isOpen(id));
+  };
+  const cav = (id) => (
+    <button
+      type="button"
+      className={'sty-cav' + (isOpen(id) ? ' on' : '')}
+      aria-expanded={isOpen(id)}
+      aria-label={isOpen(id) ? 'Collapse this section' : 'Show this section'}
+      onClick={(e) => { e.stopPropagation(); setOpen(id, !isOpen(id)); }}
+    >
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 9l6 6 6-6" />
+      </svg>
+    </button>
+  );
 
   const playedCount = done.size;
   // light=1 returns the flat `rank`; full mode nests it under ranks.xp. Both are
@@ -857,19 +987,38 @@ export default function StageToday() {
             to be filled. */}
         {/* The SECTION's rule is neutral because this row is not a category:
             the cards inside it carry their own categories' colours. */}
-        {pinned.length ? (
+        {mineTot ? (
           <section className="sty-cat sty-mine" style={{ '--cc': 'var(--stg-ink2)' }}>
-            <div className="sty-cathead">
+            <div className="sty-cathead" onClick={headClick(MINE_ID)}>
               <h2>My games</h2>
-              <b>{pinned.filter((g) => done.has(g.key)).length}<i>/{pinned.length}</i></b>
+              <b>{mineDone}<i>/{mineTot}</i></b>
+              {cav(MINE_ID)}
             </div>
-            <div className="sty-games">
-              {pinned.map((g) => (
-                <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
-                  canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
-                  hue={hueFor(g.cat)} />
-              ))}
-            </div>
+            {pinned.length ? (
+              <div className={'sty-games' + (isOpen(MINE_ID) ? '' : ' shut')}>
+                {pinned.map((g) => (
+                  <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
+                    canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
+                    hue={hueFor(g.cat)} />
+                ))}
+              </div>
+            ) : null}
+            {pinnedCircs.length ? (
+              <div className={'sty-circs sty-minec' + (isOpen(MINE_ID) ? '' : ' shut')}>
+                {pinnedCircs.map((c) => (
+                  <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
+                    href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
+                    <div className="sty-chead">
+                      <div className="sty-cn">{c.name}</div>
+                      <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
+                      <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+                    </div>
+                    <div className="sty-cb">{c.blurb}</div>
+                    <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -900,12 +1049,13 @@ export default function StageToday() {
              the reason My games' is: a circuit spans categories, so there is no
              single hue that would be honest here. */
           <section className="sty-cat sty-circsec" style={{ '--cc': 'var(--stg-ink2)' }}>
-            <div className="sty-cathead">
+            <div className="sty-cathead" onClick={headClick(CIRC_ID)}>
               <h2>Circuits</h2>
               <b>{circuits.filter((c) => c.n === c.games.length).length}<i>/{circuits.length}</i></b>
+              {cav(CIRC_ID)}
             </div>
-            <div className="sty-circs" ref={circRef}>
-              {(allCircs ? circuits : circuits.slice(0, circPeek)).map((c) => (
+            <div className={'sty-circs' + (isOpen(CIRC_ID) ? '' : ' shut')} ref={circRef}>
+              {(allCircs ? circuits : circLead).map((c) => (
                 <a key={c.id} className={'sty-circ' + (c.n === c.games.length ? ' full' : '')}
                   href={withTq(circuitEntryHref(c.id))} style={{ '--cc': c.hue }}>
                   {/* The count sits IN the header row, not absolutely over the
@@ -915,13 +1065,14 @@ export default function StageToday() {
                   <div className="sty-chead">
                     <div className="sty-cn">{c.name}</div>
                     <div className="sty-cnum">{c.n}<i>/{c.games.length}</i></div>
+                    <CircStar c={c} canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
                   </div>
                   <div className="sty-cb">{c.blurb}</div>
                   <div className="sty-cbar"><span style={{ width: `${(c.n / c.games.length) * 100}%` }} /></div>
                 </a>
               ))}
             </div>
-            {circuits.length > circPeek ? (
+            {isOpen(CIRC_ID) && circuits.length > circLead.length ? (
               <button type="button" className="sty-more" onClick={() => setAllCircs((v) => !v)}>
                 {allCircs ? 'Show fewer' : `Show all ${circuits.length} circuits`}
               </button>
@@ -950,11 +1101,13 @@ export default function StageToday() {
           </section>
         ) : orderedCats.map(({ cat, games }, ci) => {
           const n = games.filter((g) => done.has(g.key)).length;
+          const secId = `cat-${cat.replace(/\s+/g, '-')}`;
           return (
-            <section key={cat} id={`cat-${cat.replace(/\s+/g, '-')}`} className="sty-cat" style={{ '--cc': hueFor(cat) }}>
-              <div className="sty-cathead">
+            <section key={cat} id={secId} className="sty-cat" style={{ '--cc': hueFor(cat) }}>
+              <div className="sty-cathead" onClick={headClick(secId)}>
                 <h2>{cat}</h2>
                 <b>{n}<i>/{games.length}</i></b>
+                {cav(secId)}
                 {reorder ? (
                   <span className="sty-move">
                     <button type="button" onClick={() => moveCat(cat, -1)} disabled={ci === 0} aria-label={`Move ${cat} up`}>&uarr;</button>
@@ -962,7 +1115,7 @@ export default function StageToday() {
                   </span>
                 ) : null}
               </div>
-              <div className="sty-games">
+              <div className={'sty-games' + (isOpen(secId) ? '' : ' shut')}>
                 {games.map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
@@ -1478,4 +1631,24 @@ const CSS = `
 }
 @media (prefers-reduced-motion:reduce){.sty-tv{transition:none;}}
 @media (prefers-reduced-motion:reduce){.sty-prog span{transition:none;}}
+
+/* ── A SHUT SECTION IS ITS HEAD (owner, 2026-09-01) ──
+   display:none rather than an unrendered grid, so the cards stay in the HTML:
+   this page is the crawl path to every daily, and dropping them would drop ~80
+   internal links with them. The head is unchanged, which is what makes the shut
+   page a run of the same ruled titles the open one is built from. */
+.sty-games.shut,.sty-circs.shut{display:none;}
+.sty-cathead:has(.sty-cav){cursor:pointer;}
+.sty-cav{margin-left:auto;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border:0;border-radius:7px;background:none;cursor:pointer;
+  color:var(--stg-mute2);transition:transform .18s,color .12s,background .12s;}
+.sty-cathead:hover .sty-cav{color:var(--stg-ink);background:var(--stg-chip);}
+.sty-cav.on{transform:rotate(180deg);}
+.sty-cav:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
+/* A circuit's star sits IN the header row: the corner a card star would take is
+   already the circuit's N/M count. */
+.sty-chead .sty-star{position:static;flex:none;width:22px;height:22px;margin-left:2px;}
+.sty-circ:hover .sty-star{opacity:1;}
+.sty-minec{margin-top:7px;}
+@media (prefers-reduced-motion:reduce){.sty-cav{transition:none;}}
 `;
