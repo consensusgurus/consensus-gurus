@@ -3955,6 +3955,42 @@ across all 20 games on 2026-07-20.
 5. Update the game's own how-to-play copy and its `page.js` metadata description, which
    both describe the weekly cadence to players and to search engines.
 
+## The gate's Start button sits at the RIGHT edge, on one row (owner rule, 2026-09-01)
+
+Most of a daily is played with a thumb, and the thumb rests at the right. So the
+pre-start card's action block is ONE flex row, not a stack: the primary CTA
+(Start, Dive, Open the bracket, Start the inquest, whatever that game calls it)
+at the RIGHT edge, and the instructions toggle at the LEFT.
+
+```jsx
+<div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+  <button className="xx-btn" onClick={startGame} ...>Start</button>
+  <div>
+    <button type="button" onClick={() => setGateRules((v) => !v)} ...>
+      {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
+    </button>
+  </div>
+</div>
+```
+
+- **`row-reverse` rather than reordering the JSX**, so the CTA stays FIRST in the
+  DOM and therefore first in tab order. It is the primary action; a keyboard
+  player should reach it before the instructions link.
+- **`space-between` + `flexWrap: 'wrap'`** means a narrow phone degrades to two
+  right-aligned lines rather than overflowing. With one child (a returning player
+  whose toggle is hidden, or a gate showing the rules already) the lone CTA still
+  lands at the right, because `row-reverse` puts main-start at the right edge.
+- **The toggle's own `marginTop: 10` / `marginLeft: 8` comes OFF.** Those spaced a
+  stack; in a centred flex row they only misalign it. The `gap` does the spacing.
+- Same treatment on both gate shapes: the wrapper variants
+  (`marginTop: 18` and `marginTop: 'auto', paddingTop: 18`), and the loose
+  primary + "Show instructions" pair used by anon, docket, redact, strata and
+  suffice, which gained the wrapper it never had.
+- Applied 2026-09-01 across all 79 daily clients that carry a gate. Circa is the
+  one game deliberately untouched: its Start is a full-width button inside the
+  board, so it already reaches the right edge.
+- **A new daily game builds its gate this way from the start.**
+
 ## Game copy DEFINES its jargon before it leans on it (owner rule, 2026-08-13)
 
 A daily game's rules panel is read once, by someone who does not yet know the game. So
