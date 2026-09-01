@@ -48,8 +48,15 @@ import { fetchDayStatus, etToday } from './useDayStats';
 // ── the ending's constants, not a new set ──────────────────────────────────
 const FLOOD_MIN = 600;      // the name alone, before any figure
 const FLOOD_COUNT = 820;    // the lead's climb, which is also its dwell
-const FLOOD_STAMP = 380;    // every other figure lands this far after the last
-const FLOOD_SETTLE = 420;   // a beat on the finished set, to read it whole
+// LONGER THAN THE ENDING'S, DELIBERATELY (owner, live, 2026-08-31: "the stats
+// flash too quickly to read"). The ending can stamp at 380 and settle at 420
+// because the card underneath repeats every figure in place, so a reader who
+// missed one just reads it again. HERE THE FLOOD IS THE ONLY PLACE SOME OF
+// THEM ARE EVER SAID: the cap carries the IQ and the rank, and nothing on the
+// page says which game you are most improved at. So each figure gets long
+// enough to land and the finished set is held for over a second.
+const FLOOD_STAMP = 560;    // every other figure lands this far after the last
+const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
 // THE BACKSTOP IS 4s, NOT THE ENDING'S 12s. A finished game can hold a reader
@@ -84,6 +91,12 @@ function Count({ to, ms }) {
   }, [to, ms]);
   return <>{Math.round(v).toLocaleString()}</>;
 }
+
+// ONE GREETING FOR EVERY CASE (owner, live, 2026-08-31: "it says 'back, [name]'
+// this makes no sense"). The first pass varied the salutation by gap, which
+// produced "Back, Gator85" on a resumption and read as a clipped fragment. The
+// figures are what differ between arrivals; the greeting is just a greeting.
+const HELLO = 'Welcome back, ';
 
 function readName() {
   try {
@@ -126,6 +139,13 @@ export default function StageWelcome({ capRef }) {
   const [data, setData] = useState(null);  // the daily-status payload
   const [settled, setSettled] = useState(false); // the read has answered, blank means blank
   const [name, setName] = useState('');
+  const today = useMemo(() => {
+    try {
+      const [Y, M, D] = etToday().split('-').map(Number);
+      return new Date(Date.UTC(Y, M - 1, D)).toLocaleDateString('en-US',
+        { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    } catch (e) { return ''; }
+  }, []);
   const [phase, setPhase] = useState('');  // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);
@@ -199,7 +219,7 @@ export default function StageWelcome({ capRef }) {
   // ── the case, and its figures ────────────────────────────────────────────
   const view = useMemo(() => {
     const today = etToday();
-    if (!data) return { eye: '', hand: 'Back, ', figs: [] };
+    if (!data) return { figs: [] };
     const gap = daysBetween(data.lastPlayed, today);
     const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
 
@@ -212,8 +232,7 @@ export default function StageWelcome({ capRef }) {
       const lost = (was != null && rank != null && rank > was) ? rank - was : null;
       const g = data.bestGain;
       return {
-        eye: 'Back today',
-        hand: 'Back, ',
+
         rank,
         figs: [
           num(data.todayXp) ? { k: 'iq', lead: true, count: num(data.todayXp), pre: '+', lab: 'IQ today', good: true } : null,
@@ -238,8 +257,7 @@ export default function StageWelcome({ capRef }) {
     if (gap === 1) {
       const st = num(data.streak);
       return {
-        eye: 'A new day',
-        hand: st ? `Day ${st + 1}, ` : 'Back, ',
+
         figs: [
           st ? { k: 'streak', lead: true, count: st, lab: 'day streak' } : null,
           num(data.communityRank) ? {
@@ -255,8 +273,7 @@ export default function StageWelcome({ capRef }) {
     // the best it reached rather than as something lost.
     if (gap != null && gap >= 2) {
       return {
-        eye: 'Welcome back',
-        hand: '',
+
         figs: [
           { k: 'away', lead: true, count: gap, lab: gap === 1 ? 'day away' : 'days away' },
           num(data.communityRank) ? {
@@ -268,7 +285,7 @@ export default function StageWelcome({ capRef }) {
       };
     }
 
-    return { eye: '', hand: 'Back, ', figs: [] };
+    return { figs: [] };
   }, [data]);
 
   // The place we are showing becomes the place the NEXT arrival compares to.
@@ -348,10 +365,11 @@ export default function StageWelcome({ capRef }) {
     >
       <style>{CSS}</style>
       <div className="stw-in">
-        {view.eye ? <span className="stw-eye">{view.eye}</span> : null}
-        <div className="stw-nm">
-          {view.hand ? <span className="stw-hand">{view.hand}</span> : null}{name}
-        </div>
+        {/* THE DATE, not a per-case label: it is local, so it paints with the
+            name rather than waiting on the read, and it is the same line the
+            cap carries two rows down. */}
+        <span className="stw-eye">{today}</span>
+        <div className="stw-nm"><span className="stw-hand">{HELLO}</span>{name}</div>
         {/* Each figure mounts when the queue reaches it, so the stamp is an
             animation on mount rather than a class anyone has to toggle. */}
         <div className="stw-figs">
@@ -401,7 +419,10 @@ const CSS = `
   text-transform:uppercase;font-weight:700;opacity:.6;}
 .stw-nm{margin-top:10px;font-size:clamp(34px,7.4vw,88px);font-weight:800;
   letter-spacing:-.04em;line-height:.98;text-wrap:balance;text-align:center;}
-.stw-hand{opacity:.45;font-weight:600;}
+/* It is quieter than the name and still has to READ (owner, live, 2026-08-31:
+   "is the text too dark and blends in?"). .45 on this ground put it near the
+   floor, so it takes the ink token one step down instead of an opacity. */
+.stw-hand{color:var(--stg-ink2,#aab5c7);font-weight:600;}
 
 .stw-figs{margin-top:26px;display:flex;flex-wrap:wrap;justify-content:center;
   align-items:flex-end;gap:16px 42px;}
