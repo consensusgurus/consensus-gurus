@@ -64,6 +64,15 @@ const FLOOD_STAMP = 560;    // every other figure lands this far after the last
 // 2026-08-31, so a ten-game day is a real list and the per-row cost is what
 // keeps it from being a minute long.
 const FLOOD_ROW = 420;
+// HOW LONG THE ARRIVAL WILL WAIT FOR THE RECAP, and it is a hard ceiling.
+// Measured live 2026-08-31: daily-combined for a PAST date costs 3.2 to 4.5s
+// cold and 66ms warm, and a cross-day arrival is always the cold path, because
+// nobody has asked for that player's past-date board in the last 30 seconds.
+// Without a ceiling the reader sits on a lead figure watching nothing happen
+// for two and a half seconds, which is the same complaint as the stats going by
+// too fast, from the other end. Past this the arrival proceeds with the figures
+// it has and the recap simply does not appear.
+const RECAP_WAIT = 2400;
 const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
@@ -291,7 +300,10 @@ export default function StageWelcome({ capRef }) {
     fetch('/api/quiz/daily-combined?' + p.toString())
       .then((r) => r.json())
       .then((d) => {
-        if (!alive) return;
+        // Late is the same as never once the collapse is scheduled: adding rows
+        // behind a screen that is already leaving would reopen a queue nobody
+        // is watching.
+        if (!alive || goneRef.current) return;
         const per = d && d.me && d.me.perGame;
         if (!per) { setRecapDone(true); return; }
         const fieldOf = new Map();
@@ -301,8 +313,14 @@ export default function StageWelcome({ capRef }) {
             const r = per[k];
             const rank = r && typeof r.rank === 'number' ? r.rank : null;
             if (!rank) return null;
+            // A FIELD OF ONE IS NOT A PLACEMENT. Measured on a real day, the
+            // recap opened on "Sando #1 of 1", which reads as a joke and
+            // discredits the twelve honest rows under it. Coming first among
+            // nobody is not a finish, so it is not reported as one.
+            const field = fieldOf.get(k) || null;
+            if (field != null && field < 2) return null;
             const g = DAILY_GAME_MAP[k];
-            return { k: 'g:' + k, rank, name: (g && g.name) || k, field: fieldOf.get(k) || null };
+            return { k: 'g:' + k, rank, name: (g && g.name) || k, field };
           })
           .filter(Boolean)
           // BEST FIRST. The reader's best finish is the one worth opening on,
@@ -407,6 +425,7 @@ export default function StageWelcome({ capRef }) {
     at(20, () => setPhase('up'));
     at(FLOOD_MIN, () => setHeld(true));
     at(FLOOD_MAX, () => setExpired(true));
+    at(RECAP_WAIT, () => setRecapDone(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on]);
 
