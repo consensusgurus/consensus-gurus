@@ -22,6 +22,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
 import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
+// ONE READING OF A BOARD ROW, shared with the tile panel and the stage's leader
+// strip. See the file's own header: a row carries both the 0-15 placement points
+// and what the player actually did, and only the second means anything next to
+// the game they just played.
+import { gameStats } from '@/lib/daily-row-stats';
 import GameGlyph from './GameGlyph';
 
 // ── THE FLOOD ──────────────────────────────────────────────────────────────
@@ -89,8 +94,15 @@ import GameGlyph from './GameGlyph';
 // is waited for.
 const FLOOD_MIN = 600;      // the floor: the verdict alone, before any figure
 const FLOOD_COUNT = 820;    // the IQ's climb, which is also its dwell
-const FLOOD_STAMP = 380;    // every other figure lands this far after the last
-const FLOOD_SETTLE = 420;   // a beat on the finished set, to read it whole
+// EACH FIGURE GETS LONG ENOUGH TO BE READ, and the finished set gets a real
+// pause before the screen goes (owner, 2026-08-31: "they come on fast and the
+// screen leaves very quickly"). 380 and 420 were tuned as ANIMATION beats, which
+// is the wrong unit: a figure is a sentence to be read, not a transition to be
+// felt, and the settle was under half a second on a set of four numbers a player
+// is seeing for the first time. These are the two knobs for the pace of the
+// whole sequence; nothing else needs touching to make it faster or slower.
+const FLOOD_STAMP = 520;    // every other figure lands this far after the last
+const FLOOD_SETTLE = 2000;  // a beat on the finished set, to read it whole
 // HOW LONG THE QUEUE WILL BLOCK ON A FIGURE THAT HAS NOT ARRIVED (owner,
 // 2026-08-31, and this is the third pass on this screen). It was anchored to
 // LoftFinish's OWN ceiling, 11 seconds, on the reasoning that the curtain
@@ -691,8 +703,15 @@ export default function StageFinish({
                   <tr key={r.username || i} className={isMine(r) ? 'me' : undefined}>
                     <td className="stf-pos">{r.rank != null ? `#${r.rank}` : `#${i + 1}`}</td>
                     <td className="stf-who">{r.username || 'Guest'}</td>
-                    <td className="stf-sc">{r.score != null ? r.score : '—'}</td>
-                    <td className="stf-pt">{r.points != null ? r.points : ''}</td>
+                    {/* WHAT THEY DID, NOT WHAT IT WAS WORTH (owner, 2026-08-31).
+                        This printed `score` beside `points`, and on a board where
+                        everyone solved it that is a column of identical tens: the
+                        reader is told nothing, and the ordering of the rows looks
+                        arbitrary because the thing that actually separates them
+                        (the tries, the clock) was not on screen. gameStats prints
+                        the run — 10/10 · 1 try · 0:13 — which is the same fix the
+                        leader strip got, from the same helper. */}
+                    <td className="stf-st">{gameStats(r) || '\u2014'}</td>
                   </tr>
                 ))}
                 {/* Outside the five, they get their line back under a gap, so
@@ -700,13 +719,12 @@ export default function StageFinish({
                 {!rows.some(isMine) && board && board.myRow ? (
                   <>
                     {myRank != null && myRank > rows.length + 1 ? (
-                      <tr className="gap"><td colSpan={4}>&middot;&middot;&middot;</td></tr>
+                      <tr className="gap"><td colSpan={3}>&middot;&middot;&middot;</td></tr>
                     ) : null}
                     <tr className="me">
                       <td className="stf-pos">{myRank != null ? `#${myRank}` : ''}</td>
                       <td className="stf-who">{board.myRow.username || 'You'}</td>
-                      <td className="stf-sc">{board.myRow.score != null ? board.myRow.score : '—'}</td>
-                      <td className="stf-pt">{board.myRow.points != null ? board.myRow.points : ''}</td>
+                      <td className="stf-st">{gameStats(board.myRow) || '\u2014'}</td>
                     </tr>
                   </>
                 ) : null}
@@ -941,7 +959,7 @@ const CSS = `
   border-bottom-color:transparent;}
 /* The three cells that set their own colour need it taken back off them, or
    the mute grey and the ink2 survive on top of the fill. */
-.stf-tbl tr.me .stf-pos,.stf-tbl tr.me .stf-sc,.stf-tbl tr.me .stf-pt{color:var(--stg-onramp,#fff);}
+.stf-tbl tr.me .stf-pos,.stf-tbl tr.me .stf-st{color:var(--stg-onramp,#fff);}
 .stf-tbl tr.me td:first-child{border-radius:7px 0 0 7px;}
 .stf-tbl tr.me td:last-child{border-radius:0 7px 7px 0;}
 /* The elision between the five and a distant finisher. */
@@ -949,8 +967,11 @@ const CSS = `
   padding:2px 6px;border-bottom:0;font-size:11px;}
 .stf-pos{width:44px;font-family:${MONO};font-size:12px;color:var(--stg-mute);}
 .stf-who{font-weight:700;}
-.stf-sc,.stf-pt{width:56px;text-align:right;color:var(--stg-ink2);}
-.stf-pt{font-weight:800;color:var(--stg-ink);}
+/* One column, right-aligned, and NOT width-capped: it holds a sentence of
+   figures whose length varies by game (a sudoku has no tries, an End Game row
+   has no guesses), so a fixed width would either truncate it or leave a hole. */
+.stf-st{text-align:right;white-space:nowrap;color:var(--stg-ink2);font-size:12.5px;
+  font-variant-numeric:tabular-nums;}
 
 /* ── this game's back catalogue ────────────────────────────────────────── */
 .stf-arch{display:grid;gap:5px;max-height:420px;overflow-y:auto;}
@@ -1068,6 +1089,7 @@ const CSS = `
   .stf-ctop{gap:14px;}
   .stf-ciq b{font-size:26px;}
   .stf-ciq i{font-size:10px;margin-top:5px;}
+  .stf-st{font-size:11px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
 }
 `;
