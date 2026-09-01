@@ -357,7 +357,14 @@ export default function StageFinish({
     </button>
   );
 
-  const rows = board && Array.isArray(board.rows) ? board.rows.slice(0, 5) : [];
+  const top5 = board && Array.isArray(board.rows) ? board.rows.slice(0, 5) : [];
+  // Identity, by key first and by name second, because a guest board carries
+  // no key and the name is all useDailyBoard could resolve.
+  const myKey = board && board.myRow ? board.myRow.userKey : null;
+  const myName = board && board.mine ? String(board.mine) : null;
+  const isMine = (r) => (!!myKey && r && r.userKey === myKey)
+    || (!!myName && String((r && r.username) || '').toLowerCase() === myName);
+  const rows = top5;
   const myRank = board && board.myRank != null ? board.myRank : null;
   const field = board && board.field != null ? board.field : null;
 
@@ -491,13 +498,28 @@ export default function StageFinish({
             <table className="stf-tbl">
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={r.username || i} className={r.me ? 'me' : undefined}>
+                  <tr key={r.username || i} className={isMine(r) ? 'me' : undefined}>
                     <td className="stf-pos">{r.rank != null ? `#${r.rank}` : `#${i + 1}`}</td>
                     <td className="stf-who">{r.username || 'Guest'}</td>
                     <td className="stf-sc">{r.score != null ? r.score : '—'}</td>
                     <td className="stf-pt">{r.points != null ? r.points : ''}</td>
                   </tr>
                 ))}
+                {/* Outside the five, they get their line back under a gap, so
+                    the eyebrow's "you are #7 of 13" has something to point at. */}
+                {!rows.some(isMine) && board && board.myRow ? (
+                  <>
+                    {myRank != null && myRank > rows.length + 1 ? (
+                      <tr className="gap"><td colSpan={4}>&middot;&middot;&middot;</td></tr>
+                    ) : null}
+                    <tr className="me">
+                      <td className="stf-pos">{myRank != null ? `#${myRank}` : ''}</td>
+                      <td className="stf-who">{board.myRow.username || 'You'}</td>
+                      <td className="stf-sc">{board.myRow.score != null ? board.myRow.score : '—'}</td>
+                      <td className="stf-pt">{board.myRow.points != null ? board.myRow.points : ''}</td>
+                    </tr>
+                  </>
+                ) : null}
               </tbody>
             </table>
           </section>
@@ -727,6 +749,9 @@ const CSS = `
 .stf-tbl tr.me .stf-pos,.stf-tbl tr.me .stf-sc,.stf-tbl tr.me .stf-pt{color:var(--stg-onramp,#fff);}
 .stf-tbl tr.me td:first-child{border-radius:7px 0 0 7px;}
 .stf-tbl tr.me td:last-child{border-radius:0 7px 7px 0;}
+/* The elision between the five and a distant finisher. */
+.stf-tbl tr.gap td{text-align:center;letter-spacing:.3em;color:var(--stg-mute);
+  padding:2px 6px;border-bottom:0;font-size:11px;}
 .stf-pos{width:44px;font-family:${MONO};font-size:12px;color:var(--stg-mute);}
 .stf-who{font-weight:700;}
 .stf-sc,.stf-pt{width:56px;text-align:right;color:var(--stg-ink2);}
