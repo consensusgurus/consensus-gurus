@@ -484,7 +484,11 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
       const j = clueAt.get(rr * N + cc);
       if (j !== undefined) { count++; k = j; }
     }
-    if (count === 0 && w * h === 1) return;                 // a stray tap costs nothing
+    // A 1x1 release is a TAP, not a drag, and a tap is already this board's
+    // gesture for handing a plot BACK, so an accidental one must never cost an
+    // error. The one 1x1 that is a real claim is a 1 on its own cell, which is
+    // correct by construction, so tapping a 1 still claims it.
+    if (w * h === 1 && !(count === 1 && CLUES[k][2] === 1)) return;
     if (!cur.t0) startGame();
     if (count !== 1 || CLUES[k][2] !== w * h) {
       const g2 = { ...cur, errors: cur.errors + 1 };
@@ -544,19 +548,31 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
     setDrag({ a: p, b: p });
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
   }
+  // Dragging OFF the board is the way out of a drag you did not mean to start.
+  // The pointer is captured, so the grid keeps receiving moves once the finger
+  // leaves it: we mark the drag `off` rather than ignoring the move, and a
+  // release out there throws it away instead of claiming whatever the last
+  // in-grid cell happened to be. The preview goes ghosted while you are
+  // outside, so the cancel is visible BEFORE you let go.
   function onGridMove(e) {
     if (!dragRef.current) return;
     const p = cellFromPoint(e.clientX, e.clientY);
-    if (!p) return;
-    const d = { a: dragRef.current.a, b: p };
+    const d = { a: dragRef.current.a, b: p || dragRef.current.b, off: !p };
     dragRef.current = d;
     setDrag(d);
+  }
+  function cancelDrag() {
+    if (!dragRef.current) return false;
+    dragRef.current = null;
+    setDrag(null);
+    return true;
   }
   function onGridUp() {
     const d = dragRef.current;
     dragRef.current = null;
     setDrag(null);
     if (!d) return;
+    if (d.off) { say('Dropped off the board. Nothing claimed.'); return; }
     claim(rectOf(d));
   }
   function rectOf(d) {
@@ -621,6 +637,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
     if (gRef.current.status !== 'playing') return;
     const k = e.key;
     if ((k === 'z' || k === 'Z') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); undo(); return; }
+    if (k === 'Escape' && cancelDrag()) { e.preventDefault(); return; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
@@ -686,8 +703,8 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
       ]}
       steps={[
         <>Every number is the <b>area</b> of the plot it belongs to. A <b>6</b> sits in a plot of six cells, so 1&times;6, 2&times;3, 3&times;2 or 6&times;1.</>,
-        <><b>Drag</b> from one corner to the other to claim a plot. It has to hold <b>exactly one</b> number, and cover exactly that many cells.</>,
-        <>Every cell ends up in a plot, and no two plots overlap. <b>Tap</b> a plot you have claimed to hand it back, which costs nothing.</>,
+        <><b>Drag</b> from one corner to the other to claim a plot. It has to hold <b>exactly one</b> number, and cover exactly that many cells. Changed your mind? Slide <b>off the board</b> and let go, and nothing is claimed.</>,
+        <>Every cell ends up in a plot, and no two plots overlap. <b>Tap</b> a plot you have claimed to hand it back, which costs nothing, and a stray tap on a single square costs nothing either.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last move, and one free <b>hint</b>, on your first ever play, surveys one plot for you.</>,
       ]}
       knack="Start where a number has nowhere else to go: a 1 is its own cell, and a number in a corner or against an edge usually has only one shape that fits."
@@ -829,8 +846,9 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               {preview && (
                 <div style={{
                   position: 'absolute', left: pct(preview[1]), top: pct(preview[0]), width: pct(preview[2]), height: pct(preview[3]),
-                  border: `2px dashed ${previewOk ? COLORS.green : 'var(--stg-line3, rgba(28,30,36,0.55))'}`,
-                  background: previewOk ? 'rgba(21,128,61,0.13)' : 'var(--stg-surf, rgba(28,30,36,0.07))',
+                  border: `2px dashed ${drag && drag.off ? 'var(--stg-line2, rgba(28,30,36,0.3))' : previewOk ? `var(--stg-good, ${COLORS.green})` : 'var(--stg-line3, rgba(28,30,36,0.55))'}`,
+                  background: drag && drag.off ? 'transparent' : previewOk ? 'rgba(21,128,61,0.13)' : 'var(--stg-surf, rgba(28,30,36,0.07))',
+                  opacity: drag && drag.off ? 0.4 : 1,
                   borderRadius: 4, boxSizing: 'border-box', pointerEvents: 'none',
                 }} />
               )}
@@ -853,7 +871,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--stg-line, rgba(28,30,36,0.10))', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
-              Drag corner to corner to claim a plot. Tap a plot to hand it back.
+              Drag corner to corner to claim a plot. Tap a plot to hand it back. Drag off the board to cancel.
             </span>
             {identity && (claimed > 0 || errors > 0) && (
               <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
@@ -1054,7 +1072,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
           Plot is a free daily rectangle puzzle from Mind Loft, the logic puzzle also known as shikaku or divide by squares. Numbers are scattered across the board, and each one is the size of the plot it belongs to. Divide the whole board into rectangles so that every rectangle holds exactly one number and covers exactly that many cells.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Every board has exactly one solution and is reachable by pure deduction, so there is never a moment where you have to guess. Drag corner to corner to claim a plot, tap one to hand it back, and start where a number has nowhere else to go. A plot that fits its number but sits in the wrong place turns red, so you always know where you stand.
+          Every board has exactly one solution and is reachable by pure deduction, so there is never a moment where you have to guess. Drag corner to corner to claim a plot, tap one to hand it back, slide off the board mid-drag to cancel, and start where a number has nowhere else to go. A plot that fits its number but sits in the wrong place turns red, so you always know where you stand.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           A new board drops every day at midnight Eastern, and Sundays step up to a 12&times;12 Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/etch" style={{ color: INK, fontWeight: 800 }}>Etch</a>, our nonogram, <a href="/hedge" style={{ color: INK, fontWeight: 800 }}>Hedge</a>, our loop puzzle, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku.

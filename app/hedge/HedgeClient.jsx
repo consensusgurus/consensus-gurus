@@ -758,11 +758,13 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
               {PUZZLE.clues.map((row, i) => row.map((c, j) => {
                 if (c === null || c === undefined) return null;
                 const k = cellCount[i][j];
-                const col = k > c ? COLORS.rust : k === c ? '#c3c8d4' : COLORS.ink;
+                const col = k > c ? `var(--stg-bad, ${COLORS.rust})`
+                  : k === c ? 'var(--stg-mute, #c3c8d4)'
+                  : `var(--stg-ink, ${COLORS.ink})`;
                 return (
-                  <text key={`c${i}-${j}`} x={X(j) + CELL / 2} y={Y(i) + CELL / 2} fill={col}
+                  <text key={`c${i}-${j}`} x={X(j) + CELL / 2} y={Y(i) + CELL / 2} fill="currentColor"
                     fontFamily={MONO} fontSize={17} fontWeight="500" textAnchor="middle" dominantBaseline="central"
-                    style={{ pointerEvents: 'none', userSelect: 'none' }}>{c}</text>
+                    style={{ color: col, pointerEvents: 'none', userSelect: 'none' }}>{c}</text>
                 );
               }))}
               {/* crosses */}

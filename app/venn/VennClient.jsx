@@ -442,15 +442,15 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};}
           .vn-chip:hover{border-color:var(--stg-acc, ${COLORS.accent});}
           .vn-chip.held{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};}
-          .vn-zone{position:absolute;transform:translate(-50%,-50%);width:76px;min-height:34px;border-radius:8px;border:1.5px dashed rgba(28,30,36,0.3);background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;padding:3px;cursor:pointer;z-index:1;}
+          .vn-zone{position:absolute;transform:translate(-50%,-50%);width:76px;min-height:34px;border-radius:8px;border:1.5px dashed var(--stg-cell-line, rgba(28,30,36,0.3));background:var(--stg-cell, rgba(255,255,255,0.92));display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;padding:3px;cursor:pointer;z-index:1;}
           .vn-zone:hover,.vn-zone:focus-within{z-index:6;}
-          .vn-zone.ready{border-style:solid;border-color:${COLORS.green};background:${COLORS.greenSoft};}
-          .vn-zone.over{border-color:${COLORS.rust};}
+          .vn-zone.ready{border-style:solid;border-color:var(--stg-good, ${COLORS.green});background:${STAGE ? `color-mix(in srgb, var(--stg-good, ${COLORS.green}) 22%, var(--stg-cell, #1a1d28))` : COLORS.greenSoft};}
+          .vn-zone.over{border-color:var(--stg-bad, ${COLORS.rust});}
           .vn-zone .n{font-family:${MONO};font-size:9px;font-weight:500;color:${FADED};text-align:center;}
           .vn-zone .w{display:flex;align-items:center;gap:2px;width:100%;box-sizing:border-box;min-height:17px;padding:1px 2px 1px 3px;border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:5px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${SANS};font-size:8.5px;font-weight:800;letter-spacing:0.01em;color:${INK};line-height:1.2;cursor:pointer;}
           .vn-zone .w:hover{border-color:var(--stg-acc, ${COLORS.accent});background:var(--stg-surf2, ${COLORS.accentSoft});}
           .vn-zone .w .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;}
-          .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:rgba(28,30,36,0.08);color:${FADED};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
+          .vn-zone .w .x{flex:0 0 auto;width:13px;height:13px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:4px;background:var(--stg-surf2, rgba(28,30,36,0.08));color:${FADED};font-family:${SANS};font-size:11px;font-weight:800;line-height:1;cursor:pointer;}
           .vn-zone .w .x:hover{background:${COLORS.rust};color:${T.white};}
           /* A filed item gets about 48px of the 76px tray once the padding and
              the send-back button are taken out, which is ~9 characters at

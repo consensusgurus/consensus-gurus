@@ -241,7 +241,7 @@ function EtchGallery({ puzzles, rec, currentNum }) {
             >
               {done ? (
                 <svg viewBox={`0 0 ${p.w} ${p.h}`} width="100%" height="100%" style={{ display: 'block' }} aria-hidden="true" focusable="false">
-                  <path d={solPath(p.sol)} fill={p.sunday ? COLORS.accent : COLORS.ink} />
+                  <path d={solPath(p.sol)} fill="currentColor" style={{ color: p.sunday ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-ink, ${COLORS.ink})` }} />
                 </svg>
               ) : null}
             </a>
