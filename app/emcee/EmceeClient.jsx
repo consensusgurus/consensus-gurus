@@ -736,7 +736,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
           .mc-btn:hover{background:var(--accent-soft);}
           @keyframes mcshake{0%,100%{transform:translateX(0);}25%{transform:translateX(-3px);}75%{transform:translateX(3px);}}
           @media(max-width:560px){.mc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.mc-ttl h1{font-size:21px;letter-spacing:0.02em;}.mc-ttl .mc-ttl-dt{font-size:15px;}.mc-ttl-dot{display:none;}}
-          .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
+          .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${SANS};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;background:${STAGE ? 'var(--stg-cell)' : 'var(--white)'};}
           .mc-cell.mc-blk{background:${COLORS.ink};cursor:default;}
           .mc-cell.mc-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#fdf6fe'};}
           .mc-cell.mc-inword{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, transparent)' : COLORS.accentSoft};}
@@ -819,7 +819,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
 
           {/* the grid */}
           <div style={{ maxWidth: N === 7 ? 476 : 420, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: `2.5px solid rgba(28,30,36,0.85)`, borderRadius: 4, overflow: 'hidden', gap: 1, background: 'rgba(28,30,36,0.28)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: `2.5px solid var(--stg-cell-line, rgba(28,30,36,0.85))`, borderRadius: 4, overflow: 'hidden', gap: 1, background: 'var(--stg-cell-line, rgba(28,30,36,0.28))' }}>
               {Array.from({ length: T }).map((_, idx) => {
                 if (isBlock(idx)) return <div key={idx} className="mc-cell mc-blk" />;
                 const inWord = playing && curWord.cells.includes(idx);

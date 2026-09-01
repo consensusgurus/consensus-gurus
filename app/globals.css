@@ -185,11 +185,36 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-raise: #0e131f;
   --stg-panel: #0d1220;
 
-  --stg-surf: rgba(255, 255, 255, 0.045);   /* a raised surface: a cell, a card, a key */
+  --stg-surf: rgba(255, 255, 255, 0.045);   /* a raised surface: a card, a panel */
   --stg-surf2: rgba(255, 255, 255, 0.08);   /* more raised: a hover, a pressed key */
   --stg-line: rgba(255, 255, 255, 0.11);    /* a hairline */
   --stg-line2: rgba(255, 255, 255, 0.17);   /* a stronger rule */
   --stg-line3: rgba(255, 255, 255, 0.42);   /* the strongest: a sudoku's box divisions */
+  /* THE EMPTY PLAYABLE SQUARE, AND THE KEY. --stg-surf used to say "a cell" in
+     its own comment and every grid game reached for it, which is exactly what
+     it should not be used for: it is a CARD's lift, and a card is a shape you
+     read the CONTENTS of, while a board square and a keypad key are shapes you
+     have to see the EDGES of before anything is in them.
+
+     Measured on the live board (owner report, 2026-09-01, "the crossword
+     placeholders are almost invisible on dark mode"): --stg-surf on this
+     ground is 1.09:1 and a --stg-line hairline around it is 1.51:1, so 34 of
+     Crux's 39 squares could not be made out and the board was a formless dark
+     mass with only the word you were on visible. Blocks' four dock keys fused
+     into one slab for the same reason.
+
+     So an empty square is treated as a UI COMPONENT, not a surface: its
+     boundary owes 3:1, the same as a checkbox outline (WCAG 1.4.11). The FILL
+     stays a quiet well, deliberately, because a crossword should read as dark
+     squares with a clear grid rather than as a light block; the LINE does the
+     work. Sitting between line2 and line3 on purpose, so a sudoku's box
+     divisions are still the strongest rule on its own board.
+
+     Each register picks its own against its own ground, and neither is derived
+     from the other: dark 0.36 is 3.26:1 on #0b0f1a, light 0.44 is 3.18:1 on
+     #eef1f6. A naive port of either number lands under 3 on the other. */
+  --stg-cell: rgba(255, 255, 255, 0.06);
+  --stg-cell-line: rgba(255, 255, 255, 0.36);
 
   --stg-ink: #e9edf4;
   --stg-ink2: #aab5c7;
@@ -409,6 +434,9 @@ body:has(.stage-page) .qch-bar { display: none !important; }
   --stg-line: rgba(11, 15, 26, 0.14);
   --stg-line2: rgba(11, 15, 26, 0.24);
   --stg-line3: rgba(11, 15, 26, 0.45);
+  /* 3.18:1 on this register's own ground. See the dark block for the rule. */
+  --stg-cell: #ffffff;
+  --stg-cell-line: rgba(11, 15, 26, 0.44);
 
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;

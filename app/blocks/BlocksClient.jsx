@@ -899,7 +899,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
   );
 
   const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
-  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
+  const dockBtn = { width: 46, height: 44, borderRadius: 9, border: STAGE ? '1px solid var(--stg-cell-line)' : `1px solid ${COLORS.line}`, background: STAGE ? 'var(--stg-cell)' : '#fff', color: STAGE ? 'var(--stg-ink,#e9edf4)' : FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
@@ -1256,7 +1256,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           display: grid;
           grid-template-areas: ". rot ." "lft dwn rgt";
           grid-template-columns: repeat(3, 58px);
-          gap: 5px;
+          gap: 8px;
           justify-content: center;
         }
         .bl-rot { grid-area: rot; }
@@ -1270,7 +1270,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
           .bl-keys { display: none !important; }
           .bl-touchhint { display: block !important; }
           .bl-dock { margin-top: 10px; }
-          .bl-pad { grid-template-columns: repeat(3, 64px); gap: 6px; }
+          .bl-pad { grid-template-columns: repeat(3, 64px); gap: 8px; }
           .bl-pad button { height: 58px !important; }
         }
       `}</style>

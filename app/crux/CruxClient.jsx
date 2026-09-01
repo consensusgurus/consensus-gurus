@@ -648,13 +648,14 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // dark chip on the board into a pale one.
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
-  // Every value here is a ROLE, never a fixed alpha. An empty cell is a raised
-  // surface, a spent one is inert, and the selection is a wash of whatever the
-  // accent currently is, so all three follow the register instead of assuming
-  // the ground is dark.
+  // Every value here is a ROLE, never a fixed alpha. An empty cell is a
+  // SQUARE (its edge has to be seen before anything is in it, so it takes the
+  // board-cell pair rather than a card's lift), a spent one is inert, and the
+  // selection is a wash of whatever the accent currently is, so all three
+  // follow the register instead of assuming the ground is dark.
   const SPAL = STAGE ? {
-    tile: 'var(--stg-surf)',
-    tileB: 'var(--stg-line)',
+    tile: 'var(--stg-cell)',
+    tileB: 'var(--stg-cell-line)',
     sel: 'color-mix(in srgb, var(--stg-ink) 10%, transparent)',
     selCur: 'color-mix(in srgb, var(--stg-ink) 18%, transparent)',
     selB: 'color-mix(in srgb, var(--stg-ink) 38%, transparent)',

@@ -1072,7 +1072,7 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
           .tl-blocked{background:${COLORS.ink};}
           .tl-given{background:${STAGE ? 'var(--stg-surf2)' : '#eef0f3'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));position:relative;}
           .tl-given::after{content:'';position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:${STAGE ? 'var(--stg-mute)' : 'rgba(28,30,36,0.3)'};}
-          .tl-empty{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1.5px dashed ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.4)'};cursor:pointer;}
+          .tl-empty{background:${STAGE ? 'var(--stg-cell)' : 'var(--white)'};border:1.5px dashed ${STAGE ? 'var(--stg-cell-line)' : 'rgba(28,30,36,0.4)'};cursor:pointer;}
           .tl-empty.hot{border:2px solid ${AGREE};box-shadow:0 0 0 3px ${RING};}
           .tl-placed{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.55));cursor:pointer;box-shadow:0 2.5px 0 rgba(28,30,36,0.5), inset 0 -3px 0 rgba(28,30,36,0.07);position:relative;}
           .tl-placed:active{transform:translateY(1px);}

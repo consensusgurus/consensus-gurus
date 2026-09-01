@@ -923,8 +923,8 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .sh-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDk}) 86%, var(--stg-ink, var(--white)));}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
-          .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
-          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:${STAGE ? 'var(--stg-surf2)' : '#fbfdfc'};}
+          .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:var(--stg-raise, #cfd8d6);border:2px solid var(--stg-cell-line, ${COLORS.ink});border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
+          .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid var(--stg-cell-line, #b9c4c2);background:${STAGE ? 'var(--stg-cell)' : '#fbfdfc'};}
           .sh-cell.block{background:${COLORS.ink};border-color:var(--stg-ink, ${COLORS.ink});}
           .sh-cell.filled{background:var(--tint,color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent));border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
           .sh-cell.filled:active{cursor:grabbing;}

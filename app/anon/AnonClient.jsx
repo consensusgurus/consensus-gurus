@@ -741,7 +741,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-btn.primary:hover{background:${ACC_DEEP};}
           .an-quote{display:flex;flex-wrap:wrap;gap:9px 13px;}
           .an-word{display:flex;gap:3px;}
-          .an-cell{border:1px solid ${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.18)'};border-bottom-width:2px;border-radius:4px;background:${SURF};
+          .an-cell{border:1px solid ${STAGE ? 'var(--stg-cell-line)' : 'rgba(28,30,36,0.18)'};border-bottom-width:2px;border-radius:4px;background:${STAGE ? 'var(--stg-cell)' : SURF};
             display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;font-size:15px;
             color:${INK};cursor:pointer;flex:none;transition:background 90ms,border-color 90ms;}
           .an-cell.mine{background:${ACC_SOFT};border-color:#e3b9be;}

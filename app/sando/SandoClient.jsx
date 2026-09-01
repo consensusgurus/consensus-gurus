@@ -916,14 +916,14 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sn-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.sn-ttl h1{font-size:21px;letter-spacing:0.02em;}.sn-ttl .sn-ttl-dt{font-size:15px;}.sn-ttl-dot{display:none;}}
           .sn-corner{}
           /* the gutter: mono, tight, and leaning toward the grid it labels */
-          .sn-sum{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(9px,2.7vw,14px);color:${INK};box-sizing:border-box;user-select:none;line-height:1;}
+          .sn-sum{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(11px,3vw,16px);color:${INK};box-sizing:border-box;user-select:none;line-height:1;}
           .sn-sum.sn-row{align-items:flex-end;justify-content:center;padding-right:5px;}
           .sn-sum.sn-col{align-items:center;justify-content:flex-end;padding-bottom:4px;}
-          .sn-mark{font-family:${MONO};font-weight:700;font-size:clamp(7px,1.9vw,10px);line-height:1;letter-spacing:0;white-space:nowrap;}
-          .sn-mark.ok{color:${COLORS.green};}
-          .sn-mark.off{color:${COLORS.rust};}
+          .sn-mark{font-family:${MONO};font-weight:700;font-size:clamp(9px,2.1vw,12px);line-height:1;letter-spacing:0;white-space:nowrap;}
+          .sn-mark.ok{color:var(--stg-good, ${COLORS.green});}
+          .sn-mark.off{color:var(--stg-bad, ${COLORS.rust});}
           .sn-sum.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-radius:4px;}
-          .sn-sum.done{color:#c3c8cf;}
+          .sn-sum.done{color:var(--stg-mute, #c3c8cf);}
           .sn-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .sn-given{font-weight:700;color:${INK};}
           .sn-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}

@@ -726,8 +726,8 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
-          .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:${STAGE ? 'var(--stg-surf)' : '#dfe7e0'};}
+          .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:var(--stg-cell-line, #0d3b20);border:2px solid var(--stg-cell-line, ${COLORS.ink});border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
+          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:${STAGE ? 'var(--stg-cell)' : '#dfe7e0'};}
           .sc-cell .pl{font-family:${MONO};font-size:clamp(6px,1.7vw,9px);font-weight:500;letter-spacing:-0.02em;opacity:0.95;}
           /* Laid tiles have to read at a glance against the premium colours and
              the green ground. The launch version used a pale cream on a pale

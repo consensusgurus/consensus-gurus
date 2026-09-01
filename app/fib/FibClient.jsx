@@ -684,10 +684,10 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           key={i}
           onClick={() => { if (playing) { setSel(idx); if (!gRef.current.t0) startGame(); } }}
           style={{
-            border: `1.5px solid ${isSel ? COLORS.accent : 'var(--stg-line2, rgba(28,30,36,0.3))'}`,
+            border: `1.5px solid ${isSel ? COLORS.accent : 'var(--stg-cell-line, rgba(28,30,36,0.3))'}`,
             boxShadow: isSel ? `inset 0 0 0 2px var(--stg-acc, ${COLORS.accent})` : undefined,
             borderRadius: 5,
-            background: isGiven ? (STAGE ? 'var(--stg-surf2)' : COLORS.paper) : (STAGE ? 'var(--stg-surf)' : T.white),
+            background: isGiven ? (STAGE ? 'var(--stg-surf2)' : COLORS.paper) : (STAGE ? 'var(--stg-cell)' : T.white),
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: playing && !isGiven ? 'pointer' : 'default',
             userSelect: 'none', WebkitTapHighlightColor: 'transparent',

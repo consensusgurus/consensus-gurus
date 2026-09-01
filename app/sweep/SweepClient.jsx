@@ -608,9 +608,9 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             fontFamily: SANS, fontWeight: 800, fontSize: 14, userSelect: 'none', WebkitUserSelect: 'none',
             WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
             cursor: over ? 'default' : 'pointer',
-            background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? 'var(--stg-surf, #fff)' : `var(--stg-surf, ${COLORS.covered})`,
+            background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? 'var(--stg-panel, #fff)' : `var(--stg-cell, ${COLORS.covered})`,
             color: isBoom ? '#fff' : NUM_COLOR[n] || `var(--stg-mute, ${COLORS.faded})`,
-            boxShadow: isOpen && !isBoom ? 'none' : 'inset 0 -2px 0 rgba(15,23,42,0.10)',
+            boxShadow: isOpen && !isBoom ? 'none' : 'inset 0 0 0 1px var(--stg-cell-line, transparent), inset 0 -2px 0 rgba(15,23,42,0.10)',
           }}
         >
           {isBoom ? '✹' : isFlag ? '⚑' : showMine ? '✹' : (isOpen && n ? n : '')}

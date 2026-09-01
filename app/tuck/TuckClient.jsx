@@ -738,8 +738,8 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           .tk-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .tk-btn.primary:hover{background:#7c3609;}
           .tk-btn:disabled{opacity:0.45;cursor:default;}
-          .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:#dfd8cb;border:2px solid ${COLORS.ink};border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .tk-cell{position:relative;aspect-ratio:1;background:${STAGE ? 'var(--stg-surf2)' : '#fbf9f4'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid var(--stg-line, rgba(28,30,36,0.08));}
+          .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:var(--stg-cell-line, #dfd8cb);border:2px solid var(--stg-cell-line, ${COLORS.ink});border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
+          .tk-cell{position:relative;aspect-ratio:1;background:${STAGE ? 'var(--stg-cell)' : '#fbf9f4'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid var(--stg-cell-line, rgba(28,30,36,0.08));}
           .tk-cell.filled{background:${COLORS.tile};border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 35%, transparent);box-shadow:inset 0 -2px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
           .tk-cell.badword{background:${STAGE ? 'var(--stg-surf2)' : '#fbe3e0'};border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
           .tk-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
