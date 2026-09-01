@@ -201,8 +201,18 @@ sweep('raw-hex body ink', /color: '#4a4339'/g, "color: `var(--stg-ink2,#4a4339)`
 // MEANING COLOURS ARE LEFT: '#fdecec' says "you missed this one" and '#fbb615'
 // is a badge. Neutralising those to a surface deletes what they say.
 {
-  const BG = { 'T.white': '--stg-surf', 'COLORS.paper': '--stg-surf', 'COLORS.cream': '--stg-surf',
-    'T.surfaceAlt': '--stg-surf2', 'COLORS.ink': '--stg-surf2', 'T.surface': '--stg-surf' };
+  // EVERY LIGHT NAME THE THEME HAS, not the ones this file happened to use at
+  // the top of a value. COLORS is an alias layer over T (cream: T.surface,
+  // paper: T.paper), so a client mixes both spellings freely and a map holding
+  // only one of each pair leaves the other arm of a ternary light -- which is
+  // what left the answer input painting T.paper under near-white ink after the
+  // first arm had already converted.
+  const BG = {
+    'T.white': '--stg-surf', 'T.paper': '--stg-surf', 'T.surface': '--stg-surf',
+    'T.surfaceAlt': '--stg-surf2',
+    'COLORS.cream': '--stg-surf', 'COLORS.paper': '--stg-surf',
+    'COLORS.ink': '--stg-surf2',
+  };
   const FG = { 'COLORS.cream': '--stg-ink', 'COLORS.ink': '--stg-ink',
     'COLORS.faded': '--stg-mute', 'COLORS.soft': '--stg-mute' };
   let bgN = 0, fgN = 0;
