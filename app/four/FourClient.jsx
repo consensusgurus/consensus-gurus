@@ -77,13 +77,23 @@ const COLORS = {
 };
 // The board itself, in the colours everyone already knows: a blue grid, red
 // discs for you, yellow for the engine.
-const BOARD_BLUE = T.blueDark;
-const BOARD_BLUE_DARK = '#152a63';
-const HOLE = '#f1f3f7';
-const RED = '#d62828';
-const RED_DARK = '#a11d1d';
-const YELLOW = '#f4c02c';
-const YELLOW_DARK = '#c08f0e';
+// BOTH STOPS ON ONE TOKEN. The cabinet's vertical gradient collapses to a flat
+// surface on the stage and keeps its blue on the Loft, where neither token
+// exists and each stop falls back to its own literal.
+const BOARD_BLUE = `var(--stg-surf, ${T.blueDark})`;
+const BOARD_BLUE_DARK = 'var(--stg-surf, #152a63)';
+// An empty hole is the PAGE showing through the cabinet, which is the clearest
+// way to draw a hole. It needs the stronger rule around it, not the hairline:
+// at --stg-line the ring all but vanished on the light register's white board.
+const HOLE = 'var(--stg-ground, #f1f3f7)';
+// You are the category accent; the engine is the ground, lifted.
+const RED = 'var(--stg-acc, #d62828)';
+const RED_DARK = 'var(--stg-acc, #a11d1d)';
+const YELLOW = 'var(--stg-b4, #f4c02c)';
+const YELLOW_DARK = 'var(--stg-b3, #c08f0e)';
+// Rims as inset shadows, transparent off-stage so the Loft disc is untouched.
+const DISC_RIM_YOU = 'var(--stg-onramp, transparent)';
+const DISC_RIM_FOE = 'var(--stg-line3, transparent)';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -733,8 +743,8 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
           .fr-col{display:flex;flex-direction:column;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;}
           .fr-col.dead{cursor:default;}
           .fr-cell{position:relative;aspect-ratio:1 / 1;display:flex;align-items:center;justify-content:center;min-width:0;}
-          .fr-hole{width:82%;height:82%;border-radius:50%;background:${HOLE};box-shadow:inset 0 3px 5px rgba(0,0,0,0.28);}
-          .fr-disc{width:82%;height:82%;border-radius:50%;box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), inset 0 3px 4px rgba(255,255,255,0.35);}
+          .fr-hole{width:82%;height:82%;border-radius:50%;background:${HOLE};box-shadow:inset 0 3px 5px rgba(0,0,0,0.28), inset 0 0 0 1px var(--stg-line2, transparent);}
+          .fr-disc{width:82%;height:82%;border-radius:50%;box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), inset 0 3px 4px rgba(255,255,255,0.35), inset 0 0 0 1.5px var(--fr-rim, transparent);}
           .fr-disc.fresh{animation:frdrop .34s cubic-bezier(.35,.05,.55,1);}
           @keyframes frdrop{0%{transform:translateY(-420%);}70%{transform:translateY(0);}82%{transform:translateY(-9%);}100%{transform:translateY(0);}}
           .fr-disc.lit{animation:frlit 1.15s ease-in-out infinite;}
@@ -851,7 +861,12 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
                           {v !== 0 && (
                             <div
                               className={`fr-disc${isLast && playing ? ' fresh' : ''}${lit ? ' lit' : ''}`}
-                              style={{ background: v === 1 ? `radial-gradient(circle at 34% 30%, ${RED}, ${RED_DARK})` : `radial-gradient(circle at 34% 30%, ${YELLOW}, ${YELLOW_DARK})` }}
+                              style={{
+                                background: v === 1
+                                  ? `radial-gradient(circle at 34% 30%, ${RED}, ${RED_DARK})`
+                                  : `radial-gradient(circle at 34% 30%, ${YELLOW}, ${YELLOW_DARK})`,
+                                '--fr-rim': v === 1 ? DISC_RIM_YOU : DISC_RIM_FOE,
+                              }}
                             />
                           )}
                           {ghost && <span className="fr-ghost" />}

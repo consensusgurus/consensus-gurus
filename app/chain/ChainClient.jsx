@@ -63,14 +63,19 @@ const COLORS = {
   green: T.successDeep,
 };
 
-const DOT = '#1c1e24';
-const EDGE_OLD = '#43414a';      // drawn before you picked the board up
+// Old against new is the two line weights the page already defines; mine against
+// theirs is the accent against a lift. Nothing here needs a fifth value.
+const DOT = 'var(--stg-line3, #1c1e24)';
+const EDGE_OLD = 'var(--stg-line2, #43414a)';      // drawn before you picked the board up
 const EDGE_MINE = `var(--stg-acc, ${COLORS.accent})`; // drawn by you, this game
-const EDGE_FOE = '#a8a29e';      // drawn by the engine, this game
-const BOX_MINE_BG = '#f3e3f7';
+const EDGE_FOE = 'var(--stg-ink2, #a8a29e)';      // drawn by the engine, this game
+const BOX_MINE_BG = 'var(--stg-b3, #f3e3f7)';
 const BOX_MINE_INK = 'var(--stg-acc, #4a044e)';
-const BOX_FOE_BG = '#eceae6';
-const BOX_FOE_INK = '#78716c';
+const BOX_FOE_BG = 'var(--stg-b1, #eceae6)';
+const BOX_FOE_INK = 'var(--stg-mute, #78716c)';
+// A box you took is a lift with an accent edge, which is the shape of an unplayed
+// tile on the home. Inset, so a 1px rule cannot move a grid cell.
+const BOX_MINE_RIM = 'inset 0 0 0 1px var(--stg-acc, transparent)';
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -719,7 +724,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
         const b = ((rr - 1) / 2) * cols + (cc - 1) / 2;
         const o = view.st.owner[b];
         cells.push(
-          <div key={`b${b}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: o === 1 ? BOX_MINE_BG : o === 2 ? BOX_FOE_BG : 'transparent', borderRadius: 4, transition: 'background .25s ease' }}>
+          <div key={`b${b}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: o === 1 ? BOX_MINE_BG : o === 2 ? BOX_FOE_BG : 'transparent', boxShadow: o === 1 ? BOX_MINE_RIM : 'none', borderRadius: 4, transition: 'background .25s ease' }}>
             {o !== 0 && (
               <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 500, color: o === 1 ? BOX_MINE_INK : BOX_FOE_INK }}>{o === 1 ? 'Y' : 'E'}</span>
             )}

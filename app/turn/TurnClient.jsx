@@ -68,13 +68,21 @@ const COLORS = {
   green: T.successDeep,
 };
 
-const FELT = '#407637';        // the board itself
-const FELT_LINE = '#2f5a29';   // the grid between squares
-const DISC_YOU = '#16181c';    // your discs, black
-const DISC_YOU_HI = '#454b55';
-const DISC_FOE = '#f5f2e9';    // the engine's, ivory
-const DISC_FOE_HI = '#ffffff';
-const MARK = '#f2c94c';        // the reveal ring and the hint, gold on green
+// The felt is the largest object in the game and says nothing, so it becomes the
+// board surface. Both stops of each disc sit on one token, so a disc is flat on
+// the stage and keeps its gloss on the Loft.
+const FELT = 'var(--stg-surf, #407637)';        // the board itself
+const FELT_LINE = 'var(--stg-line, #2f5a29)';   // the grid between squares
+const DISC_YOU = 'var(--stg-acc, #16181c)';     // yours: the category, filled
+const DISC_YOU_HI = 'var(--stg-acc, #454b55)';
+const DISC_FOE = 'var(--stg-b3, #f5f2e9)';      // the engine's: the ground, lifted
+const DISC_FOE_HI = 'var(--stg-b4, #ffffff)';
+// THE MARKER CANNOT BE THE ACCENT HERE, and it cannot be amber either. Turn is an
+// End Game title, so its accent IS gold, and gold marks on gold discs is the
+// collision this rule exists to avoid; --stg-warn is a neighbouring amber and no
+// better. Ink is the one value that cannot be mistaken for either disc, on either
+// register: bright on the dark board, dark on the light one.
+const MARK = 'var(--stg-ink, #f2c94c)';         // the reveal ring and the hint
 
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -704,7 +712,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
         onClick={() => open && onSquare(sq)}
         style={{
           position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: hot ? '#4c8a41' : FELT,
+          background: hot ? 'var(--stg-surf2, #4c8a41)' : FELT,
           cursor: open ? 'pointer' : 'default', touchAction: 'manipulation',
         }}
       >
