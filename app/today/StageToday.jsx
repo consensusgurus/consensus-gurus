@@ -40,6 +40,7 @@ import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
+import StageWelcome from '../StageWelcome';
 import MindLoftMark from '../MindLoftMark';
 // ONE LINK MAP, NOT TWO. The stage draws its own footer because the shared
 // one is dark ink on a light ground and would vanish on this page's dark
@@ -349,6 +350,10 @@ export default function StageToday() {
   const [topics, setTopics] = useState(null);
   const [visitors, setVisitors] = useState(null);
   const footRef = useRef(null);
+  // THE ARRIVAL COLLAPSES ONTO THIS. See app/StageWelcome.jsx: the flood
+  // measures the cap late and clips down to its rectangle, so the figures it
+  // was holding land in the cells they live in.
+  const capRef = useRef(null);
   const [nearFoot, setNearFoot] = useState(false);
   useEffect(() => {
     const el = footRef.current;
@@ -695,10 +700,11 @@ export default function StageToday() {
   return (
     <div className="sty stage-page" data-stage-theme={stageTheme}>
       <style>{CSS}</style>
+      <StageWelcome capRef={capRef} />
 
       {/* 1. THE CAP. One line: the identity, then the day's figures, then the
              controls at the right edge, as on every board. */}
-      <div className="sty-cap">
+      <div className="sty-cap" ref={capRef}>
         {/* THE SAME BRAND AS EVERY BOARD (owner, 2026-08-31). The stage cap on
             a game page carries the mark beside the words, and the home was
             still setting the words alone, so the two surfaces disagreed about
