@@ -1,30 +1,40 @@
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import {
-  ArrowLeft, BadgeCheck, User, ListChecks, Flame, FunctionSquare, Clock, Trophy, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target, ArrowUpRight, CalendarDays, Award,} from 'lucide-react';
+import { ArrowLeft, Flame, Share2, Download, UserPlus, Play, X, Check, Star, Swords, ChevronDown, Crown, Target } from 'lucide-react';
 import { QUIZZES, getQuiz } from '@/lib/quizzes';
 import { DAILY_GAMES, DAILY_DATED_RE, dailyLabel, dailyDept } from '@/lib/daily-games';
 import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
-import QuizNavHeader from '../QuizNavHeader';
 import DailyCombinedLeaderboard from '../../quiz/[id]/DailyCombinedLeaderboard';
-import Grain from '../../Grain';
 import Footer from '../../Footer';
 import { withRef } from '@/lib/referrals';
-import { Metric, CategoryView, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
+import { Metric, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
 import { T } from '@/lib/theme';
 import SigninHelp, { isLockedOut } from '../../SigninHelp';
 import MindLoftMark from '../../MindLoftMark';
 
 const C = {
-  bg: T.white, surface: T.white, ink: T.ink, muted: T.muted,
-  soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
-  accsoft: '#e8effb', live: '#047857', danger: T.danger,
+  bg: 'var(--stg-ground,#0b0f1a)',
+  surface: 'var(--stg-surf,rgba(255,255,255,0.045))',
+  ink: 'var(--stg-ink,#e9edf4)',
+  muted: 'var(--stg-mute,#8b95a8)',
+  soft: 'var(--stg-dim,#747f97)',
+  line: 'var(--stg-line,rgba(255,255,255,0.11))',
+  accent: 'var(--stg-acc,#7dd3fc)',
+  accsoft: 'var(--stg-surf2,rgba(255,255,255,0.08))',
+  live: 'var(--stg-up,#6ee7b7)',
+  danger: 'var(--stg-dn,#fb7185)',
 };
+// Ink that rides ON the accent (and on a medal). The accent is a pale step on
+// the dark register and a deep one on the light register, so this flips with it
+// and a literal cannot be used in either place.
+const ON_ACC = 'var(--stg-onramp,#08222e)';
+// A raised surface: a modal sheet, a menu, a key. Not the page ground.
+const RAISE = 'var(--stg-raise,#0e131f)';
 const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
-const MEDAL_INK = ['#8a5300', '#5b6472', '#8a4f24'];
+const MEDAL_INK = [T.gold, '#c9ced6', '#d79a6a'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const MEDAL_BG = ['#fbf2dc', '#eef0f2', '#f6e9df'];
+const MEDAL_BG = ['rgba(232,180,58,0.16)', 'rgba(255,255,255,0.10)', 'rgba(200,129,75,0.18)'];
 // Rank bubble. #1/#2/#3 render in gold/silver/bronze; everything else accent blue.
 // RankChip, Metric, ChipMetric, CAT_COLS, completedPct, CategoryView,
 // ActivityFeed, XpPanel, and the new TrophyCase moved to
@@ -62,11 +72,82 @@ function Logo({ size = 22 }) {
 
 // eslint-disable-next-line no-unused-vars -- size default kept at 22
 
-const TABS = [
-  { t: 'player', label: 'Player', Icon: User },
-  { t: 'daily', label: 'Daily Puzzles', Icon: CalendarDays },
-  { t: 'quizzes', label: 'Quizzes', Icon: ListChecks },
-  { t: 'duels', label: 'Duels', Icon: Swords },];
+// The jump bar and the page are the same list, so a section cannot be added to
+// one and forgotten in the other.
+const SECTIONS = [
+  { id: 'standing', label: 'Standing' },
+  { id: 'today', label: 'Today' },
+  { id: 'quizzes', label: 'Quizzes' },
+  { id: 'trophies', label: 'Trophies' },
+  { id: 'level', label: 'IQ' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'duels', label: 'Duels' },
+  { id: 'community', label: 'Community' },
+];
+
+// A section on the stage is a heading and a hairline, never a card: a raised
+// panel on a near-black ground is a second ground nobody asked for.
+function Section({ id, title, sub, right, children }) {
+  return (
+    <section id={id} className="hubsec">
+      <div className="hubsec-head">
+        <h2>{title}</h2>
+        {sub ? <span className="hubsec-sub">{sub}</span> : null}
+        {right ? <span className="hubsec-right">{right}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+// The referral board. /quizzes/leaderboard redirects here, so this is the only
+// place it can live; the share link sits beside it because the board and the
+// one action it asks for belong on the same screen.
+function CommunityPanel({ data }) {
+  const [copied, setCopied] = useState(false);
+  const top = (data && data.top) || [];
+  const mine = data && data.me;
+  const max = top.length ? Math.max(...top.map((r) => r.credits || 0)) : 0;
+  if (!data) return <div className="hubempty">Loading the community board…</div>;
+  return (
+    <div>
+      {mine && mine.shareUrl ? (
+        <div className="hubshare">
+          <div>
+            <div className="hublab">Your share link</div>
+            <code className="hublink">{mine.shareUrl.replace(/^https?:\/\//, '')}</code>
+          </div>
+          <button className="hubchip" onClick={() => {
+            try { navigator.clipboard.writeText(mine.shareUrl); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch (e) {}
+          }}>{copied ? 'Copied' : 'Copy link'}</button>
+        </div>
+      ) : null}
+      <p className="hubnote">Someone who opens your link is credited to you the first time they finish a
+        game. The window rolls, so this is who is bringing people in now, not who did once.</p>
+      {top.length ? (
+        <div className="card" style={{ padding: '4px 14px 8px', marginTop: 14 }}>
+          <table>
+            <thead><tr><th style={{ width: 44 }}>#</th><th>Player</th><th style={{ textAlign: 'right' }}>Brought in</th><th className="lbar" style={{ width: '38%' }} /></tr></thead>
+            <tbody>
+              {top.map((r, i) => {
+                const me = mine && r.username === mine.username;
+                return (
+                  <tr key={r.refCode || r.username || i} style={me ? { background: C.accsoft } : undefined}>
+                    <td style={{ fontWeight: i < 3 ? 800 : 600 }}>{i + 1}</td>
+                    <td style={{ fontWeight: me ? 800 : 600 }}>{r.username}{me ? <span className="hubyou">you</span> : null}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 800 }}>{r.credits}</td>
+                    <td className="lbar"><span className="hubbar"><span style={{ width: `${max ? Math.round((r.credits / max) * 100) : 0}%`, background: me ? C.accent : 'var(--stg-line3,rgba(255,255,255,0.42))' }} /></span></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : <div className="hubempty">No one on the board yet.</div>}
+    </div>
+  );
+}
+
 
 // Share Stats: a shareable player card (overall rank, level + tier + IQ Points,
 // completed/correct/accuracy with their ranks, top-3 categories) plus a copy
@@ -93,17 +174,17 @@ function SignupModal({ onClose }) {
     } catch (e) { setErr('Could not sign up. Try again.'); setBusy(false); }
   }
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: T.white, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(3,6,14,0.66)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 380, maxWidth: '100%', background: RAISE, borderRadius: 14, border: `1px solid ${C.line}`, padding: 22 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <div style={{ fontSize: 18, fontWeight: 800, color: C.ink }}>Claim your name</div>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><X size={18} /></button>
         </div>
         <p style={{ fontSize: 13, color: C.muted, margin: '0 0 16px', lineHeight: 1.5 }}>Pick a display name to appear on the leaderboards. Email is optional, only used to recover your name on another device. No password needed.</p>
-        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(192,57,43,0.08)', border: '1px solid rgba(192,57,43,0.4)', color: T.danger, fontSize: 13 }}>{err}</div>}
+        {err && <div style={{ marginBottom: 12, padding: 10, borderRadius: 8, background: 'rgba(251,113,133,0.10)', border: '1px solid rgba(192,57,43,0.4)', color: C.danger, fontSize: 13 }}>{err}</div>}
         <input value={u} onChange={(e) => setU(e.target.value)} placeholder="Display name" maxLength={15} style={inp} />
         <input value={em} onChange={(e) => setEm(e.target.value)} placeholder="Email (optional)" maxLength={120} style={{ ...inp, marginTop: 10 }} />
-        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
+        <button onClick={submit} disabled={busy} style={{ marginTop: 16, width: '100%', background: C.accent, color: ON_ACC, border: 'none', borderRadius: 10, padding: '12px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1 }}>{busy ? 'Joining…' : 'Join the leaderboard'}</button>
         <SigninHelp name={u} email={em} prominent={isLockedOut(err)} />
       </div>
     </div>
@@ -131,7 +212,7 @@ function ShareStatsModal({ profile, byKey, onClose }) {
   const lbl = { fontFamily: FONT, fontWeight: 700, fontSize: 10, letterSpacing: '.06em', textTransform: 'uppercase', color: C.muted };
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(20,22,28,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: FONT }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: T.white, borderRadius: 16, border: `1px solid ${C.line}`, overflow: 'hidden', color: C.ink }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: 440, maxWidth: '100%', background: RAISE, borderRadius: 16, border: `1px solid ${C.line}`, overflow: 'hidden', color: C.ink }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${C.line}` }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Logo size={20} /><span style={{ fontWeight: 800, fontSize: 14 }}>Mind Loft</span></span>
           <button onClick={onClose} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: C.soft, display: 'flex' }}><ArrowLeft size={0} /><span style={{ fontSize: 20, lineHeight: 1 }}>&times;</span></button>
@@ -166,9 +247,9 @@ function ShareStatsModal({ profile, byKey, onClose }) {
           </div>
         ) : null}
         <div style={{ display: 'flex', gap: 9, padding: '16px 18px 18px' }}>
-          <button onClick={copy} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={15} strokeWidth={2.4} /> {copied ? 'Link copied!' : 'Copy share link'}</button>
-          <a href={`/api/quiz/share-card?key=${encodeURIComponent(profile.userKey || '')}`} target="_blank" rel="noopener noreferrer" download="source-of-truths-stats.png" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}><Download size={15} strokeWidth={2.4} /> Image</a>
-          <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
+          <button onClick={copy} style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: C.accent, color: ON_ACC, border: 'none', borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={15} strokeWidth={2.4} /> {copied ? 'Link copied!' : 'Copy share link'}</button>
+          <a href={`/api/quiz/share-card?key=${encodeURIComponent(profile.userKey || '')}`} target="_blank" rel="noopener noreferrer" download="source-of-truths-stats.png" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: RAISE, color: C.ink, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer', textDecoration: 'none' }}><Download size={15} strokeWidth={2.4} /> Image</a>
+          <button onClick={onClose} style={{ border: `1px solid ${C.line}`, background: RAISE, color: C.ink, borderRadius: 10, padding: '11px 16px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>Close</button>
         </div>
       </div>
     </div>
@@ -201,7 +282,7 @@ function FormDots({ results }) {
   if (!seq.length) return null;
   return (
     <span title="Last 5 duels, oldest to newest" style={{ display: 'inline-flex', gap: 3, flex: 'none' }}>
-      {seq.map((r, i) => <span key={i} className="fdot" style={{ background: r === 'win' ? C.live : r === 'loss' ? C.danger : '#cfd4dc' }} />)}
+      {seq.map((r, i) => <span key={i} className="fdot" style={{ background: r === 'win' ? C.live : r === 'loss' ? C.danger : 'var(--stg-line2,rgba(255,255,255,0.17))' }} />)}
     </span>
   );
 }
@@ -325,7 +406,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
           <span style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 'none' }}>
             <Avatar name={(getIdentity() && getIdentity().username) || 'You'} bg={C.accsoft} fg={C.accent} />
             <span style={{ fontSize: 11, fontWeight: 800, color: C.soft }}>VS</span>
-            <Avatar name={foe || '?'} bg="#fdeeee" fg={C.danger} />
+            <Avatar name={foe || '?'} bg="rgba(251,113,133,0.14)" fg={C.danger} />
           </span>
           <a href={`/duel/${d.token}`} style={{ flex: 1, minWidth: 150, textDecoration: 'none', color: C.ink }}>
             <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700 }}>{foe ? (iAmCh ? <>You challenged <span style={{ color: C.accent }}>{foe}</span></> : <><span style={{ color: C.accent }}>{foe}</span> challenged you</>) : 'Open invite'}</span>
@@ -335,7 +416,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
           {pulse && !iAmCh ? <button onClick={() => decline(d)} style={smallBtn(C.danger)}>Decline</button> : null}
           {pulse && iAmCh ? <button onClick={() => cancel(d)} style={smallBtn(C.muted)}>Dismiss</button> : null}
           {pulse ? (
-            <a href={`/duel/${d.token}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: T.white, borderRadius: 9, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, textDecoration: 'none' }}><Play size={13} /> Play</a>
+            <a href={`/duel/${d.token}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, background: C.accent, color: ON_ACC, borderRadius: 9, padding: '7px 14px', fontSize: 12.5, fontWeight: 800, textDecoration: 'none' }}><Play size={13} /> Play</a>
           ) : (
             <span style={{ flex: 'none', fontSize: 12, fontWeight: 700, color: C.soft }}>Pending</span>
           )}
@@ -348,7 +429,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
         <div style={{ fontSize: 15, fontWeight: 800 }}>Duel Arena</div>
-        <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: T.white, padding: '10px 17px', borderRadius: 10, fontWeight: 800, fontSize: 13.5, textDecoration: 'none' }}><Swords size={16} /> Start a Duel</a>
+        <a href="/duel/new" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.accent, color: ON_ACC, padding: '10px 17px', borderRadius: 10, fontWeight: 800, fontSize: 13.5, textDecoration: 'none' }}><Swords size={16} /> Start a Duel</a>
       </div>
 
       {mine ? (
@@ -387,12 +468,12 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
       ) : null)}
 
       {rival ? (
-        <div style={{ ...card, padding: '13px 14px', border: '1.5px solid #f0d9a8', background: '#fffdf5' }}>
+        <div style={{ ...card, padding: '13px 14px', border: '1.5px solid rgba(232,180,58,0.42)', background: 'rgba(232,180,58,0.10)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-              <Avatar name={rival.name} bg="#fbf2dc" fg="#a97b12" />
+              <Avatar name={rival.name} bg="rgba(232,180,58,0.16)" fg="#e8b43a" />
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#a97b12' }}>Your rival:</span>{' '}
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#e8b43a' }}>Your rival:</span>{' '}
                   {rivalKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(rivalKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: C.accent, cursor: 'pointer' }}>{rival.name}</button> : rival.name}
                 </span>
                 <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>
@@ -427,10 +508,10 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
               const foe = foeName(d);
               const fa = foeAnonOf(d);
               const sc = myScores(d);
-              const chip = o === 'win' ? { t: 'WON', bg: '#e6f7f0', fg: '#0b7a55' }
-                : o === 'loss' ? { t: 'LOST', bg: '#fdeeee', fg: C.danger }
-                : o === 'tie' ? { t: 'TIE', bg: '#eef0f2', fg: C.muted }
-                : { t: 'DECLINED', bg: '#eef0f2', fg: C.soft };
+              const chip = o === 'win' ? { t: 'WON', bg: 'rgba(110,231,183,0.14)', fg: 'var(--stg-up,#6ee7b7)' }
+                : o === 'loss' ? { t: 'LOST', bg: 'rgba(251,113,133,0.14)', fg: C.danger }
+                : o === 'tie' ? { t: 'TIE', bg: 'var(--stg-chip,rgba(255,255,255,0.08))', fg: C.muted }
+                : { t: 'DECLINED', bg: 'var(--stg-chip,rgba(255,255,255,0.08))', fg: C.soft };
               return (
                 <div key={d.token} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: i < arr.length - 1 ? `1px solid ${C.line}` : 'none' }}>
                   <span style={{ flex: 'none', width: 62, textAlign: 'center', fontSize: 10, fontWeight: 800, borderRadius: 6, padding: '3px 0', background: chip.bg, color: chip.fg }}>{chip.t}</span>
@@ -467,14 +548,14 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
                 role={canOpen ? 'button' : undefined}
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', cursor: canOpen ? 'pointer' : 'default' }}
               >
-                <span style={{ flex: 'none', width: 25, height: 25, borderRadius: '50%', background: mi >= 0 ? MEDAL_BG[mi] : '#eef0f2', color: mi >= 0 ? MEDAL_INK[mi] : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11.5 }}>{i + 1}</span>
+                <span style={{ flex: 'none', width: 25, height: 25, borderRadius: '50%', background: mi >= 0 ? MEDAL_BG[mi] : 'var(--stg-chip,rgba(255,255,255,0.08))', color: mi >= 0 ? MEDAL_INK[mi] : C.soft, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 11.5 }}>{i + 1}</span>
                 <span
                   onClick={(e) => { e.stopPropagation(); if (onSelectPlayer) onSelectPlayer(p.key || `a:${p.anon}`); }}
                   title="View profile"
                   style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isMe ? 800 : 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
                 >{p.name}{isMe ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 6 }}>YOU</span> : null}</span>
                 <span style={{ flex: 'none', fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
-                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? T.white : '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? 'rgba(255,255,255,0.25)' : C.accsoft, overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
                 <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: C.muted, width: 38, textAlign: 'right' }}>{p.winPct}%</span>
                 <span className="lform"><FormDots results={matches.map((m) => m.result)} /></span>
                 <ChevronDown size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
@@ -505,8 +586,8 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
         <div style={hd}>Alert Settings</div>
         <label onClick={toggleMuteAll} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, cursor: 'pointer', padding: '4px 0' }}>
           <span style={{ fontSize: 14, fontWeight: 600 }}>Mute all duel alerts</span>
-          <span style={{ width: 44, height: 26, borderRadius: 999, background: muteAll ? C.accent : '#cfd4dc', position: 'relative', flex: 'none' }}>
-            <span style={{ position: 'absolute', top: 3, left: muteAll ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: T.white }} />
+          <span style={{ width: 44, height: 26, borderRadius: 999, background: muteAll ? C.accent : 'var(--stg-surf2,rgba(255,255,255,0.08))', position: 'relative', flex: 'none' }}>
+            <span style={{ position: 'absolute', top: 3, left: muteAll ? 21 : 3, width: 20, height: 20, borderRadius: '50%', background: ON_ACC }} />
           </span>
         </label>
         <div style={{ fontSize: 12, color: C.soft, marginTop: 4 }}>When on, you won{"'"}t get any duel challenge pop-ups.</div>
@@ -524,7 +605,6 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
 
 export default function StatHubClient() {
   const scope = 'all'; // category selector removed; Stat Hub always shows overall + per-category table
-  const [tab, setTab] = useState('player');
 
   const [me, setMe] = useState(null);
   const [stats, setStats] = useState([]);     // /api/quiz/stats
@@ -549,6 +629,16 @@ export default function StatHubClient() {
 
   // Today's combined daily board lives at page level so the Daily Puzzles nav tile
   // can show a live number (my standing, or the field size) before the tab opens.
+  const [referrals, setReferrals] = useState(null);
+  // The cap prints today's date, and it is read in an EFFECT rather than during
+  // render: the server has no idea what today is in the reader's zone, so
+  // computing it during render makes the first client paint disagree.
+  const [capDate, setCapDate] = useState('');
+  useEffect(() => {
+    try { setCapDate(new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })); } catch (e) {}
+    fetch('/api/quiz/referrals').then((r) => r.json()).then((d) => { if (d) setReferrals(d); }).catch(() => setReferrals({ top: [] }));
+  }, []);
+
   const [dailyToday, setDailyToday] = useState(null);
   useEffect(() => {
     const qs = new URLSearchParams();
@@ -619,7 +709,6 @@ export default function StatHubClient() {
   // /quizzes/hub?tab=daily&game=<key> preselects that game's daily board.
   const [dailyGame, setDailyGame] = useState(null);
   const [viewProfile, setViewProfile] = useState(null);
-  const [pview, setPview] = useState('ranking');
   useEffect(() => {
     if (!viewKey) { setViewProfile(null); return; }
     setViewProfile(null);
@@ -635,13 +724,18 @@ export default function StatHubClient() {
     if (pk) setViewKey(pk);
     const dg = sp.get('game');
     if (dg) setDailyGame(dg);
+    // ?tab= and ?pview= were the old two-level navigation. Every one of those
+    // targets is a SECTION now, so an old link scrolls to it instead of 404ing
+    // its own state. Kept because they are linked from the home and from mail.
     const tb = sp.get('tab');
-    if (tb && TABS.some((x) => x.t === tb)) setTab(tb);
+    const pv0 = sp.get('pview');
+    const TAB_SECTION = { player: 'standing', daily: 'today', quizzes: 'quizzes', duels: 'duels' };
+    const PVIEW_SECTION = { ranking: 'standing', trophies: 'trophies', rating: 'level', activity: 'activity', category: 'quizzes' };
+    const target = PVIEW_SECTION[pv0] || TAB_SECTION[tb];
+    if (target) setTimeout(() => { const el = document.getElementById(target); if (el) el.scrollIntoView({ block: 'start' }); }, 300);
     // Deep link to a sub-view of the Player tab, so a caller can land on the
     // thing its own label promised: /quizzes/hub?tab=player&pview=category is
     // where the home page's "Category mastery" link goes.
-    const pv = sp.get('pview');
-    if (pv && ['ranking', 'trophies', 'category', 'rating', 'activity'].includes(pv)) setPview(pv);
     // Deep link to a section within a tab (e.g. the daily-games Hall of Fame):
     // /quizzes/hub?tab=daily&section=champions scrolls the champion history in.
     // The daily leaderboard above it loads and grows after mount, so re-align a
@@ -664,10 +758,11 @@ export default function StatHubClient() {
   // a guest (no public URL) opens in place, as before.
   const openPlayer = (k) => {
     const mine = (me && me.userKey && k === me.userKey) || (myAnonKey && k === myAnonKey);
-    if (mine) { setViewKey(null); setPview('ranking'); setTab('player'); return; }
+    if (mine) { setViewKey(null); return; }
     const row = board && board.find((p) => p.userKey === k);
     if (row && !row.isAnon && row.name) { window.location.href = `/player/${encodeURIComponent(row.name)}`; return; }
-    setViewKey(k); setPview('category'); setTab('player');
+    setViewKey(k);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   };
   const viewing = !!viewKey;
   const profile = viewing ? viewProfile : me;
@@ -737,10 +832,10 @@ export default function StatHubClient() {
     .qzhub .metric .v{font-size:21px;font-weight:700;}
     .qzhub .rankchip{font-size:10px;font-weight:700;color:${C.accent};background:${C.accsoft};border-radius:5px;padding:1px 6px;letter-spacing:0;text-transform:none;margin-left:6px;}
     .qzhub .pvbtn{border:none;background:transparent;border-radius:6px;padding:5px 11px;font:inherit;font-family:${FONT};font-size:12px;color:${C.muted};cursor:pointer;}
-    .qzhub .pvbtn.on{background:var(--white);color:${C.ink};font-weight:700;box-shadow:0 1px 2px rgba(20,22,28,0.06);}
+    .qzhub .pvbtn.on{background:${C.surface};color:${C.ink};font-weight:700;}
     .qzhub .dd{position:relative;}
-    .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:var(--white);border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(20,22,28,0.12);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:${C.surface};border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
+    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:${C.surface};border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzhub .ddmenu .ddall{grid-column:1 / -1;}
     .qzhub .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzhub .dditem:hover{background:${C.bg};}
@@ -751,11 +846,11 @@ export default function StatHubClient() {
     @media(max-width:680px){.qzhub .tabs{gap:2px;}.qzhub .tab{flex:1;font-size:12px;padding:10px 6px;gap:5px;}}
     .qzhub .tab.on{background:${C.surface};color:${C.ink};font-weight:700;border-color:${C.line};border-bottom-color:${C.surface};}
     .qzhub .tab.on svg{color:${C.accent};}
-    .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid rgba(20,22,28,0.07);font-size:13px;}
+    .qzhub .hrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid ${C.line};font-size:13px;}
     .qzhub .score{font-weight:700;color:${C.accent};font-variant-numeric:tabular-nums;}
     .qzhub table{width:100%;border-collapse:collapse;font-size:12.5px;}
     .qzhub th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};padding:8px 10px;border-bottom:1px solid ${C.line};}
-    .qzhub td{padding:8px 10px;border-bottom:1px solid rgba(20,22,28,0.06);}
+    .qzhub td{padding:8px 10px;border-bottom:1px solid ${C.line};}
     .qzhub .gtag{font-size:8.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${C.soft};border:1px solid ${C.line};border-radius:4px;padding:1px 4px;}
     .qzhub .formula{background:${C.bg};border:1px solid ${C.line};border-radius:10px;padding:14px 16px;font-family:ui-monospace,Menlo,monospace;font-size:13px;line-height:1.9;}
     .qzhub .back{display:inline-flex;align-items:center;gap:6px;color:${C.muted};text-decoration:none;font-size:13px;}
@@ -768,7 +863,7 @@ export default function StatHubClient() {
     @media(max-width:680px){.qzhub .rgrid{grid-template-columns:1fr !important;}}
     @media(max-width:560px){.qzhub .shpbar{gap:8px 12px !important;padding:13px 14px !important;}.qzhub .shpbar-id{order:1;}.qzhub .shpbar-share{order:2;margin-left:auto !important;width:auto !important;padding:8px 13px !important;}.qzhub .shpbar-iddiv,.qzhub .shpbar-maindiv{display:none !important;}.qzhub .shpbar-main{order:3;flex-basis:100% !important;width:100% !important;gap:14px !important;}.qzhub .shpbar-main > div:nth-child(3){gap:14px !important;}.qzhub .sh-mext{display:none !important;}.qzhub .sh-rank{font-size:30px !important;}}
     .qzhub .lbl2{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:${C.muted};}
-    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:var(--white);color:${C.accent};border:1px solid var(--accent-border);border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
+    .qzhub .hubbtn{display:flex;align-items:center;gap:7px;background:${C.surface};color:${C.accent};border:1px solid ${C.line};border-right:3px solid ${C.accent};padding:10px 15px;border-radius:10px;font-family:${FONT};font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;}
     .qzhub .qz-playerbar.hub-bleed .hubbtn{align-self:stretch;padding:0 18px;margin:-11px -14px -11px 0;border-radius:0 11px 11px 0;border-top:none;border-bottom:none;border-left:none;}
     .qzhub .hubbtn:hover{background:${C.accsoft};}
     .qzhub .qz-srank{font-size:11px;font-weight:600;color:${C.soft};}
@@ -788,84 +883,131 @@ export default function StatHubClient() {
     .qzhub .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0 14px;}
     @media(max-width:900px){.qzhub .tiles{grid-template-columns:repeat(3,1fr);}}
     @media(max-width:680px){.qzhub .tiles{grid-template-columns:1fr 1fr;gap:8px;}}
-    .qzhub .tile{position:relative;text-align:left;background:var(--white);border:1px solid rgba(20,22,28,0.30);border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
-    .qzhub .tile:hover{border-color:var(--accent-border);}
-    .qzhub .tile.on{background:${C.accent};border-color:${C.accent};}
-    .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:var(--white);font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
-    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid rgba(20,22,28,0.30);color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
-    .qzhub .pill:hover{border-color:var(--accent-border);}
-    .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:var(--white);font-weight:800;}
+    .qzhub .tile{position:relative;text-align:left;background:${C.surface};border:1px solid ${C.line};border-radius:12px;padding:12px 14px;font-family:${FONT};cursor:pointer;min-width:0;transition:border-color .12s;}
+    .qzhub .tile:hover{border-color:${C.accent};}
+    .qzhub .tile.on{background:${C.accent};border-color:${C.accent};color:${ON_ACC};}
+    .qzhub .tilebadge{position:absolute;top:9px;right:11px;background:${C.danger};color:${ON_ACC};font-size:10px;font-weight:800;border-radius:999px;padding:2px 7px;}
+    .qzhub .pill{display:inline-flex;align-items:center;gap:6px;background:${C.surface};border:1px solid ${C.line};color:${C.muted};border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:${FONT};}
+    .qzhub .pill:hover{border-color:${C.accent};}
+    .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:${ON_ACC};font-weight:800;}
+
+    /* ── the stage chrome ───────────────────────────────────────────────── */
+    .hubcap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:15px 38px 14px;font-family:${FONT};}
+    .hubcap-mark{display:flex;align-items:center;gap:9px;flex:none;text-decoration:none;color:${C.ink};}
+    .hubcap-mark b{font-size:15.5px;font-weight:800;letter-spacing:-.2px;}
+    .hubcap-mark b i{font-style:normal;color:${C.accent};}
+    .hubcap-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:${C.soft};}
+    .hubcap-figs{display:flex;gap:26px;margin-left:auto;flex-wrap:wrap;}
+    .hubfig{text-align:right;line-height:1.15;}
+    .hubfig b{display:block;font-size:15px;font-weight:800;white-space:nowrap;color:${C.ink};font-variant-numeric:tabular-nums;}
+    .hubfig span{display:block;margin-top:3px;font-size:9.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:${C.soft};}
+    .hubfig .of{font-size:11.5px;font-weight:700;color:${C.muted};}
+    .hubcap-btns{display:flex;gap:8px;flex:none;}
+    .hubchip{display:inline-flex;align-items:center;gap:6px;border:1px solid ${C.line};background:none;color:${C.ink};border-radius:999px;padding:7px 14px;font:inherit;font-family:${FONT};font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none;}
+    .hubchip:hover{background:${C.surface};}
+    .hubjump{position:sticky;top:0;z-index:40;background:${C.bg};border-bottom:1px solid ${C.line};}
+    .hubjump-in{max-width:1180px;margin:0 auto;padding:9px 38px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
+    .hubjump-in::-webkit-scrollbar{display:none;}
+    .hubjump a{flex:none;text-decoration:none;color:${C.muted};font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;padding:6px 11px;border-radius:999px;font-family:${FONT};}
+    .hubjump a:hover{color:${C.ink};background:${C.surface};}
+    .hubsec{padding:30px 0 6px;border-top:1px solid ${C.line};scroll-margin-top:56px;}
+    .hubsec:first-of-type{border-top:0;}
+    .hubsec-head{display:flex;align-items:baseline;gap:13px;flex-wrap:wrap;margin-bottom:14px;}
+    .hubsec-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.065em;text-transform:uppercase;color:${C.ink};}
+    .hubsec-sub{font-size:12px;font-weight:700;color:${C.muted};}
+    .hubsec-right{margin-left:auto;}
+    .hubmore{font-size:11.5px;font-weight:700;color:${C.soft};text-decoration:none;}
+    a.hubmore:hover{color:${C.accent};}
+    .hublab{font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:${C.soft};margin-bottom:8px;}
+    .hubnote{font-size:11.5px;line-height:1.6;color:${C.soft};margin:12px 0 0;max-width:76ch;}
+    .hubempty{font-size:13px;color:${C.muted};padding:10px 0;}
+    .hubshare{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;}
+    .hublink{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;font-weight:600;color:${C.ink};background:${C.surface};border:1px solid ${C.line};padding:9px 13px;border-radius:7px;}
+    .hubbar{display:block;height:9px;border-radius:2px;background:${C.accsoft};overflow:hidden;}
+    .hubbar span{display:block;height:100%;border-radius:2px;}
+    .hubyou{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:${C.accent};margin-left:7px;}
+    @media(max-width:900px){.hubcap-figs{gap:18px;width:100%;margin-left:0;}}
+    @media(max-width:560px){.hubcap,.hubjump-in{padding-left:14px;padding-right:14px;}.hubcap-figs{gap:14px 20px;}.hubfig b{font-size:13.5px;}}
   `;
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
-      <Grain />
+    <div className="stage-page qzhub-stage" style={{ '--stg-acc-dk': '#7dd3fc', '--stg-acc-lt': '#0369a1', background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <style>{css}</style>
-      <QuizNavHeader />
-      <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative' }}><div className="qzf-line" aria-hidden="true" />
+      <header className="hubcap">
+        <Link href="/" className="hubcap-mark" aria-label="Mind Loft home"><Logo size={17} /> <b>Mind <i>Loft</i></b></Link>
+        <span className="hubcap-eyebrow">Stat Hub{capDate ? ` · ${capDate}` : ''}</span>
+        <div className="hubcap-figs">
+          {found && profile.name ? <span className="hubfig"><b>{profile.name}</b><span>Player</span></span> : null}
+          {found && profile.rank ? <span className="hubfig"><b>#{profile.rank} <span className="of">of {((me && me.totalPlayers) || 0).toLocaleString()}</span></b><span>Rank</span></span> : null}
+          {found ? <span className="hubfig"><b>{(profile.xp || 0).toLocaleString()}</b><span>IQ points</span></span> : null}
+          {dailyToday && dailyToday.me ? <span className="hubfig"><b>#{dailyToday.me.rank}</b><span>Today</span></span> : null}
+        </div>
+        <div className="hubcap-btns">
+          {found && !viewing ? <button className="hubchip" onClick={() => setShareOpen(true)}><Share2 size={13} /> Share</button> : null}
+          <Link className="hubchip" href="/">Today →</Link>
+        </div>
+      </header>
+      <nav className="hubjump" aria-label="Sections"><div className="hubjump-in">
+        {SECTIONS.map((x) => <a key={x.id} href={`#${x.id}`}>{x.label}</a>)}
+      </div></nav>
+      <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '4px 38px 70px', position: 'relative' }}>
 
         {viewing ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 10, padding: '8px 14px', marginTop: 10 }}>
             <span style={{ fontSize: 13, color: C.ink }}>Viewing <b>{(viewProfile && viewProfile.name) || 'player'}</b>{"'"}s stats</span>
-            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: `1px solid ${T.accentBorder}`, background: T.white, color: C.accent, borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
+            <button onClick={() => { setViewKey(null); if (typeof window !== 'undefined' && window.history) window.history.replaceState(null, '', '/quizzes/hub'); }} style={{ border: `1px solid ${T.accentBorder}`, background: RAISE, color: C.accent, borderRadius: 7, padding: '6px 13px', font: 'inherit', fontFamily: FONT, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Back to my stats</button>
           </div>
         ) : null}
 
         {!viewing && me && !(me.found && !me.isAnon) ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap', background: C.accsoft, border: `1px solid ${C.line}`, borderRadius: 12, padding: '14px 18px', marginTop: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: C.accent, color: T.white, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><UserPlus size={20} /></div>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: C.accent, color: ON_ACC, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><UserPlus size={20} /></div>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.2 }}>You{"'"}re playing as a guest</div>
-                <div style={{ fontSize: 13, color: T.slate, lineHeight: 1.45, marginTop: 2 }}>Add a display name (email optional) to put your scores on the leaderboards and keep your stats across devices. No password needed.</div>
+                <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.45, marginTop: 2 }}>Add a display name (email optional) to put your scores on the leaderboards and keep your stats across devices. No password needed.</div>
               </div>
             </div>
-            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Create name</button>
+            <button onClick={() => setSignupOpen(true)} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: ON_ACC, border: 'none', borderRadius: 10, padding: '11px 18px', fontFamily: FONT, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}><UserPlus size={15} /> Create name</button>
           </div>
         ) : null}
 
-        {/* nav tiles: each main section is a live stat card */}
-        <div className="tiles">
-          {(() => {
-            const meFound = me && me.found;
-            const on = (t) => tab === t;
-            const lblSt = (t) => ({ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 800, color: on(t) ? T.white : C.muted });
-            const bigSt = (t) => ({ display: 'block', fontSize: 18, fontWeight: 800, marginTop: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: on(t) ? T.white : C.ink, fontVariantNumeric: 'tabular-nums' });
-            const smSt = (t) => ({ fontSize: 11, fontWeight: 700, color: on(t) ? 'rgba(255,255,255,0.75)' : C.soft });
-            const subSt = (t, warn) => ({ display: 'block', fontSize: 10.5, fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: warn ? (on(t) ? '#ffd9d3' : C.danger) : (on(t) ? 'rgba(255,255,255,0.75)' : C.soft) });
-            const waiting = duels.yourMove.length;
-            return (
-              <>
-                <button className={`tile${on('player') ? ' on' : ''}`} onClick={() => setTab('player')}>
-                  <span style={lblSt('player')}><User size={15} /> {(profile && profile.found && profile.name) || 'Player'}</span>
-                  <span style={bigSt('player')}>{profile && profile.found && profile.rank ? <>#{profile.rank} <span style={smSt('player')}>of {((me && me.totalPlayers) || 0).toLocaleString()}</span></> : '—'}</span>
-                  <span style={subSt('player')}>{profile && profile.found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} IQ` : 'Play to get ranked'}</span>
-                </button>
-                <button className={`tile${on('daily') ? ' on' : ''}`} onClick={() => setTab('daily')}>
-                  <span style={lblSt('daily')}><CalendarDays size={15} /> Daily Puzzles</span>
-                  <span style={bigSt('daily')}>{dailyToday && dailyToday.me ? <>#{dailyToday.me.rank} <span style={smSt('daily')}>today</span></> : (dailyToday ? <>{dailyToday.gameCount} <span style={smSt('daily')}>live</span></> : '—')}</span>
-                  <span style={subSt('daily')}>{dailyToday && dailyToday.me ? `${fmtPts1(dailyToday.me.total)}/${dailyToday.maxTotal} pts today` : (dailyToday ? `${dailyToday.gameCount === 1 ? 'puzzle' : 'puzzles'} live today` : "today's board is live")}</span>
-                </button>
-                <button className={`tile${on('duels') ? ' on' : ''}`} onClick={() => setTab('duels')}>
-                  {waiting > 0 ? <span className="tilebadge">{waiting}</span> : null}
-                  <span style={lblSt('duels')}><Swords size={15} /> Duels</span>
-                  <span style={bigSt('duels')}>{myDuel ? <>{myDuel.wins}-{myDuel.losses}{myDuel.ties ? `-${myDuel.ties}` : ''}{myDuelStreak ? <span style={{ fontSize: 12, fontWeight: 800, marginLeft: 6, color: on('duels') ? T.white : (myDuelStreak.kind === 'win' ? C.live : C.danger) }}>{myDuelStreak.kind === 'win' ? 'W' : 'L'}{myDuelStreak.n}</span> : null}</> : '—'}</span>
-                  <span style={subSt('duels', waiting > 0)}>{waiting > 0 ? `${waiting} waiting on you` : myDuel ? `${myDuel.winPct}% win rate` : 'Challenge someone'}</span>
-                </button>
-                <button className={`tile${on('quizzes') ? ' on' : ''}`} onClick={() => setTab('quizzes')}>
-                  <span style={lblSt('quizzes')}><ListChecks size={15} /> Quizzes</span>
-                  <span style={bigSt('quizzes')}>{meFound ? (me.activity.played || 0).toLocaleString() : '0'} <span style={smSt('quizzes')}>played</span></span>
-                  <span style={subSt('quizzes')}>{catalog.length.toLocaleString()} on the site</span>
-                </button>
-              </>
-            );
-          })()}
-        </div>
+        <Section id="standing" title="Standing" sub={found ? `Level ${profile.level || 1} · ${(profile.xp || 0).toLocaleString()} IQ points` : 'Play to get ranked'} right={!viewing && myName ? <Link href={`/player/${encodeURIComponent(myName)}`} className="hubmore">Public profile →</Link> : null}>
+          <UserBaseBody board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={openPlayer} viewKey={viewKey} />
+        </Section>
 
-        {tab === 'daily' && <DailyGamesView initialGame={dailyGame} onSelectPlayer={openPlayer} />}
-        {tab === 'player' && <PlayerPanel me={profile} scope={scope} cats={cats} byKey={byKey} totalQuizzes={catalog.length} board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} titleById={titleById} pview={pview} setPview={setPview} viewKey={viewKey} onSelectPlayer={openPlayer} />}
-        {tab === 'quizzes' && <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={openPlayer} />}
-        {tab === 'duels' && <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={openPlayer} />}      </div>
+        <Section id="today" title="Today" sub={dailyToday && dailyToday.me ? `#${dailyToday.me.rank} · ${fmtPts1(dailyToday.me.total)} of ${dailyToday.maxTotal} points` : (dailyToday ? `${dailyToday.gameCount} puzzles live` : null)}>
+          <DailyGamesView initialGame={dailyGame} onSelectPlayer={openPlayer} />
+        </Section>
+
+        <Section id="quizzes" title="Quizzes" sub={found ? `${(profile.activity && profile.activity.played || 0).toLocaleString()} of ${catalog.length.toLocaleString()} played` : `${catalog.length.toLocaleString()} on the site`}>
+          <QuizzesPanel me={profile} myProfile={me} scope={scope} byKey={byKey} catalog={catalog} stats={statsById} totals={totals} totalPlays={totalPlays} onSelectPlayer={openPlayer} />
+        </Section>
+
+        <Section id="trophies" title="Trophies" sub={found && profile.trophies && profile.trophies.total ? `${profile.trophies.earnedCount || 0} of ${profile.trophies.total} unlocked` : null}>
+          <TrophyCase trophies={found ? profile.trophies : null} viewing={viewing} stage />
+        </Section>
+
+        <Section id="level" title="IQ and level">
+          <XpPanel me={profile} titleById={titleById} viewing={viewing} stage />
+        </Section>
+
+        <Section id="activity" title="Activity">
+          <ActivityFeed recent={found ? profile.recent : []} titleById={titleById} viewing={viewing} stage />
+        </Section>
+
+        {!viewing ? (
+          <Section id="duels" title="Duels" sub={myDuel ? `${myDuel.wins}-${myDuel.losses}${myDuel.ties ? `-${myDuel.ties}` : ''}` : 'No duels yet'}>
+            <DuelsPanel data={duels} setData={setDuels} ladder={duelLadder} loaded={duelsLoaded} onSelectPlayer={openPlayer} />
+          </Section>
+        ) : null}
+
+        {!viewing ? (
+          <Section id="community" title="Community" sub={referrals && referrals.me ? `${referrals.me.credits} brought in` : null} right={<span className="hubmore">Rolling {(referrals && referrals.days) || 90} days</span>}>
+            <CommunityPanel data={referrals} />
+          </Section>
+        ) : null}
+      </div>
 
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
@@ -891,44 +1033,6 @@ export default function StatHubClient() {
 // Category table's Completed column, scoped per-category (overall row uses the
 // whole catalog, each category row uses that category's quiz count).
 
-
-// ─── Player tab ─────────────────────────────────────────────────────────────
-
-
-function PlayerPanel({ me, scope, cats, byKey, totalQuizzes, board, boardTotal, myName, myAnonKey, titleById, pview, setPview, viewKey, onSelectPlayer }) {
-  const found = me && me.found;
-  const viewing = !!viewKey;
-
-  const toggle = (
-    <div style={{ display: 'flex', gap: 8, flex: 1, flexWrap: 'wrap' }}>
-      {[['ranking', 'Ranking', Trophy], ['trophies', 'Trophies', Award], ['category', 'Category', ListChecks], ['rating', 'IQ & Level', FunctionSquare], ['activity', 'Activity', Clock]].map(([v, lbl, Ic]) => (
-        <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
-      ))}
-    </div>
-  );
-
-  return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 12 }}>
-        {toggle}
-        {!viewing && myName ? <Link href={`/player/${encodeURIComponent(myName)}`} style={{ flex: 'none', fontSize: 12.5, fontWeight: 800, color: C.accent, textDecoration: 'none' }}>Public profile →</Link> : null}
-      </div>
-      {pview === 'trophies' ? (
-        <TrophyCase trophies={found ? me.trophies : null} viewing={viewing} />
-      ) : pview === 'rating' ? (
-        <XpPanel me={me} titleById={titleById} viewing={viewing} />
-      ) : pview === 'activity' ? (
-        <ActivityFeed recent={found ? me.recent : []} titleById={titleById} viewing={viewing} />
-      ) : pview === 'category' ? (
-        <CategoryView me={me} scope={scope} cats={cats} totalQuizzes={totalQuizzes} viewing={viewing} />
-      ) : (
-      <div className="card" style={{ padding: '14px 16px' }}>
-        <UserBaseBody board={board} boardTotal={boardTotal} myName={myName} myAnonKey={myAnonKey} onSelectPlayer={onSelectPlayer} viewKey={viewKey} />
-      </div>
-      )}
-    </div>
-  );
-}
 
 // ─── Daily Puzzles view ───────────────────────────────────────────────────────
 // Global (not player-scoped): the combined daily leaderboard, the day-by-day
@@ -993,10 +1097,10 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
           {hist == null ? null : <span style={{ fontSize: 12, color: C.muted, fontWeight: 600 }}>{history.length} {history.length === 1 ? 'day' : 'days'} crowned</span>}
         </div>
         {topChamp && topChamp.wins > 1 ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: '#fffdf5', border: '1.5px solid #f0d9a8', borderRadius: 12, padding: '11px 14px', marginBottom: 12 }}>
-            <span style={{ width: 34, height: 34, borderRadius: '50%', background: '#fbf2dc', color: '#a97b12', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Crown size={17} /></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(232,180,58,0.10)', border: '1.5px solid rgba(232,180,58,0.42)', borderRadius: 12, padding: '11px 14px', marginBottom: 12 }}>
+            <span style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(232,180,58,0.16)', color: '#e8b43a', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Crown size={17} /></span>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#a97b12' }}>Most crowns:</span> {nameBtn(topChamp.userKey, topChamp.username, 13)}</span>
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#e8b43a' }}>Most crowns:</span> {nameBtn(topChamp.userKey, topChamp.username, 13)}</span>
               <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{topChamp.wins} daily wins across the last {history.length} days</span>
             </span>
           </div>
@@ -1167,10 +1271,10 @@ function UserBaseBody({ board, boardTotal, myName, myAnonKey, onSelectPlayer, vi
         {top3.map((p, i) => {
           const mine = isMine(p);
           return (
-            <div key={p.userKey} style={{ background: mine ? '#f3f7fe' : C.bg, border: `1px solid ${mine ? '#c6d8f5' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: '14px 12px 12px', textAlign: 'center', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
+            <div key={p.userKey} style={{ background: mine ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : C.bg, border: `1px solid ${mine ? 'var(--stg-acc,#7dd3fc)' : C.line}`, borderTop: `3px solid ${MEDAL[i]}`, borderRadius: '0 0 12px 12px', padding: '14px 12px 12px', textAlign: 'center', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
               <span style={{ position: 'relative', display: 'inline-flex', flex: 'none' }}>
                 <Avatar name={p.name} bg={MEDAL_BG[i]} fg={MEDAL_INK[i]} size={40} />
-                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: T.white, border: `1px solid ${C.line}`, color: MEDAL_INK[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
+                {i === 0 ? <span style={{ position: 'absolute', top: -7, right: -9, width: 19, height: 19, borderRadius: '50%', background: RAISE, border: `1px solid ${C.line}`, color: MEDAL_INK[0], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Crown size={11} /></span> : null}
               </span>
               <div style={{ marginTop: 7, fontSize: 13, fontWeight: 800, lineHeight: 1.2, maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 <button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: mine ? C.ink : C.accent, cursor: 'pointer' }}>{p.name}</button>
@@ -1188,9 +1292,9 @@ function UserBaseBody({ board, boardTotal, myName, myAnonKey, onSelectPlayer, vi
           <span style={{ flex: 1, minWidth: 200 }}>
             <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}>{chase.title}</span>
             <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{chase.sub}</span>
-            <span style={{ display: 'block', height: 6, borderRadius: 999, background: '#e4e7ec', marginTop: 8, overflow: 'hidden' }}><span style={{ display: 'block', width: `${chase.pct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+            <span style={{ display: 'block', height: 6, borderRadius: 999, background: C.accsoft, marginTop: 8, overflow: 'hidden' }}><span style={{ display: 'block', width: `${chase.pct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
           </span>
-          <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: T.white, background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
+          <Link href="/quizzes" style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: ON_ACC, background: C.accent, borderRadius: 9, padding: '8px 14px', textDecoration: 'none' }}>{chase.cta}</Link>
         </div>
       ) : null}
       <div style={{ fontSize: 11, color: C.soft, marginBottom: 10 }}>Top {board.length.toLocaleString()} of {Math.max(boardTotal || 0, board.length).toLocaleString()} players, anonymous guests included. Tap a column to sort; your row is highlighted.{hasTrend ? ' 7-Day = IQ Points earned over the last week.' : ''}</div>
@@ -1209,7 +1313,7 @@ function UserBaseBody({ board, boardTotal, myName, myAnonKey, onSelectPlayer, vi
               const viewed = !!viewKey && p.userKey === viewKey && !mine;
               const mi = idx < 3 ? idx : -1;
               return (
-                <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: '#fdf2e3' } : undefined)}>
+                <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: 'rgba(232,180,58,0.12)' } : undefined)}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL_INK[mi] : C.soft }}>{idx + 1}</td>
                   <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.xp || 0).toLocaleString()}</td>
@@ -1306,7 +1410,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
 // tile, the challenge picker and standings grid (ChallengesPanel), and the
 // Winners' Circle record of every challenge's top finisher. All of it is gone
 // from this page. An old ?tab=challenges link now falls through to Player,
-// because the tab test above only accepts a tab that is in TABS.
+// because ?tab= now only scrolls to a section, and there is no such section.
 //
 // THE WIRING UNDER IT IS DELIBERATELY LEFT INTACT (owner: "keep the wiring, but
 // delete"). lib/challenges.js, DAILY_CHALLENGE_ON, the /api/quiz/challenge-*

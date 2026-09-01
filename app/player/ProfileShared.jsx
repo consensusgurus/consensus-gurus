@@ -25,6 +25,24 @@ export const C = {
   soft: T.muted, line: 'rgba(20,22,28,0.30)', accent: T.accent,
   accsoft: '#e8effb', live: '#047857', danger: T.danger,
 };
+// The light palette under its own name, so a component can shadow `C` without
+// referencing `C` in its own initialiser.
+const C_LIGHT = C;
+// The stage register, read through the CSS variables globals.css publishes on
+// .stage-page, so BOTH stage registers work and neither is hardcoded here.
+const C_STAGE = {
+  bg: 'var(--stg-ground,#0b0f1a)',
+  surface: 'var(--stg-surf,rgba(255,255,255,0.045))',
+  ink: 'var(--stg-ink,#e9edf4)',
+  muted: 'var(--stg-mute,#8b95a8)',
+  soft: 'var(--stg-dim,#747f97)',
+  line: 'var(--stg-line,rgba(255,255,255,0.11))',
+  accent: 'var(--stg-acc,#7dd3fc)',
+  accsoft: 'var(--stg-surf2,rgba(255,255,255,0.08))',
+  live: 'var(--stg-up,#6ee7b7)',
+  danger: 'var(--stg-dn,#fb7185)',
+};
+
 export const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 // Medal palette for the #1/#2/#3 rank chips (gold, silver, bronze). RankChip
@@ -236,7 +254,8 @@ export function CategoryView({ me, scope, cats, totalQuizzes, viewing }) {
   );
 }
 
-export function ActivityFeed({ recent, titleById, viewing }) {
+export function ActivityFeed({ recent, titleById, viewing, stage }) {
+  const C = stage ? C_STAGE : C_LIGHT;
   const who = viewing ? 'This player' : 'You';
   if (!recent || !recent.length) return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>No games on record yet. Play a quiz and it shows up here.</div>;
   const DAY = 86400000;
@@ -253,7 +272,7 @@ export function ActivityFeed({ recent, titleById, viewing }) {
   const daysPlayed = counts.size;
   // Heatmap cells: the last 84 days, oldest first, filled column-major so each
   // column is a week and the newest week sits on the right.
-  const HM = ['#eef0f2', '#b5d4f4', '#85b7eb', T.accent];
+  const HM = [(stage ? 'rgba(255,255,255,0.08)' : '#eef0f2'), (stage ? 'rgba(125,211,252,0.38)' : '#b5d4f4'), (stage ? '#7dd3fc' : '#85b7eb'), (stage ? '#38bdf8' : T.accent)];
   const cells = [];
   { const start = Date.now() - 83 * DAY;
     for (let i = 0; i < 84; i++) { const n = counts.get(keyOf(start + i * DAY)) || 0; cells.push(n === 0 ? 0 : n === 1 ? 1 : n <= 3 ? 2 : 3); } }
@@ -275,8 +294,8 @@ export function ActivityFeed({ recent, titleById, viewing }) {
   const mile = events.slice(-8).reverse();
   const fmtWhen = (iso) => (iso ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—');
   const MK = {
-    perfect: { bg: '#fbf2dc', fg: '#a97b12', Icon: Star, label: (q) => `Perfect score on ${q}` },
-    pb: { bg: '#e6f7f0', fg: '#0b7a55', Icon: Trophy, label: (q) => `New personal best on ${q}` },
+    perfect: { bg: (stage ? 'rgba(232,180,58,0.16)' : '#fbf2dc'), fg: (stage ? '#e8b43a' : '#a97b12'), Icon: Star, label: (q) => `Perfect score on ${q}` },
+    pb: { bg: (stage ? 'rgba(110,231,183,0.14)' : '#e6f7f0'), fg: (stage ? '#6ee7b7' : '#0b7a55'), Icon: Trophy, label: (q) => `New personal best on ${q}` },
     surge: { bg: C.accsoft, fg: C.accent, Icon: ArrowUpRight, label: (q) => `Big IQ haul on ${q}` },
   };
   const statLbl = { fontSize: 10, color: C.soft, fontWeight: 800, letterSpacing: '.05em', textTransform: 'uppercase' };
@@ -286,7 +305,7 @@ export function ActivityFeed({ recent, titleById, viewing }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
           <span style={{ flex: 'none' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              {curStreak >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: '#f59008' }}><Flame size={19} /></span> : null}
+              {curStreak >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: (stage ? '#fbbf24' : '#f59008') }}><Flame size={19} /></span> : null}
               <span style={{ fontSize: 23, fontWeight: 800 }}>{curStreak}</span>
             </span>
             <span style={statLbl}>Day streak</span>
@@ -361,7 +380,8 @@ export function ActivityFeed({ recent, titleById, viewing }) {
   );
 }
 
-export function XpPanel({ me, titleById, viewing }) {
+export function XpPanel({ me, titleById, viewing, stage }) {
+  const C = stage ? C_STAGE : C_LIGHT;
   const found = me && me.found;
   const recent = (found && me.recent) || [];
   const prog = (found && me.progress) || { level: 1, xp: 0, levelFloor: 0, levelNext: 25, intoLevel: 0, stepSize: 25, toNext: 25, matches: 0, xp7d: null };
@@ -390,7 +410,7 @@ export function XpPanel({ me, titleById, viewing }) {
   const nextLevelAt = prog.levelNext;
   const bandPct = prog.stepSize > 0 ? Math.round(Math.max(4, Math.min(100, (prog.intoLevel / prog.stepSize) * 100))) : 100;
   const tierLabel = found && me.tier ? me.tier : 'Bronze Tier';
-  const tierBg = found && me.tierBg ? me.tierBg : T.paper;
+  const tierBg = found && me.tierBg ? me.tierBg : (stage ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : T.paper);
   const tierFg = found && me.tierFg ? me.tierFg : C.muted;
 
   const explainerCards = (
@@ -431,7 +451,7 @@ export function XpPanel({ me, titleById, viewing }) {
           <span style={{ fontSize: 30, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>Level {level}</span>
           <span style={{ fontSize: 15, fontWeight: 700, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{xp.toLocaleString()} IQ</span>
           {prog.matches > 0 ? (
-            <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? '#e6f7f0' : '#eef0f2', color: weekGain > 0 ? '#0b7a55' : C.muted, borderRadius: 999, padding: '3px 9px' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, background: weekGain > 0 ? (stage ? 'rgba(110,231,183,0.14)' : '#e6f7f0') : (stage ? 'rgba(255,255,255,0.08)' : '#eef0f2'), color: weekGain > 0 ? (stage ? '#6ee7b7' : '#0b7a55') : C.muted, borderRadius: 999, padding: '3px 9px' }}>
               {weekGain > 0 ? `▲ +${weekGain.toLocaleString()} IQ this week` : 'No IQ gained this week'}
             </span>
           ) : null}
@@ -477,7 +497,7 @@ export function XpPanel({ me, titleById, viewing }) {
                       <text x={Lp + 2} y={Math.max(11, goalY - 5)} fontSize="10.5" fontWeight="800" fill="#a97b12" fontFamily={FONT}>Level {level + 1} at {nextLevelAt.toLocaleString()} IQ</text>
                     </g>
                   ) : null}
-                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke={T.white} strokeWidth="1.5" />
+                  <circle cx={P[P.length - 1][0]} cy={P[P.length - 1][1]} r="4" fill={C.accent} stroke={stage ? "var(--stg-ground,#0b0f1a)" : T.white} strokeWidth="1.5" />
                 </svg>
               );
             })() : <div style={{ height: 150 }} />}
@@ -487,7 +507,7 @@ export function XpPanel({ me, titleById, viewing }) {
         )}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
           <span style={{ fontSize: 11, fontWeight: 800, color: tierFg, letterSpacing: '.04em', textTransform: 'uppercase', flex: 'none' }}>{tierLabel.replace(' Tier', '')}</span>
-          <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: '#eef0f2', overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+          <span style={{ flex: 1, minWidth: 120, height: 8, borderRadius: 999, background: (stage ? 'rgba(255,255,255,0.08)' : '#eef0f2'), overflow: 'hidden' }}><span style={{ display: 'block', width: `${bandPct}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
           <span style={{ fontSize: 11, fontWeight: 800, color: C.soft, letterSpacing: '.04em', flex: 'none' }}>{`${prog.toNext.toLocaleString()} IQ TO LEVEL ${level + 1}`}</span>
         </div>
       </div>
@@ -520,8 +540,8 @@ export function XpPanel({ me, titleById, viewing }) {
                   <td style={{ textAlign: 'right' }}>{(m.dq || 0).toLocaleString()}</td>
                   <td style={{ textAlign: 'right' }}>{m.scorePct}%</td>
                   <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                    {m.perfect ? <span style={{ fontSize: 10, fontWeight: 800, background: '#fbf2dc', color: '#a97b12', borderRadius: 999, padding: '2px 7px' }}>PERFECT</span> : null}
-                    {m.attempt > 1 ? <span style={{ fontSize: 10, fontWeight: 800, background: '#eef0f2', color: C.muted, borderRadius: 999, padding: '2px 7px', marginLeft: m.perfect ? 4 : 0 }}>REPLAY</span> : null}
+                    {m.perfect ? <span style={{ fontSize: 10, fontWeight: 800, background: (stage ? 'rgba(232,180,58,0.16)' : '#fbf2dc'), color: (stage ? '#e8b43a' : '#a97b12'), borderRadius: 999, padding: '2px 7px' }}>PERFECT</span> : null}
+                    {m.attempt > 1 ? <span style={{ fontSize: 10, fontWeight: 800, background: (stage ? 'rgba(255,255,255,0.08)' : '#eef0f2'), color: C.muted, borderRadius: 999, padding: '2px 7px', marginLeft: m.perfect ? 4 : 0 }}>REPLAY</span> : null}
                     {!m.perfect && !(m.attempt > 1) ? <span style={{ color: C.soft }}>—</span> : null}
                   </td>
                   <td className="score" style={{ textAlign: 'right', color: (m.xp || 0) > 0 ? C.accent : C.muted }}>{`+${m.xp || 0}`}</td>
@@ -546,7 +566,8 @@ const TROPHY_ICON = {
   Castle, TrendingUp, ChevronsUp, Award, Swords, Trophy,
 };
 
-export function TrophyCase({ trophies, viewing }) {
+export function TrophyCase({ trophies, viewing, stage }) {
+  const C = stage ? C_STAGE : C_LIGHT;
   if (!trophies || !Array.isArray(trophies.list)) {
     return <div className="card" style={{ padding: '14px 16px', fontSize: 13, color: C.soft }}>Play a few games and the trophy case fills in here.</div>;
   }
@@ -557,7 +578,7 @@ export function TrophyCase({ trophies, viewing }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap', marginBottom: 10 }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Trophy size={17} style={{ color: '#a97b12' }} /> Trophy Case</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 15, fontWeight: 800 }}><Trophy size={17} style={{ color: (stage ? '#e8b43a' : '#a97b12') }} /> Trophy Case</span>
         <span style={{ fontSize: 12.5, fontWeight: 700, color: C.muted }}>{earnedCount} of {total} unlocked</span>
       </div>
       {TROPHY_GROUPS.map((g) => {
@@ -584,9 +605,9 @@ export function TrophyCase({ trophies, viewing }) {
                   </div>
                 ) : (
                   <div key={t.id} style={{ border: `1.5px dashed ${C.line}`, borderRadius: 12, padding: '12px 13px', display: 'flex', gap: 11, alignItems: 'flex-start', minWidth: 0, opacity: 0.75 }}>
-                    <span style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: '#f2f3f5', color: '#9aa1ad', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                    <span style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: (stage ? 'rgba(255,255,255,0.06)' : '#f2f3f5'), color: (stage ? '#8b95a8' : '#9aa1ad'), display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                       <Ic size={18} />
-                      <span style={{ position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%', background: T.white, border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9aa1ad' }}><Lock size={9} /></span>
+                      <span style={{ position: 'absolute', right: -3, bottom: -3, width: 16, height: 16, borderRadius: '50%', background: stage ? 'var(--stg-raise,#0e131f)' : T.white, border: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: (stage ? '#8b95a8' : '#9aa1ad') }}><Lock size={9} /></span>
                     </span>
                     <span style={{ minWidth: 0 }}>
                       <span style={{ fontSize: 13.5, fontWeight: 800, color: C.muted }}>{t.name}</span>
