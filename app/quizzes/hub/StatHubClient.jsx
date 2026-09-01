@@ -10,6 +10,8 @@ import { withRef } from '@/lib/referrals';
 import { Metric, ActivityFeed, XpPanel, TrophyCase } from '../../player/ProfileShared';
 import { T } from '@/lib/theme';
 import SigninHelp, { isLockedOut } from '../../SigninHelp';
+import { useStageTheme } from '@/lib/stage-theme';
+import ThemePop from '../../ThemePop';
 import MindLoftMark from '../../MindLoftMark';
 
 const C = {
@@ -30,10 +32,20 @@ const C = {
 const ON_ACC = 'var(--stg-onramp,#08222e)';
 // A raised surface: a modal sheet, a menu, a key. Not the page ground.
 const RAISE = 'var(--stg-raise,#0e131f)';
-const MEDAL = [T.gold, '#b8bcc4', '#c8814b'];
-const MEDAL_INK = [T.gold, '#c9ced6', '#d79a6a'];
+// GOLD, SILVER AND BRONZE ARE A PALETTE, AND THE STAGE HAS TWO REGISTERS.
+// These were three literals picked against a near-black page: on the light
+// register the silver ink is 1.3:1 on white and the gold 1.9:1, so a podium
+// rendered as three blank rows. Each is a var with the DARK value as its
+// fallback, and the light triple is declared beside the rest of the hub's
+// tokens further down (search --hmi1). Same rule as everywhere else on the
+// stage: a meaning colour is a token, never a literal.
+const MEDAL = ['var(--hm1,#e8b43a)', 'var(--hm2,#b8bcc4)', 'var(--hm3,#c8814b)'];
+const MEDAL_INK = ['var(--hmi1,#e8b43a)', 'var(--hmi2,#c9ced6)', 'var(--hmi3,#d79a6a)'];
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
-const MEDAL_BG = ['rgba(232,180,58,0.16)', 'rgba(255,255,255,0.10)', 'rgba(200,129,75,0.18)'];
+const MEDAL_BG = ['var(--hmb1,rgba(232,180,58,0.16))', 'var(--hmb2,rgba(255,255,255,0.10))', 'var(--hmb3,rgba(200,129,75,0.18))'];
+// The gold a label or a crown is written IN, as opposed to the wash it sits on.
+// Same var as the medal's own ink so a podium and a crown cannot disagree.
+const GOLD_INK = 'var(--hmi1,#e8b43a)';
 // Rank bubble. #1/#2/#3 render in gold/silver/bronze; everything else accent blue.
 // RankChip, Metric, ChipMetric, CAT_COLS, completedPct, CategoryView,
 // ActivityFeed, XpPanel, and the new TrophyCase moved to
@@ -451,7 +463,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
           <div style={{ ...card, marginBottom: 0, padding: '12px 14px' }}>
             <div className="lbl">Streak</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 2 }}>
-              {streak && streak.kind === 'win' && streak.n >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: '#f59008' }}><Flame size={21} /></span> : null}
+              {streak && streak.kind === 'win' && streak.n >= 2 ? <span className="flameon" style={{ display: 'inline-flex', color: 'var(--stg-warn,#fbbf24)' }}><Flame size={21} /></span> : null}
               <span style={{ fontSize: 23, fontWeight: 800, color: streak ? (streak.kind === 'win' ? C.live : C.danger) : C.soft }}>{streak ? `${streak.kind === 'win' ? 'W' : 'L'}${streak.n}` : '-'}</span>
             </div>
             <div style={{ marginTop: 5, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -470,9 +482,9 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
         <div style={{ ...card, padding: '13px 14px', border: '1.5px solid rgba(232,180,58,0.42)', background: 'rgba(232,180,58,0.10)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-              <Avatar name={rival.name} bg="rgba(232,180,58,0.16)" fg="#e8b43a" />
+              <Avatar name={rival.name} bg="rgba(232,180,58,0.16)" fg={GOLD_INK} />
               <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#e8b43a' }}>Your rival:</span>{' '}
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: GOLD_INK }}>Your rival:</span>{' '}
                   {rivalKey ? <button onClick={() => onSelectPlayer && onSelectPlayer(rivalKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 800, color: C.accent, cursor: 'pointer' }}>{rival.name}</button> : rival.name}
                 </span>
                 <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>
@@ -554,7 +566,7 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
                   style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isMe ? 800 : 700, fontSize: 14, color: C.accent, cursor: 'pointer' }}
                 >{p.name}{isMe ? <span style={{ fontSize: 9.5, color: C.accent, fontWeight: 800, marginLeft: 6 }}>YOU</span> : null}</span>
                 <span style={{ flex: 'none', fontSize: 13, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{p.wins}-{p.losses}{p.ties ? `-${p.ties}` : ''}</span>
-                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? 'rgba(255,255,255,0.25)' : C.accsoft, overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
+                <span className="lbar" style={{ flex: 'none', width: 86, height: 7, borderRadius: 999, background: isMe ? 'var(--stg-line3,rgba(255,255,255,0.42))' : C.accsoft, overflow: 'hidden' }}><span style={{ display: 'block', width: `${Math.max(3, Math.min(100, p.winPct || 0))}%`, height: '100%', background: C.accent, borderRadius: 999 }} /></span>
                 <span style={{ flex: 'none', fontSize: 12, fontWeight: 800, color: C.muted, width: 38, textAlign: 'right' }}>{p.winPct}%</span>
                 <span className="lform"><FormDots results={matches.map((m) => m.result)} /></span>
                 <ChevronDown size={15} style={{ flex: 'none', color: C.soft, opacity: canOpen ? 1 : 0.25, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .15s' }} />
@@ -604,6 +616,15 @@ function DuelsPanel({ data, setData, ladder, loaded, onSelectPlayer }) {
 
 export default function StatHubClient() {
   const scope = 'all'; // category selector removed; Stat Hub always shows overall + per-category table
+  // THE HUB IS A STAGE PAGE AND NOW SAYS SO (owner, 2026-09-01: "stat hub needs
+  // to carry light and dark mode too, currently it is dark"). It has carried the
+  // .stage-page class and read every --stg-* token since it moved onto the
+  // stage, but it never wrote data-stage-theme, so the base block on
+  // .stage-page (the dark register) was the only one that could ever apply and
+  // the page was pinned dark whatever the reader had chosen. One attribute is
+  // the whole fix; the switch beside it is what makes the register reachable
+  // from here rather than only from a game page.
+  const [stageTheme, setStageTheme] = useStageTheme();
 
   const [me, setMe] = useState(null);
   const [stats, setStats] = useState([]);     // /api/quiz/stats
@@ -834,7 +855,7 @@ export default function StatHubClient() {
     .qzhub .pvbtn.on{background:${C.surface};color:${C.ink};font-weight:700;}
     .qzhub .dd{position:relative;}
     .qzhub .ddbtn{display:flex;align-items:center;gap:8px;background:${C.surface};border:1px solid ${C.line};border-radius:10px;padding:9px 12px;cursor:pointer;font:inherit;min-width:200px;}
-    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:${C.surface};border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
+    .qzhub .ddmenu{position:absolute;top:calc(100% + 6px);right:0;z-index:30;background:${C.surface};border:1px solid ${C.line};border-radius:10px;box-shadow:0 8px 24px rgba(11,15,26,0.28);padding:6px;min-width:430px;display:grid;grid-template-columns:1fr 1fr;gap:1px 4px;}
     .qzhub .ddmenu .ddall{grid-column:1 / -1;}
     .qzhub .dditem{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;cursor:pointer;font-size:13px;}
     .qzhub .dditem:hover{background:${C.bg};}
@@ -875,7 +896,7 @@ export default function StatHubClient() {
     .qzhub .fdot{width:9px;height:9px;border-radius:50%;display:inline-block;}
     .qzhub .duelpulse{animation:qzpulse 2s ease-in-out infinite;}
     .qzhub .flameon{animation:qzflame 1.4s ease-in-out infinite;}
-    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 rgba(14,29,64,.25);}50%{box-shadow:0 0 0 7px rgba(14,29,64,0);}}
+    @keyframes qzpulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb, var(--stg-acc,#7dd3fc) 45%, transparent);}50%{box-shadow:0 0 0 7px transparent;}}
     @keyframes qzflame{0%,100%{transform:scale(1);}50%{transform:scale(1.16);}}
     @media (prefers-reduced-motion: reduce){.qzhub .duelpulse,.qzhub .flameon{animation:none;}}
     @media(max-width:640px){.qzhub .lbar{display:none;}.qzhub .lform{display:none;}.qzhub .duelqt{display:none;}}
@@ -890,8 +911,26 @@ export default function StatHubClient() {
     .qzhub .pill:hover{border-color:${C.accent};}
     .qzhub .pill.on{background:${C.accent};border-color:${C.accent};color:${ON_ACC};font-weight:800;}
 
+    /* THE MEDAL PALETTE, ONE TRIPLE PER REGISTER. The dark values are the
+       three literals this file used to carry; the light ones are picked
+       against a pale ground rather than converted from them, exactly as the
+       stage's own token blocks are. Ink clears 4.5:1 on white (5.3 / 5.9 /
+       6.5) and the 3px rule clears 3:1 on the light ground (3.4 / 3.3 / 4.5),
+       because a rank rule is a boundary and owes 1.4.11 rather than 1.4.3.
+       NOTE the unquoted attribute value: a single quote inside a JSX
+       <style>{...}</style> is escaped to an entity and takes the whole
+       selector with it, so [data-stage-theme=light] is written bare. */
+    .qzhub-stage{--hm1:#e8b43a;--hm2:#b8bcc4;--hm3:#c8814b;
+      --hmi1:#e8b43a;--hmi2:#c9ced6;--hmi3:#d79a6a;
+      --hmb1:rgba(232,180,58,0.16);--hmb2:rgba(255,255,255,0.10);--hmb3:rgba(200,129,75,0.18);}
+    .qzhub-stage[data-stage-theme=light]{--hm1:#a97b12;--hm2:#7d8798;--hm3:#a1622f;
+      --hmi1:#8a6508;--hmi2:#5b6472;--hmi3:#8a4f22;
+      --hmb1:rgba(232,180,58,0.30);--hmb2:rgba(11,15,26,0.09);--hmb3:rgba(200,129,75,0.26);}
+
     /* ── the stage chrome ───────────────────────────────────────────────── */
-    .hubcap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:15px 38px 14px;font-family:${FONT};}
+    /* position:relative because ThemePop is an absolutely positioned child of
+       whichever cap is on the page and measures itself against this one. */
+    .hubcap{position:relative;display:flex;align-items:center;gap:18px;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:15px 38px 14px;font-family:${FONT};}
     .hubcap-mark{display:flex;align-items:center;gap:9px;flex:none;text-decoration:none;color:${C.ink};}
     .hubcap-mark b{font-size:15.5px;font-weight:800;letter-spacing:-.2px;}
     .hubcap-mark b i{font-style:normal;color:${C.accent};}
@@ -904,6 +943,7 @@ export default function StatHubClient() {
     .hubcap-btns{display:flex;gap:8px;flex:none;}
     .hubchip{display:inline-flex;align-items:center;gap:6px;border:1px solid ${C.line};background:none;color:${C.ink};border-radius:999px;padding:7px 14px;font:inherit;font-family:${FONT};font-size:11.5px;font-weight:700;cursor:pointer;text-decoration:none;}
     .hubchip:hover{background:${C.surface};}
+    .hub-tg{padding:7px 10px;}
     .hubjump{position:sticky;top:0;z-index:40;background:${C.bg};border-bottom:1px solid ${C.line};}
     .hubjump-in{max-width:1180px;margin:0 auto;padding:9px 38px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;}
     .hubjump-in::-webkit-scrollbar{display:none;}
@@ -930,7 +970,7 @@ export default function StatHubClient() {
   `;
 
   return (
-    <div className="stage-page qzhub-stage" style={{ '--stg-acc-dk': '#7dd3fc', '--stg-acc-lt': '#0369a1', background: C.bg, minHeight: '100vh', position: 'relative' }}>
+    <div className="stage-page qzhub-stage" data-stage-theme={stageTheme} style={{ '--stg-acc-dk': '#7dd3fc', '--stg-acc-lt': '#0369a1', background: C.bg, minHeight: '100vh', position: 'relative' }}>
       <style>{css}</style>
       <header className="hubcap">
         <Link href="/" className="hubcap-mark" aria-label="Mind Loft home"><Logo size={17} /> <b>Mind <i>Loft</i></b></Link>
@@ -943,8 +983,35 @@ export default function StatHubClient() {
         </div>
         <div className="hubcap-btns">
           {found && !viewing ? <button className="hubchip" onClick={() => setShareOpen(true)}><Share2 size={13} /> Share</button> : null}
+          {/* The fourth cap to draw the light switch, after StageChrome, the
+              home and the circuit frame. Its class is registered in the SWITCH
+              selector in app/ThemePop.jsx so the bubble below can find it. */}
+          <button
+            type="button"
+            className="hubchip hub-tg"
+            onClick={() => setStageTheme(stageTheme === 'light' ? 'dark' : 'light')}
+            aria-label={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
+            title={stageTheme === 'light' ? 'Switch to dark' : 'Switch to light'}
+          >
+            {stageTheme === 'light' ? (
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+                strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+              </svg>
+            )}
+          </button>
           <Link className="hubchip" href="/">Today →</Link>
         </div>
+        {/* The pointer at that switch, first visit only. LAST CHILD of the cap,
+            because it reads its own parent to find the glyph and measure
+            against it. */}
+        <ThemePop />
       </header>
       <nav className="hubjump" aria-label="Sections"><div className="hubjump-in">
         {SECTIONS.map((x) => <a key={x.id} href={`#${x.id}`}>{x.label}</a>)}
@@ -1011,7 +1078,7 @@ export default function StatHubClient() {
       {shareOpen && found && <ShareStatsModal profile={profile} byKey={byKey} onClose={() => setShareOpen(false)} />}
       {signupOpen && <SignupModal onClose={() => setSignupOpen(false)} />}
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 20, flexWrap: 'wrap', margin: '30px 0 8px', fontSize: 12.5, color: C.muted, fontFamily: FONT }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: '#047857' }} /> Played</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Check size={14} strokeWidth={2.75} style={{ color: 'var(--stg-good,#6ee7b7)' }} /> Played</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Star size={14} strokeWidth={1.5} fill={T.gold} color={T.goldInk} /> Completed (100%)</span>
       </div>
     </div>
@@ -1100,9 +1167,9 @@ function DailyGamesView({ onSelectPlayer, initialGame = null }) {
         </div>
         {topChamp && topChamp.wins > 1 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'rgba(232,180,58,0.10)', border: '1.5px solid rgba(232,180,58,0.42)', borderRadius: 12, padding: '11px 14px', marginBottom: 12 }}>
-            <span style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(232,180,58,0.16)', color: '#e8b43a', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Crown size={17} /></span>
+            <span style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(232,180,58,0.16)', color: GOLD_INK, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><Crown size={17} /></span>
             <span style={{ minWidth: 0 }}>
-              <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: '#e8b43a' }}>Most crowns:</span> {nameBtn(topChamp.userKey, topChamp.username, 13)}</span>
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 800 }}><span style={{ color: GOLD_INK }}>Most crowns:</span> {nameBtn(topChamp.userKey, topChamp.username, 13)}</span>
               <span style={{ display: 'block', fontSize: 12, color: C.muted, fontWeight: 600, marginTop: 1 }}>{topChamp.wins} daily wins across the last {history.length} days</span>
             </span>
           </div>
@@ -1317,7 +1384,7 @@ function UserBaseBody({ board, boardTotal, myName, myAnonKey, onSelectPlayer, vi
               return (
                 <tr key={p.userKey} style={mine ? { background: C.accsoft } : (viewed ? { background: 'rgba(232,180,58,0.12)' } : undefined)}>
                   <td style={{ fontWeight: 800, color: mi >= 0 ? MEDAL_INK[mi] : C.soft }}>{idx + 1}</td>
-                  <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: '#b5560f', fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
+                  <td style={{ fontWeight: (mine || viewed) ? 800 : 600, whiteSpace: 'nowrap' }}><button onClick={() => onSelectPlayer && onSelectPlayer(p.userKey)} style={{ border: 'none', background: 'transparent', padding: 0, font: 'inherit', fontFamily: FONT, fontWeight: 'inherit', color: C.accent, cursor: 'pointer', textAlign: 'left' }}>{p.name}</button>{p.isAnon ? <span style={{ fontSize: 10, color: C.soft, fontWeight: 600, marginLeft: 6 }}>guest</span> : null}{mine ? <span style={{ fontSize: 10, color: C.accent, fontWeight: 700, marginLeft: 6 }}>you</span> : null}{viewed ? <span style={{ fontSize: 10, color: GOLD_INK, fontWeight: 700, marginLeft: 6 }}>viewing</span> : null}</td>
                   <td className="score" style={{ textAlign: 'right', color: C.accent, fontWeight: 700 }}>{(p.xp || 0).toLocaleString()}</td>
                   {hasTrend ? <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>{trendCell(p)}</td> : null}
                   <td style={{ textAlign: 'right' }}>{(p.correct || 0).toLocaleString()}</td>
@@ -1388,7 +1455,7 @@ function QuizzesPanel({ me, myProfile, scope, byKey, catalog, stats, totals, tot
                   <td style={{ fontWeight: 600, maxWidth: 280 }}>
                     <span style={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
                       <Link href={`/quiz/${q.id}`} className="qlink" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{q.title}</Link>
-                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill={T.gold} color={T.goldInk} style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: '#047857', marginLeft: 5 }} aria-label="Played" /> : null}
+                      {doneCompleted.has(q.id) ? <Star size={13} strokeWidth={1.5} fill={T.gold} color={T.goldInk} style={{ flex: 'none', marginLeft: 5 }} aria-label="Completed (100%)" /> : donePlayed.has(q.id) ? <Check size={13} strokeWidth={2.75} style={{ flex: 'none', color: 'var(--stg-good,#6ee7b7)', marginLeft: 5 }} aria-label="Played" /> : null}
                     </span>
                   </td>
                   <td className="score" style={{ textAlign: 'right' }}>{(s.plays || 0).toLocaleString()}</td>

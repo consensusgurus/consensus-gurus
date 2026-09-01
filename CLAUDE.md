@@ -6709,3 +6709,44 @@ brain the homepage serves.
   the browser tab is unified. Do not sweep those in "for consistency" without asking.
 - **The `/public/<game>-icons/favicon-32.png` files stay in the repo, unreferenced.** Nothing
   serves them, they cost nothing, and reverting a single game is a one-line change.
+## LIGHT IS THE DEFAULT REGISTER, and the stored key is what resets it (owner, 2026-09-01)
+
+The site opened dark for a month and spent that month pointing at its own light switch
+(a pulsing ring, a first-load flip, then an explicit bubble). The owner's call is that
+light is simply what Mind Loft looks like now, and that every reader lands there, not
+just the ones with nothing stored.
+
+- **Three places in `lib/stage-theme.js` say "light", and all three have to agree.**
+  `readStageTheme()`'s fallback, `useStageTheme()`'s `useState` (the SSR / first-paint
+  value), and whatever a future change picks. The `useState` is NOT decoration: the
+  server cannot read localStorage, so it renders the DEFAULT and the client hydrates
+  against it, and a value that disagrees with the fallback is a hydration mismatch.
+- **THE RESET IS A NEW KEY, never a migration script and never a loosened check.** The
+  stored preference moved from `sot_theme` to `sot_theme2`, so every browser starts on
+  the new default whatever the old key holds, and the old key is left in place unread.
+  A stored 'dark' from the dark-first era is mostly an artefact of the register the site
+  used to open in, which is why the owner chose to clear it rather than honour it. Any
+  future change to the default takes ANOTHER new key: a browser that stamped the current
+  one would otherwise be shut out of the change by its own stamp. This is the same rule
+  every once-per-browser gate on this site already follows (`sot_theme_intro2`,
+  `sot_theme_hinted2`, `sot_theme_pop2`, `sot_welcome_seen`).
+- **The pop-up mirrored with it.** `app/ThemePop.jsx` offered light and skipped anyone
+  with light stored; it offers DARK and skips anyone with dark stored. Its key went to
+  `sot_theme_pop2` for the same reason as above, so "everyone's first visit from here
+  forward" actually reaches the browsers that were shown the old one. The bubble's job is
+  the middle sentence, which names the control and says where it lives; the button is a
+  demonstration, so it points at whichever register the reader is not in.
+- **A reader who has explicitly chosen dark still gets one light frame** before the effect
+  resolves. That is the same trade a light-preference reader paid in the other direction
+  until today, and it is the price of not blocking the first paint on localStorage.
+- **Every `.stage-page` root must WRITE `data-stage-theme`.** The token block on
+  `.stage-page` is the dark register and `[data-stage-theme='light']` overrides it, so a
+  stage page that carries the class, reads every `--stg-*` token, and never writes the
+  attribute is pinned DARK forever and no amount of token conversion will move it. That
+  was the Stat Hub for its whole life on the stage (fixed the same day): it was fully
+  tokenised and still could not leave dark. When a surface "supports both registers but
+  only ever shows one", look for the missing attribute before auditing a single colour.
+- **A cap that draws the switch registers its class in `SWITCH` in `app/ThemePop.jsx`**
+  and makes itself `position:relative`, or the bubble cannot find the glyph to measure
+  against. Four caps draw one today: `StageChrome` (every daily), `today/StageToday` (the
+  home), `circuits/CircuitFrame`, and `quizzes/hub/StatHubClient`.

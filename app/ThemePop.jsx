@@ -9,6 +9,13 @@
 // glyph that names the register, points at the switch with an arrow, and
 // carries the switch itself so they never have to find the icon at all.
 //
+// IT OFFERS THE REGISTER THE READER IS NOT IN, and that flipped with the
+// default on 2026-09-01. The site opens light now, so the button writes 'dark';
+// when it opened dark the same button wrote 'light'. The bubble's JOB is the
+// sentence in the middle, which is register-neutral and says what the control
+// is and where it lives, so the button is the demonstration rather than the
+// point, exactly as the retired first-load flip was.
+//
 // IT IS A SIBLING OF THE SWITCH INSIDE THE CAP, not a portal to <body> and not
 // position:fixed. Three reasons, in the order they cost something to learn:
 //
@@ -36,9 +43,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useThemePop, writeStageTheme } from '@/lib/stage-theme';
 
-// The three caps that draw a switch: StageChrome (every daily), StageToday (the
-// home), CircuitFrame (the circuit pages). A fourth cap adds its class here.
-const SWITCH = '.stg-theme, .sty-tg, .cfr-tg';
+// The four caps that draw a switch: StageChrome (every daily), StageToday (the
+// home), CircuitFrame (the circuit pages), StatHubClient (the Stat Hub). A
+// fifth cap adds its class here.
+const SWITCH = '.stg-theme, .sty-tg, .cfr-tg, .hub-tg';
 
 export default function ThemePop() {
   const [open, dismiss] = useThemePop();
@@ -81,7 +89,7 @@ export default function ThemePop() {
       ref={ref}
       className="stg-tpop"
       role="dialog"
-      aria-label="Light mode"
+      aria-label="Light and dark mode"
       style={at ? { top: at.top, right: at.right } : { visibility: 'hidden' }}
     >
       <i className="stg-tpop-arw" style={{ right: at ? at.arrow : 12 }} aria-hidden="true" />
@@ -94,10 +102,10 @@ export default function ThemePop() {
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
-      <b>Prefer a lighter page?</b>
-      <p>This is the light switch. It flips the whole site between light and dark, and it sits in this bar on every page.</p>
-      <button type="button" className="stg-tpop-go" onClick={() => writeStageTheme('light')}>
-        Switch to light
+      <b>This is the light switch.</b>
+      <p>It flips the whole site between light and dark, and it sits in this bar on every page. Try it.</p>
+      <button type="button" className="stg-tpop-go" onClick={() => writeStageTheme('dark')}>
+        Switch to dark
       </button>
     </div>
   );
