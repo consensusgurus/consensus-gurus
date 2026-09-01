@@ -5823,6 +5823,23 @@ on the page.
     numeric custom property verbatim, so `style={{ '--i': i }}` is safe.
   - **NO APOSTROPHES in the CSS**, per the standing rule: the stylesheet is a
     text child of a `<style>` element, so React escapes them.
+  - ⚠️ **IT IS ARMED ONLY WHEN THE DOCUMENT IS VISIBLE AT MOUNT**, via a
+    `data-sty-anim` attribute the component puts on the root element, and that
+    gate is not decoration. A browser DOES NOT ADVANCE AN ANIMATION CLOCK IN A
+    HIDDEN TAB, so a page loaded in the background holds every one of these
+    sections at its FROM state, opacity 0, with `playState` still reading
+    "running" and `currentTime` still 0, for as long as the tab stays in the
+    background. For a reader that is self-healing and arguably ideal, the fade
+    plays the moment they look at the tab. For everything else that reads a
+    page it is not: BOTH browser harnesses available in a Cowork session report
+    `document.visibilityState === "hidden"`, so the live home came back blank
+    from every automated check, which in a repo whose first rule is to verify on
+    the live site is a defect in itself. Unarmed, the rules do not match and the
+    content simply renders. Deliberately NOT re-armed on a later
+    `visibilitychange`: fading in a section that has sat in the DOM for a minute
+    is worse than not fading it. **Any future entrance animation on any surface
+    here needs the same gate**, and the tell that it is missing is a page that
+    reads blank to automation but looks right by hand.
 - ⚠️ **The three cap anchors do not scroll this page under automation**, and a
   handler that calls `preventDefault` and then fails to scroll is strictly worse
   than a plain anchor, so one was written, measured, and REVERTED on 2026-09-01.

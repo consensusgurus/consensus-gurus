@@ -366,6 +366,20 @@ export default function StageToday() {
   const stats = useDayStats();
   const [who, setWho] = useState('');
   useEffect(() => { setWho(savedIdentity().username || ''); }, []);
+  // ARM THE ARRIVAL REVEAL, and only for a page someone is actually looking at.
+  // A hidden tab does not advance an animation clock, so a section that mounts
+  // there holds the FROM state (opacity 0) for as long as the tab stays in the
+  // background: harmless for a reader, since the fade plays when they look, but
+  // it means every automated read of this page comes back blank. Without the
+  // attribute the animation rules do not match at all and the content simply
+  // renders. Not re-armed on a later visibilitychange: fading in a section that
+  // has been sitting in the DOM for a minute is worse than not fading it.
+  useEffect(() => {
+    if (typeof document === 'undefined' || document.visibilityState !== 'visible') return undefined;
+    const root = document.documentElement;
+    root.setAttribute('data-sty-anim', '1');
+    return () => root.removeAttribute('data-sty-anim');
+  }, []);
   const [done, setDone] = useState(() => new Set());
   const [inprog, setInprog] = useState(() => new Set());
   // Whether daily-status has ANSWERED, which is a different question from
@@ -2118,15 +2132,21 @@ const CSS = `
    off the mount: no state, no effect, nothing to keep in step with the fetch.
    Opacity and a 6px rise, never height or scale, so the ResizeObserver on the
    board (which watches box size, not transforms) reads one height throughout.
+   ARMED BY [data-sty-anim], which the component sets only when the document is
+   VISIBLE at mount. A browser does not advance an animation clock in a hidden
+   tab, so without that gate a page loaded in the background holds every one of
+   these at opacity 0 indefinitely and reads as blank to anything but a reader
+   who focuses the tab. Unarmed, these rules do not match and the content simply
+   renders.
    NO APOSTROPHES anywhere in this stylesheet: it is a text child of a style
    element, so React escapes them. */
 @keyframes sty-in{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-.sty-rev{animation:sty-in .34s cubic-bezier(.2,.7,.3,1) both;}
+[data-sty-anim] .sty-rev{animation:sty-in .34s cubic-bezier(.2,.7,.3,1) both;}
 /* The rows of a table or a feed come in as a run rather than a block, capped
    so a long standing never keeps the reader waiting on its last row. */
-.sty-revr{animation:sty-in .3s cubic-bezier(.2,.7,.3,1) both;
+[data-sty-anim] .sty-revr{animation:sty-in .3s cubic-bezier(.2,.7,.3,1) both;
   animation-delay:calc(min(var(--i,0),9) * 26ms);}
 @media (prefers-reduced-motion:reduce){
-  .sty-rev,.sty-revr{animation:none;}
+  [data-sty-anim] .sty-rev,[data-sty-anim] .sty-revr{animation:none;}
 }
 `;
