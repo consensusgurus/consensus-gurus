@@ -177,17 +177,21 @@ export default function StageWelcome({ capRef }) {
     // THE FLOOR. fetchDayStatus is memoised and the page fetches it anyway, so
     // this costs no request. If it answers inside FLOOR the page was never
     // waiting and nothing runs.
+    // THE PREVIEW MUST NOT BE DEFEATED BY THE FLOOR. ?welcome=1 always plays,
+    // including when the read answers instantly, because otherwise the one way
+    // to look at this is to be unlucky with the cache.
+    if (force) setOn(true);
     let fast = false;
-    const floor = setTimeout(() => { if (alive && !fast) setOn(true); }, FLOOR);
+    const floor = force ? null : setTimeout(() => { if (alive && !fast) setOn(true); }, FLOOR);
     fetchDayStatus().then((d) => {
       if (!alive) return;
-      if (!d) { fast = true; clearTimeout(floor); return; }
+      if (!d) { if (!force) { fast = true; if (floor) clearTimeout(floor); } return; }
       setData(d);
       setSettled(true);
       // Stamp the place we are about to show, so the NEXT arrival can say what
       // moved. Read before the write happens below, in the figure builder.
     });
-    return () => { alive = false; clearTimeout(floor); };
+    return () => { alive = false; if (floor) clearTimeout(floor); };
   }, []);
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); timers.current = []; }, []);
