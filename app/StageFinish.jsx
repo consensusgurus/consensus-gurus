@@ -711,7 +711,7 @@ export default function StageFinish({
                         (the tries, the clock) was not on screen. gameStats prints
                         the run — 10/10 · 1 try · 0:13 — which is the same fix the
                         leader strip got, from the same helper. */}
-                    <td className="stf-st">{gameStats(r) || '\u2014'}</td>
+                    <td className="stf-st">{gameStats(r, missLabel) || '\u2014'}</td>
                   </tr>
                 ))}
                 {/* Outside the five, they get their line back under a gap, so
@@ -724,7 +724,7 @@ export default function StageFinish({
                     <tr className="me">
                       <td className="stf-pos">{myRank != null ? `#${myRank}` : ''}</td>
                       <td className="stf-who">{board.myRow.username || 'You'}</td>
-                      <td className="stf-st">{gameStats(board.myRow) || '\u2014'}</td>
+                      <td className="stf-st">{gameStats(board.myRow, missLabel) || '\u2014'}</td>
                     </tr>
                   </>
                 ) : null}

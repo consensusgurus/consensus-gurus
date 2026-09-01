@@ -83,6 +83,11 @@ export default function DailyTilePanel({
 }) {
   const todayISO = etTodayISO();
   const how = (DAILY_GAME_MAP[game.key] && DAILY_GAME_MAP[game.key].how) || game.tag;
+  // THIS GAME'S OWN WORD for the figure every daily posts in `guessesUsed`,
+  // read from the registry the same way DailyBoardPanel and DailyEndCard read
+  // it. Null on the sixteen games that post no such figure, which drops the
+  // term rather than printing a borrowed one (owner, 2026-09-01).
+  const missLabel = (DAILY_GAME_MAP[game.key] || {}).miss || null;
 
   const drops = (data && Array.isArray(data.drops)) ? data.drops : [];
   const allTime = (data && data.allTime) || null;
@@ -399,7 +404,7 @@ export default function DailyTilePanel({
                       <span className="pl">{r.rank === 1 ? <Crown size={12} /> : (r.rank || i + 1)}</span>
                       <b>{r.username || 'Player'}{mineRow ? ' (you)' : ''}</b>
                       <span className="sc">{fmtPts(r.points)}</span>
-                      {gameStats(r) ? <span className="dtp-lst">{gameStats(r)}</span> : null}
+                      {gameStats(r, missLabel) ? <span className="dtp-lst">{gameStats(r, missLabel)}</span> : null}
                     </div>
                   );
                 })}
@@ -408,7 +413,7 @@ export default function DailyTilePanel({
                     <span className="pl">{todayRow.rank || '—'}</span>
                     <b>You</b>
                     <span className="sc">{todayRow.points != null ? fmtPts(todayRow.points) : '—'}</span>
-                    {gameStats(todayRow) ? <span className="dtp-lst">{gameStats(todayRow)}</span> : null}
+                    {gameStats(todayRow, missLabel) ? <span className="dtp-lst">{gameStats(todayRow, missLabel)}</span> : null}
                   </div>
                 ) : null}
               </>

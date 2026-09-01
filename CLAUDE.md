@@ -5581,6 +5581,99 @@ point of that game). The zoomed-in arena went with it, and the chip lane was par
 there is no Bracket copy of this CSS to keep in sync. Do NOT go looking for one, and do not
 reintroduce the arena into Bracket to restore the pairing. Pricer keeps the layout unchanged.
 
+## A LEADERBOARD REPORTS THE GAME'S OWN UNITS, NEVER "guesses" (owner rule, 2026-09-01)
+
+Every daily posts ONE figure in `guessesUsed`, and what that figure COUNTS is
+different in every game. `miss` in `lib/daily-games.js` is the word for it:
+Hands posts **Busts**, Sweep **Digs**, Tuck **Unused**, Paths **Cost**, Strata
+**Hints**, Jester **Placed**, Babel **Stuck**, and sixteen games post nothing at
+all and carry `miss: null`. Twenty-one distinct words across seventy-nine games,
+and only five of them are "Guesses".
+
+The three TABLE surfaces have always headed their column with it
+(`DailyBoardPanel`, `DailyEndCard`, `LoftFinish`, all reading the registry by
+key). `gameStats` in **`lib/daily-row-stats.js`** did not: it welded on the word
+"guesses". That helper is what the **ending curtain** prints — `StageFinish`, the
+page every daily finishes on, the one leaderboard a player is guaranteed to see —
+so a Hands player was told "3 guesses" about a game that takes no guesses, with
+the column header a few hundred pixels away reading "Busts" the whole time
+(owner report). It was wrong on all fifty-eight games whose word is not
+"Guesses", and it had been since the helper was extracted.
+
+**The rules, and the second matters as much as the first:**
+
+1. **The word is the registry's.** `gameStats(row, missLabel)` takes the game's
+   `miss` and inflects it through `MISS_ONE`, an explicit singular table (the
+   labels are not all plural nouns: Asked, Wrong, Stuck, Unused and Placed do
+   not inflect, and Tries and Guesses are exactly the two a trailing-s rule gets
+   wrong). End Game still reports `tries` in preference to `guessesUsed`; its
+   registry label is 'Tries', so it reads "1 try" exactly as before.
+2. **NO LABEL MEANS NO TERM.** `miss: null` drops the term rather than filling
+   it with a zero or a borrowed noun, which is the same rule the tables follow.
+   **A caller that passes no label also gets no term**, deliberately: saying less
+   is the honest failure, and saying "guesses" is how this lasted.
+3. **`combineDaily` carries the figure through BOTH hops.** `scoreGame`'s player
+   -> `u.games` -> `perGame`. The first attempt at this added it to the second
+   hop only, so the home's standing table silently lost its middle term while
+   every other surface kept it. That is a bug no page throws on and no reader can
+   report except as "it used to say something", so `verify-miss-labels.mjs`
+   checks both hops through the real module.
+4. **A mixed-game table heads the column with NOTHING.** No single header is true
+   of busts, digs and unplaced tiles at once, so on any surface listing several
+   games the word travels in the CELL with its own number ("3 busts") and
+   `gameStats` produces the whole run in one column. Heading such a column
+   "Guesses" is the original bug in a new place.
+
+**`scripts/verify-miss-labels.mjs`** is the gate, auto-discovered by
+`verify-all`. It asserts: every registry label has a singular; display names are
+unique (LoftFinish resolves the registry by NAME, so a duplicate would hand one
+game another game's word); every client's hardcoded `missLabel` equals its
+registry `miss`, and a game entitled to a column does not omit it; no shared
+renderer welds a count-word onto a figure; and, behaviourally, that Hands reads
+"3 busts", Suds reads nothing, and Mate reads "1 try". Confirmed to FAIL on the
+pre-fix helper, on a `gameStats` that ignores its argument (11 failures), on
+Calc's missing prop, and on either half of the combine carry-through.
+
+**`missLabel` now falls back to the registry in `LoftFinish`.** All eighty
+clients hardcode that prop, which is eighty hand-kept copies of one field, and
+**Calc** proved the cost: it passed nothing, so its board silently dropped the
+Tries column it was entitled to. The prop still wins where given (all sixty-three
+that pass it match the registry exactly), so no existing game changed; the
+fallback only fills a gap. Resolved by DISPLAY NAME because that is what the card
+is handed, and guessing a key there would be the registry-key-is-not-route-name
+trap. Calc was given its prop in the same push regardless.
+
+## Your standing: the home answers "how did I finish in each game" (owner, 2026-09-01)
+
+`/today` (`app/today/StageToday.jsx`) could not answer the one question a player
+asks after a few games. A card said `done` and the ladder lit a rung, both
+binary; `#sty-board` reports the COMBINED day. Where you came in Crux was nowhere
+on the page.
+
+- **`#sty-standing`** is a full-width section ABOVE `.sty-pair`, not a third
+  column in it: it is the reader's own day, so it outranks both who did best and
+  what is being played, and three columns of figures at 900px is none of them
+  read. Four columns: game, the run, `#rank of field`, points. Sorted BEST FIRST
+  (points, then rank, then name), because the question is "how did I do".
+- **The run is ONE column**, `gameStats(row, game.miss)` — `4/10 · 3 busts ·
+  2:11`. See rule 4 above for why it is not three columns with a shared header.
+- **A played GAME CARD swaps its tagline for its result** (`.sty-gres`): the tag
+  says what the game IS, which is what a reader needs before they play it and
+  nothing they need after. No extra row, no extra height.
+- **`.sty-g.done` wears `opacity:.42`, and opacity on a parent cannot be undone
+  by a child**, so a rank printed inside one lands near 2:1 whatever colour it is
+  given. A card that has something to say therefore states "played" in COLOUR
+  instead (`.sty-g.done.res`: name steps to `--stg-mute`, which clears 4.5:1 on
+  both registers, and the figures keep their own). This is the same trap the
+  contrast sweeps keep finding; never dim a surface that has to carry a figure.
+- **It costs NO REQUEST.** `daily-combined` is already fetched for the board
+  above and its `me.perGame` is keyed by every game the reader scored today. The
+  rank on it is the registered-only board rank the route already substitutes, so
+  this cannot disagree with a game's own board about where you came.
+- The cap gains a fourth `sty-cx` anchor, FIRST of the three, drawn only when
+  there is a day to show so it never points at a section that is not there.
+  Retired games are filtered out, since an archived day still scores.
+
 ## The Daily Five: a five-game run with one combined board (owner, 2026-08-17)
 
 Five dailies, one from each of five different categories, played as one sitting, with a

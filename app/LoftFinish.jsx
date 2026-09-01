@@ -92,7 +92,7 @@ function Calculating({ wide = false }) {
 
 export default function LoftFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
-  missLabel = null, archive = null, gameRank = null, outcome = null, options = [],
+  missLabel: missLabelProp = null, archive = null, gameRank = null, outcome = null, options = [],
   name = null, catRank = null,
   // ── the three quiz overrides (2026-08-20) ────────────────────────────────
   // A QUIZ finishes on this same card, and three things on it are written for a
@@ -115,6 +115,20 @@ export default function LoftFinish({
   // eighty that do not. null means "read the URL", exactly as before.
   onStage: onStageProp = null,
 }) {
+  // THE MISS LABEL FALLS BACK TO THE REGISTRY (owner, 2026-09-01). All 80
+  // clients hardcode this prop, which is 80 hand-kept copies of one field in
+  // lib/daily-games.js, and Calc proved what that costs: it passes nothing, so
+  // its board silently dropped the Tries column it is entitled to. The prop
+  // still wins where it is given (every one of the 63 that pass it matches the
+  // registry exactly, verified by scripts/verify-miss-labels.mjs), so this
+  // changes no existing game; it only fills the gap when a client forgets.
+  //
+  // Resolved by DISPLAY NAME because that is what this card is handed — see the
+  // registry-key-is-not-route-name rule in CLAUDE.md for why guessing a key
+  // here would be worse. The 80 names are unique and every client's `name`
+  // resolves to the right row; the verifier asserts both.
+  const missLabel = missLabelProp
+    || (name ? ((DAILY_GAMES.find((g) => g.name === name) || {}).miss || null) : null);
   // THE ENDING IS A CURTAIN on the stage. Declared FIRST so hook order never
   // changes, and RETURNED further down, after every other hook has run: an
   // early return above them would break the rules of hooks the moment a game

@@ -970,6 +970,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
               : null}
             day={dayStats}
             streak={isTodays ? myStats.cur : null}
+            missLabel="Tries"
             archive={puzzles
               .filter((p) => p.num !== PUZZLE.num)
               .sort((a, b) => b.num - a.num)

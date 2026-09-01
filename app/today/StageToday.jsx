@@ -43,6 +43,10 @@ const DAILY_GAMES = ALL_DAILY_GAMES.filter((g) => LIVE_KEYS.has(g.key));
 import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
 import GameGlyph from '../GameGlyph';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';
+// ONE READING OF A RESULT ROW, the same one the ending curtain and the tile
+// panel use. It prints the run in the GAME'S own units — 7/16 · 3 busts · 2:11
+// — which is the whole reason Your standing can be one column instead of six.
+import { gameStats } from '@/lib/daily-row-stats';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
@@ -259,17 +263,31 @@ const circPinId = (k) => (isCircPin(k) ? k.slice(2) : null);
 // replaced the two hand-maintained PNG sets.
 // ONE GAME CARD, used by the category rows and by My games, so a star behaves
 // the same in both and there is one place to change what a card shows.
-function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue }) {
+// A PLAYED CARD SWAPS ITS TAGLINE FOR ITS RESULT (owner, 2026-09-01). The tag
+// says what the game IS, which is what a reader needs before they play it and
+// nothing they need after; once the day has an answer for that game, the same
+// line carries the answer instead. No extra row, no extra height, and the one
+// question a home board could not answer — "how did I do at that one" — is now
+// on the card itself rather than only in the table below.
+function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue, res }) {
   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
   const on = !!(favorites && favorites.includes(g.key));
   // MY GAMES MIXES CATEGORIES, so each card carries its OWN hue rather than
   // inheriting the section's (owner, 2026-08-31). In a category row every card
   // is that category anyway, so passing nothing keeps the row's colour.
   return (
-    <a className={`sty-g ${state}`} href={`${routeOf(g)}?stage=1${tq}`}
+    <a className={`sty-g ${state}${res ? ' res' : ''}`} href={`${routeOf(g)}?stage=1${tq}`}
       style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
-      <span className="sty-gt">{g.tag}</span>
+      {res ? (
+        <span className="sty-gres">
+          <span className="sty-grk">#{res.rank}</span>
+          <span className="sty-grf">of {res.field}</span>
+          <span className="sty-grs">{res.score}/{res.total}</span>
+        </span>
+      ) : (
+        <span className="sty-gt">{g.tag}</span>
+      )}
       {canPin ? (
         <button
           type="button"
@@ -652,6 +670,46 @@ export default function StageToday() {
     ? `Top ${top.length} of ${fieldToday.toLocaleString()} players`
     : `${overall.length} ${overall.length === 1 ? 'player' : 'players'}`;
 
+  // YOUR STANDING. How the reader finished in each game they have played today,
+  // which is the one thing this home could not answer: a card said "done" and
+  // the ladder lit a rung, both of them binary, and the board below reports the
+  // COMBINED day. Where you came in Crux was nowhere on the page (owner,
+  // 2026-09-01).
+  //
+  // IT COSTS NO REQUEST. daily-combined is already fetched for the board above,
+  // and its `me.perGame` is keyed by every game the reader scored today. The
+  // rank on it is the registered-only board rank the route already substitutes,
+  // so this cannot disagree with the game's own board about where you came.
+  //
+  // Retired games are filtered out for the same reason the roster is: an
+  // archived day still scores, so a retired key can appear here.
+  const standing = useMemo(() => {
+    const pg = board && board.me && board.me.perGame ? board.me.perGame : null;
+    if (!pg) return [];
+    const out = [];
+    for (const key of Object.keys(pg)) {
+      const g = DAILY_GAME_MAP[key];
+      const r = pg[key];
+      if (!g || !LIVE_KEYS.has(key) || !r || r.rank == null) continue;
+      out.push({ ...r, key, g });
+    }
+    // BEST FIRST. The question is "how did I do", so the answer opens with the
+    // best answer; rank breaks a tie on points, and the name breaks that.
+    out.sort((a, b) => (b.points || 0) - (a.points || 0)
+      || (a.rank || 999) - (b.rank || 999)
+      || a.g.name.localeCompare(b.g.name));
+    return out;
+  }, [board]);
+  const standBy = useMemo(() => {
+    const m = {};
+    for (const s of standing) m[s.key] = s;
+    return m;
+  }, [standing]);
+  const standPts = useMemo(
+    () => Math.round(standing.reduce((a, s) => a + (Number(s.points) || 0), 0) * 10) / 10,
+    [standing],
+  );
+
   // Resolvable dailies only, most recent first, capped: a feed is a glance at
   // what is happening, not a log.
   const live = useMemo(() => {
@@ -939,6 +997,18 @@ export default function StageToday() {
         {/* TWO MORE WAYS OUT, beside the light switch: down to today's standings
             and across to the activity feed (owner, 2026-08-31). On a phone
             these are the row-one controls and the figures take row two. */}
+        {/* YOUR OWN DAY COMES FIRST of the three ways down, because it is the
+            only one of them about the reader. Drawn only when there is a day to
+            show, so it never points at a section that is not there. */}
+        {standing.length ? (
+          <a className="sty-cx sty-st" href="#sty-standing" aria-label="Your standing" title="Your standing">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.6" />
+              <path d="M4.8 20.5c0-3.6 3.2-5.6 7.2-5.6s7.2 2 7.2 5.6" />
+            </svg>
+          </a>
+        ) : null}
         <a className="sty-cx sty-lb" href="#sty-board" aria-label="Today's board" title="Today's board">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
             strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
@@ -1011,7 +1081,7 @@ export default function StageToday() {
                 {pinned.map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
-                    hue={hueFor(g.cat)} />
+                    hue={hueFor(g.cat)} res={standBy[g.key]} />
                 ))}
               </div>
             ) : null}
@@ -1107,7 +1177,7 @@ export default function StageToday() {
                 // game IS (owner, 2026-08-31).
                 <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                   canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
-                  hue={hueFor(g.cat)} />
+                  hue={hueFor(g.cat)} res={standBy[g.key]} />
               ))}
             </div>
           </section>
@@ -1130,7 +1200,8 @@ export default function StageToday() {
               <div className={'sty-games' + (isOpen(secId) ? '' : ' shut')}>
                 {games.map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
-                    canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite} />
+                    canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
+                    res={standBy[g.key]} />
                 ))}
               </div>
             </section>
@@ -1141,6 +1212,47 @@ export default function StageToday() {
             (owner, 2026-08-31): the standings are who did best and the feed is
             what is being played, and reading one usually means wanting the
             other. Below 900px they stack, standings first. */}
+        {/* YOUR STANDING SITS ABOVE THE TWO PUBLIC RECORDS, and it is full
+            width rather than a third column in the pair: it is the reader's own
+            day, so it outranks both who did best and what is being played, and
+            three columns of figures at 900px is none of them read.
+
+            ONE COLUMN FOR THE RUN, not three. The figures a player wants are
+            the score, the game's own miss figure and the clock, and the miss
+            figure is a DIFFERENT THING in every game — busts in Hands, digs in
+            Sweep, unplaced tiles in Tuck, nothing at all in Suds. No shared
+            column header is true of all of them, which is exactly the mistake
+            gameStats was making until today, so the word travels in the CELL
+            with its own number and the column is headed by neither. */}
+        {standing.length ? (
+          <section id="sty-standing">
+            <div className="sty-eb">
+              Your standing
+              <em>
+                {' \u00b7 '}{standing.length} played
+                {' \u00b7 '}{standPts} pts
+                {myRow && myRow.rank ? ` \u00b7 #${myRow.rank} overall` : ''}
+              </em>
+            </div>
+            <table className="sty-tbl sty-stbl">
+              <tbody>
+                {standing.map((s) => (
+                  <tr key={s.key} style={{ '--cc': hueFor(s.g.cat) }}>
+                    <td className="sty-sg">
+                      <a href={`${routeOf(s.g)}?stage=1${tq}`}>
+                        <Glyph k={s.key} size={15} />{s.g.name}
+                      </a>
+                    </td>
+                    <td className="sty-srun">{gameStats(s, s.g.miss) || '\u2014'}</td>
+                    <td className="sty-srk">#{s.rank}<i>{' of '}{s.field}</i></td>
+                    <td className="sty-pts">{Math.round((Number(s.points) || 0) * 10) / 10}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
         <div className="sty-pair">
         {/* THE STANDINGS COME LAST (owner, 2026-08-31: the leaderboard does not
             need to be at the top of the page). The top of a home is for what you
@@ -1478,6 +1590,39 @@ const CSS = `
 .sty-who{font-weight:700;}
 .sty-gp{width:70px;text-align:right;color:var(--stg-mute);font-size:12px;}
 .sty-pts{width:56px;text-align:right;font-weight:800;}
+
+/* ── your standing ─────────────────────────────────────────────────────── */
+.sty-stbl{max-width:none;}
+.sty-sg a{display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  color:var(--stg-ink);font-weight:700;}
+.sty-sg a:hover{color:var(--cc);}
+/* The run in the game's own units. Muted because the NAME and the RANK are what
+   the eye is scanning down; this is the detail it stops on. */
+.sty-srun{color:var(--stg-mute);font-size:12.5px;}
+.sty-srk{width:110px;text-align:right;font-family:${MONO};font-size:12px;
+  color:var(--stg-ink2);white-space:nowrap;}
+.sty-srk i{font-style:normal;color:var(--stg-mute);}
+@media (max-width:560px){
+  /* The field size is the first thing to go: which of 94 you came is a figure
+     the rank already implies, and the row has to fit 390px. */
+  .sty-srk{width:auto;}
+  .sty-srk i{display:none;}
+  .sty-srun{font-size:11.5px;}
+}
+
+/* ── a played card reports its result ──────────────────────────────────── */
+.sty-gres{display:flex;align-items:baseline;gap:7px;margin-top:2px;font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sty-grk{font-weight:800;color:var(--stg-ink);}
+.sty-grf,.sty-grs{font-weight:600;color:var(--stg-mute);}
+/* PLAYED IS DIM, BUT A RESULT IS NOT. .done wears opacity:.42, and opacity on a
+   parent cannot be undone by a child, so a rank printed inside one lands around
+   2:1 whatever colour it is given. A card that has something to say therefore
+   states "played" in COLOUR instead: the name steps down to the muted token
+   (which clears 4.5:1 on both registers) and the figures keep their own. */
+.sty-g.done.res{opacity:1;background:none;}
+.sty-g.done.res .sty-gn{color:var(--stg-mute);}
+.sty-g.done.res .sty-gi{opacity:.75;}
 
 /* ── circuits ──────────────────────────────────────────────────────────── */
 .sty-circs{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));}
