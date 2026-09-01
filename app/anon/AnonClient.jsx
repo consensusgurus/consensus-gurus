@@ -568,13 +568,29 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
     const fit = () => {
       const el = splitRef.current;
       if (!el) return;
-      const top = el.getBoundingClientRect().top + window.scrollY;
-      setPaneH(Math.max(320, Math.round(window.innerHeight - top - rail.height - 72)));
+      const r = el.getBoundingClientRect();
+      // A FINISHED board sits behind the curtain at display:none, so its rect is
+      // all zeros. Measuring then reads the top of the page and hands every pane
+      // the whole viewport, which is how the revealed board ran 240px past the
+      // fold. An unlaid-out board is not a measurement, so take nothing from it.
+      if (!r.width && !r.height) return;
+      const top = r.top + window.scrollY;
+      const next = Math.max(320, Math.round(window.innerHeight - top - rail.height - 72));
+      // 2px deadband. The observer below watches the split, whose height the
+      // panes decide, so an exact-equal write is what keeps that from cycling.
+      setPaneH((prev) => (Math.abs(prev - next) > 2 ? next : prev));
     };
     fit();
     const id = setTimeout(fit, 250);
     window.addEventListener('resize', fit);
-    return () => { clearTimeout(id); window.removeEventListener('resize', fit); };
+    // Revealing the board from the curtain changes its size without firing a
+    // resize, so the element itself has to be watched.
+    let ro = null;
+    if (typeof ResizeObserver !== 'undefined' && splitRef.current) {
+      ro = new ResizeObserver(fit);
+      ro.observe(splitRef.current);
+    }
+    return () => { clearTimeout(id); window.removeEventListener('resize', fit); if (ro) ro.disconnect(); };
   }, [split, rail.height, preStart, playing]);
   const ch = Math.round(cw * 1.26);
 
