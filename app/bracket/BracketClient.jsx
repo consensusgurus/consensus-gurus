@@ -432,7 +432,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-s:last-child{border-bottom:none;}
           .bk-s:hover:not(:disabled){background:var(--stg-surf2, ${COLORS.accentSoft});}
           .bk-s:disabled{cursor:default;color:var(--muted);}
-          .bk-s.on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 var(--stg-acc, ${COLORS.accent});}
+          .bk-s.on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 var(--stg-acc, ${COLORS.accent});}
           .bk-s.right{background:${COLORS.greenSoft};color:#14532d;box-shadow:inset 3px 0 0 ${COLORS.green};}
           .bk-s.wrong{background:${COLORS.redSoft};color:#7f1d1d;text-decoration:line-through;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
           .bk-v{font-family:${MONO};font-size:10px;font-weight:500;color:${FADED};margin-left:6px;}

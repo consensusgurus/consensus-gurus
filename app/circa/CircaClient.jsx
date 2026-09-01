@@ -83,6 +83,22 @@ const BANDS = [
 ];
 const bandOf = (diff) => BANDS.find((b) => diff <= b.max);
 
+// A heat row is a PALE literal fill, so on the dark stage it carried the
+// stage's near-white ink and the guessed year measured 1.04:1 (owner report,
+// 2026-09-01). On the stage the band becomes an edge rather than a fill: its
+// own hue at 13% over the raised surface, with the hue as the label colour.
+// Ported from Ping's bandSkin, which is the same game with distances.
+const STAGE_HUE = { hot: 'var(--stg-bad)', warm: 'var(--stg-warn)', cool: 'var(--stg-cool)', cold: 'var(--stg-mute)' };
+function bandSkin(b, stage) {
+  if (!stage) return { bg: b.bg, border: b.border, color: b.color };
+  const h = STAGE_HUE[b.key] || 'var(--stg-acc)';
+  return {
+    bg: `color-mix(in srgb, ${h} 13%, var(--stg-raise))`,
+    border: `color-mix(in srgb, ${h} 48%, transparent)`,
+    color: h,
+  };
+}
+
 const isIosDevice = () =>
   typeof navigator !== 'undefined' &&
   (/iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
@@ -499,10 +515,17 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
     const isWin = g.status !== 'playing' && i === guesses.length - 1 && Math.abs(y - YEAR) <= SNAP;
     const diff = Math.abs(y - YEAR);
     if (isWin) {
-      return { win: true, exact: diff === 0, label: diff === 0 ? 'dead on!' : `circa — ${diff} year${diff === 1 ? '' : 's'} off`, color: '#166534', bg: COLORS.greenSoft, border: 'rgba(21,128,61,0.5)' };
+      return {
+        win: true, exact: diff === 0,
+        label: diff === 0 ? 'dead on!' : `circa — ${diff} year${diff === 1 ? '' : 's'} off`,
+        color: STAGE ? 'var(--stg-good)' : '#166534',
+        bg: STAGE ? 'color-mix(in srgb, var(--stg-good) 15%, var(--stg-raise))' : COLORS.greenSoft,
+        border: STAGE ? 'color-mix(in srgb, var(--stg-good) 50%, transparent)' : 'rgba(21,128,61,0.5)',
+      };
     }
     const b = bandOf(diff);
-    return { win: false, later: y < YEAR, label: b.label, color: b.color, bg: b.bg, border: b.border };
+    const skin = bandSkin(b, STAGE);
+    return { win: false, later: y < YEAR, label: b.label, color: skin.color, bg: skin.bg, border: skin.border };
   }
 
   function shareText() {
@@ -740,7 +763,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
             <>
               <div style={{ maxWidth: 472, margin: '0 auto 12px' }}>
                 {/* the answer */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? 'var(--stg-raise)' : PAPER, border: `1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.18)'}`, borderRadius: 10, padding: '12px 14px' }}>
                   <span style={{ fontFamily: MONO, fontSize: 32, fontWeight: 500, color: won ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em', flex: '0 0 auto' }}>{YEAR}</span>
                   <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                     {PUZZLE.title}. <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.d}</span>

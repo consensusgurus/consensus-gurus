@@ -658,7 +658,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                   </div>
                   <button className="hd-tool" onClick={muck} disabled={!muckLeft || !playing}
                     title="Throw this card away and take the next one, sight unseen. One a day."
-                    style={{ marginTop: 8, background: muckLeft && playing ? `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)` : 'rgba(255,255,255,0.55)', borderColor: 'color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 50%, transparent)', color: '#6d1a1a' }}>
+                    style={{ marginTop: 8, background: muckLeft && playing ? `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)` : 'var(--stg-surf2, rgba(255,255,255,0.55))', borderColor: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 50%, transparent)`, color: `var(--stg-ink, #6d1a1a)` }}>
                     <Undo2 size={14} /> {muckLeft ? 'Muck (1 left)' : 'Muck used'}
                   </button>
                   <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>

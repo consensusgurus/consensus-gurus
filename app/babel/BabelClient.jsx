@@ -727,14 +727,14 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
-          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:#dfe7e0;}
+          .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:${STAGE ? 'var(--stg-surf)' : '#dfe7e0'};}
           .sc-cell .pl{font-family:${MONO};font-size:clamp(6px,1.7vw,9px);font-weight:500;letter-spacing:-0.02em;opacity:0.95;}
           /* Laid tiles have to read at a glance against the premium colours and
              the green ground. The launch version used a pale cream on a pale
              board and the letters washed out, so the tile is warmer, the letter
              is near-black at full weight, and every tile carries a hard edge. */
           .sc-cell.tile{background:${STAGE ? 'var(--stg-surf2)' : '#f0dfba'};border:1px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(86,58,16,0.55)'};color:${STAGE ? 'var(--stg-ink)' : '#12141a'};text-shadow:${STAGE ? 'none' : '0 1px 0 rgba(255,255,255,0.5)'};box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
-          .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent);}
+          .sc-cell.fresh{background:${STAGE ? 'color-mix(in srgb, var(--stg-good) 22%, var(--stg-raise))' : '#b9e0c6'};border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent);}
           .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}

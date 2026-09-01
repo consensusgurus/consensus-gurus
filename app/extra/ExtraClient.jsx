@@ -759,7 +759,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <>
               {/* the answer */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: PAPER, border: '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: STAGE ? 'var(--stg-raise)' : PAPER, border: `1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.18)'}`, borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
                 <Newspaper size={26} style={{ color: won ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, flex: '0 0 auto' }} />
                 <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.45 }}>
                   {PUZZLE.answer} ({PUZZLE.year}). <span style={{ color: FADED, fontWeight: 600 }}>{PUZZLE.d}</span>

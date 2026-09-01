@@ -441,7 +441,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           .vn-btn:hover{background:var(--accent-soft);}
           .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};}
           .vn-chip:hover{border-color:var(--stg-acc, ${COLORS.accent});}
-          .vn-chip.held{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});color:${COLORS.accentDeep};}
+          .vn-chip.held{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};}
           .vn-zone{position:absolute;transform:translate(-50%,-50%);width:76px;min-height:34px;border-radius:8px;border:1.5px dashed rgba(28,30,36,0.3);background:rgba(255,255,255,0.92);display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;padding:3px;cursor:pointer;z-index:1;}
           .vn-zone:hover,.vn-zone:focus-within{z-index:6;}
           .vn-zone.ready{border-style:solid;border-color:${COLORS.green};background:${COLORS.greenSoft};}

@@ -661,7 +661,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       <button key={`${w.dir}${w.n}`} onClick={() => { if (playing) selectWord(i); }}
         className="ec-cluerow"
         style={{ background: active ? COLORS.accentSoft : (cross ? 'var(--stg-acc, rgba(29,78,216,0.03))' : 'none'), borderLeft: active ? `3px solid var(--stg-acc, ${COLORS.accent})` : (cross ? '3px solid var(--stg-acc, rgba(29,78,216,0.18))' : '3px solid transparent'), opacity: active || cross || !playing || !filledWord(w) ? 1 : 0.45 }}>
-        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? 'rgba(30,64,175,0.5)' : COLORS.faded), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
+        <span style={{ fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: active ? `var(--stg-acc, ${COLORS.accent})` : (cross ? 'var(--stg-mute, rgba(30,64,175,0.5))' : `var(--stg-mute, ${COLORS.faded})`), minWidth: 18, textAlign: 'right' }}>{w.n}</span>
         <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: INK, lineHeight: 1.35, textAlign: 'left' }}>{w.clue}</span>
       </button>
     );
@@ -747,10 +747,10 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
           .ec-cell.ec-blk{background:${COLORS.ink};cursor:default;}
           .ec-cell.ec-crossword{background:${STAGE ? 'var(--stg-surf2)' : '#f5f9ff'};}
           .ec-cell.ec-inword{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
-          .ec-cell.ec-sel{background:#dbeafe;box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
+          .ec-cell.ec-sel{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, var(--stg-raise))' : '#dbeafe'};box-shadow:inset 0 0 0 2px var(--stg-acc, ${COLORS.accent});}
           .ec-cell.ec-wrongmark span{color:${COLORS.rust};}
           .ec-cell.ec-wrongmark{animation:ecshake .3s ease;}
-          .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:rgba(28,30,36,0.55);pointer-events:none;}
+          .ec-num{position:absolute;top:1px;left:3px;font-family:${MONO};font-weight:500;color:var(--stg-mute, rgba(28,30,36,0.55));pointer-events:none;}
           .ec-cluerow{display:flex;gap:8px;align-items:flex-start;width:100%;padding:6px 8px 6px 6px;border:none;border-radius:0 7px 7px 0;cursor:pointer;background:none;}
           .ec-cluerow:hover{background:var(--stg-surf2, ${COLORS.paper});}
           .ec-key{font-family:${SANS};font-weight:800;font-size:15px;border:none;border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};box-shadow:0 2px 0 rgba(28,30,36,0.35);border: 1.5px solid var(--stg-line, rgba(28,30,36,0.4));height:44px;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}

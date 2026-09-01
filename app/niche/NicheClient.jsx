@@ -631,7 +631,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.nc-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .nc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .nc-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
-          .nc-head{display:flex;align-items:center;justify-content:center;text-align:center;font-family:${SANS};font-weight:800;color:${COLORS.accentDeep};background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});border-radius:8px;padding:6px 4px;line-height:1.22;min-height:44px;}
+          .nc-head{display:flex;align-items:center;justify-content:center;text-align:center;font-family:${SANS};font-weight:800;color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});border-radius:8px;padding:6px 4px;line-height:1.22;min-height:44px;}
           .nc-cell{position:relative;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.22));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
           .nc-cell.filled{border-color:var(--stg-surf2, ${COLORS.accentTint});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);cursor:default;}
           .nc-cell.rare{border-color:${COLORS.gold};background:${COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
@@ -645,7 +645,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:transparent;}
           .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
           .nc-dd button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:9px 12px;font-family:${SANS};font-size:13.5px;font-weight:700;color:${INK};cursor:pointer;}
-          .nc-dd button.hot{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${COLORS.accentDeep};}
+          .nc-dd button.hot{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};}
           .nc-dd button .nc-sub{margin-left:auto;font-family:${MONO};font-size:10px;color:${FADED};font-weight:400;}
           .nc-dd button.used{opacity:0.45;cursor:default;}
           .nc-pips{display:flex;gap:4px;align-items:center;}

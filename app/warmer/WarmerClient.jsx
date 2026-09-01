@@ -580,7 +580,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}
-                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : `var(--stg-surf, ${T.white})`, border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
+                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? `var(--stg-surf2, #fbeaea)` : `var(--stg-surf, ${T.white})`, border: `1.5px solid ${armGiveUp ? `var(--stg-bad, ${COLORS.rust})` : 'var(--stg-line2, rgba(28,30,36,0.3))'}`, color: armGiveUp ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})` }}>
                     <Flag size={13} /> {armGiveUp ? 'Tap again to reveal' : 'Give up'}
                   </button>
                 </div>

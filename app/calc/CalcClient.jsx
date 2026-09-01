@@ -741,7 +741,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           .cl-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .cl-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .cl-key{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;padding:0;min-width:0;border-radius:50%;transition:transform .09s ease,background .12s ease,color .12s ease;}
-          .cl-num{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${COLORS.accentDeep};border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});}
+          .cl-num{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});}
           .cl-op{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${FADED};border:1.5px dashed rgba(28,30,36,0.22);}
           .cl-key.on{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border:1.5px solid var(--stg-acc, ${COLORS.accent});}
           .cl-key.head{background:var(--stg-acc, ${COLORS.accentDeep});border-color:var(--stg-acc, ${COLORS.accentDeep});box-shadow:0 0 0 4px var(--stg-surf2, ${COLORS.accentTint});}

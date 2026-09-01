@@ -31,7 +31,15 @@
 // this surface adds no new endpoint and cannot disagree with the other one
 // about what has been played.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { DAILY_GAMES, DAILY_GAME_MAP } from '@/lib/daily-games';
+import { DAILY_GAMES as ALL_DAILY_GAMES, DAILY_GAME_MAP, liveDailyKeys } from '@/lib/daily-games';
+
+// THE LIVE ROSTER, not the whole registry. A retired game stays in DAILY_GAMES
+// so its archived days keep scoring, so listing from that array put Circa
+// (retired 2026-07-20) back in the Trivia row and in the lead/up-next picks
+// (owner, 2026-09-01). Reading through liveDailyKeys covers Extra on
+// 2026-09-29 too, with no deploy needed on the day. Same fix as StageFinish.
+const LIVE_KEYS = new Set(liveDailyKeys());
+const DAILY_GAMES = ALL_DAILY_GAMES.filter((g) => LIVE_KEYS.has(g.key));
 import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
 import GameGlyph from '../GameGlyph';
 import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';

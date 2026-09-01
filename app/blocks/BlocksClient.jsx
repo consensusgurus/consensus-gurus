@@ -1086,13 +1086,13 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
             )}
 
             {paused && playing && g.t0 && (
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.96)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 6 }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'var(--stg-raise, rgba(255,255,255,0.96))', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 6 }}>
                 <div style={{ maxWidth: 380, width: '100%', textAlign: 'center' }}>
                   <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>Paused</div>
                   <p style={{ margin: '0 0 13px', fontSize: 13.5, lineHeight: 1.55, color: FADED }}>
                     Saved. Come back any time before midnight and pick this run up where you left it.
                   </p>
-                  <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>{nf(rowsCleared)}<span style={{ fontSize: 19, color: '#94a3b8' }}> row{rowsCleared === 1 ? '' : 's'}</span></div>
+                  <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1 }}>{nf(rowsCleared)}<span style={{ fontSize: 19, color: 'var(--stg-mute, #94a3b8)' }}> row{rowsCleared === 1 ? '' : 's'}</span></div>
                   <p style={{ margin: '7px 0 13px', fontSize: 13, color: FADED }}>par {nf(PAR)} &middot; {nf(g.raw)} points &middot; shape {nf(g.idx)} &middot; {fmtTime(g.ms)}</p>
                   <button onClick={togglePause} style={{ ...btn, background: T.cta, borderColor: T.cta, color: T.white, fontSize: 15, padding: '11px 22px' }}>Resume</button>
                 </div>

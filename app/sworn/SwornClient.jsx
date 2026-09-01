@@ -591,7 +591,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           .sw-mark{color:${INK};flex:0 0 auto;width:38px;height:38px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
           .sw-mark.truth{background:#dcfce7;border-color:var(--success-deep);color:var(--success-deep);}
           .sw-mark.lie{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#b91c1c;}
-          .sw-accuse{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 55%, transparent);background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};border-radius:8px;padding:8px 11px;cursor:pointer;}
+          .sw-accuse{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 55%, transparent);background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:8px 11px;cursor:pointer;}
           .sw-accuse:hover{background:${STAGE ? 'var(--stg-surf2)' : '#fbcfe8'};}
           .sw-accuse:disabled{opacity:0.4;cursor:not-allowed;text-decoration:line-through;}
         `}</style>
