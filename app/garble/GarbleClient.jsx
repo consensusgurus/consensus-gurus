@@ -2,7 +2,7 @@
 
 // Garble — five garbled words, one clued finale.
 //
-// Untangle each scrambled word using exactly the letters shown. The gold
+// Untangle each scrambled word using exactly the letters shown. The blue
 // (marked) letters of every solution feed a final answer whose clue is
 // printed from the start; solving the finale ends the puzzle. Score is out of
 // 10: one point per word untangled, five for the finale. Wrong tries are
@@ -33,7 +33,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -54,8 +54,12 @@ const COLORS = {
   ember: T.accent,
   rust: T.danger,
   faded: T.muted,
-  gold: '#e6b93f',
-  goldInk: '#5c4a06',
+  // The fed-letter pair is the CATEGORY STEP, not a gold: FEED_STRONG /
+  // FEED_STRONG_INK in lib/category-ramp.js carry the whole rationale. Kept
+  // under the old key names so every call site below reads as before, and so
+  // this is the one line to look at if the pair ever moves again.
+  gold: FEED_STRONG,
+  goldInk: FEED_STRONG_INK,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -513,8 +517,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
               letter = typed[j] || '';
               bg = typed.length === j ? '#dbe7ff' : '#eef4ff';
               fg = COLORS.ember;
-              // marked cells keep their gold border even while the row is
-              // selected — the blue fill carries selection, gold = finale feed
+              // marked cells keep their feed border even while the row is
+              // selected — the pale fill carries selection, the category step
+              // marks a letter the finale is owed
               border = marked ? `2.5px solid ${COLORS.gold}` : `2px solid ${typed.length === j ? COLORS.ember : 'rgba(14,29,64,0.55)'}`;
             } else if (marked) {
               border = `2px solid ${COLORS.gold}`;
@@ -534,9 +539,9 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
     <div key={ri} style={{ display: 'flex', gap: 4, marginBottom: 5, justifyContent: 'center' }}>
       {ri === 2 && <button className="gb-key" onClick={() => onKey('ENTER')} style={{ flex: '1.6 0 0', height: 44, background: `var(--stg-acc, ${COLORS.ember})`, color: `var(--stg-onramp, ${T.white})`, fontSize: 11.5 }}>ENTER</button>}
       {row.split('').map((ch) => (
-        <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: STAGE ? SURF : T.white, color: INK, fontSize: 15, border: '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
+        <button key={ch} className="gb-key" onClick={() => onKey(ch)} style={{ flex: '1 0 0', height: 44, background: STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : T.white, color: INK, fontSize: 15, border: STAGE ? '1.5px solid var(--stg-line2,rgba(255,255,255,0.17))' : '1.5px solid rgba(20,22,28,0.15)' }}>{ch}</button>
       ))}
-      {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: STAGE ? 'var(--stg-surf2)' : COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>}
+      {ri === 2 && <button className="gb-key" onClick={() => onKey('BACK')} aria-label="Delete" style={{ flex: '1.6 0 0', height: 44, background: STAGE ? 'var(--stg-b3,rgba(255,255,255,0.145))' : COLORS.paper, color: INK, fontSize: 16 }}>&#9003;</button>}
     </div>
   ));
 
@@ -544,15 +549,20 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
   const rulesBody = (
     <DailyRules
       chips={[
-        { label: 'Gold letters feed the finale', style: { background: `var(--stg-surf, ${COLORS.gold})`, border: `1.5px solid var(--stg-line, ${COLORS.goldInk})`, color: `var(--stg-ink, ${COLORS.goldInk})` } },
+        // A LEGEND CHIP KEEPS ITS FILL. DailyRules' tones give theirs up on
+        // the stage, because a pale wash was the brightest thing on a near-black
+        // page — but this chip's whole job is to show the reader the colour the
+        // board is about to use, and a chip that has given up that fill explains
+        // nothing. Barter's two do the same for the same reason.
+        { label: 'Blue letters feed the finale', style: { background: COLORS.gold, border: `1.5px solid ${COLORS.gold}`, color: COLORS.goldInk } },
       ]}
       lead="Untangle five garbled words, then the finale they feed."
       steps={[
         <><b>Tap a row</b>, type the word using exactly the letters shown, and hit <b>enter</b>. A wrong word is a <b>miss</b>.</>,
-        <>Each solved word donates its <b>gold letters</b> to <b>the finale</b>, a last answer with its clue printed up top.</>,
+        <>Each solved word donates its <b>blue letters</b> to <b>the finale</b>, a last answer with its clue printed up top.</>,
         <>Solve the finale whenever you see it. It <b>ends the puzzle</b>.</>,
       ]}
-      knack="The finale is worth half the board, so a gold letter or two is often enough to call it before all five words are untangled."
+      knack="The finale is worth half the board, so a blue letter or two is often enough to call it before all five words are untangled."
       footer="Score is out of 10: one per word, five for the finale. Fewest misses breaks ties, then time."
     />
   );
@@ -824,11 +834,11 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
                 <ol style={{ margin: '0 0 4px', paddingLeft: 20, color: INK, fontSize: 14, lineHeight: 1.7 }}>
                   <li>Tap the <b>Share</b> button in Safari&apos;s toolbar.</li>
                   <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
-                  <li>Tap <b>Add</b> — the gold-tile tile opens today&apos;s puzzle, every day.</li>
+                  <li>Tap <b>Add</b> — the Garble tile opens today&apos;s puzzle, every day.</li>
                 </ol>
               ) : (
                 <p style={{ margin: '0 0 4px', color: INK, fontSize: 14, lineHeight: 1.7 }}>
-                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The gold-tile tile opens today&apos;s puzzle, every day.
+                  Open your browser&apos;s menu and choose <b>Add to Home Screen</b> (or <b>Install app</b>). The Garble tile opens today&apos;s puzzle, every day.
                 </p>
               )}
               <button onClick={() => setShowA2hsHelp(false)} style={{ marginTop: 10, fontFamily: SANS, fontSize: 12.5, letterSpacing: '0.05em', textTransform: 'uppercase', fontWeight: 700, height: 44, width: '100%', borderRadius: 10, border: 'none', background: COLORS.ink, color: T.white, cursor: 'pointer' }}>Got it</button>
@@ -847,14 +857,25 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
         {rail.height > 0 && <div aria-hidden style={{ height: rail.height }} />}
       </div>
 
-      {/* Mobile: keyboard pinned to the bottom of the viewport. The puzzle
+      {/* Mobile: keyboard pinned to the bottom of the viewport.
+
+          ITS GROUND IS --stg-raise, AN OPAQUE STEP, AND NOT --stg-surf. Surf is
+          white at 4.5%: a raised cell when it sits ON the ground, and a sheet of
+          glass when it is position:fixed with the board scrolling underneath it.
+          The keys then failed for two reasons at once, a 4.5% fill and a
+          DARK-ink border, both of which vanish on a near-black page — so on a
+          phone the whole keyboard was invisible over the letterboxes (owner
+          report, 2026-09-01). Keys are --stg-surf2 with a --stg-line2 edge now.
+          The same defect was in Cipher's dock and was fixed in the same pass.
+
+          The puzzle
           content above scrolls independently, so the word rows and finale clue
           are never hidden behind the keys. The clearance that makes that true is
           the spacer at the foot of gb-wrap, measured off this element by
           useRailClearance: it used to be bottom padding on gb-wrap, which a Loft
           page zeroes with !important, and the keys covered the board. */}
       {started && mobileUi && (
-        <div ref={rail.ref} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: STAGE ? SURF : COLORS.cream, borderTop: '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
+        <div ref={rail.ref} style={{ position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: STAGE ? 'var(--stg-raise,#0e131f)' : COLORS.cream, borderTop: STAGE ? '1.5px solid var(--stg-line2,rgba(255,255,255,0.17))' : '1.5px solid rgba(20,22,28,0.12)', boxShadow: '0 -4px 16px rgba(20,22,28,0.10)', padding: '8px 8px calc(8px + env(safe-area-inset-bottom))' }}>
           <div style={{ maxWidth: 470, margin: '0 auto' }}>
             {keyboardRows}
           </div>
@@ -902,7 +923,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Garble</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Garble is a free daily word scramble puzzle from Mind Loft. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its gold letters to the finale.
+          Garble is a free daily word scramble puzzle from Mind Loft. Five garbled words &mdash; one more than the classic format &mdash; each untangle into a real word using exactly the letters shown, and every solution donates its blue letters to the finale.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The finale is the sixth answer: a final word with its clue printed from the start. Solve it whenever you spot it &mdash; it ends the puzzle on the spot, so an early finale sprint is a real strategy. Wrong arrangements count as misses, and fewest misses breaks ties on the daily leaderboard.

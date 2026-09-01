@@ -1010,7 +1010,11 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              Garble uses) and the equation scrolls behind it. The rack is
              retired on mobile: its job (which digits are still open) is now
              carried by the pad key states plus the per-letter count. */
-          .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
+          /* --stg-raise, an OPAQUE step, NOT --stg-surf: surf is white at 4.5%,
+             a raised cell when it sits ON the ground and a sheet of glass when
+             it is position:fixed with the board scrolling underneath it. Same
+             defect Garble's keyboard had, fixed in the same pass (2026-09-01). */
+          .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? 'var(--stg-raise,#0e131f)' : 'var(--white)'};border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
           .cf-dock.notes{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-top:2px solid var(--stg-acc, ${COLORS.accent});}
           .cf-dk{max-width:470px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
           .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${FADED};}

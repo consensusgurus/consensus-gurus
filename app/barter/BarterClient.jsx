@@ -4,8 +4,8 @@
 //
 // Six words interlock in a 5x5 lattice (Sundays: eight words in 7x7). Every
 // letter the answer needs is already on the board, scrambled. Tap two tiles to
-// trade them. Green = right letter on the right square (it locks); yellow =
-// that letter belongs somewhere else in one of the words crossing that square;
+// trade them. Solid blue = right letter on the right square (it locks); faded
+// blue = that letter belongs somewhere else in a word crossing that square;
 // grey = it belongs to a different word entirely. The budget is the proven
 // minimum number of trades (par) plus five; solve at par for a perfect 10, and
 // every extra trade costs two points. Run out of trades and the run is over
@@ -19,7 +19,7 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { X, Lightbulb, Eye, Smartphone } from 'lucide-react';
+import { X, Lightbulb, Smartphone } from 'lucide-react';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
@@ -39,7 +39,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK, FEED_SOFT, FEED_SOFT_INK } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -63,7 +63,15 @@ const COLORS = {
   faded: T.muted,
   accent: '#be123c',        // Barter identity — trade rose
   accentSoft: '#fdeef2',
-  green: T.successDeep,
+  // HOME AND ELSEWHERE ARE ONE HUE, TWO VALUES (owner, 2026-09-01). Green and
+  // yellow were Wordle's convention borrowed whole, and on a Word stage they
+  // argued with the sky the rest of the page is painted in. Both are now the
+  // category step: see FEED_STRONG / FEED_SOFT in lib/category-ramp.js for why
+  // the pair is a var() rather than a hex, and for the contrast measurements.
+  home: FEED_STRONG,
+  homeInk: FEED_STRONG_INK,
+  near: FEED_SOFT,
+  nearInk: FEED_SOFT_INK,
 };
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
@@ -181,8 +189,9 @@ function latticeCells(S) {
 }
 function flatFromGrid(grid, cells) { return cells.map(([r, c]) => grid[r][c]); }
 
-// tile colors: 0 grey, 1 yellow, 2 green. Yellows are consumed per word line
-// so duplicates read fairly; an intersection tile is yellow if either of its
+// tile colors: 0 grey, 1 faded blue, 2 solid blue. The middle state is
+// consumed per word line so duplicates read fairly; an intersection tile takes
+// it if either of its
 // crossing words still wants that letter.
 function colorsOf(cur, target, lines) {
   const out = Array(cur.length).fill(0);
@@ -236,7 +245,6 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   const [gateRules, setGateRules] = useState(false);
   const [toast, setToast] = useState(null);
   const [copied, setCopied] = useState(false);
-  const [armReveal, setArmReveal] = useState(false);
   const [endClosed, setEndClosed] = useState(false);
   // The finished board starts turned OVER, showing what to do next.
   const [revealed, setRevealed] = useState(false);
@@ -291,11 +299,6 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   const homeCount = useMemo(() => { let k = 0; for (let i = 0; i < N; i++) if (cells[i] === TARGET[i]) k++; return k; }, [cells, TARGET, N]);
 
   useEffect(() => { gRef.current = g; }, [g]);
-  useEffect(() => {
-    if (!armReveal) return undefined;
-    const t = setTimeout(() => setArmReveal(false), 3500);
-    return () => clearTimeout(t);
-  }, [armReveal]);
   useEffect(() => {
     try {
       setStandalone(window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
@@ -455,8 +458,9 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
       vibrate(HAPT.wrong);
       // The board is LEFT AS THE PLAYER LEFT IT (owner, 2026-08-26). It used to
       // fill in with TARGET here, which is the one thing a game ranked on
-      // attempts cannot do. Reveal is still available, as the explicit give-up
-      // it always was.
+      // attempts cannot do. The explicit give-up that used to reach this branch
+      // (Reveal & end) came off the board 2026-09-01; a lost run now arrives
+      // here only from a real ending.
       postResult(g2, 0);
     }
     commit(g2);
@@ -526,13 +530,6 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
     say('Hint: one free trade, no cost to your budget.');
   }
 
-  function revealEnd() {
-    const cur = gRef.current;
-    const g2 = { ...cur, status: 'revealed', tEnd: Date.now() };
-    if (!g2.t0) g2.t0 = Date.now();
-    finish(g2);
-  }
-
   function resetGame() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
     commit(freshState(START));
@@ -553,7 +550,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   }
   function shareText() {
     const g5 = won ? Math.max(0, 5 - extra) : 0;
-    const squares = '\u{1F7E9}'.repeat(g5) + '⬜'.repeat(5 - g5);
+    const squares = '\u{1F7E6}'.repeat(g5) + '⬜'.repeat(5 - g5);
     const hintBit = g.hintUsed ? ' · \u{1F4A1}' : '';
     const streakBit = isTodays && myStats.cur >= 2 ? ` · streak ${myStats.cur}` : '';
     const head2 = won
@@ -587,17 +584,22 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
       accent={COLORS.accent} accentSoft={COLORS.accentSoft}
       lead="Every letter the answer needs is already on the board. Trade two tiles at a time until every word reads true."
       chips={[
-        { label: 'Green: right letter, right square. It locks.', tone: 'good' },
-        { label: 'Yellow: belongs elsewhere in a word crossing that square', tone: 'warn' },
+        // THESE TWO CHIPS ARE THE COLOUR KEY, so they keep their fills where a
+        // DailyRules tone gives its own up on the stage: a legend that has
+        // surrendered the colour it is naming explains nothing. Both are the
+        // same values the tiles use, read from COLORS, so the key cannot drift
+        // away from the board.
+        { label: 'Solid blue: right letter, right square. It locks.', style: { background: COLORS.home, border: `1.5px solid ${COLORS.home}`, color: COLORS.homeInk } },
+        { label: 'Faded blue: belongs elsewhere in a word crossing that square', style: { background: COLORS.near, border: `1.5px solid ${COLORS.near}`, color: COLORS.nearInk } },
         { label: 'Grey: belongs to a different word', tone: 'grey' },
       ]}
       steps={[
         <>Words run along every <b>row and column</b> of tiles. Tap one tile, then another, and they <b>trade places</b>.</>,
-        <>The colors re-read after every trade. A <b>green</b> tile is home and locks in place; a <b>yellow</b> one belongs somewhere else in a word through that square.</>,
+        <>The colors re-read after every trade. A <b>solid blue</b> tile is home and locks in place; a <b>faded blue</b> one belongs somewhere else in a word through that square.</>,
         <>Your budget is <b>par + 5</b> trades. Par is the proven minimum for today&rsquo;s board, so a perfect game has no slack at all.</>,
         <>One free <b>hint</b>, on your first ever play, makes a correct trade at no cost.</>,
       ]}
-      knack="Do not spend a trade to test a theory the colors can settle. Read the yellows across BOTH words at a crossing before you move anything, and hunt for trades that home two tiles at once — par is built entirely out of those."
+      knack="Do not spend a trade to test a theory the colors can settle. Read the faded tiles across BOTH words at a crossing before you move anything, and hunt for trades that home two tiles at once — par is built entirely out of those."
       note={<>Run out of trades and the run ends with the board where you left it, so come back at it. The answer is one arrangement, and the colors always point at it.</>}
       footer="Solve at par for a perfect 10; every extra trade costs 2 points. Ties break on fewest trades over par, then fastest time. Sundays are a bigger 7×7 Edition."
     />
@@ -702,7 +704,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
             <span style={{ whiteSpace: 'nowrap' }}>trades left <b style={{ color: playing && swapsLeft <= 2 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{swapsLeft}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>par <b style={{ color: INK, fontWeight: 500 }}>{PAR}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>home <b style={{ color: homeCount === N ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{homeCount}</b>/{N}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>home <b style={{ color: homeCount === N ? COLORS.home : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{homeCount}</b>/{N}</span>
           </div>
           )}
 
@@ -714,8 +716,8 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
                 const idx = IDX[r * S + c];
                 const col = tileColors[idx];
                 const isSel = sel === idx;
-                const bg = col === 2 ? COLORS.green : col === 1 ? '#e9b949' : T.white;
-                const ink = col === 2 ? T.white : COLORS.ink;
+                const bg = col === 2 ? COLORS.home : col === 1 ? COLORS.near : T.white;
+                const ink = col === 2 ? COLORS.homeInk : col === 1 ? COLORS.nearInk : COLORS.ink;
                 const canPlay = playing && col !== 2;
                 return (
                   <div
@@ -755,14 +757,8 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: sel !== null ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {sel !== null
                 ? 'Now tap the tile to trade it with. Tap it again to put it back.'
-                : 'Tap two tiles to trade them. Greens are locked.'}
+                : 'Tap two tiles to trade them. Solid blue tiles are locked.'}
             </span>
-            {identity && g.swaps > 0 && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
-                style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the words' : 'Reveal & end'}
-              </button>
-            )}
           </div>
         )}
         </div>
@@ -954,10 +950,10 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Barter</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Barter is a free daily word puzzle from Mind Loft. Six words interlock in a lattice, and every letter the answer needs is already on the board, just in the wrong places. Tap two tiles to trade them: green means a letter has found its home, yellow means it belongs somewhere else in one of the words crossing that square, and grey means it belongs to a different word entirely.
+          Barter is a free daily word puzzle from Mind Loft. Six words interlock in a lattice, and every letter the answer needs is already on the board, just in the wrong places. Tap two tiles to trade them: solid blue means a letter has found its home, faded blue means it belongs somewhere else in one of the words crossing that square, and grey means it belongs to a different word entirely.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          The catch is the budget. Every board&rsquo;s par is the proven minimum number of trades, computed exactly, and you get par plus five. Careless trades are the whole game: a good player reads the yellows across both crossing words before touching anything, and the best trades home two tiles at once. Solve at par for a perfect score.
+          The catch is the budget. Every board&rsquo;s par is the proven minimum number of trades, computed exactly, and you get par plus five. Careless trades are the whole game: a good player reads the faded tiles across both crossing words before touching anything, and the best trades home two tiles at once. Solve at par for a perfect score.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           A new board drops every day at midnight Eastern, and Sundays step up to a 7&times;7 Edition with eight words. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscramble game, <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our hidden-threads game.
