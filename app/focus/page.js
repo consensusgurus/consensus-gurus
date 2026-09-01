@@ -4,7 +4,7 @@ import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
-// Focus launched 2026-09-02. One photo a day at fourteen times magnification;
+// Focus launched 2026-09-02. One photo a day zoomed in close;
 // name it before six frames pull the camera all the way back. The bank is
 // resolved HERE, on the server, and only the picked day's answer, attribution
 // and focal point ship to the browser, so tomorrow's answer never reaches a
@@ -14,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Focus — Free Daily Zoomed Photo Guessing Game | Mind Loft',
   description:
-    'A free daily picture game. One photo a day is shown as a tiny zoomed-in crop; name it before six frames pull the camera all the way back. Landmarks, animals, paintings, machines, famous faces, the world from above and space, one subject a day. No app, no signup, a new photo every day.',
+    'A free daily picture game. One photo a day is shown as a close zoomed-in crop; name it before six frames pull the camera all the way back. Landmarks, animals, paintings, machines, famous faces, the world from above and space, one subject a day. No app, no signup, a new photo every day.',
   alternates: { canonical: '/focus' },
   openGraph: {
     title: 'Focus — The Daily Zoomed Photo Game',
@@ -28,7 +28,7 @@ const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Focus',
   alternateName: 'Focus — Daily Zoomed Picture Quiz', url: `${SITE_URL}/focus`,
   description:
-    'A free daily picture game. One photo is shown each day as a tiny crop at fourteen times magnification, and the puzzle is to name it. Every wrong name pulls the camera back one frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it scores. A different subject every day of the week, and everyone gets the same photo, so the daily leaderboard ranks by frame, then fewest wrong names, then time.',
+    'A free daily picture game. One photo is shown each day as a close crop at six times magnification, and the puzzle is to name it. Every wrong name pulls the camera back one frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it scores. A different subject every day of the week, and everyone gets the same photo, so the daily leaderboard ranks by frame, then fewest wrong names, then time.',
   genre: ['Trivia', 'Picture Quiz', 'Quiz', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
