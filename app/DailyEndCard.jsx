@@ -221,6 +221,10 @@ export const CAT_META = {
   word:      { name: 'Word',      color: T.blue, Icon: Type },
   geography: { name: 'Geography', color: '#0e7c5a', Icon: Globe },
   numbers:   { name: 'Numbers',   color: '#ea580c', Icon: Hash },
+  // Sudoku split out of Numbers on 2026-09-01 (owner). The colour is the
+  // category ramp's own light periwinkle, so the badge here and the stage on
+  // the game's own page are the same colour rather than two systems.
+  sudoku:    { name: 'Sudoku',    color: '#3949ab', Icon: Table2 },
   logic:     { name: 'Logic',     color: '#9f1239', Icon: Fingerprint },
   crowd:     { name: 'Crowd Psychology', color: T.goldInk, Icon: Users },
   trivia:    { name: 'Trivia',    color: '#0f766e', Icon: Brain },
@@ -238,7 +242,7 @@ export const CAT_META = {
   arcade:    { name: 'Arcade',    color: '#1d4ed8', Icon: Gamepad2 },
 };
 // Family render order for the "more games" grid.
-const CAT_ORDER = ['word', 'numbers', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'arcade', 'geography'];
+const CAT_ORDER = ['word', 'numbers', 'sudoku', 'trivia', 'crowd', 'logic', 'endgame', 'cards', 'arcade', 'geography'];
 
 // ---- the daily slate (31 games) --------------------------------------------
 // Canonical order = the order the "still to play" tiles appear in.
@@ -262,16 +266,16 @@ const ALL_DAILY_GAMES = [
   { key: 'span',   cat: 'geography', name: 'Span',   tag: 'Cross the map, border by border', blurb: 'Travel from one country to another over land, naming every border you cross on the way.', href: '/span' },
   { key: 'ping',   cat: 'geography', name: 'Ping',   tag: 'Find the secret city',        blurb: 'Name any city and get the distance back. Triangulate your way to the hidden one.', href: '/ping' },
   { key: 'tally',  cat: 'numbers',   name: 'Tally',  tag: 'Balance every row and column', blurb: 'Place the numbers so every row and column lands exactly on its target total.', href: '/tally' },
-  { key: 'suds',   cat: 'numbers',   name: 'Suds',   tag: 'The daily 9x9 sudoku',      blurb: 'A fresh, hand-checked 9x9 sudoku with one clean solving path from start to finish.', href: '/suds' },
-  { key: 'quilt',  cat: 'numbers',   name: 'Quilt',  tag: 'Sudoku with no straight lines', blurb: 'The same 9x9 grid, but the boxes are nine crooked regions instead of squares.', href: '/quilt' },
-  { key: 'cages',  cat: 'numbers',   name: 'Cages',  tag: 'The daily killer sudoku',    blurb: 'Killer sudoku: nothing is printed but the cage totals, and they are the whole clue set.', href: '/cages' },
+  { key: 'suds',   cat: 'sudoku' ,   name: 'Suds',   tag: 'The daily 9x9 sudoku',      blurb: 'A fresh, hand-checked 9x9 sudoku with one clean solving path from start to finish.', href: '/suds' },
+  { key: 'quilt',  cat: 'sudoku' ,   name: 'Quilt',  tag: 'Sudoku with no straight lines', blurb: 'The same 9x9 grid, but the boxes are nine crooked regions instead of squares.', href: '/quilt' },
+  { key: 'cages',  cat: 'sudoku' ,   name: 'Cages',  tag: 'The daily killer sudoku',    blurb: 'Killer sudoku: nothing is printed but the cage totals, and they are the whole clue set.', href: '/cages' },
   { key: 'niche',  cat: 'trivia',    name: 'Niche',  tag: 'One answer, two categories', blurb: 'Fill the grid with answers that fit both their row and their column, from a different universe every day. Rare picks are the flex.', href: '/niche' },
-  { key: 'sixes',  cat: 'numbers',   name: 'Sixes',  tag: 'The daily mini sudoku',     blurb: 'A 6x6 sudoku in boxes two tall and three wide. The short one: nothing counts against you, so the clock decides the day.', href: '/sixes' },
-  { key: 'towers', cat: 'numbers',   name: 'Towers', tag: 'Count the towers in view',  blurb: 'A skyline Latin square: border clues count the towers you can see, taller ones hiding shorter. 5x5 weekdays, 7x7 Sundays.', href: '/towers' },
-  { key: 'mercury', cat: 'numbers',  name: 'Mercury', tag: 'The daily thermo sudoku',  blurb: 'Digits climb every thermometer from its bulb. Pure visual ordering, one logical solution, and Sundays print almost nothing.', href: '/mercury' },
-  { key: 'knight', cat: 'numbers',   name: 'Knight', tag: 'The daily anti-knight sudoku',     blurb: 'One rule on top of sudoku: no digit repeats a knight move away. Select a square and its knights light up, and the board prints as few as thirteen digits.', href: '/knight' },
-  { key: 'polka',  cat: 'numbers',   name: 'Polka',  tag: 'No numbers, only dots',     blurb: 'Kropki: not one digit printed. White dots mean consecutive, black mean double, and the silent edges are clues too.', href: '/polka' },
-  { key: 'sando',  cat: 'numbers',   name: 'Sando',  tag: 'The daily sandwich sudoku',  blurb: 'Each margin number totals the digits between that line\u2019s 1 and its 9. Find them and the grid falls out.', href: '/sando' },
+  { key: 'sixes',  cat: 'sudoku' ,   name: 'Sixes',  tag: 'The daily mini sudoku',     blurb: 'A 6x6 sudoku in boxes two tall and three wide. The short one: nothing counts against you, so the clock decides the day.', href: '/sixes' },
+  { key: 'towers', cat: 'sudoku' ,   name: 'Towers', tag: 'Count the towers in view',  blurb: 'A skyline Latin square: border clues count the towers you can see, taller ones hiding shorter. 5x5 weekdays, 7x7 Sundays.', href: '/towers' },
+  { key: 'mercury', cat: 'sudoku' ,  name: 'Mercury', tag: 'The daily thermo sudoku',  blurb: 'Digits climb every thermometer from its bulb. Pure visual ordering, one logical solution, and Sundays print almost nothing.', href: '/mercury' },
+  { key: 'knight', cat: 'sudoku' ,   name: 'Knight', tag: 'The daily anti-knight sudoku',     blurb: 'One rule on top of sudoku: no digit repeats a knight move away. Select a square and its knights light up, and the board prints as few as thirteen digits.', href: '/knight' },
+  { key: 'polka',  cat: 'sudoku' ,   name: 'Polka',  tag: 'No numbers, only dots',     blurb: 'Kropki: not one digit printed. White dots mean consecutive, black mean double, and the silent edges are clues too.', href: '/polka' },
+  { key: 'sando',  cat: 'sudoku' ,   name: 'Sando',  tag: 'The daily sandwich sudoku',  blurb: 'Each margin number totals the digits between that line\u2019s 1 and its 9. Find them and the grid falls out.', href: '/sando' },
   { key: 'carve',  cat: 'numbers',   name: 'Carve',  tag: 'Carve equal-sum regions',   blurb: 'Slice the number grid into regions that every one of them adds up to the same total.', href: '/carve' },
   { key: 'outwit', cat: 'crowd',     name: 'Outwit', tag: 'Beat the crowd',            blurb: 'Pick the answers today’s other players will not. The rarer your pick, the more it pays.', href: '/outwit' },
   { key: 'outrank', cat: 'crowd',    name: 'Outrank', tag: "Call the crowd's order",   blurb: 'Predict how everyone else ranked the list today, not how you would rank it yourself.', href: '/outrank' },

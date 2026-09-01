@@ -41,7 +41,10 @@ const CAL_WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 const FAMILIES = [
   { key: 'word', label: 'Word', keys: ['crux', 'strata', 'lode', 'encore', 'emcee', 'shards', 'garble', 'links', 'stet', 'tuck', 'warmer', 'glyph', 'anon', 'babel', 'barter'] },
   { key: 'geography', label: 'Geography', keys: ['atlas', 'flank', 'span', 'ping'] },
-  { key: 'numbers', label: 'Numbers', keys: ['tally', 'suds', 'sixes', 'towers', 'quilt', 'cages', 'sando', 'mercury', 'polka', 'knight', 'calc', 'carve', 'cipher', 'crunch', 'blitz'] },
+  { key: 'numbers', label: 'Numbers', keys: ['tally', 'calc', 'carve', 'cipher', 'crunch', 'blitz'] },
+  // Sudoku split out of Numbers on 2026-09-01, the same nine keys the Sudoku
+  // circuit pools, so this shelf and that circuit stay one list.
+  { key: 'sudoku', label: 'Sudoku', keys: ['suds', 'sixes', 'towers', 'quilt', 'cages', 'sando', 'mercury', 'polka', 'knight'] },
   { key: 'crowd', label: 'Crowd Psychology', keys: ['outwit', 'outrank', 'feud'] },
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'atlas', 'sport', 'biz', 'script', 'quotes', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },

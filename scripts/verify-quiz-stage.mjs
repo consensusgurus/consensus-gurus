@@ -72,11 +72,24 @@ const hue = (h) => {
   return (x * 60 + 360) % 360;
 };
 const gap = (a, b) => { const d = Math.abs(a - b); return Math.min(d, 360 - d); };
+// HSL saturation, which is the second axis a colour can be told apart on. It
+// exists here because hue is meaningless on a near-neutral: a 19% slate and a
+// 96% sky are never confusable, and reading them 14 degrees apart says nothing.
+const sat = (h) => {
+  const [r, g, b] = rgb(h).map((v) => v / 255);
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!d) return 0;
+  const l = (mx + mn) / 2;
+  return l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+};
 
 const MIN_CR = 4.5;      // the floor every ramp step clears, in both registers
 const MAX_DRIFT = 25;    // a light step that drifts in hue is a second colour
                          // system wearing the first one's names
-const MIN_RAMP_GAP = 25; // clear of every daily category step
+const MIN_RAMP_GAP = 25; // clear of every daily category step, IN HUE ...
+const MIN_SAT_GAP = 0.20;// ... OR in saturation, by this much, below the least
+                         // saturated step on the ramp. Either one is enough on
+                         // its own; see the check below for why.
 
 if (ACC && ON && GROUND) {
   const ink = contrast(ACC, ON), gnd = contrast(ACC, GROUND);
@@ -110,14 +123,34 @@ if (ACC && ACC_L) {
   };
   const dark = block('CATEGORY_RAMP');
   const light = block('CATEGORY_RAMP_LIGHT');
-  if (dark.length !== 9 || light.length !== 9) {
-    fail(`read ${dark.length} dark and ${light.length} light ramp steps out of lib/category-ramp.js, expected 9 of each`);
+  // Derived from RAMP_ORDER rather than hardcoded, because this file asserted
+  // "9" and the roster reached ten on 2026-09-01 when Sudoku split out of
+  // Numbers. A count that has to be edited by hand every time a category lands
+  // is a check that fails for the wrong reason.
+  const order = [...ramp.slice(ramp.indexOf('export const RAMP_ORDER = ['), ramp.indexOf('];', ramp.indexOf('export const RAMP_ORDER = ['))).matchAll(/'([^']+)'/g)].length;
+  if (dark.length !== order || light.length !== order) {
+    fail(`read ${dark.length} dark and ${light.length} light ramp steps out of lib/category-ramp.js, expected ${order} of each`);
   }
   const nearest = (c, steps) => steps.reduce((best, s) => Math.min(best, gap(hue(c), hue(s))), 999);
+  // TOLD APART ON EITHER AXIS, hue or saturation (2026-09-01). This was hue
+  // alone, and it was right while the accent was a hue. The accent is a neutral
+  // slate now, and on a near-neutral the hue angle is noise: #cbd5e1 reads 213
+  // degrees, 14 off Word's sky, and is nevertheless in no danger of being taken
+  // for it, because it carries a quarter of the chroma. So a colour passes by
+  // being far in HUE from every step, as a chromatic accent must be, or by
+  // being far enough BELOW every step in saturation, as a neutral one is. A
+  // colour close on both axes still fails, which is the case the check is for.
+  const leastSat = (steps) => steps.reduce((lo, s) => Math.min(lo, sat(s)), 1);
   if (ACC && dark.length) {
     const d = nearest(ACC, dark);
-    note(`nearest DARK ramp step: ${d.toFixed(0)} degrees away`);
-    if (d < MIN_RAMP_GAP) fail(`the dark quiz accent is ${d.toFixed(0)} degrees from a daily category step, under ${MIN_RAMP_GAP}`);
+    const sg = leastSat(dark) - sat(ACC);
+    note(`nearest DARK ramp step: ${d.toFixed(0)} degrees away, `
+      + `saturation ${(sat(ACC) * 100).toFixed(0)}% against a ramp floor of ${(leastSat(dark) * 100).toFixed(0)}%`);
+    if (d < MIN_RAMP_GAP && sg < MIN_SAT_GAP) {
+      fail(`the dark quiz accent is ${d.toFixed(0)} degrees from a daily category step, under ${MIN_RAMP_GAP}, `
+        + `and only ${(sg * 100).toFixed(0)} points less saturated than the least saturated one, under ${MIN_SAT_GAP * 100}. `
+        + 'It is not tellable from a daily category on either axis.');
+    }
   }
   if (ACC_L && light.length) {
     const d = nearest(ACC_L, light);

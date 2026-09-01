@@ -41,7 +41,7 @@
 // to the board everywhere it's used.
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, ArrowRight, Users, X, BarChart3, Star, Type, Hash, Puzzle, HelpCircle, Globe2, Swords, Spade, Gamepad2 } from 'lucide-react';
+import { Crown, ChevronDown, ChevronUp, ChevronRight, ChevronLeft, Trophy, Play, Flame, ArrowRight, Users, X, BarChart3, Star, Type, Hash, Grid3x3, Puzzle, HelpCircle, Globe2, Swords, Spade, Gamepad2 } from 'lucide-react';
 import useDailyOrder, { sortByDailyOrder } from './useDailyOrder';
 import useMyGames, { sortByMyGames } from './useMyGames';
 import DailyTilePanel from './DailyTilePanel';
@@ -198,6 +198,7 @@ function mixHex(hex, pct, base) {
 // cannot drift apart.
 const CAT_COLOR = {
   Word: catBlue('word'), Numbers: catBlue('numbers'), Logic: catBlue('logic'),
+  Sudoku: catBlue('sudoku'),
   History: catBlue('history'), Geography: catBlue('geography'),
   'Crowd Psychology': catBlue('crowd'), Trivia: catBlue('trivia'),
   'End Game': catBlue('end game'), Cards: catBlue('cards'), Arcade: catBlue('arcade'),
@@ -212,6 +213,7 @@ const catCol = (cat) => CAT_COLOR[cat] || T.muted;
 const CAT_GLYPH = {
   Word: Type,
   Numbers: Hash,
+  Sudoku: Grid3x3,
   Logic: Puzzle,
   Geography: Globe2,
   Trivia: HelpCircle,
