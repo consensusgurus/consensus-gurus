@@ -2,7 +2,7 @@
 
 // Focus — the daily zoomed-photo game.
 //
-// One photo a day, shown first as a crop at six times magnification.
+// One photo a day, shown first as a crop at nine times magnification.
 // Six frames. Name it and the day is solved; a wrong name pulls the camera
 // back one frame, and the sixth frame is the whole photo, one last guess.
 // Score is the frame you solved on, counted down: frame 1 is 6 points, frame
@@ -68,13 +68,14 @@ const HELP_KEY = 'sot_focus_help_seen';
 const STATS_KEY = 'sot_focus_stats';
 
 // Six frames. The magnification per frame, first to last; the last is the
-// whole photo. It launched at 14x and the owner's first play called frame 1
-// impossible, so the ramp now starts at 6x, where the crop shows a real
-// patch of the subject rather than a colour. The first frame keeps a touch
-// of blur so the upscale reads as a lens rather than as broken pixels.
+// whole photo. It launched at 14x (frame 1 impossible) and was tried at 6x
+// (frame 1 already clear); the owner's rule is that frame 1 should show a
+// DISCERNIBLE COLOURATION DIFFERENCE and no more, so it sits at 9x, with a
+// touch of blur on the first two so the upscale reads as a lens rather than
+// as broken pixels.
 const FRAMES = 6;
-const ZOOM = [6, 4, 2.8, 2, 1.4, 1];
-const BLUR = [0.5, 0, 0, 0, 0, 0];
+const ZOOM = [9, 6, 4, 2.5, 1.5, 1];
+const BLUR = [0.8, 0.3, 0, 0, 0, 0];
 const TOTAL = FRAMES;
 const pointsFor = (frame) => Math.max(0, FRAMES + 1 - frame);
 
@@ -491,7 +492,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
       banner={`Today: ${SUBJECT.label}`}
       sub={SUBJECT.blurb}
       steps={[
-        <>Frame 1 is a close crop at six times. <b>Type a name and choose it from the list</b>; only today&apos;s subject list is offered, so a typo never costs anything. <b>Enter</b> takes the top suggestion.</>,
+        <>Frame 1 is a tight crop at nine times. <b>Type a name and choose it from the list</b>; only today&apos;s subject list is offered, so a typo never costs anything. <b>Enter</b> takes the top suggestion.</>,
         <>A wrong name <b>pulls the camera back one frame</b>. Six frames, and the sixth is the whole photo with one last guess.</>,
         <>The earlier the frame, the more it pays: <b>frame 1 is 6 points</b>, frame 6 is 1, a miss on the full photo is 0. Ties on the board break by wrong guesses, then time.</>,
         <>A different subject every day of the week: Space on Sunday, then Landmarks, Animals, Paintings, Machines, Faces, and the world From above on Saturday.</>,
@@ -866,7 +867,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
       <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Focus</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Focus is a free daily picture game from Mind Loft. One photo a day is shown as a close crop at six times magnification, and the puzzle is to name it. Every wrong name pulls the camera back a frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it pays.
+          Focus is a free daily picture game from Mind Loft. One photo a day is shown as a tight crop at nine times magnification, and the puzzle is to name it. Every wrong name pulls the camera back a frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it pays.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The week has a rhythm: Space on Sunday, then Landmarks, Animals, Paintings, Machines, Faces from the history books, and on Saturday the world From above. Everyone gets the same photo each day, so the daily leaderboard is a straight fight: earliest frame, then fewest wrong names, then time.

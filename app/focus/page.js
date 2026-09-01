@@ -28,7 +28,7 @@ const gameJsonLd = {
   '@context': 'https://schema.org', '@type': 'Game', name: 'Focus',
   alternateName: 'Focus — Daily Zoomed Picture Quiz', url: `${SITE_URL}/focus`,
   description:
-    'A free daily picture game. One photo is shown each day as a close crop at six times magnification, and the puzzle is to name it. Every wrong name pulls the camera back one frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it scores. A different subject every day of the week, and everyone gets the same photo, so the daily leaderboard ranks by frame, then fewest wrong names, then time.',
+    'A free daily picture game. One photo is shown each day as a tight crop at nine times magnification, and the puzzle is to name it. Every wrong name pulls the camera back one frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it scores. A different subject every day of the week, and everyone gets the same photo, so the daily leaderboard ranks by frame, then fewest wrong names, then time.',
   genre: ['Trivia', 'Picture Quiz', 'Quiz', 'Puzzle'],
   gamePlatform: 'Web browser', isAccessibleForFree: true, inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
