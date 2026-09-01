@@ -132,7 +132,11 @@ export default function CircuitLanding({ circuit, games }) {
       progress={n ? done / n : 0}
     >
     <div className="clp">
-      <style>{CSS}</style>
+      {/* dangerouslySetInnerHTML, never a text child: React escapes an
+          apostrophe on the server and <style> is a raw-text element, so
+          content:'' and the [data-stage-theme='light'] rules would ship as
+          entities and be dropped. See the note in app/circuits/CircuitFrame.jsx. */}
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* THE HERO sits on the page's own ground with a rule down its edge,
           rather than in a card. On the stage the ground already is the surface,

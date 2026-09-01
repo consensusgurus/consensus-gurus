@@ -81,7 +81,13 @@ export default function CircuitsIndexPage() {
           than borrowing one circuit's step. */}
       <CircuitFrame label="Circuits">
         <div className="cix">
-          <style>{CSS}</style>
+          {/* dangerouslySetInnerHTML, never a text child. This page is SERVER
+              rendered, so nothing re-renders it on the client and there is no
+              second chance: React escapes every apostrophe, <style> is a
+              raw-text element, and content:'' plus the
+              [data-stage-theme='light'] rules ship as entities and are dropped.
+              See the note in app/circuits/CircuitFrame.jsx. */}
+          <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
           <section className="cix-hero">
             <div className="cix-eb">Circuits</div>

@@ -59,7 +59,11 @@ export default function StageFooter({ visitors: given }) {
 
   return (
     <footer className="stgf" ref={ref}>
-      <style>{CSS}</style>
+      {/* dangerouslySetInnerHTML, never a text child: React escapes an
+          apostrophe on the server and <style> is a raw-text element, so the
+          font stack would ship as &#x27;JetBrains Mono&#x27; and the rule would
+          be dropped. See the note in app/circuits/CircuitFrame.jsx. */}
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="stgf-in">
         <div className="stgf-brandcol">
           <span className="stgf-brand">

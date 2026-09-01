@@ -51,7 +51,19 @@ export default function CircuitFrame({ cat = null, label = 'Circuits', progress 
 
   return (
     <div className="cfr stage-page" data-stage-theme={theme} style={acc || undefined}>
-      <style>{CSS}</style>
+      {/* ⚠️ dangerouslySetInnerHTML, NOT <style>{CSS}</style>. React ESCAPES a
+          text child on the server, so every apostrophe in the stylesheet ships
+          as &#x27; — and <style> is an HTML raw-text element, so nothing decodes
+          it and the CSS parser sees the entity. Any declaration carrying a quote
+          is then dropped: content:'' (every left rule on this page), a
+          [data-stage-theme='light'] selector, and grid-template-areas, which
+          cannot be written without quotes at all. It is repaired only if React
+          re-renders that subtree on the client, which happens when a CLIENT
+          parent renders the frame and not when a SERVER page does, so the phone
+          cap was correct on /circuits/<id> and collapsed to one row on
+          /circuits. Measured on the live page: 35 escaped quotes, and
+          getComputedStyle reported grid-template-areas: none. */}
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
 
       {/* THE CAP. One line: the mark and the words, what this page is, and the
           ways out at the right edge. No masthead and no stat bar, which is the
