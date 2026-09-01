@@ -342,6 +342,36 @@ export default function StageToday() {
   // circuitEntryHref may or may not already carry a query, so the override
   // joins with the right separator rather than always an ampersand.
   const withTq = (href) => (tq ? href + (href.includes('?') ? tq : '?' + tq.slice(1)) : href);
+
+  // THE CAP LINKS SCROLL THEMSELVES (owner, 2026-09-01). The root carries
+  // scroll-behavior:smooth and something on this surface CANCELS an in-flight
+  // smooth scroll about 96px in, so all three of these anchors moved the page a
+  // fraction of an inch and stopped. Measured on the live page: #sty-board,
+  // #sty-live and #sty-standing every one of them landed at scrollY 96 against
+  // a 1524px target, while the identical hash with behaviour 'auto' landed
+  // exactly right, and a wheel scroll works normally. So it is the ANIMATION
+  // being interrupted, not the page refusing to move.
+  //
+  // Rather than hunt whatever interrupts it, the link does its own scroll and
+  // then CHECKS that it arrived, falling back to an instant jump when it did
+  // not. A link that visibly does nothing is worse than one that jumps. The
+  // hash is still written, so the address bar and the back button behave.
+  const jumpTo = (id) => (e) => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    // rect.top + scrollY is invariant under scrolling, so this is the same
+    // absolute target before and after the animation.
+    const target = () => Math.max(0, el.getBoundingClientRect().top + window.scrollY - 12);
+    const to = target();
+    try { window.scrollTo({ top: to, behavior: 'smooth' }); }
+    catch (err) { window.scrollTo(0, to); }
+    window.setTimeout(() => {
+      if (Math.abs(window.scrollY - target()) > 40) window.scrollTo(0, target());
+    }, 500);
+    try { window.history.replaceState(null, '', '#' + id); } catch (err) {}
+  };
   // The day's own numbers, from the hook the site header already uses, so this
   // cap and that one cannot disagree. Name resolves after mount because it
   // reads localStorage.
@@ -1001,7 +1031,8 @@ export default function StageToday() {
             only one of them about the reader. Drawn only when there is a day to
             show, so it never points at a section that is not there. */}
         {standing.length ? (
-          <a className="sty-cx sty-st" href="#sty-standing" aria-label="Your standing" title="Your standing">
+          <a className="sty-cx sty-st" href="#sty-standing" onClick={jumpTo('sty-standing')}
+            aria-label="Your standing" title="Your standing">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
               strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="8" r="3.6" />
@@ -1009,13 +1040,15 @@ export default function StageToday() {
             </svg>
           </a>
         ) : null}
-        <a className="sty-cx sty-lb" href="#sty-board" aria-label="Today's board" title="Today's board">
+        <a className="sty-cx sty-lb" href="#sty-board" onClick={jumpTo('sty-board')}
+          aria-label="Today's board" title="Today's board">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
             strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d="M4 21v-6M12 21V4M20 21v-10" />
           </svg>
         </a>
-        <a className="sty-cx sty-lf" href="#sty-live" aria-label="Live feed" title="Live feed">
+        <a className="sty-cx sty-lf" href="#sty-live" onClick={jumpTo('sty-live')}
+          aria-label="Live feed" title="Live feed">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
             strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
             <path d="M4 12h3l2.5-6 4 13 2.5-7H21" />
