@@ -826,7 +826,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
 
           {/* the grid */}
           <div style={{ maxWidth: boardMax, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: `2.5px solid var(--stg-cell-line, rgba(28,30,36,0.85))`, borderRadius: 4, overflow: 'hidden', gap: 1, background: 'var(--stg-cell-line, rgba(28,30,36,0.28))' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${N}, minmax(0, 1fr))`, aspectRatio: '1', border: `2.5px solid var(--stg-cell-line, rgba(28,30,36,0.85))`, borderRadius: 4, overflow: 'hidden', gap: STAGE ? 2 : 1, background: 'var(--stg-cell-line, rgba(28,30,36,0.28))' }}>
               {Array.from({ length: T }).map((_, idx) => {
                 if (isBlock(idx)) return <div key={idx} className="ec-cell ec-blk" />;
                 const inWord = playing && curWord.cells.includes(idx);
