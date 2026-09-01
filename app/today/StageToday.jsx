@@ -1148,11 +1148,20 @@ export default function StageToday() {
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
 
       <div className="sty-wrap">
-        {/* 2. THE DAY. The page's one graphic. */}
+        {/* 2. THE DAY'S PROGRESS. The page's one graphic, and it appears only
+            once there is progress to report (owner, 2026-09-01): a first-time
+            reader has nothing started, so an all-dark ladder would be a bar
+            of nothing at the top of the page. It arrives with the first
+            half-colour (started) or full-colour (finished) block, and
+            everything above it simply sits higher until then. `done` and
+            `inprog` are both empty on the server and on the first client
+            paint, so SSR and hydration agree on "absent". */}
+        {(done.size > 0 || inprog.size > 0) ? (
         <section className="sty-day">
-          <div className="sty-eb">The day</div>
+          <div className="sty-eb">The day&rsquo;s progress</div>
           <StageLadder height={ladH} blocks={blocks} light={light} />
         </section>
+        ) : null}
 
         {/* NO CARDS ABOVE MY GAMES (owner, 2026-08-31). The three of them —
                what you are mid-way through, what is most played, who is
