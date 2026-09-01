@@ -213,7 +213,18 @@ button, input, textarea, select { border-radius: 8px; }
      Each register picks its own against its own ground, and neither is derived
      from the other: dark 0.36 is 3.26:1 on #0b0f1a, light 0.44 is 3.18:1 on
      #eef1f6. A naive port of either number lands under 3 on the other. */
-  --stg-cell: rgba(255, 255, 255, 0.06);
+  /* OPAQUE, and that is the load-bearing part. A board square is the one
+     surface that routinely sits on something other than the page: Emcee and
+     Encore draw their grid lines as 1px GAPS over the container's own
+     background, and Babel, Tuck and Shards sit on a board panel. A
+     translucent cell lets that ground through its whole face rather than only
+     in the gaps, so the first version of this token turned Emcee's entire
+     crossword into one flat slab of lattice colour with the squares gone
+     again -- the same complaint, arrived at from the other direction. This is
+     white at 6% over --stg-ground, resolved: identical wherever the cell does
+     sit on the page (Crux, Anon, Tally, Fib, Sweep, Blocks), correct where it
+     does not. Keep it opaque, and keep it in step with --stg-ground. */
+  --stg-cell: #1a1d28;
   --stg-cell-line: rgba(255, 255, 255, 0.36);
 
   --stg-ink: #e9edf4;
