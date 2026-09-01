@@ -53,26 +53,48 @@ import GameGlyph from './GameGlyph';
 //   3. A page that OPENED on a finished board — an archive replay, a refresh —
 //      gets the card directly. Only a game that just ended floods.
 //   4. It never congratulates. It says what the band says.
-//   5. IT WAITS FOR THE FIGURES. See the hold, directly below.
-// THE HOLD IS THE CARD'S OWN LOADING STATE (owner, 2026-08-31). It was a flat
-// second, which meant the colour could collapse onto a card that was still
-// reading "Calculating" — the player watched an ending land on a row of
-// placeholders and then watched the real figures arrive underneath it. The
-// screen is already covered and already says the one thing that is certainly
-// known (the verdict), so it is the right place to spend that wait: it holds on
-// Solved until the IQ, the board and the rank tiles are in, and only then
-// collapses onto a card with every number already on it.
+//   5. IT IS WHERE THE FIGURES LAND. See the hold, directly below.
+// THE HOLD IS THE CARD'S OWN LOADING STATE, AND THE CURTAIN IS WHERE THE
+// FIGURES LAND (owner, 2026-08-31, in two passes).
 //
-// READINESS IS NOT REDEFINED HERE. LoftFinish already computes it once, as
+// Pass one made the hold wait for LoftFinish's `figuresShow` so the colour
+// could not collapse onto a card still reading "Calculating". That was right
+// about WHEN to leave and wrong about what to do while waiting: the IQ arrived
+// mid-hold, started counting, and the screen collapsed out from under it
+// part-way through the count (owner). A number that is cut off mid-climb is
+// worse than one that was never shown.
+//
+// So the wait is not dead time being endured, it is the SEQUENCE. Every figure
+// the card is about to show lands here first, one at a time, each stamped in
+// and each given long enough to be read: the IQ counts up to its total, then
+// today's position, then the all-time standing, then the streak. The screen
+// leaves only once the last one has landed and been held for a beat. The stats
+// eat the wait, which means a slow read costs nothing and a fast one still
+// reads as an ending rather than a flash.
+//
+// THE ORDER IS FIXED and the queue is walked one step at a time:
+//   * a figure with a value is REVEALED, and the queue waits out its dwell
+//     (the IQ's dwell is its own count, so the count can never be cut off);
+//   * a figure with no value yet HOLDS the queue while the card is still
+//     reading, and is SKIPPED the moment `ready` says every read has answered
+//     — because then a blank is a settled answer, not a pending one, exactly
+//     as LoftFinish's own tiles treat it;
+//   * when the queue runs out, one settle beat, then the collapse.
+//
+// READINESS IS NOT REDEFINED HERE. LoftFinish computes it once as
 // `figuresShow` — the flag its own Calculating block is keyed on — and passes
 // it in as `ready`. One definition, so the curtain and the card underneath it
-// can never disagree about whether the card is finished. `ready` undefined (any
-// caller that does not pass it) means the old flat hold, unchanged.
-const FLOOD_MIN = 700;      // the floor: an ending is a beat, never a flash
-const FLOOD_SETTLE = 420;   // and a beat AFTER the last figure lands, to read it
+// can never disagree about whether the card is finished. `ready` null (a caller
+// that does not report it) means every present figure still plays and nothing
+// is waited for.
+const FLOOD_MIN = 600;      // the floor: the verdict alone, before any figure
+const FLOOD_COUNT = 820;    // the IQ's climb, which is also its dwell
+const FLOOD_STAMP = 380;    // every other figure lands this far after the last
+const FLOOD_SETTLE = 420;   // a beat on the finished set, to read it whole
 // The backstop, and pathological only: LoftFinish gives up waiting at 11s and
 // shows what it has, so this sits just past that. It exists so a caller that
-// passes `ready` and never flips it cannot strand a player on a coloured screen.
+// passes `ready` and never flips it cannot strand a player on a coloured
+// screen. It short-circuits the queue rather than waiting it out.
 const FLOOD_MAX = 12000;
 const FLOOD_SHRINK = 640;   // it collapses onto the band's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the band's words appear
@@ -104,18 +126,20 @@ function FloodCount({ to, ms }) {
   return <>{Math.round(v).toLocaleString()}</>;
 }
 
-function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
+function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null, bandRef, onDone }) {
   const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);    // the floor has passed
   const [expired, setExpired] = useState(false);   // the backstop has fired
+  const [shown, setShown] = useState(0);      // how far the queue has been walked
   const doneRef = useRef(false);
   const goneRef = useRef(false);              // the collapse has been started
+  const stepRef = useRef(-1);                 // the queue step already being timed
   // ONE list for every timer this component ever schedules, cleared once on
-  // unmount. NOT a cleanup per effect: the collapse effect below re-runs when
-  // its gate changes, and a cleanup there would clear the collapse it had
-  // already scheduled and then decline to reschedule it, stranding the player
-  // on a coloured screen.
+  // unmount. NOT a cleanup per effect: the effects below re-run as the queue
+  // advances, and a cleanup in one of them would clear the collapse it had
+  // already scheduled and then decline to reschedule it (goneRef), stranding
+  // the player on a coloured screen.
   const timersRef = useRef([]);
   const at = (ms, fn) => { timersRef.current.push(setTimeout(fn, ms)); };
   const finish = () => {
@@ -123,6 +147,39 @@ function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
     doneRef.current = true;
     if (typeof onDone === 'function') onDone();
   };
+
+  // THE QUEUE. Every figure the card is about to print, in the order they land.
+  // The IQ leads because it is the number the player came for; the two rankings
+  // and the streak follow it as a row. `has` is what decides revealed vs held,
+  // and it is a VALUE test rather than a read-completed one, so a figure that
+  // genuinely has no answer (no all-time standing yet, no streak) is skipped by
+  // the ready branch rather than printed as a blank.
+  const figs = useMemo(() => ([
+    {
+      k: 'iq', lead: true, count: true,
+      has: !!(iq && iq.gained != null),
+      value: iq && iq.gained != null ? Number(iq.gained) : null,
+      label: 'IQ earned',
+    },
+    {
+      k: 'pos',
+      has: !!(board && board.myRank != null),
+      value: board && board.myRank != null ? `#${board.myRank}` : null,
+      label: board && board.field ? `of ${board.field} today` : 'today',
+    },
+    {
+      k: 'all',
+      has: !!(gameRank && gameRank.value != null),
+      value: gameRank ? gameRank.value : null,
+      label: (gameRank && gameRank.label) || 'all time',
+    },
+    {
+      k: 'streak',
+      has: !!streak,
+      value: streak,
+      label: 'day streak',
+    },
+  ]), [iq, board, gameRank, streak]);
 
   // Fade in, and the two edges of the hold. Both timers are anchored to the
   // MOUNT rather than to `ready`, for the reason LoftFinish's own ceiling is:
@@ -136,16 +193,37 @@ function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // THE COLLAPSE, once the floor has passed AND the card is finished. `ready`
-  // === false is the only thing that waits: null or undefined is a caller that
-  // does not report readiness, and true is a card with every figure in.
-  const waiting = ready === false && !expired;
+  // WALKING THE QUEUE. One step per effect run, so a figure's dwell is a real
+  // wait rather than a schedule laid out in advance against data that had not
+  // arrived yet.
   useEffect(() => {
-    if (!held || waiting || goneRef.current) return;
+    if (!held || goneRef.current || shown >= figs.length) return;
+    const next = figs[shown];
+    if (next.has) {
+      // ONE DWELL PER STEP, guarded by a ref. This effect re-runs every time any
+      // of the four props arrives, and `figs` is a fresh array each time; a
+      // dwell scheduled with a cleanup would be cancelled and RESTARTED by the
+      // next arrival, so a figure that landed while another read was in flight
+      // could sit there for two or three dwells.
+      if (stepRef.current === shown) return;
+      stepRef.current = shown;
+      // ITS DWELL IS ITS COUNT. This is the whole point of the second pass: the
+      // queue cannot move on, and the screen cannot leave, until the number has
+      // finished climbing.
+      at(next.count ? FLOOD_COUNT + 180 : FLOOD_STAMP, () => setShown((s) => s + 1));
+      return;
+    }
+    // No value. Settled means skip; still reading means hold the queue here,
+    // which is the wait the whole sequence exists to fill.
+    if (ready !== false || expired) setShown((s) => s + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [held, shown, figs, ready, expired]);
+
+  // THE COLLAPSE, once the queue has run out (or the backstop has fired).
+  useEffect(() => {
+    if (!held || goneRef.current) return;
+    if (shown < figs.length && !expired) return;
     goneRef.current = true;
-    // A BEAT AFTER THE LAST FIGURE, not the instant it arrives. The IQ lands on
-    // this screen and counts up; collapsing on the same tick would pop the
-    // number and take it away in one motion.
     at(FLOOD_SETTLE, () => {
       const el = bandRef && bandRef.current;
       if (!el) { setPhase('shrink'); return; }
@@ -171,7 +249,7 @@ function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
     at(FLOOD_SETTLE + FLOOD_SHRINK + 60, () => setPhase('out'));
     at(FLOOD_SETTLE + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [held, waiting]);
+  }, [held, shown, figs, expired]);
 
   // Any key. (Any tap is the element's own onClick.)
   useEffect(() => {
@@ -193,12 +271,16 @@ function CurtainFlood({ title, detail, iq, ready = null, bandRef, onDone }) {
       <div className="stf-fl-in">
         <div className="stf-fl-v">{title}</div>
         {detail ? <div className="stf-fl-d">{detail}</div> : null}
-        {iq && iq.gained != null ? (
-          <div className="stf-fl-iq">
-            <b>+<FloodCount to={Number(iq.gained)} ms={620} /></b>
-            <i>IQ earned</i>
-          </div>
-        ) : null}
+        {/* Each figure mounts when the queue reaches it, so the stamp is a CSS
+            animation on mount rather than a class anyone has to toggle. */}
+        <div className="stf-fl-figs">
+          {figs.map((f, i) => ((i < shown && f.has) ? (
+            <div className={'stf-fl-fig' + (f.lead ? ' lead' : '')} key={f.k}>
+              <b>{f.count ? <>+<FloodCount to={f.value} ms={FLOOD_COUNT} /></> : f.value}</b>
+              <i>{f.label}</i>
+            </div>
+          ) : null))}
+        </div>
       </div>
     </div>
   );
@@ -488,7 +570,8 @@ export default function StageFinish({
       <style>{CSS}</style>
 
       {flood ? (
-        <CurtainFlood title={title} detail={detail} iq={iq} ready={ready} bandRef={bandRef}
+        <CurtainFlood title={title} detail={detail} iq={iq} board={board}
+          gameRank={gameRank} streak={streak} ready={ready} bandRef={bandRef}
           onDone={() => setFlood(false)} />
       ) : null}
 
@@ -848,7 +931,8 @@ const CSS = `
    everything else on a stage page, whose own chrome caps at 5. */
 .stf-flood{position:fixed;inset:0;z-index:9000;cursor:pointer;
   background:var(--stg-acc);color:var(--stg-onramp,#08222e);
-  display:flex;align-items:center;justify-content:center;padding:28px 24px;
+  display:flex;align-items:flex-start;justify-content:center;overflow:hidden;
+  padding:clamp(80px,18vh,200px) 24px 28px;
   opacity:0;-webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0);
   transition:opacity 180ms ease,clip-path 640ms cubic-bezier(.2,.8,.25,1),
     -webkit-clip-path 640ms cubic-bezier(.2,.8,.25,1);}
@@ -868,18 +952,34 @@ const CSS = `
 .stf-fl-v{font-size:clamp(38px,8.4vw,104px);font-weight:800;letter-spacing:-.045em;
   line-height:.98;text-wrap:balance;}
 .stf-fl-d{margin-top:14px;font-size:clamp(13px,2vw,19px);font-weight:700;opacity:.78;}
-.stf-fl-iq{margin-top:30px;}
-.stf-fl-iq b{display:block;font-size:clamp(46px,10vw,118px);font-weight:800;
-  line-height:.9;letter-spacing:-.05em;font-variant-numeric:tabular-nums;}
-.stf-fl-iq i{display:block;font-style:normal;font-family:${MONO};
-  font-size:clamp(10px,1.4vw,13px);letter-spacing:.18em;text-transform:uppercase;
-  opacity:.76;margin-top:12px;}
+.stf-fl-figs{margin-top:26px;display:flex;flex-wrap:wrap;justify-content:center;
+  align-items:flex-end;gap:16px 42px;}
+/* THE STAMP. An overshoot on the way down, so a figure lands rather than
+   fades: it is the one motion on this screen that says a number just arrived.
+   The fill holds the end state, since each figure mounts once and never leaves. */
+.stf-fl-fig{flex:none;animation:stf-stamp 300ms cubic-bezier(.2,.9,.3,1.3) both;}
+.stf-fl-fig b{display:block;font-size:clamp(24px,4.2vw,44px);font-weight:800;
+  line-height:.92;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+.stf-fl-fig i{display:block;font-style:normal;font-family:${MONO};
+  font-size:clamp(9px,1.15vw,11px);letter-spacing:.16em;text-transform:uppercase;
+  opacity:.72;margin-top:9px;}
+/* The IQ is the number they came for, so it takes a line of its own at display
+   size and the standings land in a row underneath it. */
+.stf-fl-fig.lead{flex-basis:100%;}
+.stf-fl-fig.lead b{font-size:clamp(46px,10vw,118px);line-height:.9;letter-spacing:-.05em;}
+.stf-fl-fig.lead i{font-size:clamp(10px,1.4vw,13px);letter-spacing:.18em;
+  opacity:.78;margin-top:12px;}
+@keyframes stf-stamp{
+  from{opacity:0;transform:translateY(10px) scale(1.26);}
+  to{opacity:1;transform:none;}
+}
 
 @media (max-width:640px){
-  .stf-flood{padding:22px 18px;}
+  .stf-flood{padding:clamp(64px,14vh,140px) 18px 22px;}
   .stf-fl-d{margin-top:11px;}
-  .stf-fl-iq{margin-top:22px;}
-  .stf-fl-iq i{margin-top:9px;}
+  .stf-fl-figs{margin-top:20px;gap:12px 26px;}
+  .stf-fl-fig i{margin-top:7px;}
+  .stf-fl-fig.lead i{margin-top:10px;}
   .stf-curtain{padding:22px 18px 20px;}
   .stf-verdict{font-size:27px;}
   /* THE STANDINGS COME OFF THE PHONE (owner, 2026-08-31). The line under the
