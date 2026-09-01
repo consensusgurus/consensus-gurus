@@ -262,6 +262,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
+  const panelStyle = { background: SURF, border: '1px solid ' + (STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.12)'), borderRadius: 12 };
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
   // Focus mode: while the puzzle is live the leaderboard / share / other-games
   // block is folded away behind one button, the same arrangement every other
@@ -512,18 +513,69 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const catRank = useCategoryRank({ self: 'anon', active: LOFT && !playing });
   const myStats = deriveStats(stats, pickPuzzle(puzzles, null).num);
 
-  // Cell size fitted to the viewport, like Strata's tiles: a 124-letter passage
-  // has to lay out on a phone without becoming unreadable or overflowing.
+  // SPLIT is a third width question, after `narrow` and `touchInput`. Stacked,
+  // the bank fills the screen on its own and the passage sits a scroll below it,
+  // so typing in a bank row pushes the thing it changes out of sight (owner,
+  // 2026-08-31). Side by side, both halves are on screen for the whole solve.
+  // Under 1000px there is not enough width for two readable columns, so the
+  // board stays stacked there and nothing about the phone layout moves.
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1000px)');
+    const set = () => setWide(mq.matches);
+    set();
+    mq.addEventListener('change', set);
+    return () => mq.removeEventListener('change', set);
+  }, []);
+  const split = wide && !narrow;
+
+  const splitRef = useRef(null);
+  const qPaneRef = useRef(null);
+
+  // Cell size fitted to the space the cells actually have. Off the split that is
+  // the viewport, like Strata's tiles: a 124-letter passage has to lay out on a
+  // phone without becoming unreadable or overflowing. ON the split it is the
+  // PANE, because the passage now has half the width it had and sizing its
+  // letters against window.innerWidth overflows the column it is in.
   const [cw, setCw] = useState(26);
   useEffect(() => {
     const fit = () => {
-      const avail = Math.min(window.innerWidth - 30, 720);
+      const pane = split && qPaneRef.current ? qPaneRef.current.clientWidth - 32 : 0;
+      const avail = pane > 0 ? Math.min(pane, 720) : Math.min(window.innerWidth - 30, 720);
       setCw(Math.max(21, Math.min(27, Math.floor(avail / 14) - 3)));
     };
     fit();
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
-  }, []);
+    let ro = null;
+    if (split && qPaneRef.current && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(fit);
+      ro.observe(qPaneRef.current);
+    }
+    return () => { window.removeEventListener('resize', fit); if (ro) ro.disconnect(); };
+  }, [split]);
+
+  // THE PANE HEIGHT IS MEASURED, never a constant, for the same reason the home
+  // console measures --dh-fit and Crux measures --cx-room: everything above the
+  // panes (the cap, the stat line, the spine strip, the rail) changes height
+  // with the board and the register, so a hardcoded budget is wrong the day it
+  // is written. It cannot feed back, because shrinking a pane does not move the
+  // top of the split, and it is read in DOCUMENT coordinates so a scrolled page
+  // does not change the answer. Floored at 320 so a short screen degrades to
+  // page scrolling rather than to a pane too small to use.
+  const [paneH, setPaneH] = useState(0);
+  useEffect(() => {
+    if (!split) { setPaneH(0); return undefined; }
+    const fit = () => {
+      const el = splitRef.current;
+      if (!el) return;
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      setPaneH(Math.max(320, Math.round(window.innerHeight - top - rail.height - 72)));
+    };
+    fit();
+    const id = setTimeout(fit, 250);
+    window.addEventListener('resize', fit);
+    return () => { clearTimeout(id); window.removeEventListener('resize', fit); };
+  }, [split, rail.height, preStart, playing]);
   const ch = Math.round(cw * 1.26);
 
   // The stretch of passage around a cell, for the dock. -1 marks a word break so
@@ -611,7 +663,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
         {A.slice(0, PUZZLE.spine).map((a, i) => <BankRow key={i} ai={i} />)}
       </div>
       <div>
-        <div className="an-bhead">The free bank &middot; {TOTAL - PUZZLE.spine}<span>no initial to obey</span></div>
+        <div className={split ? 'an-bhead second' : 'an-bhead'}>The free bank &middot; {TOTAL - PUZZLE.spine}<span>no initial to obey</span></div>
         {A.slice(PUZZLE.spine).map((a, i) => <BankRow key={i + PUZZLE.spine} ai={i + PUZZLE.spine} />)}
       </div>
     </div>
@@ -664,6 +716,10 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-punc{align-self:center;color:#b6bcc7;font-weight:800;width:6px;text-align:center;}
           .an-banks{display:grid;grid-template-columns:1.25fr 1fr;gap:14px 26px;}
           @media(max-width:900px){.an-banks{grid-template-columns:1fr;}}
+          .an-split{display:grid;gap:16px;align-items:start;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);}
+          .an-pane{min-width:0;overflow-y:auto;overscroll-behavior:contain;}
+          .an-split .an-banks{grid-template-columns:1fr;}
+          .an-bhead.second{margin-top:16px;padding-top:14px;border-top:1px solid var(--stg-line,rgba(28,30,36,0.12));}
           .an-bhead{font-family:${MONO};font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:${FADED};
             margin:0 0 9px;display:flex;justify-content:space-between;gap:10px;}
           .an-bhead span{color:var(--stg-dim, #c3c8d1);}
@@ -710,7 +766,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-spine i.blank{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#dcc6c9'};background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : 'var(--white)'};border-color:${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.1)'};}
         `}</style>
 
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        <div style={{ maxWidth: split ? 1180 : 900, margin: '0 auto' }}>
           {!LOFT && (
           <DailyMasthead
             slug="anon"
@@ -786,15 +842,33 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                 </div>
               )}
 
-              {(!narrow || view === 'b') && (
-                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid var(--stg-line)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 18px', marginBottom: 16 }}>
-                  {banksPanel}
+              {split ? (
+                /* THE PASSAGE IS ON THE LEFT because it is the object being read
+                   and it fits without scrolling; the bank is on the right because
+                   it is the long list you work down. Each pane scrolls inside its
+                   own measured frame, so the PAGE does not scroll during a solve
+                   and neither half can push the other off screen. */
+                <div className="an-split" ref={splitRef} style={{ marginBottom: 16 }}>
+                  <div className="an-pane" ref={qPaneRef} style={{ ...panelStyle, padding: '16px 16px 14px', maxHeight: paneH || undefined }}>
+                    {passagePanel}
+                  </div>
+                  <div className="an-pane" style={{ ...panelStyle, padding: '16px 18px', maxHeight: paneH || undefined }}>
+                    {banksPanel}
+                  </div>
                 </div>
-              )}
-              {(!narrow || view === 'q') && (
-                <div style={{ background: STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white, border: STAGE ? '1px solid var(--stg-line)' : '1px solid rgba(28,30,36,0.12)', borderRadius: 12, padding: '16px 16px 14px', marginBottom: 16 }}>
-                  {passagePanel}
-                </div>
+              ) : (
+                <>
+                  {(!narrow || view === 'b') && (
+                    <div style={{ ...panelStyle, padding: '16px 18px', marginBottom: 16 }}>
+                      {banksPanel}
+                    </div>
+                  )}
+                  {(!narrow || view === 'q') && (
+                    <div style={{ ...panelStyle, padding: '16px 16px 14px', marginBottom: 16 }}>
+                      {passagePanel}
+                    </div>
+                  )}
+                </>
               )}
 
               {playing && (
