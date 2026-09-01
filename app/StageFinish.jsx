@@ -70,6 +70,7 @@ const rankOf = (o) => (RANK[o.tone] != null ? RANK[o.tone] : (o.kind === 'gold' 
 export default function StageFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
+  archive = null,
 }) {
   // THE COLLAPSE IS THE CARD'S TO RELEASE. A finished page hides the board, the
   // leader strip and the play figures (app/globals.css), and it is keyed on a
@@ -102,6 +103,7 @@ export default function StageFinish({
   // 2026-08-31). Three doors, and none of them can appear before the game is
   // over because this component only exists then.
   const [cat, setCat] = useState(null);        // null | a category | 'all'
+  const [arch, setArch] = useState(false);     // this game's own back catalogue
   const [played, setPlayed] = useState(() => new Set());
   useEffect(() => { setPlayed(doneToday()); }, []);
 
@@ -153,6 +155,15 @@ export default function StageFinish({
   const forward = opts.find((o) => o.tone === 'similar') || null;
   const rest = opts.filter((o) => o !== forward);
 
+  const archiveRows = Array.isArray(archive) ? archive : [];
+  const archiveBtn = (
+    <button key="arch" type="button" className={'stf-o' + (arch ? ' on' : '')}
+      onClick={() => setArch((v) => !v)}>
+      <b>{name ? `Full ${name} archive` : 'Full archive'}</b>
+      <i>{arch ? 'Hide the list' : `Every one of the ${archiveRows.length}`}</i>
+    </button>
+  );
+
   const rows = board && Array.isArray(board.rows) ? board.rows.slice(0, 5) : [];
   const myRank = board && board.myRank != null ? board.myRank : null;
   const field = board && board.field != null ? board.field : null;
@@ -167,42 +178,6 @@ export default function StageFinish({
   return (
     <div className={'stf' + (outcome ? ' stf-' + outcome : '')}>
       <style>{CSS}</style>
-
-      {/* THE CATEGORIES, ABOVE THE VERDICT (owner, 2026-08-31). It only ever
-          appears on a finished game, which is the point: a reader who is done
-          is the one looking for what to play next, and this is the shortest
-          route to any of eighty without going home first. Pressing one lists
-          that category A to Z; pressing it again puts it away. */}
-      <div className="stf-catbar">
-        <span className="stf-catlab">Play more:</span>
-        {/* ONE LINE, ALWAYS. Nine chips wrapped to a second row and left Arcade
-            stranded on its own (owner, 2026-08-31), so the row scrolls instead:
-            a flick on a phone, and arrows on a desktop where there is no
-            obvious way to swipe. The arrows only appear when there is actually
-            something out of view. */}
-        <button type="button" className="stf-catnav" aria-label="Scroll categories left"
-          onClick={() => nudge(-1)} hidden={!over}>&#8249;</button>
-        <div className="stf-cats" ref={catsRef}>
-          {RAMP_ORDER.map((c) => (
-            <button key={c} type="button"
-              className={'stf-cat' + (cat === c ? ' on' : '')}
-              style={{ '--tc': categoryColor(c) }}
-              onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
-          ))}
-        </div>
-        <button type="button" className="stf-catnav" aria-label="Scroll categories right"
-          onClick={() => nudge(1)} hidden={!over}>&#8250;</button>
-      </div>
-      {cat ? (
-        <div className="stf-catlist">
-          <div className="stf-eb">
-            {cat === 'all' ? 'All daily puzzles' : cat} <em>&middot; {catList.length}</em>
-          </div>
-          <div className="stf-tiles">
-            {catList.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
-          </div>
-        </div>
-      ) : null}
 
       {/* THE CURTAIN. The one place on the stage where the accent covers
           something rather than marking it. Edge to edge, because a band with a
@@ -229,32 +204,9 @@ export default function StageFinish({
           {streak ? <div><b>{streak}</b><i>day streak</i></div> : null}
         </div>
 
-        {/* THE HAND-FORWARD, first, for LoftFinish's own reason: it used to sit
-            below the verdict, the IQ bar, four tiles and the whole board, so a
-            finisher passed two exits before reaching the one that carries on. */}
-        {forward ? (
-          <a className="stf-fwd" href={forward.href} onClick={forward.onClick}>
-            <div>
-              <div className="stf-eb">Up next</div>
-              <div className="stf-fwdn">{fwdName}</div>
-              {fwdTag ? <div className="stf-fwdt">{fwdTag}</div> : null}
-            </div>
-            <span className="stf-go">Play</span>
-          </a>
-        ) : null}
-
-        {/* MORE OF THE SAME, directly under the one recommendation. Up next is
-            a single pick; a reader who does not want it should not have to go
-            back to the home to find its neighbours. */}
-        {sameCat.length ? (
-          <section>
-            <div className="stf-eb">More {me ? me.cat : ''}</div>
-            <div className="stf-tiles">
-              {sameCat.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
-            </div>
-          </section>
-        ) : null}
-
+        {/* THE BOARD, DIRECTLY UNDER THE FIGURES (owner, 2026-08-31). The
+            figures already say #22 of 137; the table is what that number means,
+            and it used to sit four blocks below its own headline. */}
         {rows.length ? (
           <section>
             <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}</div>
@@ -273,16 +225,88 @@ export default function StageFinish({
           </section>
         ) : null}
 
+        {/* THE HAND-FORWARD, for LoftFinish's own reason: it used to sit
+            below the verdict, the IQ bar, four tiles and the whole board, so a
+            finisher passed two exits before reaching the one that carries on. */}
+        {forward ? (
+          <a className="stf-fwd" href={forward.href} onClick={forward.onClick}>
+            <div>
+              <div className="stf-eb">Up next</div>
+              <div className="stf-fwdn">{fwdName}</div>
+              {fwdTag ? <div className="stf-fwdt">{fwdTag}</div> : null}
+            </div>
+            <span className="stf-go">Play</span>
+          </a>
+        ) : null}
+
+        {/* MORE OF THE SAME, directly under the one recommendation. Up next is
+            a single pick; a reader who does not want it should not have to go
+            back to the home to find its neighbours. */}
+        {sameCat.length ? (
+          <section>
+            <div className="stf-eb">{me ? `More ${me.cat} puzzles` : 'More puzzles'}</div>
+            <div className="stf-tiles">
+              {sameCat.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+            </div>
+          </section>
+        ) : null}
+
+        {/* EVERY CATEGORY, under the one they just played (owner, 2026-08-31).
+            It sat above the verdict, which put a browse control ahead of the
+            result. Here it reads as the next widening step: this game, then its
+            category, then all of them. Same eyebrow as the section above it, so
+            the two are plainly the same kind of thing. Pressing a category
+            lists it A to Z; pressing it again puts it away. */}
+        <section>
+          <div className="stf-eb">All categories</div>
+          <div className="stf-catrow">
+            {/* ONE LINE, ALWAYS. Nine chips wrapped to a second row and left
+                Arcade stranded (owner, 2026-08-31), so the row scrolls: a flick
+                on a phone, arrows on a desktop where there is no obvious way to
+                swipe. The arrows appear only when something is out of view. */}
+            <button type="button" className="stf-catnav" aria-label="Scroll categories left"
+              onClick={() => nudge(-1)} hidden={!over}>&#8249;</button>
+            <div className="stf-cats" ref={catsRef}>
+              {RAMP_ORDER.map((c) => (
+                <button key={c} type="button"
+                  className={'stf-cat' + (cat === c ? ' on' : '')}
+                  style={{ '--tc': categoryColor(c) }}
+                  onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
+              ))}
+            </div>
+            <button type="button" className="stf-catnav" aria-label="Scroll categories right"
+              onClick={() => nudge(1)} hidden={!over}>&#8250;</button>
+          </div>
+          {cat ? (
+            <div className="stf-catlist">
+              <div className="stf-eb">
+                {cat === 'all' ? 'All daily puzzles' : cat} <em>&middot; {catList.length}</em>
+              </div>
+              <div className="stf-tiles">
+                {catList.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+              </div>
+            </div>
+          ) : null}
+        </section>
+
         <div className="stf-opts">
-          {rest.map((o, i) => (
-            o.href
+          {rest.map((o, i) => {
+            const node = o.href
               ? <a key={i} className={'stf-o' + (o.kind === 'gold' ? ' gold' : '')} href={o.href} onClick={o.onClick}>
                   <b>{o.label}</b>{o.sub ? <i>{o.sub}</i> : null}
                 </a>
               : <button key={i} type="button" className={'stf-o' + (o.kind === 'gold' ? ' gold' : '')} onClick={o.onClick}>
                   <b>{o.label}</b>{o.sub ? <i>{o.sub}</i> : null}
-                </button>
-          ))}
+                </button>;
+            // THE ARCHIVE SITS BESIDE 'Play another' (owner, 2026-08-31),
+            // because they are the same question at two sizes: one more day of
+            // this game, or every day of it. All 80 clients already pass
+            // `archive` to LoftFinish; the stage ending simply never took it.
+            return (o.tone === 'another' && archiveRows.length)
+              ? [node, archiveBtn] : node;
+          })}
+          {/* No 'Play another'? The archive still belongs on the card. */}
+          {archiveRows.length && !rest.some((o) => o.tone === 'another') ? archiveBtn : null}
           {/* THE OLD BROWSE BUTTON, back in the slot the grid left empty. It
               opens the same A-to-Z panel the category row above does, rather
               than navigating away. */}
@@ -291,6 +315,28 @@ export default function StageFinish({
             <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${LIVE().length}`}</i>
           </button>
         </div>
+
+        {/* The list opens under the button that asked for it, newest first. */}
+        {arch && archiveRows.length ? (
+          <section>
+            <div className="stf-eb">
+              {name ? `${name} archive` : 'Archive'} <em>&middot; {archiveRows.length}</em>
+            </div>
+            <div className="stf-arch">
+              {archiveRows.map((a) => (
+                <a key={a.num} className={'stf-archr' + (a.done ? ' done' : '')} href={a.href}>
+                  <span className="d">{a.dateLabel}{a.sunday ? <i>Sunday</i> : null}</span>
+                  <span className="n">No. {a.num}</span>
+                  {/* Played is STATED, not implied: a bare score next to a row
+                      that says Play reads as noise. */}
+                  <span className="v">{a.done
+                    ? <>{a.score != null ? <b>{a.score}</b> : null}<em>Played</em></>
+                    : 'Play'}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     </div>
   );
@@ -302,9 +348,9 @@ const CSS = `
 
 /* ── the curtain ───────────────────────────────────────────────────────── */
 /* ── the category row, and the list it opens ───────────────────────────── */
-.stf-catbar{display:flex;align-items:center;gap:8px;max-width:720px;margin:0 auto 14px;padding:0 4px;}
-.stf-catlab{flex:none;font-family:${MONO};font-size:9.5px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--stg-mute);}
+/* The label is now the section's own eyebrow above the row, so the row is
+   just the scroller and its two arrows. */
+.stf-catrow{display:flex;align-items:center;gap:8px;min-width:0;}
 .stf-cats{display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;
   -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;}
 .stf-cats::-webkit-scrollbar{display:none;}
@@ -319,7 +365,7 @@ const CSS = `
   padding:6px 11px;}
 .stf-cat:hover{color:var(--stg-ink);border-color:var(--stg-line2);border-left-color:var(--tc);}
 .stf-cat.on{color:var(--tc);border-color:var(--tc);}
-.stf-catlist{max-width:720px;margin:0 auto 18px;padding:0 4px;}
+.stf-catlist{margin-top:12px;}
 
 /* One tile shape for both lists: the A-to-Z panel and More-of-the-same. */
 .stf-tiles{display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));}
@@ -376,6 +422,25 @@ const CSS = `
 .stf-who{font-weight:700;}
 .stf-sc,.stf-pt{width:56px;text-align:right;color:var(--stg-ink2);}
 .stf-pt{font-weight:800;color:var(--stg-ink);}
+
+/* ── this game's back catalogue ────────────────────────────────────────── */
+.stf-arch{display:grid;gap:5px;max-height:420px;overflow-y:auto;}
+.stf-archr{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--stg-ink);
+  background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:8px;
+  padding:9px 12px;font-size:13px;}
+.stf-archr:hover{border-color:var(--stg-line2);}
+.stf-archr .d{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stf-archr .d i{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--stg-acc);margin-left:7px;}
+.stf-archr .n{font-family:${MONO};font-size:11px;color:var(--stg-mute);}
+.stf-archr .v{margin-left:auto;flex:none;display:flex;align-items:center;gap:7px;
+  font-size:12.5px;font-weight:800;color:var(--stg-acc);}
+.stf-archr .v em{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;color:var(--stg-mute);}
+.stf-archr .v b{font-variant-numeric:tabular-nums;color:var(--stg-ink);}
+/* Played gives up its fill, exactly as a played tile does. */
+.stf-archr.done{background:none;}
+.stf-archr.done .d{color:var(--stg-mute);}
 
 /* ── the options ───────────────────────────────────────────────────────── */
 .stf-opts{display:grid;gap:7px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}

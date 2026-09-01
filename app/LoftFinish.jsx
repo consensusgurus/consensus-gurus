@@ -890,6 +890,7 @@ export default function LoftFinish({
       <StageFinish
         title={title} detail={detail} iq={iq} board={board} day={day} streak={streak}
         missLabel={missLabel} gameRank={gameRank} outcome={outcome} options={options} name={name}
+        archive={archive}
       />
     );
   }
