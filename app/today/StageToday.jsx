@@ -734,25 +734,7 @@ export default function StageToday() {
     return RAMP_ORDER.filter((c) => m.get(c)).map((c) => [c, m.get(c)]);
   }, [totals]);
   const catPlayMax = catPlays.reduce((a, r) => Math.max(a, r[1]), 0);
-  // A share bar never draws as nothing: a reader who played one of nine hundred
-  // is still ON the board, and a 0.1% bar that rounds to no pixels reads as an
-  // error rather than as a small number.
-  const pctOf = (a, b) => (b > 0 ? Math.max(2, Math.min(100, (a / b) * 100)) : 0);
   const avgPlay = totals && totals.today ? Math.round((totals.todayTime || 0) / totals.today) : 0;
-
-  // WHAT THE READER'S OWN DAY ADDS UP TO, from the same rows the standing table
-  // lists. Every figure is a count of something already on screen, so nothing
-  // here can disagree with the table above it.
-  const myDay = useMemo(() => {
-    if (!standing.length) return null;
-    return {
-      played: standing.length,
-      firsts: standing.filter((r) => r.rank === 1).length,
-      top3: standing.filter((r) => r.rank <= 3).length,
-      clean: standing.filter((r) => r.total && r.score === r.total).length,
-      secs: standing.reduce((a, r) => a + (Number(r.timeElapsed) || 0), 0),
-    };
-  }, [standing]);
 
   // Resolvable dailies only, most recent first, capped: a feed is a glance at
   // what is happening, not a log.
@@ -1433,7 +1415,7 @@ export default function StageToday() {
           </div>
           <div className="sty-lwide">
             {live.length ? (
-              <div className="sty-live">
+              <div className="sty-live" style={{ '--lrows': Math.ceil(live.length / 2) }}>
                 {live.map((fp, i) => (
                   <a key={`${fp.quizId}-${i}`} className="sty-lrow" href={`${routeOf(fp.game)}?stage=1${tq}`}
                     style={{ '--cc': hueFor(fp.game.cat) }}>
@@ -1463,38 +1445,21 @@ export default function StageToday() {
                     ))}
                   </div>
                 ) : null}
-                {myDay && totals ? (
-                  <div className="sty-lviz">
-                    <div className="sty-eb">Your share of it</div>
-                    <div className="sty-lbar sty-lmine">
-                      <span className="sty-lbn">Plays</span>
-                      <span className="sty-lbt">
-                        <i style={{ width: `${pctOf(myDay.played, totals.today)}%` }} />
-                      </span>
-                      <span className="sty-lbv">
-                        {myDay.played}<i>{' of '}{(totals.today || 0).toLocaleString()}</i>
-                      </span>
-                    </div>
-                    <div className="sty-lbar sty-lmine">
-                      <span className="sty-lbn">Time</span>
-                      <span className="sty-lbt">
-                        <i style={{ width: `${pctOf(myDay.secs, totals.todayTime)}%` }} />
-                      </span>
-                      <span className="sty-lbv">
-                        {hhmm(myDay.secs) || '0:00'}<i>{' of '}{hhmm(totals.todayTime) || '0:00'}</i>
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
+                {/* NOTHING ABOUT THE READER LIVES HERE (owner, 2026-09-01).
+                    This section's own rule, three comments up, is that its
+                    figures are the DAY'S and its rows carry no names — and the
+                    first thing I did with the room was put the reader's share of
+                    the day and four YOU figures in it, which is the same
+                    mistake the rule was written against. Your standing is where
+                    a reader's own day is reported; this is the site's. */}
                 <div className="sty-lfigs">
                   {totals && totals.todayPlayers ? (
                     <div><b>{totals.todayPlayers.toLocaleString()}</b><i>players today</i></div>
                   ) : null}
                   {avgPlay ? <div><b>{hhmm(avgPlay)}</b><i>average play</i></div> : null}
-                  {myDay ? <div><b>{myDay.played}</b><i>you finished</i></div> : null}
-                  {myDay ? <div><b>{myDay.firsts}</b><i>you won</i></div> : null}
-                  {myDay ? <div><b>{myDay.top3}</b><i>top three</i></div> : null}
-                  {myDay ? <div><b>{myDay.clean}</b><i>full marks</i></div> : null}
+                  {totals && totals.today ? (
+                    <div><b>{totals.today.toLocaleString()}</b><i>plays today</i></div>
+                  ) : null}
                 </div>
               </div>
             ) : null}
@@ -1820,9 +1785,18 @@ const CSS = `
   .sty-trio .sty-sscroll::-webkit-scrollbar{width:9px;}
   .sty-trio .sty-sscroll::-webkit-scrollbar-thumb{background:var(--stg-line2);border-radius:9px;}
   .sty-trio .sty-sscroll::-webkit-scrollbar-track{background:transparent;}
-  /* At full width the feed tiles again: the single-file rule below is for a
-     feed sharing the row with the board, which this one no longer does. */
-  .sty-trio .sty-live{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
+  /* THE 900px CAP IS FOR A TABLE ALONE ON A PAGE. Paired, each table already
+     has half the width and the cap left a ragged strip of ground down the right
+     of the board while its own name and figure columns sat too far apart
+     (owner, 2026-09-01). In the trio the column IS the measure. */
+  .sty-trio .sty-tbl{max-width:none;}
+  /* TWO COLUMNS, READ DOWN (owner, 2026-09-01). auto-fill gave four across at
+     this width and a feed read four-abreast is four separate short lists; a
+     reader follows one column down. grid-auto-flow:column with an explicit row
+     count is what fills top-to-bottom before moving right, and --lrows is set
+     from the render so the two columns stay even at any feed length. */
+  .sty-trio .sty-live{grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:repeat(var(--lrows,5),auto);grid-auto-flow:column;}
 }
 
 /* ── the day, drawn, beside the feed ───────────────────────────────────── */
@@ -1831,26 +1805,31 @@ const CSS = `
 .sty-lwide{display:grid;gap:22px;min-width:0;}
 .sty-lstats{display:none;}
 @media (min-width:1100px){
-  .sty-trio .sty-lwide{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:start;}
-  .sty-trio .sty-lstats{display:grid;gap:16px;align-content:start;}
+  /* The feed is two columns now and the chart is the thing worth looking at, so
+     the split moved toward the chart rather than away from it. */
+  .sty-trio .sty-lwide{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);align-items:start;}
+  .sty-trio .sty-lstats{display:grid;gap:18px;align-content:start;}
 }
-.sty-lviz{display:grid;gap:5px;}
+.sty-lviz{display:grid;gap:8px;}
 .sty-lviz .sty-eb{margin-bottom:3px;}
-.sty-lbar{display:grid;grid-template-columns:74px minmax(0,1fr) auto;align-items:center;gap:9px;}
-.sty-lbn{font-family:${MONO};font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;
+/* WIDER BLOCKS (owner, 2026-09-01). The bars were 7px hairlines with a 74px
+   label that ellipsed "Crowd Psychology" to "Crowd Psycho…", which is a chart
+   drawn apologetically. With the reader's own figures out of this panel there is
+   room to draw it properly: the label reads in full and the bar is a block. */
+.sty-lbar{display:grid;grid-template-columns:118px minmax(0,1fr) auto;align-items:center;gap:11px;}
+.sty-lbn{font-family:${MONO};font-size:9px;letter-spacing:.09em;text-transform:uppercase;
   color:var(--stg-mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* The track is a component boundary rather than text, so it owes 3:1 and takes
    the raised surface; the fill is the category's own step. */
-.sty-lbt{display:block;height:7px;border-radius:999px;background:var(--stg-surf2);overflow:hidden;}
-.sty-lbt i{display:block;height:100%;background:var(--cc);border-radius:999px;
+.sty-lbt{display:block;height:14px;border-radius:5px;background:var(--stg-surf2);overflow:hidden;}
+.sty-lbt i{display:block;height:100%;background:var(--cc);border-radius:5px;
   transition:width .35s ease;}
-.sty-lmine{--cc:var(--stg-acc);}
-.sty-lbv{font-family:${MONO};font-size:11px;font-weight:700;color:var(--stg-ink2);
-  white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sty-lbv{font-family:${MONO};font-size:12px;font-weight:700;color:var(--stg-ink2);
+  white-space:nowrap;font-variant-numeric:tabular-nums;min-width:34px;text-align:right;}
 .sty-lbv i{font-style:normal;font-weight:600;color:var(--stg-mute);}
 .sty-lfigs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;
-  border-top:1px solid var(--stg-line);padding-top:13px;}
-.sty-lfigs b{display:block;font-size:17px;font-weight:800;line-height:1.1;
+  border-top:1px solid var(--stg-line);padding-top:14px;}
+.sty-lfigs b{display:block;font-size:19px;font-weight:800;line-height:1.1;
   font-variant-numeric:tabular-nums;}
 .sty-lfigs i{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--stg-mute);}
