@@ -410,8 +410,11 @@ export function XpPanel({ me, titleById, viewing, stage }) {
   const nextLevelAt = prog.levelNext;
   const bandPct = prog.stepSize > 0 ? Math.round(Math.max(4, Math.min(100, (prog.intoLevel / prog.stepSize) * 100))) : 100;
   const tierLabel = found && me.tier ? me.tier : 'Bronze Tier';
-  const tierBg = found && me.tierBg ? me.tierBg : (stage ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : T.paper);
-  const tierFg = found && me.tierFg ? me.tierFg : C.muted;
+  // The API's tierBg/tierFg are a LIGHT-page pair (navy ink on a pale wash),
+  // so on the stage they are not a fallback to reach for, they are the thing
+  // to ignore: measured 1.55:1 live before this.
+  const tierBg = stage ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : (found && me.tierBg ? me.tierBg : T.paper);
+  const tierFg = stage ? 'var(--stg-ink,#e9edf4)' : (found && me.tierFg ? me.tierFg : C.muted);
 
   const explainerCards = (
     <div className="rgrid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
