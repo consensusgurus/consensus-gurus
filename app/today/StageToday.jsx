@@ -41,6 +41,13 @@ import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 import StageLadder from '../StageLadder';
 import MindLoftMark from '../MindLoftMark';
+// ONE LINK MAP, NOT TWO. The stage draws its own footer because the shared
+// one is dark ink on a light ground and would vanish on this page's dark
+// register, but the LINKS are the site's and there is no version of this
+// where the home should list different ones. So the columns are imported
+// from app/Footer.jsx and only the drawing is local: a link added there
+// appears here, and the two can never drift.
+import { FOOTER_COLS } from '../Footer';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
@@ -102,6 +109,43 @@ const AZ_KEY = 'sot_stage_az';
 // the same way; this repeats it because the home's sort has to interleave that
 // lead with the reader's own progress, which that module knows nothing about.
 const CIRC_LEAD = ['gauntlet', 'five'];
+
+// HOW MANY QUIZZES A TOPIC SHOWS BEFORE "show all". The catalogue is over
+// eighteen hundred quizzes and Geography alone is four hundred and thirty
+// eight, so an expanded topic that simply listed everything would be a
+// thousand rows of the home page.
+const QUIZ_PEEK = 15;
+
+// THE PRE-LOAD SKELETON, and it is a skeleton rather than the answer.
+// /api/quiz/topics is the authority on which topics exist, what they are
+// called and what is in them; this list exists only so the section has its
+// real height and its real labels before the fetch lands, instead of growing
+// fifteen rows under the reader's scroll. It is DEPT_NAV's order, which is
+// also the order /quizzes/all renders, so the loaded list drops straight into
+// the same rows and nothing moves.
+//
+// It is written out rather than imported from lib/quiz-departments.js on
+// purpose: that module carries the two-thousand-line id map and the icon set,
+// and this surface needs fifteen labels. If the two ever disagree the ROUTE
+// wins, because the section replaces this list wholesale the moment data
+// arrives.
+const TOPIC_SKELETON = [
+  { id: 'movies', label: 'Movies' },
+  { id: 'music', label: 'Music' },
+  { id: 'gaming', label: 'Gaming' },
+  { id: 'travel', label: 'Travel' },
+  { id: 'sports', label: 'Sports' },
+  { id: 'geography', label: 'Geography' },
+  { id: 'food', label: 'Food & Drink' },
+  { id: 'business', label: 'Business' },
+  { id: 'science', label: 'Science & Nature' },
+  { id: 'entertainment', label: 'Entertainment' },
+  { id: 'word', label: 'Word Puzzles' },
+  { id: 'literature', label: 'Literature' },
+  { id: 'history', label: 'History' },
+  { id: 'arts', label: 'Arts & Culture' },
+  { id: 'school', label: 'Standardized Tests' },
+];
 const leadRankOf = (id) => {
   const i = CIRC_LEAD.indexOf(id);
   return i < 0 ? CIRC_LEAD.length : i;
@@ -237,6 +281,59 @@ export default function StageToday() {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+
+  // THE QUIZ CATALOGUE, BY TOPIC, and the site's visitor count for the footer.
+  // Both belong to the bottom of this page, so both are fetched when the bottom
+  // of the page is actually reached rather than on arrival: the topics payload
+  // is a hundred and sixty kilobytes of titles and most readers never scroll
+  // to it. One observer serves both because they light up at the same moment
+  // and two would be two of the same thing.
+  //
+  // The route is generated at build time and cached at the edge for a day, so
+  // the cost of the fetch itself is a CDN hit, not a database read.
+  const [topics, setTopics] = useState(null);
+  const [visitors, setVisitors] = useState(null);
+  const footRef = useRef(null);
+  const [nearFoot, setNearFoot] = useState(false);
+  useEffect(() => {
+    const el = footRef.current;
+    // No IntersectionObserver (old browser, jsdom) means fetch it rather than
+    // never showing the counts: degrading to the eager behaviour is fine, and
+    // silently rendering an empty section is not.
+    if (!el || typeof IntersectionObserver === 'undefined') { setNearFoot(true); return undefined; }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { setNearFoot(true); io.disconnect(); }
+    }, { rootMargin: '600px 0px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  useEffect(() => {
+    if (!nearFoot) return undefined;
+    let alive = true;
+    fetch('/api/quiz/topics')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && Array.isArray(d.topics) && d.topics.length) setTopics(d.topics); })
+      .catch(() => {});
+    fetch('/api/visitors')
+      .then((r) => r.json())
+      .then((d) => { if (alive && d && typeof d.visitors === 'number') setVisitors(d.visitors); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [nearFoot]);
+
+  // Which topics are open, and which have been shown in full. A Set rather than
+  // one open topic at a time: the rows are fifteen quizzes each, so several
+  // open at once is a shelf rather than a wall, and closing one to read another
+  // is a click the reader did not ask to spend.
+  const [openTopics, setOpenTopics] = useState(() => new Set());
+  const [fullTopics, setFullTopics] = useState(() => new Set());
+  const toggleTopic = (id) => setOpenTopics((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const topicList = topics || TOPIC_SKELETON;
+  const quizTotal = topics ? topics.reduce((a, t) => a + t.count, 0) : 0;
 
   const [board, setBoard] = useState(null);
   // THE OVERALL RANK comes from /api/quiz/me, the same place the site header
@@ -868,7 +965,136 @@ export default function StageToday() {
         </section>
 
         </div>
+
+        {/* THE QUIZ CATALOGUE, UNDER THE DAY'S TWO RECORDS (owner, 2026-08-31).
+            The dailies are what this home is for and they keep the top of it;
+            the quizzes are the deep shelf behind them, eighteen hundred of
+            them, and a shelf that size only works as a set of drawers. So each
+            topic is a row that opens in place, shows fifteen, and offers the
+            rest.
+
+            IT SPENDS NO COLOUR. The stage's family is the nine category steps
+            of the daily roster, and these fifteen topics are not those nine:
+            painting them would put a sixteenth, seventeenth and eighteenth hue
+            on a page whose whole rule is one family. So the section's rule is
+            neutral, exactly as My games' and Circuits' are, and the topics are
+            told apart by their names and their counts. */}
+        <section className="sty-cat sty-qsec" style={{ '--cc': 'var(--stg-ink2)' }} ref={footRef}>
+          <div className="sty-cathead">
+            <h2>Quizzes</h2>
+            {/* DRAWN ONLY WHEN REAL: no figure until the catalogue has landed,
+                rather than a zero that is not true yet. */}
+            {quizTotal ? (
+              <b>{quizTotal.toLocaleString()}<i>/{topicList.length} topics</i></b>
+            ) : null}
+            <a className="sty-all sty-qall" href="/quizzes/all">
+              <span>Full index</span>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+            </a>
+          </div>
+          <div className="sty-topics">
+            {topicList.map((t) => {
+              const open = openTopics.has(t.id);
+              const all = fullTopics.has(t.id);
+              const list = t.quizzes || [];
+              const shown = all ? list : list.slice(0, QUIZ_PEEK);
+              return (
+                <div key={t.id} className={'sty-topic' + (open ? ' on' : '')}>
+                  <button
+                    type="button"
+                    className="sty-trow"
+                    aria-expanded={open}
+                    aria-controls={`sty-t-${t.id}`}
+                    onClick={() => toggleTopic(t.id)}
+                  >
+                    <span className="sty-tn">{t.label}</span>
+                    {t.count ? <span className="sty-tc">{t.count}</span> : null}
+                    <svg className="sty-tv" viewBox="0 0 24 24" width="13" height="13" fill="none"
+                      stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"
+                      strokeLinejoin="round" aria-hidden="true">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  {open ? (
+                    <div className="sty-tbody" id={`sty-t-${t.id}`}>
+                      {shown.length ? (
+                        <>
+                          <div className="sty-qgrid">
+                            {shown.map((q) => (
+                              <a key={q.id} className="sty-ql" href={`/quiz/${q.id}`}>{q.title}</a>
+                            ))}
+                          </div>
+                          <div className="sty-tfoot">
+                            {list.length > QUIZ_PEEK ? (
+                              <button
+                                type="button"
+                                className="sty-more sty-tmore"
+                                onClick={() => setFullTopics((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(t.id)) next.delete(t.id); else next.add(t.id);
+                                  return next;
+                                })}
+                              >
+                                {all ? 'Show fewer' : `Show all ${t.count}`}
+                              </button>
+                            ) : null}
+                            <a className="sty-more sty-tmore" href={`/quizzes/all#${t.id}`}>
+                              {t.label} A to Z
+                            </a>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="sty-lnone">Loading the catalogue&hellip;</div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </section>
       </div>
+
+      {/* THE FOOTER, FULL BLEED (owner, 2026-08-31). It sits OUTSIDE .sty-wrap
+          so it runs edge to edge under the page's own padding, and it is drawn
+          in the stage's tokens rather than rendered from app/Footer.jsx: that
+          component is near-black ink on a hairline of rgba(20,22,28,0.12),
+          which is invisible on this page's dark register. Only the drawing is
+          local. The columns are the shared ones (see the import). */}
+      <footer className="sty-foot">
+        <div className="sty-fin">
+          <div className="sty-fbrand">
+            <span className="sty-brand">
+              <MindLoftMark size={19} ink="var(--stg-ink)" accent="var(--stg-acc)" />
+              <b>Mind <em>Loft</em></b>
+            </span>
+            <p>Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.</p>
+            <a className="sty-fabout" href="/about">About Mind Loft</a>
+            {visitors != null ? (
+              <div className="sty-fvis">{visitors.toLocaleString()}<i>visitors</i></div>
+            ) : null}
+          </div>
+          {FOOTER_COLS.map((col) => (
+            <div key={col.head} className="sty-fcol">
+              <div className="sty-eb">{col.head}</div>
+              {col.links.map((l) => (
+                l.external ? (
+                  <a key={l.label} href={l.href} target="_blank" rel="noopener">{l.label}</a>
+                ) : (
+                  <a key={l.label} href={l.href}>{l.label}</a>
+                )
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="sty-fbase">
+          <span>&copy; {new Date().getFullYear()} Mind Loft</span>
+          <span>As an Amazon Associate, Mind Loft earns from qualifying purchases.</span>
+        </div>
+      </footer>
     </div>
   );
 }
@@ -1167,5 +1393,89 @@ const CSS = `
 @media (max-width:380px){
   .sty-figs{gap:12px;}
 }
+
+/* NOTE: this block is a JS template literal, so no backticks in comments. */
+
+/* -- quizzes, by topic --------------------------------------------------- */
+/* A ROW OF DRAWERS, not a grid of cards. Every other block on this page deals
+   tiles because its items are eighty games a reader picks between; this one is
+   fifteen topics over eighteen hundred quizzes, and the thing being chosen is
+   which drawer to open. Rows also mean the count sits in a column and reads
+   down the list, which is the figure a reader is scanning for. */
+.sty-qall{margin-left:auto;}
+.sty-topics{display:flex;flex-direction:column;gap:5px;}
+.sty-topic{background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:9px;
+  overflow:hidden;}
+.sty-topic.on{border-color:var(--stg-line2);}
+.sty-trow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  background:none;border:0;padding:11px 14px;font-family:inherit;color:var(--stg-ink);}
+.sty-trow:hover{background:var(--stg-chip);}
+.sty-trow:focus-visible{outline:2px solid var(--stg-acc);outline-offset:-2px;}
+.sty-tn{font-size:14.5px;font-weight:800;letter-spacing:-0.01em;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sty-tc{margin-left:auto;flex:none;font-family:${MONO};font-size:12px;font-weight:700;
+  font-variant-numeric:tabular-nums;color:var(--stg-ink2);}
+/* The caret is the only thing on the row that says it opens, so it turns
+   rather than swapping to a second glyph. */
+.sty-tv{flex:none;color:var(--stg-mute2);transition:transform .16s ease;}
+.sty-topic.on .sty-tv{transform:rotate(180deg);color:var(--stg-ink2);}
+/* A topic with no count yet has no caret column to balance against, so the
+   caret keeps the right edge on its own. */
+.sty-trow>.sty-tv:nth-child(2){margin-left:auto;}
+.sty-tbody{padding:2px 14px 13px;border-top:1px solid var(--stg-line);}
+/* THE TITLES ARE THE POINT, so they are a plain list of links in columns
+   rather than fifteen more bordered cards: a card per quiz would make a topic
+   look like the game roster above it, which it is not. */
+.sty-qgrid{display:grid;gap:1px 26px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  padding-top:10px;}
+.sty-ql{display:block;min-width:0;font-size:13.5px;font-weight:600;line-height:1.45;
+  color:var(--stg-ink2);text-decoration:none;padding:5px 0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sty-ql:hover{color:var(--stg-acc);}
+.sty-ql:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;border-radius:4px;}
+.sty-tfoot{display:flex;gap:7px;margin-top:9px;}
+.sty-tmore{width:auto;margin-top:0;flex:1 1 auto;text-align:center;text-decoration:none;
+  display:flex;align-items:center;justify-content:center;}
+
+/* -- the footer, edge to edge -------------------------------------------- */
+/* FULL BLEED, and it carries its own ground rather than borrowing the page's:
+   a footer that is the same colour as the page above it with one hairline
+   between them reads as the page having run out, not as a footer. One step of
+   the surface ladder is enough to say it is a different thing. */
+.sty-foot{background:var(--stg-raise);border-top:1px solid var(--stg-line);
+  padding:34px 22px 22px;}
+.sty-fin{display:flex;flex-wrap:wrap;gap:30px 38px;align-items:flex-start;}
+.sty-fbrand{flex:1 1 250px;max-width:320px;min-width:0;}
+.sty-fbrand .sty-brand b{font-size:15px;font-weight:800;letter-spacing:-0.01em;}
+.sty-fbrand .sty-brand b em{font-style:normal;color:var(--stg-acc);}
+.sty-fbrand p{margin:9px 0 0;font-size:12.5px;line-height:1.55;color:var(--stg-mute);}
+.sty-fabout{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:800;
+  color:var(--stg-ink);text-decoration:none;}
+.sty-fabout:hover{color:var(--stg-acc);}
+/* The visitor count is a FIGURE, drawn the way every other figure on this page
+   is, rather than a sentence of small grey prose. */
+.sty-fvis{margin-top:14px;font-family:${MONO};font-size:13px;font-weight:700;
+  font-variant-numeric:tabular-nums;color:var(--stg-ink2);}
+.sty-fvis i{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--stg-mute2);margin-left:7px;}
+.sty-fcol{display:flex;flex-direction:column;gap:6px;min-width:0;}
+.sty-fcol .sty-eb{margin-bottom:3px;}
+.sty-fcol a{font-size:12.5px;font-weight:600;color:var(--stg-mute);text-decoration:none;}
+.sty-fcol a:hover{color:var(--stg-ink);}
+.sty-fcol a:focus-visible,.sty-fabout:focus-visible{outline:2px solid var(--stg-acc);
+  outline-offset:3px;border-radius:4px;}
+.sty-fbase{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;
+  margin-top:26px;padding-top:14px;border-top:1px solid var(--stg-line);
+  font-family:${MONO};font-size:10px;letter-spacing:.06em;color:var(--stg-mute2);}
+
+@media (max-width:640px){
+  .sty-qgrid{grid-template-columns:minmax(0,1fr);}
+  .sty-tfoot{flex-direction:column;}
+  .sty-foot{padding:26px 14px 20px;}
+  .sty-fin{gap:22px 28px;}
+  .sty-fbrand{flex-basis:100%;max-width:none;}
+  .sty-fcol{flex:1 1 132px;}
+}
+@media (prefers-reduced-motion:reduce){.sty-tv{transition:none;}}
 @media (prefers-reduced-motion:reduce){.sty-prog span{transition:none;}}
 `;

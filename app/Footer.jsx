@@ -14,7 +14,13 @@ const NEUTRAL = {
   line: 'rgba(20,22,28,0.12)',
 };
 
-const COLS = [
+// THE COLUMNS ARE EXPORTED, and this is the one copy of them. The stage home
+// (app/today/StageToday.jsx) draws its own footer, because this one is
+// near-black ink on a light hairline and disappears on the stage's dark
+// register, but there is no version of the site where the home should offer
+// DIFFERENT links from every other page. So the drawing is duplicated and the
+// map is not: add a link here and both footers get it.
+export const FOOTER_COLS = [
   {
     head: 'Puzzles & Quizzes',
     links: [
@@ -108,7 +114,7 @@ export default function Footer() {
           </Link>
           {vis != null && (<div style={{ fontSize: 11.5, color: NEUTRAL.soft, marginTop: 10 }}>{vis.toLocaleString()} visitors</div>)}
         </div>
-        {COLS.map((col) => (
+        {FOOTER_COLS.map((col) => (
           <div key={col.head}>
             <div
               style={{
