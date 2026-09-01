@@ -91,11 +91,29 @@ const FLOOD_MIN = 600;      // the floor: the verdict alone, before any figure
 const FLOOD_COUNT = 820;    // the IQ's climb, which is also its dwell
 const FLOOD_STAMP = 380;    // every other figure lands this far after the last
 const FLOOD_SETTLE = 420;   // a beat on the finished set, to read it whole
-// The backstop, and pathological only: LoftFinish gives up waiting at 11s and
-// shows what it has, so this sits just past that. It exists so a caller that
-// passes `ready` and never flips it cannot strand a player on a coloured
-// screen. It short-circuits the queue rather than waiting it out.
-const FLOOD_MAX = 12000;
+// HOW LONG THE QUEUE WILL BLOCK ON A FIGURE THAT HAS NOT ARRIVED (owner,
+// 2026-08-31, and this is the third pass on this screen). It was anchored to
+// LoftFinish's OWN ceiling, 11 seconds, on the reasoning that the curtain
+// should not leave before the card is finished. In practice the IQ read polls
+// for several seconds on a real finish, so the curtain sat on a coloured screen
+// with nothing landing on it and READ AS STUCK — players tapped it away, which
+// is the one thing an ending must never make them do.
+//
+// The card is perfectly able to say "Calculating" for a straggler; that block
+// is what it is for. So the curtain waits a beat and then goes, and a figure
+// that misses this window simply lands on the card instead of here.
+//
+// IT DOES NOT CUT ANYTHING OFF. This bounds the WAITING only: a figure already
+// revealed still gets its full dwell, so the IQ's climb always completes even if
+// the number arrived at the last possible moment. That was the whole point of
+// the previous pass and it is preserved exactly.
+const FLOOD_WAIT = 2200;
+// The hint, because a screen you can leave should say so. The Broadcast carries
+// the same line for the same reason.
+const FLOOD_HINT = 1500;
+// The absolute stop, pathological only: nothing in the queue should be able to
+// outlast this, and if something does the player leaves anyway.
+const FLOOD_HARD = 9000;
 const FLOOD_SHRINK = 640;   // it collapses onto the band's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the band's words appear
 // A finish card mounts seconds after the last move: every client holds the
@@ -130,7 +148,8 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
   const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);    // the floor has passed
-  const [expired, setExpired] = useState(false);   // the backstop has fired
+  const [expired, setExpired] = useState(false);   // done waiting for stragglers
+  const [hint, setHint] = useState(false);         // 'tap to skip' is showing
   const [shown, setShown] = useState(0);      // how far the queue has been walked
   const doneRef = useRef(false);
   const goneRef = useRef(false);              // the collapse has been started
@@ -188,7 +207,9 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
   useEffect(() => {
     at(20, () => setPhase('up'));
     at(FLOOD_MIN, () => setHeld(true));
-    at(FLOOD_MAX, () => setExpired(true));
+    at(FLOOD_HINT, () => setHint(true));
+    at(FLOOD_WAIT, () => setExpired(true));
+    at(FLOOD_HARD, finish);
     return () => { timersRef.current.forEach(clearTimeout); timersRef.current = []; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -222,7 +243,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
   // THE COLLAPSE, once the queue has run out (or the backstop has fired).
   useEffect(() => {
     if (!held || goneRef.current) return;
-    if (shown < figs.length && !expired) return;
+    if (shown < figs.length) return;
     goneRef.current = true;
     at(FLOOD_SETTLE, () => {
       const el = bandRef && bandRef.current;
@@ -249,7 +270,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
     at(FLOOD_SETTLE + FLOOD_SHRINK + 60, () => setPhase('out'));
     at(FLOOD_SETTLE + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [held, shown, figs, expired]);
+  }, [held, shown, figs]);
 
   // Any key. (Any tap is the element's own onClick.)
   useEffect(() => {
@@ -282,6 +303,9 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
           ) : null))}
         </div>
       </div>
+      {/* It goes on its own; this is only so a player who does not want to wait
+          knows they do not have to. It leaves the moment the collapse starts. */}
+      {hint && phase === 'up' ? <div className="stf-fl-skip">tap to skip</div> : null}
     </div>
   );
 }
@@ -1018,6 +1042,10 @@ const CSS = `
 .stf-fl-fig.lead b{font-size:clamp(46px,10vw,118px);line-height:.9;letter-spacing:-.05em;}
 .stf-fl-fig.lead i{font-size:clamp(10px,1.4vw,13px);letter-spacing:.18em;
   opacity:.78;margin-top:12px;}
+.stf-fl-skip{position:absolute;left:0;right:0;bottom:26px;text-align:center;
+  font-family:${MONO};font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  font-weight:700;opacity:0;animation:stf-hint 400ms ease 0s both;}
+@keyframes stf-hint{ from{opacity:0} to{opacity:.42} }
 @keyframes stf-stamp{
   from{opacity:0;transform:translateY(10px) scale(1.26);}
   to{opacity:1;transform:none;}
