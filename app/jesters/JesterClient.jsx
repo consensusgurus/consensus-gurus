@@ -259,17 +259,17 @@ function freshState(n) {
 }
 
 // A little motley-hat mark, drawn inline so it is crisp at any cell size.
-function JesterMark({ size = 22, color = COLORS.accentDeep, conflict = false }) {
-  const fill = conflict ? '#b91c1c' : color;
+function JesterMark({ size = 22, color = `var(--stg-acc, ${COLORS.accentDeep})`, conflict = false }) {
+  const fill = conflict ? `var(--stg-bad, #b91c1c)` : color;
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block' }}>
-      <path d="M3 15 5 6l4.2 4L12 3l2.8 7L19 6l2 9z" fill={fill} />
-      <circle cx="3.4" cy="14.6" r="1.6" fill={fill} />
-      <circle cx="5" cy="5.6" r="1.6" fill={fill} />
-      <circle cx="12" cy="2.9" r="1.6" fill={fill} />
-      <circle cx="19" cy="5.6" r="1.6" fill={fill} />
-      <circle cx="20.6" cy="14.6" r="1.6" fill={fill} />
-      <rect x="4" y="17" width="16" height="3.6" rx="1.4" fill={fill} />
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', color: fill }}>
+      <path d="M3 15 5 6l4.2 4L12 3l2.8 7L19 6l2 9z" fill="currentColor" />
+      <circle cx="3.4" cy="14.6" r="1.6" fill="currentColor" />
+      <circle cx="5" cy="5.6" r="1.6" fill="currentColor" />
+      <circle cx="12" cy="2.9" r="1.6" fill="currentColor" />
+      <circle cx="19" cy="5.6" r="1.6" fill="currentColor" />
+      <circle cx="20.6" cy="14.6" r="1.6" fill="currentColor" />
+      <rect x="4" y="17" width="16" height="3.6" rx="1.4" fill="currentColor" />
     </svg>
   );
 }
@@ -969,7 +969,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               <span style={{ fontWeight: 900, fontSize: 14, lineHeight: 1 }}>✗</span> Mark
             </button>
             <button type="button" className={`je-tool${tool === 'jester' ? ' on' : ''}`} onClick={() => setTool('jester')} title="Seat a jester" aria-pressed={tool === 'jester'}>
-              <JesterMark size={14} color={tool === 'jester' ? T.white : COLORS.accentDeep} /> Jester
+              <JesterMark size={14} color={tool === 'jester' ? `var(--stg-onramp, ${T.white})` : `var(--stg-acc, ${COLORS.accentDeep})`} /> Jester
             </button>
           </div>
         )}

@@ -72,6 +72,11 @@ const COLORS = {
   green: T.successDeep,
 };
 const BAND_TINTS = ['#7c2230', '#5f6b7d', '#2c3a4d'];
+// The three section bands are the puzzle's own structure, so they stay tellable
+// apart, but on the stage they are three DEPTHS OF ONE COLOUR rather than three
+// unrelated ones, mixed from the category step so they follow the register. The
+// Loft keeps BAND_TINTS untouched, so ?stage=0 renders exactly what shipped.
+const BAND_TINTS_STAGE = [46, 27, 15].map((p) => `color-mix(in srgb, var(--stg-acc) ${p}%, transparent)`);
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_alibi_help_seen';
@@ -671,7 +676,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-tbl th{font-size:11px;padding:6px 4px;background:${STAGE ? 'var(--stg-surf2)' : '#efece6'};font-weight:700;color:${INK};}
           .al-tbl th.rowh{text-align:right;width:31%;padding-right:7px;font-size:12px;font-weight:700;color:${FADED};background:${STAGE ? 'var(--stg-surf2)' : '#faf8f4'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
           .al-tbl th.colh{font-size:12px;padding:7px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;}
-          .al-band td{background:var(--bg);color:var(--white);font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid var(--bg);}
+          .al-band td{background:${STAGE ? 'var(--bgs)' : 'var(--bg)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--white)'};font-size:9.5px;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;text-align:left;padding:3px 8px;border:1px solid ${STAGE ? 'var(--stg-line)' : 'var(--bg)'};}
           @media(max-width:400px){.al-tbl th.rowh{font-size:11px;}.al-tbl th.colh{font-size:11px;}}
           .al-td{height:34px;border: 1px solid var(--stg-line, rgba(28,30,36,0.12));text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .al-td:hover{background:${STAGE ? 'var(--stg-surf2)' : '#faf6ee'};}
@@ -798,7 +803,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
                 </tr>
                 {CAT_META.map((cat, ci) => (
                   <React.Fragment key={cat.key}>
-                    <tr className="al-band" style={{ '--bg': BAND_TINTS[ci % BAND_TINTS.length] }}>
+                    <tr className="al-band" style={{ '--bg': BAND_TINTS[ci % BAND_TINTS.length], '--bgs': BAND_TINTS_STAGE[ci % BAND_TINTS_STAGE.length] }}>
                       <td colSpan={PUZZLE.suspects.length + 1}>{cat.label}</td>
                     </tr>
                     {cat.vals.map((val, v) => (
