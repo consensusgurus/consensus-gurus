@@ -878,9 +878,9 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>Fill the grid so every row, column, and coloured region holds the digits 1 to 9.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="ql-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>

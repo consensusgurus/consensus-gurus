@@ -545,9 +545,9 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                   <p style={{ margin: '0 0 6px' }}>One secret word. Guess any word and see how close in meaning it is, cold to hot.</p>
                 </div>
               )}
-              <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+              <div style={{ marginTop: 'auto', paddingTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <button className="wm-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
-                <div style={{ marginTop: 10 }}>
+                <div>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>

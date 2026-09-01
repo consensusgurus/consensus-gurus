@@ -863,8 +863,10 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
                   />
                 </div>
               )}
-              <button className="an-btn primary" onClick={start}>Start</button>
-              {!gateRules && <button className="an-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>}
+              <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <button className="an-btn primary" onClick={start}>Start</button>
+                {!gateRules && <button className="an-btn" onClick={() => setGateRules(true)}>Show instructions</button>}
+              </div>
             </div>
           )}
 

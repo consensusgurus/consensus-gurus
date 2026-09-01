@@ -593,9 +593,9 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>{HANDS} hands of blackjack off one fixed {PUZZLE.shoe.length}-card shoe, the same for every player today. Par is {fmtChips(PUZZLE.par)} chips: that is what the book line banks on this shoe, and beating it is the game.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="sho-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Deal the first hand</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>

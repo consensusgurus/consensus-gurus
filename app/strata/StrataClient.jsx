@@ -653,8 +653,10 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                   />
                 </div>
               )}
-              <button className="st-btn primary" onClick={start}>Start digging</button>
-              {!gateRules && <button className="st-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>}
+              <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <button className="st-btn primary" onClick={start}>Start digging</button>
+                {!gateRules && <button className="st-btn" onClick={() => setGateRules(true)}>Show instructions</button>}
+              </div>
             </div>
           )}
 

@@ -729,9 +729,9 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: 0, fontWeight: 600, color: FADED }}>Plenty of cells carry no number. That is the puzzle, not a glitch: a blank cell has no rule, and the printed numbers are enough to pin down one answer.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="hg-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>

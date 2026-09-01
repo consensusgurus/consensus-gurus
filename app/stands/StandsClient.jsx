@@ -545,9 +545,9 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>{N} clubs, {PAIRS.length} matches, and {PUZZLE.clues.length} surviving facts. Exactly one set of results fits them all.</p>
               </div>
             )}
-            <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+            <div style={{ marginTop: 'auto', paddingTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="bk-btn" onClick={startRun} style={{ background: THEME.cta, color: THEME.white, fontSize: 15, padding: '11px 22px' }}>Open the record</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
               </div>
             </div>

@@ -496,9 +496,9 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>{N} words, three overlapping circles, and every one of the seven regions is used. The counts tell you the shape of the answer.</p>
               </div>
             )}
-            <div style={{ marginTop: 'auto', paddingTop: 18 }}>
+            <div style={{ marginTop: 'auto', paddingTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="vn-btn" onClick={startRun} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Turn the sheet over</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>{gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}</button>
               </div>
             </div>

@@ -831,9 +831,9 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                   <p style={{ margin: '0 0 6px' }}>{PUZZLE.empties} squares left and the game is won for you. Exactly one square keeps it. Play the wrong one and the engine, which solves this to the last disc, will not give it back.</p>
                 </div>
               )}
-              <div style={{ marginTop: 18 }}>
+              <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <button className="tn-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
-                <div style={{ marginTop: 10 }}>
+                <div>
                   <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                     {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                   </button>

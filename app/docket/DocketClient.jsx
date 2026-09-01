@@ -491,10 +491,12 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                   />
                 </div>
               )}
-              <button className="dk-btn primary" onClick={start}>Start</button>
-              {!gateRules && (
-                <button className="dk-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <button className="dk-btn primary" onClick={start}>Start</button>
+                {!gateRules && (
+                  <button className="dk-btn" onClick={() => setGateRules(true)}>Show instructions</button>
+                )}
+              </div>
             </div>
           )}
 

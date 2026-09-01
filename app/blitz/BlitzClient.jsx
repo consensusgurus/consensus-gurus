@@ -628,9 +628,9 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
                 <p style={{ margin: '0 0 6px' }}>Twenty problems in five rounds, easy to hard, {Q_SECONDS} seconds each, and one life. Do it in your head and pick from four; every problem you clear is a point. Keys 1 to 4 answer. The clock starts when you do.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="bz-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>

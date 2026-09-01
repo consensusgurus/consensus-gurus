@@ -792,9 +792,9 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>Walk from START to END one touching button at a time. The route you walk is a sum, it reads left to right like a calculator, and it has to come out at {TARGETS.length > 1 ? 'each target' : `${TARGETS[0].target}`}.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="cl-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, borderColor: T.cta, fontSize: 15, padding: '11px 22px' }}>Start</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>

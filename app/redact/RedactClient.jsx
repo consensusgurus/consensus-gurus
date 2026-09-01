@@ -550,10 +550,12 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                   />
                 </div>
               )}
-              <button className="rd-btn primary" onClick={start}>Start uncovering</button>
-              {!gateRules && (
-                <button className="rd-btn" style={{ marginLeft: 8 }} onClick={() => setGateRules(true)}>Show instructions</button>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                <button className="rd-btn primary" onClick={start}>Start uncovering</button>
+                {!gateRules && (
+                  <button className="rd-btn" onClick={() => setGateRules(true)}>Show instructions</button>
+                )}
+              </div>
             </div>
           )}
 

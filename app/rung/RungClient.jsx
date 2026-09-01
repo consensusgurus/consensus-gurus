@@ -685,9 +685,9 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
                 <p style={{ margin: '0 0 6px' }}>Climb from <b>{PUZZLE.start.toUpperCase()}</b> to <b>{PUZZLE.target.toUpperCase()}</b>, one letter at a time, every rung a word. Par is {par} and perfect is {perfect}, the shortest route there is. No undo, only a restart.</p>
               </div>
             )}
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
               <button className="rg-btn" onClick={startGame} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>Start</button>
-              <div style={{ marginTop: 10 }}>
+              <div>
                 <button type="button" onClick={() => setGateRules((v) => !v)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, textDecoration: 'underline' }}>
                   {gateRules ? 'Hide detailed instructions' : 'Show detailed instructions'}
                 </button>
