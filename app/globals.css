@@ -380,7 +380,12 @@ body:has(.stage-page) .qch-bar { display: none !important; }
   --stg-mute: #646c7a;
   --stg-mute2: #626c83;
   --stg-dim: #666c77;
-  --stg-onramp: #ffffff;
+  /* PER CATEGORY, not per register (owner, 2026-08-31). Six of the nine light
+     steps are mid-tones that carry white; the three warm ones stay pastel and
+     carry the near-black instead, because gold darkened until it holds white
+     text is brown. Every stage client passes its own value as --stg-onramp-lt
+     beside --stg-acc-lt; white is the fallback for anything that does not. */
+  --stg-onramp: var(--stg-onramp-lt, #ffffff);
   --stg-chip: #e4e9f1;
   /* The board ladder, near-black over white. Picked against a pale ground, not
      converted from the dark set. b1 is .05 rather than the .035 a naive port

@@ -49,7 +49,7 @@ import StageChrome from '../StageChrome';
 import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -402,7 +402,7 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   // every call site below themes itself and none of them had to be found.
   // The literals are published on the root element instead.
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('mate');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('mate'), '--stg-acc-lt': gameColorLight('mate') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('mate'), '--stg-acc-lt': gameColorLight('mate'), '--stg-onramp-lt': gameOnrampLight('mate') };
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const Cap = STAGE ? StageChrome : LoftCap;

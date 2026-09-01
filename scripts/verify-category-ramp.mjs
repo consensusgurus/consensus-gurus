@@ -129,13 +129,27 @@ for (let i = 1; i < CATEGORY_RAMP.length; i += 1) {
 if (CATEGORY_RAMP_LIGHT.length !== CATEGORY_RAMP.length) {
   fail(`light ramp has ${CATEGORY_RAMP_LIGHT.length} steps against ${CATEGORY_RAMP.length} dark`);
 }
+if (RAMP_INK_LIGHT.length !== CATEGORY_RAMP_LIGHT.length) {
+  fail(`light ink table has ${RAMP_INK_LIGHT.length} entries against ${CATEGORY_RAMP_LIGHT.length} steps`);
+}
 const seenL = new Map();
 CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
   const cat = RAMP_ORDER[i] || `step ${i}`;
-  const ink = contrast(hex, RAMP_INK_LIGHT);
+  // ONE INK PER STEP. Six steps carry white; the three warm ones stay pastel
+  // and carry the near-black, because gold dark enough for white text is brown
+  // (owner, 2026-08-31). So the ink checked here is the step's own.
+  const inkHex = RAMP_INK_LIGHT[i];
+  const dark = inkHex !== '#ffffff';
+  const ink = contrast(hex, inkHex);
   const gnd = contrast(hex, STAGE_GROUND_LIGHT);
-  if (ink < INK_MIN) fail(`light ${cat} ${hex}: white ink is ${ink.toFixed(2)}:1, under ${INK_MIN}`);
-  if (gnd < GROUND_MIN) fail(`light ${cat} ${hex}: pale ground is ${gnd.toFixed(2)}:1, under ${GROUND_MIN}`);
+  if (ink < INK_MIN) fail(`light ${cat} ${hex}: ink ${inkHex} is ${ink.toFixed(2)}:1, under ${INK_MIN}`);
+  // GROUND CONTRAST IS A FAILURE ONLY FOR THE WHITE-INK STEPS. A pastel fill on
+  // a pale ground is ~1.7:1 against it by construction, which is the accepted
+  // cost of keeping the warm hues true: the edge of a warm accent chip is soft
+  // in light mode, while the text on it runs 8:1 and up. Stated rather than
+  // silently exempted.
+  if (gnd < GROUND_MIN && !dark) fail(`light ${cat} ${hex}: pale ground is ${gnd.toFixed(2)}:1, under ${GROUND_MIN}`);
+  if (gnd < GROUND_MIN && dark) warn(`light ${cat} ${hex}: pale ground is ${gnd.toFixed(2)}:1, under ${GROUND_MIN}. Accepted: this step keeps its pastel and carries dark ink, so its fill has a soft edge on white and its text does not. Not a task.`);
   if (seenL.has(hex)) fail(`light ${cat} repeats ${hex}, already used by ${seenL.get(hex)}`);
   seenL.set(hex, cat);
   // The two registers must be the SAME CATEGORY, which means the same hue. A
@@ -152,8 +166,8 @@ CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
   const d = apart(hue(hex), hue(CATEGORY_RAMP[i]));
   if (d > 25 && !HUE_EXEMPT.has(cat)) fail(`light ${cat} is ${Math.round(d)} degrees from its dark step, so it is a different colour`);
   if (d > 25 && HUE_EXEMPT.has(cat)) warn(`light ${cat} is ${Math.round(d)} degrees from its dark step, by owner decision: dark lime goes olive, so this register is green instead.`);
-  if (ink >= INK_MIN && gnd >= GROUND_MIN && (d <= 25 || HUE_EXEMPT.has(cat))) {
-    ok(`light ${cat.padEnd(17)} ${hex}  ink ${ink.toFixed(2)}:1  ground ${gnd.toFixed(2)}:1  ${Math.round(d)} deg from dark`);
+  if (ink >= INK_MIN && (gnd >= GROUND_MIN || dark) && (d <= 25 || HUE_EXEMPT.has(cat))) {
+    ok(`light ${cat.padEnd(17)} ${hex}  ${dark ? 'dark ' : 'white'} ink ${ink.toFixed(2)}:1  ground ${gnd.toFixed(2)}:1  ${Math.round(d)} deg from dark`);
   }
 });
 const badL = DAILY_GAMES.filter((g) => !CATEGORY_RAMP_LIGHT.includes(gameColorLight(g.key)));

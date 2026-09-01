@@ -39,7 +39,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -274,7 +274,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('barter', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('barter');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('barter'), '--stg-acc-lt': gameColorLight('barter') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('barter'), '--stg-acc-lt': gameColorLight('barter'), '--stg-onramp-lt': gameOnrampLight('barter') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;

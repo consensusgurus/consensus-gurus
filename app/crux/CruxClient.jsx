@@ -51,7 +51,7 @@ import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { useStageRoom } from '@/lib/stage-fit';
-import { gameColorLight, gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
 import { CONTEST, contestIsLive } from '@/lib/contest';
 import { meRequest } from '@/app/quizMeClient';
 
@@ -630,7 +630,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // in both registers (near-white on the dark ground, near-black on the pale).
   const BOARD_C = STAGE ? 'var(--stg-ink)' : COLORS.ink;
   const BOARD_ON = STAGE ? 'var(--stg-ground)' : T.white;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('crux'), '--stg-acc-lt': gameColorLight('crux') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('crux'), '--stg-acc-lt': gameColorLight('crux'), '--stg-onramp-lt': gameOnrampLight('crux') };
   // One source for a category's colour, so the chips, the end-of-game grid
   // reveal and the ladder can never disagree about which is which.
   const catTone = (ci) => (STAGE

@@ -211,11 +211,18 @@ export default function StageFinish({
   // row of blocks that happens to be inline. gameRank arrives split into a
   // value and its own label ('#5' + 'of 348 Four all time'), which is why this
   // rejoins them rather than composing the label here.
+  // WHERE THEY RENDER depends on whether the board section is there to carry
+  // them. The eyebrow over the leaderboard is already a line of standings
+  // ('Today's board · you are #7 of 11'), so these belong on the end of it. A
+  // game with no board rows has no such line, and the verdict's own detail is
+  // the fallback rather than dropping two real figures off the card.
   const standings = [];
   if (gameRank && gameRank.value != null) {
     standings.push(`${gameRank.value} ${gameRank.label || 'all time'}`);
   }
   if (streak) standings.push(`${streak} day streak`);
+  const rowsPresent = board && Array.isArray(board.rows) && board.rows.length > 0;
+  const loose = rowsPresent ? [] : standings;
 
   // Placed AFTER every hook above, so the two endings run the same hooks in
   // the same order on every render.
@@ -278,20 +285,21 @@ export default function StageFinish({
           uses, so the number lands over the blocks it belongs to.
 
           The other three stats: today's board is gone (the table directly below
-          says it, in full), and the all-time rank and the streak drop into the
-          line under the verdict, which is already where a run's figures are
-          read. On a phone that line is the score and the clock and nothing else
+          says it, in full), and the all-time rank and the streak go onto the end
+          of that table's own eyebrow, which is already a line of standings. They
+          spent one deploy on the verdict's line and crowded the one sentence
+          that describes the run itself. On a phone they do not render at all
           -- see .stf-dx in the media query. */}
       <div className="stf-curtain">
         <div className="stf-cin">
           <div className="stf-ctop">
             <div className="stf-cl">
               <div className="stf-verdict">{title}</div>
-              {(detail || standings.length) ? (
+              {(detail || loose.length) ? (
                 <div className="stf-detail">
                   {detail}
-                  {standings.length ? (
-                    <span className="stf-dx">{detail ? ' \u00b7 ' : ''}{standings.join(' \u00b7 ')}</span>
+                  {loose.length ? (
+                    <span className="stf-dx">{detail ? ' \u00b7 ' : ''}{loose.join(' \u00b7 ')}</span>
                   ) : null}
                 </div>
               ) : null}
@@ -312,7 +320,7 @@ export default function StageFinish({
             the figure that announced it has moved onto the band. */}
         {rows.length ? (
           <section>
-            <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}</div>
+            <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}{standings.length ? <em className="stf-dx"> &middot; {standings.join(' \u00b7 ')}</em> : null}</div>
             <table className="stf-tbl">
               <tbody>
                 {rows.map((r, i) => (
@@ -458,12 +466,16 @@ const CSS = `
   -webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;min-width:0;}
 .stf-cats::-webkit-scrollbar{display:none;}
 .stf-cat{scroll-snap-align:start;flex:none;}
-.stf-catnav{flex:none;background:none;border:1px solid var(--stg-line);border-radius:7px;
+.stf-catnav{flex:none;background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:7px;
   color:var(--stg-ink2);cursor:pointer;font-size:14px;line-height:1;padding:5px 9px;}
 .stf-catnav:hover{border-color:var(--stg-line2);color:var(--stg-ink);}
 @media (hover:none){ .stf-catnav{display:none;} }
 .stf-cat{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
-  font-weight:700;background:none;cursor:pointer;color:var(--stg-ink2);
+  /* THE CHIPS TAKE THE SURFACE (owner, 2026-08-31). They were the one row on
+     the card still transparent, so on the light register they showed the pale
+     page ground through them while every tile and option beside them was white.
+     --stg-surf is that white, and the near-black raise on the dark one. */
+  font-weight:700;background:var(--stg-surf);cursor:pointer;color:var(--stg-ink2);
   border:1px solid var(--stg-line);border-left:3px solid var(--tc);border-radius:7px;
   padding:6px 11px;}
 .stf-cat:hover{color:var(--stg-ink);border-color:var(--stg-line2);border-left-color:var(--tc);}
@@ -498,8 +510,8 @@ const CSS = `
 .stf-ciq{flex:none;text-align:right;}
 .stf-ciq b{display:block;font-size:34px;font-weight:800;line-height:1;
   letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
-.stf-ciq i{display:block;font-style:normal;font-family:${MONO};font-size:9px;
-  letter-spacing:.12em;text-transform:uppercase;opacity:.72;margin-top:6px;}
+.stf-ciq i{display:block;font-style:normal;font-family:${MONO};font-size:11.5px;
+  letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-top:7px;}
 
 .stf-wrap{max-width:720px;margin:0 auto;padding:22px 4px 8px;
   display:flex;flex-direction:column;gap:20px;}
@@ -581,7 +593,7 @@ const CSS = `
   .stf-dx{display:none;}
   .stf-ctop{gap:14px;}
   .stf-ciq b{font-size:26px;}
-  .stf-ciq i{font-size:8.5px;margin-top:4px;}
+  .stf-ciq i{font-size:10px;margin-top:5px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
   .stf-opts{grid-template-columns:1fr 1fr;}
 }
