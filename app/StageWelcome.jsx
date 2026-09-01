@@ -87,7 +87,13 @@ function Count({ to, ms }) {
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // A BACKSTOP, because requestAnimationFrame does not run in a throttled or
+    // hidden tab and a number that never climbs reads as a real zero rather
+    // than as a stalled animation. Measured: the lead showed "+0 IQ today" for
+    // an entire sequence in a backgrounded frame. This guarantees the value
+    // lands whatever the frame loop does.
+    const settle = setTimeout(() => setV(to), ms + 140);
+    return () => { cancelAnimationFrame(raf); clearTimeout(settle); };
   }, [to, ms]);
   return <>{Math.round(v).toLocaleString()}</>;
 }
@@ -121,6 +127,17 @@ function daysBetween(mdy, todayYmd) {
 // is a real figure rather than an invented one. Stored per ET day and read once;
 // there is no server record of a rank at an earlier hour, and adding one would
 // be a table for a decoration.
+// ONCE PER ET DAY, AND THAT IS THE POINT (owner, live, 2026-08-31: "this
+// animation should not display EVERY time a person returns to main page. now it
+// displays whenever a game completes and user goes back to main").
+//
+// The freshness test alone was never going to hold this: coming back from a
+// finished game IS a fresh document load, so a player who plays six dailies got
+// six arrivals. An arrival is a thing that happens when you arrive, not every
+// time you pass through, and the figures are a day's figures, so the day is the
+// right unit. Stamped the moment it decides to show, so a reload during the
+// sequence cannot replay it either.
+const DAY = 'sot_welcome_day';
 const SEEN = 'sot_welcome_seen_rank';
 function priorRank(today) {
   try {
@@ -192,6 +209,13 @@ export default function StageWelcome({ capRef }) {
     }
     const who = readName();
     if (!who && !force) return;   // no name, no gap, nothing to welcome
+    const day = etToday();
+    if (!force) {
+      try {
+        if (localStorage.getItem(DAY) === day) return;
+        localStorage.setItem(DAY, day);
+      } catch (e) { return; }
+    }
     setName(who || 'you');
 
     // THE FLOOR. fetchDayStatus is memoised and the page fetches it anyway, so
