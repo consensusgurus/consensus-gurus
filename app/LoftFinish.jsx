@@ -809,6 +809,38 @@ export default function LoftFinish({
   // Arcade clients were wired to it in the same pass as this panel, because
   // they were the only two of the eight with no hold at all.
   if (fastRetry && !showCard) {
+    // THE VERDICT IS THE PLAYER'S RESULT, not the game's status line (owner,
+    // 2026-08-31). The clients pass "Not solved", which renders as "Four not
+    // solved": accurate, and a description of the puzzle rather than of what
+    // just happened to the person reading it. On a curtain that is the only
+    // sentence on screen, so it says the outcome outright.
+    //
+    // It reads the OUTCOME rather than a list of games, so nothing here can
+    // claim a loss that did not happen. An Arcade run cannot be failed at all
+    // (blocks and sweep pass 'part' whatever the run did), and Four's draw is
+    // the only other 'part' that reaches this panel.
+    const retryVerdict = isArcade(selfKey)
+      ? 'Game over'
+      : (outcome === 'part' ? 'You tied' : 'You lost');
+    // ON THE STAGE, THE RETRY ENDING IS A CURTAIN TOO. This branch was the last
+    // place on the site still opening the white Loft card on a near-black page
+    // once the stage went sitewide. StageFinish renders the band and the one
+    // control; pressing 'Show end game card' sets showCard and falls through to
+    // the ordinary stage ending below, in the same slot, with every figure it
+    // always had.
+    if (onStage) {
+      return (
+        <StageFinish
+          title={retryVerdict} detail={detail} outcome={outcome} name={name}
+          retry={{
+            eyebrow: attemptRule.chip,
+            sub: attemptRule.replay,
+            onReplay: fire(replayOpt),
+            onCard: () => setShowCard(true),
+          }}
+        />
+      );
+    }
     return (
       <div className="loft-back">
         <div className="loft-backin">

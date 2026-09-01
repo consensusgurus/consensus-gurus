@@ -71,7 +71,22 @@ export default function StageFinish({
   title, detail, iq = null, board = null, day = null, streak = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
   archive = null,
+  retry = null,
 }) {
+  // THE RETRY ENDING. On the nine games where a replay genuinely counts, an
+  // unsolved finish is not a page of furniture, it is one control (see the
+  // fast-retry panel in app/LoftFinish.jsx, which owns the decision of WHEN
+  // this shows). What it was NOT, until now, was a stage ending: it opened the
+  // old white Loft card at the foot of a near-black page, the last thing on the
+  // site still doing that once the stage went sitewide (owner, 2026-08-31).
+  //
+  // So it renders here instead, and takes the curtain -- the same full-bleed
+  // accent band every other ending gets -- with the replay control under it and
+  // nothing else. It shares this component rather than restating the curtain
+  // somewhere else precisely so the two endings cannot drift into two different
+  // bands. A boolean, not the object: `retry` is a fresh literal every render
+  // and cannot go in a dependency array.
+  const isRetry = !!retry;
   // THE COLLAPSE IS THE CARD'S TO RELEASE. A finished page hides the board, the
   // leader strip and the play figures (app/globals.css), and it is keyed on a
   // class this component owns rather than on :has(.stf) — because 'Return to
@@ -80,6 +95,12 @@ export default function StageFinish({
   // 2026-08-31). Anything that asks for the board back takes the class off
   // first; everything else leaves it on.
   useEffect(() => {
+    // THE RETRY ENDING DOES NOT COLLAPSE. Every other finish hides the board
+    // because the game is over and the card is the page now. A retry ending is
+    // the opposite case: the position you just lost is the argument for playing
+    // it again ("the win is still sitting in this position"), so it stays up
+    // and the curtain falls underneath it.
+    if (isRetry) return undefined;
     const root = document.querySelector('.stage-page');
     if (!root) return undefined;
     root.classList.add('stf-collapse');
@@ -98,7 +119,7 @@ export default function StageFinish({
       document.removeEventListener('click', back);
       root.classList.remove('stf-collapse');
     };
-  }, []);
+  }, [isRetry]);
   // THE REST OF THE SITE, from the one page a reader reliably reaches (owner,
   // 2026-08-31). Three doors, and none of them can appear before the game is
   // over because this component only exists then.
@@ -174,6 +195,47 @@ export default function StageFinish({
     ? forward.sub.split('·')[0].trim() : (forward ? forward.label : '');
   const fwdTag = forward && forward.sub && forward.sub.includes('·')
     ? forward.sub.split('·').slice(1).join('·').trim() : '';
+
+  // Placed AFTER every hook above, so the two endings run the same hooks in
+  // the same order on every render.
+  if (isRetry) {
+    return (
+      <div className={'stf stf-rtwrap' + (outcome ? ' stf-' + outcome : '')}>
+        <style>{CSS}</style>
+
+        <div className="stf-curtain">
+          <div className="stf-cin">
+            <div className="stf-verdict">{title}</div>
+            {detail ? <div className="stf-detail">{detail}</div> : null}
+          </div>
+        </div>
+
+        <div className="stf-wrap">
+          {/* The one control, in the hand-forward's own shape: this IS the
+              hand-forward on these games, it just points back at the board
+              instead of on to the next game. */}
+          <button type="button" className="stf-fwd stf-rt" onClick={retry.onReplay}>
+            <div>
+              {/* Both lines come from dailyAttemptRule, so what a replay is
+                  worth is stated by the registry that decides it and can never
+                  drift from the same sentence on the full card. */}
+              {retry.eyebrow ? <div className="stf-eb">{retry.eyebrow}</div> : null}
+              <div className="stf-fwdn">Replay instantly</div>
+              {retry.sub ? <div className="stf-fwdt">{retry.sub}</div> : null}
+            </div>
+            <span className="stf-go">Replay</span>
+          </button>
+
+          <div className="stf-opts">
+            <button type="button" className="stf-o" onClick={retry.onCard}>
+              <b>Show end game card</b>
+              <i>Your IQ, today&rsquo;s board, the archive and what to play next</i>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={'stf' + (outcome ? ' stf-' + outcome : '')}>
@@ -412,6 +474,14 @@ const CSS = `
 .stf-go{margin-left:auto;flex:none;font-size:13px;font-weight:800;
   background:var(--stg-acc);color:var(--stg-onramp,#08222e);
   border-radius:8px;padding:8px 16px;}
+/* The retry control is the hand-forward as a BUTTON: same shape, same accent
+   rule, same chip. .stf-fwd is written for an <a>, so a button needs the four
+   properties a form control does not inherit. */
+.stf-rt{width:100%;font:inherit;text-align:left;cursor:pointer;}
+.stf-rt .stf-eb{margin-bottom:5px;}
+/* Nothing follows the curtain but the control, so the page does not need the
+   full ending's breathing room above it. */
+.stf-rtwrap .stf-wrap{padding-top:18px;gap:9px;}
 
 /* ── the board ─────────────────────────────────────────────────────────── */
 .stf-tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
