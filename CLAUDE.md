@@ -3991,6 +3991,76 @@ at the RIGHT edge, and the instructions toggle at the LEFT.
   board, so it already reaches the right edge.
 - **A new daily game builds its gate this way from the start.**
 
+## A TAP MUST NEVER COST, AND EVERY DRAG OWES AN EXIT (owner rule, 2026-09-01)
+
+Reader report on Plot: "When you accidentally press on a square there should be a way of
+deselecting what you have selected without it counting as an error." Two holes, and both
+generalize to every drag-to-claim daily.
+
+- **The degenerate case of a drag is a TAP, and a tap must be free.** Plot's `claim()` let a
+  1x1 release off only when the cell held no clue, so tapping a NUMBERED square was read as
+  "one cell offered against a 5" and cost an error. The board's own gesture vocabulary already
+  said otherwise: tapping a claimed plot HANDS IT BACK, for nothing. A tap and a claim were the
+  same event on half the board. The rule now: a 1x1 release costs nothing unless it is a real
+  claim that cannot be a mistake (on Plot, a 1 on its own cell, correct by construction).
+- **A drag in progress needs a visible way out that is not "finish it and undo".** The pointer
+  is CAPTURED, so the grid keeps receiving moves once the finger leaves it: mark the drag `off`
+  rather than ignoring those moves, ghost the preview while the finger is outside so the cancel
+  is visible BEFORE release, and throw the drag away on a release out there. Escape does the
+  same on desktop. Say so in the rules copy, the under-board line and the SEO prose, per the
+  copy rule above.
+
+**Verify without spending the owner's daily.** `postResult` fires on a win or a reveal, and
+`useAbandonFlush` files a row only when the player has `acted` (a claim, an error, or a hint).
+So on an ARCHIVE board (`?p=N`, then its "Replay, unscored" control) a test that claims nothing
+and errors nothing leaves NO row at all: the fix working is exactly the condition for leaving no
+trace, and the fix failing files the row that tells you. Drive it with synthetic `PointerEvent`s
+dispatched on the grid element (React listens at the root, so they bubble; `setPointerCapture`
+throws on a synthetic pointerId and is already inside a try/catch). Claim the 1 and tap it back
+to prove the positive branch still works and to return `acted` to false.
+
+## SVG PAINT IS THE CONTRAST SWEEP'S DEEPEST BLIND SPOT (owner rule, 2026-09-01)
+
+Two reader reports on the same day were the same bug one layer below the one
+`ungrounded dark ink` already documented. Ink that is an **SVG paint** is invisible to every
+`color:` grep AND to `verify-stage-contrast.mjs`, which pairs ink with a background on the same
+line and so cannot see text that paints no ground of its own.
+
+- **Hedge:** "I only have two 0s on the board. No other numbers at all." All 27 clues were
+  rendering. `<text fill={col}>` with `col = k > c ? rust : k === c ? '#c3c8d4' : COLORS.ink`,
+  laid straight on the board, so every UNSATISFIED clue was near-black on near-black. The 0s
+  showed because a 0 is satisfied from the first render and took the dim branch.
+- **Etch:** a solved day's gallery thumbnail was `<path fill={p.sunday ? accent : COLORS.ink}>`
+  on a `--stg-surf` card, so only the Sunday pictures could be seen.
+
+**The diagnostic: when only the DONE state of something is visible, the live state is painting
+ink.** The fix is not a var in the attribute, since a presentation attribute cannot read a
+custom property, but `fill="currentColor"` with `style={{ color: 'var(--stg-ink, <orig>)' }}`, the
+same route Jester's crowns took. Verify by injecting a probe node on the live page and reading
+`getComputedStyle(el).fill`: it must come back as the token colour, not the fallback. To sweep,
+`git grep 'fill={' -- 'app/*/*Client.jsx'` and read each ternary by hand (about thirty sites,
+most of them meaning colours: chess pieces, terrain, region hues). No checker can do this one,
+because the value is a variable.
+
+## A DROP ZONE IS A CELL, NOT A CARD (owner rule, 2026-09-01)
+
+Reader report on Venn: "In dark mode, once you have put the words into the Venn diagram, you
+then can't see the words as they are light font on a light background." `.vn-zone` was a
+hardcoded `rgba(255,255,255,0.92)` box, while the filed word inside it HAD been converted, to a
+translucent `--stg-surf` carrying `--stg-ink`. The converted half made it worse: near-white text
+on a translucent white over a hardcoded white, 1.1:1.
+
+**A drop zone, a tray slot, a target region: these are shapes you must see the EDGES of before
+anything is in them, so they take `--stg-cell` / `--stg-cell-line`, never `--stg-surf`**, which
+is a card's lift and belongs to shapes you read the CONTENTS of. Full / over-full states signal
+with their BORDER, a UI boundary owing 3:1, so they take `--stg-good` / `--stg-bad` rather than
+the 700-weight green and rust chosen against paper; a "ready" FILL is
+`color-mix(... var(--stg-good) 22%, var(--stg-cell))` so it stays a tinted well in either
+register instead of a pale wash on a dark board. After: 12.69:1 dark, 19.43:1 light.
+
+Note that the same file had already solved this for its three circle hues and still missed the
+box underneath them. **Converting the meaning colours is not evidence the surfaces were done.**
+
 ## Game copy DEFINES its jargon before it leans on it (owner rule, 2026-08-13)
 
 A daily game's rules panel is read once, by someone who does not yet know the game. So
