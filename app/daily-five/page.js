@@ -1,7 +1,5 @@
 import DailyFiveSummary from './DailyFiveSummary';
-import QuizNavHeader from '../quizzes/QuizNavHeader';
-import Grain from '../Grain';
-import NavyFrame from '../circuits/NavyFrame';
+import CircuitFrame from '../circuits/CircuitFrame';
 
 // /daily-five — a run summary. Where a run ENDS: the board for that run, then
 // one abridged result per game.
@@ -11,11 +9,21 @@ import NavyFrame from '../circuits/NavyFrame';
 // the same query /api/quiz/daily-combined already takes. The client reads the
 // param, so this server component stays static.
 //
+// ON THE STAGE, with the rest of the circuit family (2026-08-31). It wore
+// QuizNavHeader's masthead and stat bar and NavyFrame's re-inked site footer,
+// which is the chrome every other daily surface left that day. CircuitFrame
+// carries the stage cap, the register switch and the stage footer instead.
+//
+// NO ACCENT PASSED. Which circuit this is comes from the query string and is
+// read by the CLIENT (readCircuitParam), so the server cannot know it, and a
+// hue that arrived after hydration would repaint the page under the reader.
+// The stage's default sky is the honest answer for a page that serves fifteen.
+//
 // NOINDEX, on purpose. Every word on this page is either a leaderboard that
 // changes hourly or one viewer's own results, so there is nothing here for a
 // search engine to rank and nothing that would still be true tomorrow. It is a
 // destination reached from a run, not from a search result. The run's public
-// face is the console band on the home page, which IS indexed.
+// face is the circuit's own page, which IS indexed.
 export const metadata = {
   title: 'The Daily Five | Mind Loft',
   description:
@@ -26,14 +34,8 @@ export const metadata = {
 
 export default function DailyFivePage() {
   return (
-    <>
-      <Grain />
-      <QuizNavHeader />
-      {/* Same navy-ground footer fix as the circuit pages. This page has
-          rendered a near-black footer on navy since it launched. */}
-      <NavyFrame>
-        <DailyFiveSummary />
-      </NavyFrame>
-    </>
+    <CircuitFrame label="Run summary">
+      <DailyFiveSummary />
+    </CircuitFrame>
   );
 }

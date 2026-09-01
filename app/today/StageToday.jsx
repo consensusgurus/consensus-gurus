@@ -42,13 +42,13 @@ import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/st
 import StageLadder from '../StageLadder';
 import StageWelcome from '../StageWelcome';
 import MindLoftMark from '../MindLoftMark';
-// ONE LINK MAP, NOT TWO. The stage draws its own footer because the shared
-// one is dark ink on a light ground and would vanish on this page's dark
-// register, but the LINKS are the site's and there is no version of this
-// where the home should list different ones. So the columns are imported
-// from app/Footer.jsx and only the drawing is local: a link added there
-// appears here, and the two can never drift.
-import { FOOTER_COLS } from '../Footer';
+// THE FOOTER IS SHARED (2026-08-31). It used to be drawn here, because this
+// was the only stage surface that needed one; the circuit pages needed the
+// same object, and two drawings of one footer is exactly the drift this file
+// warns about elsewhere. app/StageFooter.jsx owns the drawing and imports
+// FOOTER_COLS from app/Footer.jsx, so the site's link map is still the only
+// copy of the links.
+import StageFooter from '../StageFooter';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = "Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif";
@@ -1119,43 +1119,9 @@ export default function StageToday() {
         </section>
       </div>
 
-      {/* THE FOOTER, FULL BLEED (owner, 2026-08-31). It sits OUTSIDE .sty-wrap
-          so it runs edge to edge under the page's own padding, and it is drawn
-          in the stage's tokens rather than rendered from app/Footer.jsx: that
-          component is near-black ink on a hairline of rgba(20,22,28,0.12),
-          which is invisible on this page's dark register. Only the drawing is
-          local. The columns are the shared ones (see the import). */}
-      <footer className="sty-foot">
-        <div className="sty-fin">
-          <div className="sty-fbrand">
-            <span className="sty-brand">
-              <MindLoftMark size={19} ink="var(--stg-ink)" accent="var(--stg-acc)" />
-              <b>Mind <em>Loft</em></b>
-            </span>
-            <p>Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.</p>
-            <a className="sty-fabout" href="/about">About Mind Loft</a>
-            {visitors != null ? (
-              <div className="sty-fvis">{visitors.toLocaleString()}<i>visitors</i></div>
-            ) : null}
-          </div>
-          {FOOTER_COLS.map((col) => (
-            <div key={col.head} className="sty-fcol">
-              <div className="sty-eb">{col.head}</div>
-              {col.links.map((l) => (
-                l.external ? (
-                  <a key={l.label} href={l.href} target="_blank" rel="noopener">{l.label}</a>
-                ) : (
-                  <a key={l.label} href={l.href}>{l.label}</a>
-                )
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="sty-fbase">
-          <span>&copy; {new Date().getFullYear()} Mind Loft</span>
-          <span>As an Amazon Associate, Mind Loft earns from qualifying purchases.</span>
-        </div>
-      </footer>
+      {/* The visitor count rides the observer this page already runs for its
+          topics, so the footer asks for nothing of its own here. */}
+      <StageFooter visitors={visitors} />
     </div>
   );
 }
@@ -1498,51 +1464,9 @@ const CSS = `
 .sty-tmore{width:auto;margin-top:0;flex:1 1 auto;text-align:center;text-decoration:none;
   display:flex;align-items:center;justify-content:center;}
 
-/* -- the footer, edge to edge -------------------------------------------- */
-/* FULL BLEED, and it carries its own ground rather than borrowing the page's:
-   a footer that is the same colour as the page above it with one hairline
-   between them reads as the page having run out, not as a footer. One step of
-   the surface ladder is enough to say it is a different thing. */
-.sty-foot{background:var(--stg-raise);border-top:1px solid var(--stg-line);
-  padding:34px 22px 22px;}
-/* SPREAD, because it is full bleed. Packed left, the five link columns ended
-   at 1094px of a 2116px window and the footer read as a narrow block sitting in
-   an empty band rather than as the foot of the page. The rest of this surface
-   fills the screen for the same reason (see .sty-wrap), so the footer does too.
-   The columns keep their own gap as a floor, so a narrow window packs them
-   normally instead of stretching two of them across it. */
-.sty-fin{display:flex;flex-wrap:wrap;gap:30px 38px;align-items:flex-start;
-  justify-content:space-between;}
-.sty-fbrand{flex:1 1 250px;max-width:320px;min-width:0;}
-.sty-fbrand .sty-brand b{font-size:15px;font-weight:800;letter-spacing:-0.01em;}
-.sty-fbrand .sty-brand b em{font-style:normal;color:var(--stg-acc);}
-.sty-fbrand p{margin:9px 0 0;font-size:12.5px;line-height:1.55;color:var(--stg-mute);}
-.sty-fabout{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:800;
-  color:var(--stg-ink);text-decoration:none;}
-.sty-fabout:hover{color:var(--stg-acc);}
-/* The visitor count is a FIGURE, drawn the way every other figure on this page
-   is, rather than a sentence of small grey prose. */
-.sty-fvis{margin-top:14px;font-family:${MONO};font-size:13px;font-weight:700;
-  font-variant-numeric:tabular-nums;color:var(--stg-ink2);}
-.sty-fvis i{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--stg-mute2);margin-left:7px;}
-.sty-fcol{display:flex;flex-direction:column;gap:6px;min-width:0;}
-.sty-fcol .sty-eb{margin-bottom:3px;}
-.sty-fcol a{font-size:12.5px;font-weight:600;color:var(--stg-mute);text-decoration:none;}
-.sty-fcol a:hover{color:var(--stg-ink);}
-.sty-fcol a:focus-visible,.sty-fabout:focus-visible{outline:2px solid var(--stg-acc);
-  outline-offset:3px;border-radius:4px;}
-.sty-fbase{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;
-  margin-top:26px;padding-top:14px;border-top:1px solid var(--stg-line);
-  font-family:${MONO};font-size:10px;letter-spacing:.06em;color:var(--stg-mute2);}
-
 @media (max-width:640px){
   .sty-qgrid{grid-template-columns:minmax(0,1fr);}
   .sty-tfoot{flex-direction:column;}
-  .sty-foot{padding:26px 14px 20px;}
-  .sty-fin{gap:22px 28px;}
-  .sty-fbrand{flex-basis:100%;max-width:none;}
-  .sty-fcol{flex:1 1 132px;}
 }
 @media (prefers-reduced-motion:reduce){.sty-tv{transition:none;}}
 @media (prefers-reduced-motion:reduce){.sty-prog span{transition:none;}}

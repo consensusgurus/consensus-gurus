@@ -1,10 +1,7 @@
 import { notFound } from 'next/navigation';
-import Grain from '../../Grain';
-import NavyFrame from '../NavyFrame';
-import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import CircuitLanding from './CircuitLanding';
-import PaperSkin from '../../PaperSkin';
 import { ALL_CIRCUITS, circuitById, circuitGamesFor, circuitPageHref, isMarquee } from '@/lib/circuits';
+import { categoryColor, categoryColorLight } from '@/lib/category-ramp';
 import { SITE_URL } from '@/lib/site';
 
 // /circuits/<id> — a circuit's own page, and the thing a shared circuit link
@@ -30,6 +27,13 @@ import { SITE_URL } from '@/lib/site';
 // live parts (whether the viewer has played today, today's board) are a client
 // island underneath, exactly so the server-rendered half stays cacheable and
 // stays honest to a crawler.
+//
+// IT IS A STAGE PAGE (owner, 2026-08-31: "the circuit landing pages have the
+// old header and lack the updated style"). There is no QuizNavHeader, no Grain
+// and no NavyFrame here any more: CircuitLanding renders CircuitFrame, which
+// carries the stage's one-line cap, the register switch and the stage footer,
+// so this page and the daily it sends the reader into are the same surface. The
+// old chrome was the Loft's, and every other daily surface left it that day.
 //
 // force-dynamic, for ONE reason: the marquee's roster is a daily read out of
 // lib/daily-five and a statically rendered /circuits/five would freeze
@@ -87,9 +91,15 @@ export default function CircuitPage({ params }) {
   // Server-rendered so the roster is in the HTML: it is the crawlable link path
   // to every daily in the circuit, and it is the half of the page that is true
   // whether or not anyone is signed in.
+  //
+  // BOTH REGISTERS OF EACH GAME'S CATEGORY STEP travel with the game, and the
+  // stylesheet picks one off data-stage-theme. A hue chosen in JS would have to
+  // wait for the stored register to resolve, and the whole list would repaint
+  // under the reader on first paint.
   const games = circuitGamesFor(c.id, day).map((g) => ({
     key: g.key, name: g.name, cat: g.cat, tag: g.tag, how: g.how, subject: g.subject || '',
-    href: g.href, img: g.img, color: g.colorNavy || g.color || '#c9d2e0',
+    href: g.href,
+    hue: categoryColor(g.cat), hueLight: categoryColorLight(g.cat),
   }));
 
   const itemListJsonLd = {
@@ -120,25 +130,25 @@ export default function CircuitPage({ params }) {
 
   return (
     <>
-      {/* The whitewash, off unless ?paper=1. Inert without the flag, and
-          FIRST so its class lands before anything below it paints. */}
-      <PaperSkin />
-      <Grain />
-      <QuizNavHeader />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       {/* Plain serializable props only: this is the server/client boundary.
           The blurb is deliberately NOT passed. It says almost exactly what
-          share.invite says, and the header can only carry one of them. */}
-      {/* NavyFrame, not a bare <Footer />: this page's ground is the navy
-          body, and the shared footer inks itself near-black for the light
-          pages. See app/circuits/NavyFrame.jsx. */}
-      <NavyFrame>
-        <CircuitLanding circuit={{
-          id: c.id, name: c.name, share: c.share,
-          trophy: c.trophy || null, marquee: !!isMarquee(c.id),
-        }} games={games} />
-      </NavyFrame>
+          share.invite says, and the header can only carry one of them.
+
+          `cat` is the LEAD GAME'S category, which is the page's accent. A
+          circuit spans categories, so it has no category of its own, and the
+          lead game's step is the colour the reader is about to be handed. */}
+      {/* `order` was READ by CircuitLanding and never PASSED, so the note under
+          the run list has always said "shortest first, longest last" — which is
+          untrue of a circuit that shuffles its middle every morning. It is one
+          circuit today (the Gauntlet's order.tail), and it now says so. */}
+      <CircuitLanding circuit={{
+        id: c.id, name: c.name, share: c.share,
+        trophy: c.trophy || null, marquee: !!isMarquee(c.id),
+        order: c.order || null,
+        cat: (games[0] && games[0].cat) || null,
+      }} games={games} />
     </>
   );
 }

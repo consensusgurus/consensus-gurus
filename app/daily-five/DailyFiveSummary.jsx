@@ -185,16 +185,21 @@ export default function DailyFiveSummary() {
     <div className="d5s">
       <style dangerouslySetInnerHTML={{ __html: `
         .d5s{max-width:860px;margin:0 auto;padding:10px 18px 70px;
-             font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink);}
+             font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--stg-ink);}
         /* One way back, at the foot, where a reader who has finished reading
            is. The run's other exits all lead deeper into a game; this is the
-           only one that leaves. It sits on the NAVY page rather than in the
-           card, so its colours are chosen against navy. */
+           only one that leaves. It sits on the PAGE rather than in the card, so
+           it is drawn in the stage's tokens and follows whichever register the
+           reader is in. It used to be a white slab with navy ink, which was
+           right on the navy page this replaced and unreadable on the light
+           stage. */
         .d5s-home{display:flex;align-items:center;justify-content:center;gap:8px;
-                  background:var(--white);color:var(--accent);border:1.5px solid #1a2748;
+                  background:var(--stg-surf);color:var(--stg-ink);
+                  border:1px solid var(--stg-line);
                   border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
                   letter-spacing:.03em;text-decoration:none;}
-        .d5s-home:hover{background:#eef3ff;}
+        .d5s-home:hover{border-color:var(--stg-line2);}
+        .d5s-home:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
         @media(max-width:620px){.d5s{padding:8px 12px 60px;}}
       ` }} />
 

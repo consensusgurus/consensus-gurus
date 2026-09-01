@@ -5,7 +5,15 @@
 // component fetches is the VIEWER'S own state, which is why it is a client
 // island rather than part of the page.
 //
-// THE SHARE BUTTON IS THE POINT OF THE PAGE. It hands over
+// ON THE STAGE (owner, 2026-08-31: "the circuit landing pages have the old
+// header and lack the updated style"). The page chrome — the cap, the register
+// switch, the footer — is CircuitFrame's; this component draws only what goes
+// between them, in the stage's tokens. Nothing here paints a light ground or a
+// colour of its own: the one hue on the page is the circuit's lead game's
+// category step, published by the frame as --stg-acc, and each game card wears
+// its own category step as --cc.
+//
+// THE SHARE BUTTON IS STILL THE POINT OF THE PAGE. It hands over
 // circuitShareInvite(id) — the circuit's evergreen line plus a link back to
 // this page — through the same notifyShareCredit pop-up every daily uses, so a
 // registered sharer's referral code is stamped in and a signed-out sharer still
@@ -14,8 +22,8 @@
 // The link is passed EXPLICITLY as the second argument. ShareCreditPop defaults
 // to the current page URL, which happens to be right here, but a bare default
 // would carry any query string the visitor arrived with (a ?ref, a campaign
-// tag) into the thing they share. Naming the canonical page keeps every shared
-// link identical.
+// tag, and now a ?theme) into the thing they share. Naming the canonical page
+// keeps every shared link identical.
 
 import { useEffect, useState } from 'react';
 import { ArrowRight, Share2, Trophy, Check } from 'lucide-react';
@@ -24,8 +32,17 @@ import { notifyShareCredit } from '../../ShareCreditPop';
 import { dailyMeIdentity } from '../../dailyMeClient';
 import { isMobileDevice } from '@/lib/is-mobile';
 import { withRef } from '@/lib/referrals';
+import { useThemeQs } from '@/lib/stage-theme';
 import GameGlyph from '../../GameGlyph';
+import CircuitFrame from '../CircuitFrame';
 
+const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
+
+// THIS COMPONENT OWNS THE FRAME rather than being wrapped in one by the page.
+// The cap's progress hairline is the run's own done/n, which only this
+// component knows (it is the one thing on the page that reads the viewer's
+// state), and a server page cannot hand a client frame a figure that does not
+// exist until after a fetch. Client wrapping client keeps it an ordinary prop.
 export default function CircuitLanding({ circuit, games }) {
   const { id, name, share, trophy, marquee } = circuit;
   const n = games.length;
@@ -36,6 +53,11 @@ export default function CircuitLanding({ circuit, games }) {
   // the server's.
   const [data, setData] = useState(null);
   const [copied, setCopied] = useState(false);
+  // A review session's ?theme rides along on every in-app link, exactly as it
+  // does on the home, so flipping the register once holds for the walk through
+  // the circuit into a game.
+  const tq = useThemeQs();
+  const withTq = (href) => (tq ? href + (href.includes('?') ? tq : `?${tq.slice(1)}`) : href);
 
   useEffect(() => {
     let alive = true;
@@ -57,6 +79,7 @@ export default function CircuitLanding({ circuit, games }) {
   const done = donePlayed.length;
   const complete = n > 0 && done === n;
   const field = (data && data.overallField) || 0;
+
   // WHAT THEY SCORED, on the page that told them they had finished (owner,
   // 2026-08-29, having completed the Gauntlet and found no score anywhere on
   // it). The figures come out of the same payload the progress does; the
@@ -103,96 +126,20 @@ export default function CircuitLanding({ circuit, games }) {
   }
 
   return (
+    <CircuitFrame
+      cat={circuit.cat}
+      label={marquee ? 'The Daily Five' : `${name} circuit`}
+      progress={n ? done / n : 0}
+    >
     <div className="clp">
-      <style dangerouslySetInnerHTML={{ __html: `
-        .clp{max-width:860px;margin:0 auto;padding:26px 18px 90px;
-             font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink);}
-        .clp-hd{position:relative;background:var(--ground);color:#fff;border-radius:14px;
-                padding:22px 24px;overflow:hidden;}
-        .clp-hd::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue);}
-        .clp-hd.marq::before{background:var(--gold);}
-        .clp-hd.done::before{background:var(--success);}
-        .clp-e{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#9fc2ff;}
-        .clp-hd.marq .clp-e{color:var(--gold);}
-        .clp-h1{font-size:32px;font-weight:800;letter-spacing:-.8px;line-height:1.08;margin:4px 0 0;}
-        .clp-sub{font-size:14px;font-weight:600;color:#c3d5f5;margin-top:8px;line-height:1.5;max-width:60ch;}
-        .clp-acts{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap;}
-        .clp-go{display:inline-flex;align-items:center;gap:8px;background:var(--cta,#2563eb);color:#fff;
-                border:none;border-radius:10px;padding:13px 19px;font-size:13px;font-weight:800;
-                letter-spacing:.03em;text-decoration:none;cursor:pointer;}
-        .clp-sh{display:inline-flex;align-items:center;gap:8px;background:transparent;color:#fff;
-                border:1.5px solid #253357;border-radius:10px;padding:13px 17px;font-size:13px;
-                font-weight:800;letter-spacing:.03em;cursor:pointer;font-family:inherit;}
-        .clp-sh:hover{background:#101c39;}
-        .clp-meta{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap;}
-        .clp-meta div b{display:block;font-size:21px;font-weight:800;letter-spacing:-.5px;
-                        font-variant-numeric:tabular-nums;line-height:1;}
-        .clp-meta div i{font-style:normal;display:block;font-size:9px;font-weight:800;letter-spacing:.12em;
-                        text-transform:uppercase;color:#9fb6e8;margin-top:5px;}
+      <style>{CSS}</style>
 
-        /* On the site's navy ground, not inside a card, so these need a light
-           colour chosen against navy rather than against white. */
-        .clp-sec{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;
-                 color:#bfdbfe;margin:28px 0 9px;}
-        .clp-note{font-size:11.5px;font-weight:600;color:#9fb6e8;line-height:1.6;margin-top:10px;}
-        .clp-note a{color:#bfdbfe;}
-
-        .clp-cards{display:flex;flex-direction:column;gap:9px;}
-        .clp-c{position:relative;display:flex;align-items:center;gap:13px;background:var(--white);
-               border:1.5px solid var(--border);border-left-color:var(--cc,#c9d2e0);
-               border-radius:12px;padding:13px 15px 13px 18px;overflow:hidden;
-               text-decoration:none;color:inherit;}
-        .clp-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
-                       background:var(--cc,#c9d2e0);}
-        .clp-c:hover{border-color:var(--blue);border-left-color:var(--cc,#c9d2e0);}
-        .clp-num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--surface-alt,#eef1f6);
-                 color:var(--slate,#64748b);font-size:11px;font-weight:800;display:flex;align-items:center;
-                 justify-content:center;font-variant-numeric:tabular-nums;}
-        .clp-c.played .clp-num{background:var(--success);color:#fff;}
-        .clp-ic{flex:none;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;
-          justify-content:center;background:var(--surface,#f7f8fa);}
-        .clp-ct{min-width:0;flex:1;}
-        /* BLOCK, both of them. They are <span>s inside .clp-ct, and .clp-ct being a
-           flex ITEM blockifies the box itself but NOT its children, so the two
-           stayed inline and rendered as "DeepTrivia · One topic, fifteen
-           questions" on one run-on line (owner report, 2026-08-18). */
-        .clp-cn{display:block;font-size:16px;font-weight:800;letter-spacing:-.3px;color:var(--ink);}
-        .clp-cm{display:block;font-size:11.5px;font-weight:700;color:var(--slate,#64748b);margin-top:2px;}
-        .clp-arr{flex:none;color:var(--slate,#94a3b8);}
-
-        .clp-tro{display:flex;align-items:center;gap:12px;background:var(--white);
-                 border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;}
-        .clp-tro b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px;}
-        /* A SPAN, never <s>. The band and the run summary both use <s> as a
-           bare sub-line hook with text-decoration:none, which is fine on a
-           surface nothing crawls. This page IS crawled, and <s> means "no
-           longer accurate": a reader-mode pass, a screen reader and an indexer
-           all render this trophy's own description as struck through. */
-        .clp-trosub{display:block;font-size:11.5px;font-weight:700;
-                    color:var(--slate,#64748b);margin-top:2px;}
-        .clp-tier{flex:none;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
-                  padding:5px 9px;border-radius:999px;background:var(--surface);color:var(--slate,#64748b);}
-        .clp-tier.gold{background:#fdf3d8;color:#8a6a12;}
-        .clp-tier.silver{background:#eef0f3;color:#5b6270;}
-        .clp-tier.bronze{background:#f7ece2;color:#8a5a30;}
-
-        .clp-all{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:22px;
-                 background:var(--white);color:var(--accent,#233a63);border:1.5px solid #1a2748;
-                 border-radius:11px;padding:14px 18px;font-size:13px;font-weight:800;
-                 letter-spacing:.03em;text-decoration:none;}
-        .clp-all:hover{background:#eef3ff;}
-        @media(max-width:620px){
-          .clp{padding:16px 12px 70px;}
-          .clp-h1{font-size:25px;}
-          .clp-acts{flex-direction:column;align-items:stretch;}
-          .clp-go,.clp-sh{justify-content:center;}
-          .clp-c{gap:10px;padding:11px 12px 11px 15px;}
-          .clp-ic{display:none;}
-        }
-      ` }} />
-
-      <div className={`clp-hd${marquee ? ' marq' : ''}${complete ? ' done' : ''}`}>
-        <div className="clp-e">{marquee ? 'The marquee circuit' : `${n} games · one run`}</div>
+      {/* THE HERO sits on the page's own ground with a rule down its edge,
+          rather than in a card. On the stage the ground already is the surface,
+          so a panel here would be a second ground nobody asked for — the same
+          reason the board card came off all eighty dailies. */}
+      <section className="clp-hero">
+        <div className="clp-eb">{marquee ? 'The marquee circuit' : `${n} games · one run`}</div>
         <h1 className="clp-h1">{marquee ? name : `The ${name} Circuit`}</h1>
         <p className="clp-sub">{share.invite}</p>
 
@@ -201,21 +148,25 @@ export default function CircuitLanding({ circuit, games }) {
               what the circuit is for: one sitting, no hand-offs. Playing the
               games one at a time still works and is the second control, since a
               player part way through a run should be able to pick up a single
-              game without starting the whole thing again. */}
+              game without starting the whole thing again.
+
+              ONE FILLED CONTROL, as everywhere else on the stage: whichever of
+              these is the thing to do next takes the accent, and the rest are
+              outlines. */}
           {complete ? (
-            <a className="clp-go" href={runSummaryHref(marquee ? MARQUEE_ID : id)}>
+            <a className="clp-go" href={withTq(runSummaryHref(marquee ? MARQUEE_ID : id))}>
               See how the run went
               <ArrowRight size={15} strokeWidth={2.6} />
             </a>
           ) : null}
           {runnable ? (
-            <a className={complete ? 'clp-sh' : 'clp-go'} href={runHref(id)}>
+            <a className={complete ? 'clp-sh' : 'clp-go'} href={withTq(runHref(id))}>
               {complete ? 'Run it again' : done ? 'Carry on with the run' : `Play all ${n} as one quiz`}
               <ArrowRight size={15} strokeWidth={2.6} />
             </a>
           ) : null}
           {nextGame ? (
-            <a className={runnable || complete ? 'clp-sh' : 'clp-go'} href={circuitHref(nextGame.key, marquee ? MARQUEE_ID : id)}>
+            <a className={runnable || complete ? 'clp-sh' : 'clp-go'} href={withTq(circuitHref(nextGame.key, marquee ? MARQUEE_ID : id))}>
               {runnable
                 ? `Or just ${nextGame.name}`
                 : (complete ? 'Play it again' : done ? `Continue with ${nextGame.name}` : `Start the run with ${nextGame.name}`)}
@@ -228,12 +179,13 @@ export default function CircuitLanding({ circuit, games }) {
           </button>
         </div>
 
-        <div className="clp-meta">
+        {/* FIGURES, NEVER PROSE, and each drawn only when it is real. */}
+        <div className="clp-figs">
           <div><b>{n}</b><i>games</i></div>
           {byCorrect
             ? (maxTotal ? <div><b>{maxTotal}</b><i>questions on offer</i></div> : null)
             : <div><b>{n * 15}</b><i>points on offer</i></div>}
-          <div><b>{done}/{n}</b><i>played today</i></div>
+          <div><b>{done}<i>/{n}</i></b><i>played today</i></div>
           {complete && points !== null
             ? <div><b>{points}</b><i>{byCorrect
                 ? (maxTotal ? `of ${maxTotal} right` : 'questions right')
@@ -242,65 +194,201 @@ export default function CircuitLanding({ circuit, games }) {
           {complete && rank ? <div><b>{`#${rank}`}</b><i>on the circuit board</i></div> : null}
           {field ? <div><b>{field}</b><i>on it today</i></div> : null}
         </div>
-      </div>
+      </section>
 
-      <div className="clp-sec">The run, in order</div>
-      <div className="clp-cards">
-        {games.map((g, i) => {
-          const played = !!(perGame[g.key] && !perGame[g.key].abandoned);
-          return (
-            <a
-              key={g.key}
-              className={`clp-c${played ? ' played' : ''}`}
-              style={{ '--cc': g.color }}
-              href={circuitHref(g.key, marquee ? MARQUEE_ID : id)}
-            >
-              <span className="clp-num">{played ? '✓' : i + 1}</span>
-              <span className="clp-ic"><GameGlyph gameKey={g.key} size={22} on="light" /></span>
-              <span className="clp-ct">
-                <span className="clp-cn">{g.name}</span>
-                <span className="clp-cm">{g.subject || g.cat}</span>
-              </span>
-              <ArrowRight className="clp-arr" size={16} strokeWidth={2.4} />
-            </a>
-          );
-        })}
-      </div>
-      <div className="clp-note">
-        {ordered
-          ? `The last two are always the last two. The rest are shuffled fresh every day, so the run has a different shape each morning. `
-          : 'Shortest first, longest last. '}
-        {byCorrect
-          ? `The board is the plain count of questions you get right across all ${n}, and the shorter clock takes a tie. `
-          : `Each game pays 15 points for a win down to 1 for finishing, and the circuit adds all ${n} up. `}
-        A game played on its own still counts toward it, but you need all {n} in
-        the same day to take a rank on the circuit board.
-      </div>
+      <section className="clp-sec">
+        <div className="clp-head">
+          <h2>The run, in order</h2>
+          <b>{done}<i>/{n}</i></b>
+        </div>
+        <div className="clp-cards">
+          {games.map((g, i) => {
+            const played = !!(perGame[g.key] && !perGame[g.key].abandoned);
+            return (
+              <a
+                key={g.key}
+                className={`clp-c${played ? ' played' : ''}`}
+                style={{ '--cc-dk': g.hue, '--cc-lt': g.hueLight }}
+                href={withTq(circuitHref(g.key, marquee ? MARQUEE_ID : id))}
+              >
+                {/* A PLAYED GAME IS MARKED, NOT DIMMED. Half-strength prose on
+                    this ground measures under 2.5:1, so completion moves into
+                    the numeral and the border and the words stay legible. */}
+                <span className="clp-num">{played ? <Check size={13} strokeWidth={3} /> : i + 1}</span>
+                <span className="clp-ic"><GameGlyph gameKey={g.key} size={22} /></span>
+                <span className="clp-ct">
+                  <span className="clp-cn">{g.name}</span>
+                  <span className="clp-cm">{g.subject || g.cat}</span>
+                </span>
+                <ArrowRight className="clp-arr" size={16} strokeWidth={2.4} />
+              </a>
+            );
+          })}
+        </div>
+        <p className="clp-note">
+          {ordered
+            ? 'The last two are always the last two. The rest are shuffled fresh every day, so the run has a different shape each morning. '
+            : 'Shortest first, longest last. '}
+          {byCorrect
+            ? `The board is the plain count of questions you get right across all ${n}, and the shorter clock takes a tie. `
+            : `Each game pays 15 points for a win down to 1 for finishing, and the circuit adds all ${n} up. `}
+          A game played on its own still counts toward it, but you need all {n} in
+          the same day to take a rank on the circuit board.
+        </p>
+      </section>
 
       {trophy ? (
-        <>
-          <div className="clp-sec">What finishing it pays</div>
+        <section className="clp-sec">
+          <div className="clp-head">
+            <h2>What finishing it pays</h2>
+          </div>
           <div className="clp-tro">
-            <Trophy size={20} strokeWidth={2.3} style={{ flex: 'none', color: 'var(--gold)' }} />
-            <span style={{ flex: 1, minWidth: 0 }}>
+            <Trophy size={20} strokeWidth={2.3} className="clp-troi" />
+            <span className="clp-trot">
               <b>{trophy.name}</b>
+              {/* A SPAN, never <s>. The band and the run summary both use <s> as
+                  a bare sub-line hook with text-decoration:none, which is fine
+                  on a surface nothing crawls. This page IS crawled, and <s>
+                  means "no longer accurate": a reader-mode pass, a screen reader
+                  and an indexer all render this trophy's own description as
+                  struck through. */}
               <span className="clp-trosub">Finish every game in this circuit on the same day.</span>
             </span>
             <span className={`clp-tier ${trophy.tier}`}>{trophy.tier}</span>
           </div>
-        </>
+        </section>
       ) : null}
 
-      <div className="clp-note">
+      <p className="clp-note clp-foot">
         {marquee
           ? 'A fresh five lands at midnight Eastern, one game from each of five different categories.'
           : `The same ${n} games every day, with new puzzles in each of them at midnight Eastern.`}
-      </div>
+      </p>
 
-      <a className="clp-all" href="/circuits">
+      <a className="clp-all" href={withTq('/circuits')}>
         See all the circuits
         <ArrowRight size={15} strokeWidth={2.6} />
       </a>
     </div>
+    </CircuitFrame>
   );
 }
+
+// NOTE: this block is a JS template literal, so no backticks in the comments.
+const CSS = `
+.clp{display:flex;flex-direction:column;gap:30px;}
+
+/* -- the hero ----------------------------------------------------------- */
+.clp-hero{position:relative;padding-left:16px;}
+.clp-hero::before{content:'';position:absolute;left:0;top:3px;bottom:3px;width:4px;
+  border-radius:2px;background:var(--stg-acc);}
+.clp-eb{font-family:${MONO};font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--stg-mute);}
+.clp-h1{margin:7px 0 0;font-size:36px;font-weight:800;letter-spacing:-0.025em;line-height:1.06;
+  color:var(--stg-ink);}
+.clp-sub{margin:10px 0 0;font-size:15px;font-weight:600;line-height:1.55;max-width:62ch;
+  color:var(--stg-ink2);}
+
+.clp-acts{display:flex;gap:9px;margin-top:20px;flex-wrap:wrap;}
+.clp-go,.clp-sh{display:inline-flex;align-items:center;gap:8px;border-radius:10px;
+  padding:12px 18px;font-size:13.5px;font-weight:800;letter-spacing:.02em;
+  text-decoration:none;cursor:pointer;font-family:inherit;}
+/* The one filled control on the page, in the circuit's own step with the ink
+   that step carries. --stg-onramp flips with the register; the fallback is the
+   dark ink, which is what the dark set uses. */
+.clp-go{background:var(--stg-acc);color:var(--stg-onramp,#08222e);border:1.5px solid transparent;}
+.clp-go:hover{filter:brightness(1.07);}
+.clp-sh{background:none;color:var(--stg-ink);border:1.5px solid var(--stg-line2);}
+.clp-sh:hover{border-color:var(--stg-acc);color:var(--stg-acc);}
+.clp-go:focus-visible,.clp-sh:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;}
+
+.clp-figs{display:flex;gap:26px;margin-top:20px;flex-wrap:wrap;}
+.clp-figs b{display:block;font-size:22px;font-weight:800;letter-spacing:-0.02em;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--stg-ink);}
+.clp-figs b i{font-style:normal;font-weight:600;font-size:15px;color:var(--stg-mute);}
+.clp-figs>div>i{font-style:normal;display:block;font-family:${MONO};font-size:9px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--stg-mute);margin-top:6px;}
+
+/* -- the sections ------------------------------------------------------- */
+.clp-sec{display:block;}
+.clp-head{display:flex;align-items:baseline;gap:11px;margin-bottom:11px;}
+.clp-head h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--stg-ink);}
+.clp-head b{font-family:${MONO};font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;
+  color:var(--stg-ink2);}
+.clp-head b i{font-style:normal;color:var(--stg-mute);}
+
+/* -- the run, in order -------------------------------------------------- */
+/* Each card publishes BOTH registers and the stylesheet picks one, because this
+   list is server-rendered: a hue chosen in JS would have to wait for the theme
+   to resolve and the cards would repaint under the reader. */
+.clp-cards{display:flex;flex-direction:column;gap:8px;}
+.clp-c{--cc:var(--cc-dk,var(--stg-ink2));position:relative;display:flex;align-items:center;
+  gap:13px;min-width:0;text-decoration:none;color:var(--stg-ink);background:var(--stg-surf);
+  border:1px solid var(--stg-line);border-radius:10px;padding:12px 15px 12px 18px;
+  overflow:hidden;}
+[data-stage-theme='light'] .clp-c{--cc:var(--cc-lt,var(--stg-ink2));}
+.clp-c::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc);}
+.clp-c:hover{border-color:var(--cc);}
+.clp-c:focus-visible{outline:2px solid var(--cc);outline-offset:2px;}
+.clp-num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--stg-chip);
+  color:var(--stg-mute);font-family:${MONO};font-size:11px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;}
+.clp-c.played{border-color:color-mix(in srgb, var(--cc) 40%, transparent);}
+.clp-c.played .clp-num{color:var(--cc);}
+.clp-ic{flex:none;display:flex;align-items:center;justify-content:center;color:var(--cc);}
+.clp-ct{min-width:0;flex:1;}
+/* BLOCK, both of them. They are spans inside .clp-ct, and .clp-ct being a flex
+   ITEM blockifies the box itself but NOT its children, so the two stayed inline
+   and rendered as "DeepTrivia · One topic, fifteen questions" on one run-on
+   line (owner report, 2026-08-18). */
+.clp-cn{display:block;font-size:16px;font-weight:800;letter-spacing:-0.015em;color:var(--stg-ink);}
+.clp-cm{display:block;font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.clp-arr{flex:none;color:var(--stg-mute);}
+
+.clp-note{font-size:12.5px;font-weight:600;color:var(--stg-mute);line-height:1.6;margin:12px 0 0;
+  max-width:74ch;}
+.clp-foot{margin:0;}
+
+/* -- the trophy --------------------------------------------------------- */
+.clp-tro{display:flex;align-items:center;gap:12px;background:var(--stg-surf);
+  border:1px solid var(--stg-line);border-radius:10px;padding:13px 15px;}
+.clp-troi{flex:none;color:var(--stg-warn);}
+.clp-trot{flex:1;min-width:0;}
+.clp-trot b{display:block;font-size:15px;font-weight:800;letter-spacing:-0.015em;color:var(--stg-ink);}
+.clp-trosub{display:block;font-size:11.5px;font-weight:600;color:var(--stg-mute);margin-top:2px;}
+/* The tier keeps its own metal, because gold, silver and bronze ARE the
+   information here and the ramp has no word for them. They are chips on a
+   surface rather than ink on the ground, so both registers read them. */
+.clp-tier{flex:none;font-family:${MONO};font-size:9px;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;padding:5px 9px;border-radius:999px;
+  background:var(--stg-chip);color:var(--stg-ink2);}
+.clp-tier.gold{background:rgba(251,191,36,0.16);color:#fbbf24;}
+.clp-tier.silver{background:rgba(203,213,225,0.16);color:#cbd5e1;}
+.clp-tier.bronze{background:rgba(217,142,86,0.18);color:#e0a273;}
+[data-stage-theme='light'] .clp-tier.gold{background:#fdf3d8;color:#7a5c0c;}
+[data-stage-theme='light'] .clp-tier.silver{background:#eaedf2;color:#4b5361;}
+[data-stage-theme='light'] .clp-tier.bronze{background:#f6e9dd;color:#7d4f26;}
+
+.clp-all{display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:10px;
+  padding:13px 18px;font-family:${MONO};font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--stg-ink2);text-decoration:none;}
+.clp-all:hover{border-color:var(--stg-line2);color:var(--stg-ink);}
+.clp-all:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
+
+@media (max-width:640px){
+  .clp{gap:24px;}
+  .clp-h1{font-size:27px;}
+  .clp-sub{font-size:14px;}
+  .clp-acts{flex-direction:column;align-items:stretch;}
+  .clp-go,.clp-sh{justify-content:center;}
+  .clp-figs{gap:0;justify-content:space-between;}
+  .clp-figs>div{min-width:0;}
+  .clp-figs b{font-size:18px;}
+  .clp-figs b i{font-size:13px;}
+  .clp-c{gap:10px;padding:11px 12px 11px 15px;}
+  .clp-ic{display:none;}
+}
+`;
