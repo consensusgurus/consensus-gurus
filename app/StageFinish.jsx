@@ -480,13 +480,47 @@ export default function StageFinish({
   const rest = opts.filter((o) => o !== forward && o !== goldOpt);
 
   const archiveRows = Array.isArray(archive) ? archive : [];
-  const archiveBtn = (
-    <button key="arch" type="button" className={'stf-o' + (arch ? ' on' : '')}
+  // A FUNCTION rather than a stored element, because the parity walk below has
+  // to be able to widen this tile when it lands as the tail of an odd run, and
+  // an element built once cannot take a class decided later.
+  const archiveBtn = (extra = '') => (
+    <button key="arch" type="button" className={'stf-o' + (arch ? ' on' : '') + extra}
       onClick={() => setArch((v) => !v)}>
       <b>{name ? `Full ${name} archive` : 'Full archive'}</b>
       <i>{arch ? 'Hide the list' : `Every one of the ${archiveRows.length}`}</i>
     </button>
   );
+
+  // EVERY TILE IS THE SAME WIDTH (owner, 2026-08-31: "fix the rendering of the
+  // bottom tiles to be even, make share a full width on the bottom"). The grid
+  // was repeat(auto-fit,minmax(190px,1fr)), which laid THREE tracks at the
+  // card's width while the 'Play another' + archive pair spans the whole row.
+  // So a Four card read as two tiles and a dead slot, then a full-width pair of
+  // visibly wider tiles, then three across including the gold Share: three
+  // different tile widths in one grid. Two fixed columns make every tile one
+  // half-width, the pair's own 1fr 1fr matches them exactly, and Share takes
+  // the last row on its own.
+  //
+  // PARITY IS DECIDED HERE, NOT IN CSS, because the option set varies by game.
+  // The pair spans a full row, so it CUTS the half tiles into runs that each
+  // pair on their own; counting every half tile once, globally, proves nothing.
+  // This is the same walk LoftFinish does for its own grid, for the same reason
+  // and with the same guarantee: widening the LAST tile of an odd run can only
+  // shorten that run, never split one, so no option set can leave a hole.
+  const flow = [];
+  rest.forEach((o) => flow.push({
+    t: (o.tone === 'another' && archiveRows.length) ? 'pair' : 'tile', o,
+  }));
+  // No 'Play another'? The archive still belongs on the card, on its own.
+  if (archiveRows.length && !rest.some((o) => o.tone === 'another')) flow.push({ t: 'arch' });
+  flow.push({ t: 'browse' });
+  const wideOpt = new Set();
+  let runAt = -1;
+  for (let i = 0; i <= flow.length; i += 1) {
+    if (i < flow.length && flow[i].t !== 'pair') { if (runAt < 0) runAt = i; continue; }
+    if (runAt >= 0 && (i - runAt) % 2 === 1) wideOpt.add(i - 1);
+    runAt = -1;
+  }
 
   const top5 = board && Array.isArray(board.rows) ? board.rows.slice(0, 5) : [];
   // Identity, by key first and by name second, because a guest board carries
@@ -722,32 +756,37 @@ export default function StageFinish({
         </section>
 
         <div className="stf-opts">
-          {rest.map((o, i) => {
+          {flow.map((f, i) => {
+            const w = wideOpt.has(i) ? ' wide' : '';
+            if (f.t === 'arch') return archiveBtn(w);
+            // THE OLD BROWSE BUTTON, back in the slot the grid left empty. It
+            // opens the same A-to-Z panel the category row above does, rather
+            // than navigating away.
+            if (f.t === 'browse') {
+              return (
+                <button key="browse" type="button" className={'stf-o' + (cat === 'all' ? ' on' : '') + w}
+                  onClick={() => setCat((v) => (v === 'all' ? null : 'all'))}>
+                  <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${LIVE().length}`}</i>
+                </button>
+              );
+            }
+            const o = f.o;
             const node = o.href
-              ? <a key={i} className={'stf-o' + (o.kind === 'gold' ? ' gold' : '')} href={o.href} onClick={o.onClick}>
+              ? <a key={i} className={'stf-o' + w} href={o.href} onClick={o.onClick}>
                   <b>{o.label}</b>{o.sub ? <i>{o.sub}</i> : null}
                 </a>
-              : <button key={i} type="button" className={'stf-o' + (o.kind === 'gold' ? ' gold' : '')} onClick={o.onClick}>
+              : <button key={i} type="button" className={'stf-o' + w} onClick={o.onClick}>
                   <b>{o.label}</b>{o.sub ? <i>{o.sub}</i> : null}
                 </button>;
             // THE ARCHIVE SITS BESIDE 'Play another' (owner, 2026-08-31),
             // because they are the same question at two sizes: one more day of
             // this game, or every day of it. All 80 clients already pass
             // `archive` to LoftFinish; the stage ending simply never took it.
-            return (o.tone === 'another' && archiveRows.length)
-              ? <div key={`pair${i}`} className="stf-pair">{node}{archiveBtn}</div>
+            return f.t === 'pair'
+              ? <div key={`pair${i}`} className="stf-pair">{node}{archiveBtn()}</div>
               : node;
           })}
-          {/* No 'Play another'? The archive still belongs on the card. */}
-          {archiveRows.length && !rest.some((o) => o.tone === 'another') ? archiveBtn : null}
-          {/* THE OLD BROWSE BUTTON, back in the slot the grid left empty. It
-              opens the same A-to-Z panel the category row above does, rather
-              than navigating away. */}
-          <button type="button" className={'stf-o' + (cat === 'all' ? ' on' : '')}
-            onClick={() => setCat((v) => (v === 'all' ? null : 'all'))}>
-            <b>All daily puzzles</b><i>{cat === 'all' ? 'Hide the list' : `Every one of the ${LIVE().length}`}</i>
-          </button>
-          {/* Last, and on a phone the whole width. */}
+          {/* Last, and a whole row of its own at every width. */}
           {goldOpt ? (goldOpt.href
             ? <a className="stf-o gold" href={goldOpt.href} onClick={goldOpt.onClick}>
                 <b>{goldOpt.label}</b>{goldOpt.sub ? <i>{goldOpt.sub}</i> : null}
@@ -909,7 +948,17 @@ const CSS = `
 .stf-archr.done .d{color:var(--stg-mute);}
 
 /* ── the options ───────────────────────────────────────────────────────── */
-.stf-opts{display:grid;gap:7px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}
+.stf-opts{display:grid;gap:7px;grid-template-columns:1fr 1fr;}
+/* A LONE TILE TAKES THE WHOLE ROW. The retry ending puts exactly one option
+   here ("Show end game card"), so a two-column track leaves it at half width
+   under a full-width "Replay instantly" and the pair reads as a mistake.
+   Written as :has() rather than a class on that one call site, so any future
+   single-tile row is right without anyone remembering this. */
+.stf-opts:has(> :only-child){grid-template-columns:1fr;}
+/* Share asks for something rather than offering something, and it is the last
+   thing on the card: it takes a row of its own. The wide class is the tail of
+   an odd run, widened so a run of half tiles can never end on a dead slot. */
+.stf-opts > .stf-o.gold,.stf-opts > .stf-o.wide{grid-column:1/-1;}
 .stf-o{display:block;text-align:left;text-decoration:none;cursor:pointer;font:inherit;
   background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:9px;
   padding:11px 13px;color:var(--stg-ink);}
@@ -992,14 +1041,5 @@ const CSS = `
   .stf-ciq b{font-size:26px;}
   .stf-ciq i{font-size:10px;margin-top:5px;}
   .stf-wrap{padding:18px 2px 8px;gap:17px;}
-  .stf-opts{grid-template-columns:1fr 1fr;}
-  /* A LONE TILE TAKES THE WHOLE ROW. The retry ending puts exactly one option
-     here ("Show end game card"), so a two-column track left it at half width
-     under a full-width "Replay instantly" and the pair read as a mistake.
-     Written as :has() rather than a class on that one call site, so any future
-     single-tile row is right without anyone remembering this. */
-  .stf-opts:has(> :only-child){grid-template-columns:1fr;}
-  /* Share is the one tile a phone gives a whole row to. */
-  .stf-opts > .stf-o.gold{grid-column:1/-1;}
 }
 `;
