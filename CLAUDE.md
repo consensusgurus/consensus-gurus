@@ -6768,9 +6768,11 @@ a way of ending), called at any moment: **+6 with a third or fewer of the board 
 open, +4 with up to two thirds, +2 after that**; three wrong calls lock it at 0 and the
 films still score. Score /15. Part of every board is PLANTED to read as a false thread,
 and a wrong call that names a planted one says how many tiles it covers ("Spielberg covers
-3 of the 9"), which is information, so it is worth a strike. Tapping a tile shows its
-letter pattern, free. Give up locks an uncalled thread; once every thread has landed the
-same control reads "Reveal the rest" and keeps the score.
+3 of the 9"), which is information, so it is worth a strike. **No hints of any kind**
+(owner, 2026-09-01): the letter-pattern reveal shipped at launch and was pulled the same
+evening, because an underscore count gives a title away; the sentence is all a player
+gets. Give up locks an uncalled thread; once every thread has landed the same control
+reads "Reveal the rest" and keeps the score.
 
 **Sunday Edition:** sixteen tiles, two threads of eight, interleaved. A call names either
 thread and its eight light up. Score /28, tiers by thirds of sixteen (0-5 / 6-10 / 11-16).

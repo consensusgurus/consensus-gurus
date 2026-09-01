@@ -191,10 +191,9 @@ function mergeServerStats(s, recent, puzzles) {
 const HAPT = { wrong: [0, 26, 34, 26], hit: [12], win: [10, 40, 20, 40, 20, 60] };
 function vibrate(p) { try { if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
 
-// solved: tile indices in solve order. hinted: tiles whose letter pattern is
-// showing. calls: every thread call, { q, ok, open, th }. called: thread
+// solved: tile indices in solve order. calls: every thread call, { q, ok, open, th }. called: thread
 // indices landed. locked: three wrong calls spent. gave: the player ended it.
-const freshState = () => ({ v: 1, solved: [], hinted: [], calls: [], called: [], locked: false, gave: false, status: 'playing', t0: null, tEnd: null });
+const freshState = () => ({ v: 1, solved: [], calls: [], called: [], locked: false, gave: false, status: 'playing', t0: null, tEnd: null });
 
 export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = null }) {
   const PUZZLE = useMemo(() => pickPuzzle(puzzles, forceNum), [puzzles, forceNum]);
@@ -496,13 +495,6 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
     commit(maybeFinish({ ...cur, calls, locked }));
   }
 
-  function toggleHint(i) {
-    const cur = gRef.current;
-    if (cur.status !== 'playing' || !cur.t0 || cur.solved.includes(i)) return;
-    const hinted = cur.hinted.includes(i) ? cur.hinted.filter((x) => x !== i) : [...cur.hinted, i];
-    commit({ ...cur, hinted });
-  }
-
   // Give up (thread still open: it locks at 0) or reveal the rest (every
   // thread already landed: the films you have not named are shown, the
   // score you have keeps). Both end the day.
@@ -550,14 +542,13 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
         <>Each tile is a <b>logline</b>: a true, useless description of a film. <b>Type a title</b> whenever you recognise one. Any order, no penalty for a wrong guess, and the box takes it the moment it matches. Every film named is a point.</>,
         <>The last answer is the <b>thread</b>: what all the films share. A director, an actor, a year, a city, a way of ending. Call it whenever you like. The earlier you call it right, the more it pays: <b>{BONUS_TOP} points</b> with {Math.floor(N / 3)} or fewer tiles still open, 4 with up to {Math.floor(2 * N / 3)}, 2 after that.</>,
         <>Three wrong calls and the thread <b>locks at zero</b>. The films still count. A wrong call that names something planted on the board tells you how many tiles it really covers.</>,
-        <>Part of the board is planted to read as a <b>different</b> thread. That is the game. Tap a tile for its letter pattern; it costs nothing.</>,
+        <>Part of the board is planted to read as a <b>different</b> thread. That is the game. There are no hints: the sentence is all you get.</>,
       ]}
       knack="Do not solve the board and then look for the thread. Name two or three, ask what they share, and check the idea against the tiles you have not named. If the sentence for a film you do not know still fits your thread, you have it."
       footer="Ranks by score, then by how many tiles were still open when the thread was called (more open is the harder call), then the clock. First attempt stands."
     />
   );
 
-  const pattern = (t) => t.t.split(' ').map((w) => w.replace(/[A-Za-z0-9À-ÿ]/g, '_')).join('  ');
   const cols = PUZZLE.sunday ? 4 : 3;
 
   return (
@@ -605,9 +596,8 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
           @keyframes thpop{0%{transform:scale(1)}40%{transform:scale(1.02)}100%{transform:scale(1)}}
           .th-grid{display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:9px;}
           @media(max-width:700px){.th-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-          .th-tile{position:relative;text-align:left;font-family:${SANS};background:var(--stg-cell, ${T.white});border:1px solid var(--stg-cell-line, rgba(28,30,36,0.35));border-radius:7px;padding:12px 13px 10px;min-height:${PUZZLE.sunday ? 100 : 116}px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;color:${INK};cursor:pointer;}
-          .th-tile:hover{border-color:var(--stg-acc, ${COLORS.accent});}
-          .th-tile.on{background:var(--stg-acc-tint, ${COLORS.accentSoft});border-color:var(--stg-acc, ${COLORS.accent});cursor:default;}
+          .th-tile{position:relative;text-align:left;font-family:${SANS};background:var(--stg-cell, ${T.white});border:1px solid var(--stg-cell-line, rgba(28,30,36,0.35));border-radius:7px;padding:12px 13px 12px;min-height:${PUZZLE.sunday ? 96 : 110}px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;color:${INK};}
+          .th-tile.on{background:var(--stg-acc-tint, ${COLORS.accentSoft});border-color:var(--stg-acc, ${COLORS.accent});}
           .th-tile.thr{box-shadow:inset 0 0 0 2px var(--stg-cool, #7dd3fc);}
           .th-tile.thr2{box-shadow:inset 0 0 0 2px var(--stg-warn, #b45309);}
           .th-tile.miss{border-color:var(--stg-bad, ${COLORS.rust});}
@@ -617,7 +607,6 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
           .th-tile .a{display:none;font-size:${PUZZLE.sunday ? 15 : 17}px;font-weight:800;letter-spacing:-.01em;color:${INK};line-height:1.15;}
           .th-tile.on .a{display:block;}
           .th-tile.miss .a{display:block;color:var(--stg-bad, ${COLORS.rust});}
-          .th-tile .h{font-family:${MONO};font-size:11px;letter-spacing:.16em;color:var(--stg-warn, #b45309);min-height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
           .th-card{background:${SURF};border:1px solid ${SURF_B};border-radius:9px;padding:14px;}
           .th-card h3{margin:0 0 6px;font-family:${MONO};font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};font-weight:500;}
           .th-big{font-size:19px;font-weight:800;letter-spacing:-.01em;line-height:1.15;color:${INK};}
@@ -713,14 +702,12 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
               const thrClass = NTH > 1 && calledSet.has(owner) ? (owner === 0 ? ' thr' : ' thr2') : '';
               const missed = !playing && !on;
               return (
-                <button type="button" key={i} role="listitem" className={`th-tile${on ? ' on' : ''}${missed ? ' miss' : ''}${thrClass}`}
-                  onClick={() => toggleHint(i)} disabled={!playing || on}
+                <div key={i} role="listitem" className={`th-tile${on ? ' on' : ''}${missed ? ' miss' : ''}${thrClass}`}
                   aria-label={on ? `${t.t}, named` : `Tile ${i + 1}. ${t.s}`}>
                   <div className="n"><span>{String(i + 1).padStart(2, '0')}</span>{!playing && planted.has(i) && <span style={{ color: 'var(--stg-warn, #b45309)' }}>PLANTED</span>}{!playing && NTH > 1 && <span>{THREADS[owner] ? THREADS[owner].t : ''}</span>}</div>
                   <p>{t.s}</p>
                   <div className="a">{t.t}</div>
-                  <div className="h">{playing && !on && g.hinted.includes(i) ? pattern(t) : ''}</div>
-                </button>
+                </div>
               );
             })}
           </div>
