@@ -172,8 +172,8 @@ function boardPalette(el) {
     plate: v('--stg-panel', '#ffffff'),
     grid: v('--stg-line', '#eef1f5'),
     edge: v('--stg-line2', v('--stg-line', '#e2e6ec')),
-    bench: v('--stg-surf2', '#333a48'),
-    benchLine: v('--stg-line2', 'rgba(255,255,255,0.30)'),
+    bench: v('--stg-line2', '#333a48'),
+    benchLine: v('--stg-mute2', 'rgba(255,255,255,0.30)'),
     ink: v('--stg-ink', '#1c1e24'),
     mute: v('--stg-mute2', '#c4ccd8'),
     onramp: v('--stg-onramp', '#ffffff'),
@@ -1113,15 +1113,17 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
           <p style={{ margin: '0 0 9px' }}>
             Chomp is a daily route puzzle. A handful of mascots sit on a small board and have to be eaten in order,
             and every square you touch belongs to you for the rest of the run. Nothing chases you and nothing is on a timer.
-            The obstacles are the trail you have already laid and a few bolted-down bleacher squares, which is why the
-            shortest line to the fourth mascot is so often the line that walls off the fifth. The board is deliberately tight: on most days the shortest legal route
-            uses most of the squares on it, and on a Sunday it can take very nearly all of them.
+            The only obstacle is the trail you have already laid, which is why the shortest line to the fourth mascot is
+            so often the line that walls off the fifth. The board is as tight as it can be: there is exactly ONE route that
+            eats the whole cast, it uses every square on the board, and nothing is spare. One wrong turn in forty-eight
+            moves and the run is over.
           </p>
           <p style={{ margin: '0 0 9px' }}>
             You do not need all of them. The score is how far down the cast you got, so a run that stalls still counts.
             Everybody plays the same board on the same day, ties break on fewest moves, and giving up records the run as it
             stood, so the first attempt is the one that counts. The bulldog always leads and the rest are dealt fresh each
-            day; Sundays field the whole cast and spread it further apart.
+            day. Each mascot is a signpost on the one route, so the cast gets shorter through the week, from ten on Monday
+            to eight on Saturday; the Sunday Edition moves up to a bigger 8x8 board and puts the whole cast on it.
           </p>
           <p style={{ margin: 0 }}>
             More daily puzzles: <a href="/parker" style={{ color: ACC }}>Parker</a>,{' '}

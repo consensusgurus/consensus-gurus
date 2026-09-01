@@ -11,7 +11,7 @@ import { SITE_URL } from '@/lib/site';
 export const metadata = {
   title: 'Chomp — Free Daily Route Puzzle | Mind Loft',
   description:
-    'Chomp is a free daily route puzzle. A cast of mascots on a small board, eaten in order, and every square you touch stays yours for the rest of the run. Your trail and a few bolted-down bleachers are the only obstacles, and the board is tight enough that finishing takes most of it. One board a day, the same for everybody, you do not need them all, and replay is free.',
+    'Chomp is a free daily route puzzle. A cast of mascots on a small board, eaten in order, and every square you touch stays yours for the rest of the run. There is exactly one route that gets all of them and it uses every square on the board, so your own trail is the only obstacle and one wrong turn ends the run. One board a day, the same for everybody, you do not need them all, and replay is free.',
   alternates: { canonical: '/chomp' },
   openGraph: {
     title: 'Chomp — A Daily Route Puzzle',
