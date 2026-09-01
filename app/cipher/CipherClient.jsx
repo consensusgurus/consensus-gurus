@@ -955,21 +955,21 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.cf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .cf-btn:hover{background:var(--accent-soft);}
-          .cf-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .cf-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .cf-btn.primary:hover{background:#0c5f59;}
-          .cf-btn.primary.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.22);}
+          .cf-btn.primary.ready{box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 22%, transparent);}
           .cf-row{display:flex;justify-content:flex-end;align-items:center;gap:4px;margin:3px 0;}
           .cf-op{width:26px;font-size:22px;font-weight:800;color:${FADED};text-align:center;flex:0 0 auto;}
           .cf-cell{width:46px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:9px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.14));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;font-family:${SANS};}
-          .cf-cell:hover{background:${COLORS.accentSoft};}
-          .cf-cell.on{border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.25);}
+          .cf-cell:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
+          .cf-cell.on{border-color:var(--stg-acc, ${COLORS.accent});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 25%, transparent);}
           .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
           .cf-cell .cf-dg{font-size:14px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
           .cf-cell.bad .cf-dg{color:${COLORS.rust};}
           .cf-rule{border-top:3px solid ${COLORS.ink};margin:7px 0 6px;}
           .cf-carrow,.cf-mkrow{margin:0;}
           .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${FADED};cursor:pointer;padding:0;line-height:1;}
-          .cf-carry:hover:not(:disabled){background:${COLORS.accentSoft};border-color:var(--stg-acc, ${COLORS.accent});}
+          .cf-carry:hover:not(:disabled){background:var(--stg-surf2, ${COLORS.accentSoft});border-color:var(--stg-acc, ${COLORS.accent});}
           .cf-carry.fixed{border:1px solid transparent;color:var(--stg-acc, ${COLORS.accent});font-weight:700;cursor:default;}
           .cf-carry.off{border-color:transparent;cursor:default;}
           .cf-mk{width:46px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;color:transparent;}
@@ -981,12 +981,12 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              keys below carry the same information one number to a box. */
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
           .cf-pk{position:relative;height:50px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
-          .cf-pk:hover{background:${COLORS.accentSoft};}
+          .cf-pk:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});font-weight:800;letter-spacing:0.02em;}
           .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
           .cf-pk.note{grid-column:span 2;}
           .cf-pk.foot:not(.note){grid-column:span 3;}
-          .cf-pk.note.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .cf-pk.note.on{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .cf-pad.notes .cf-pk:not(.foot){border-style:dashed;border-color:var(--stg-acc, ${COLORS.accent});}
           /* Pad key states. A digit already owned by another letter, a 0 under a
              leading letter, or a digit crossed off in Notes now READS as such on
@@ -1011,7 +1011,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              retired on mobile: its job (which digits are still open) is now
              carried by the pad key states plus the per-letter count. */
           .cf-dock{position:fixed;left:0;right:0;bottom:0;z-index:40;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-top:1.5px solid rgba(20,22,28,0.14);box-shadow:0 -5px 20px rgba(20,22,28,0.13);padding:7px 10px calc(7px + env(safe-area-inset-bottom));}
-          .cf-dock.notes{background:${COLORS.accentSoft};border-top:2px solid ${COLORS.accent};}
+          .cf-dock.notes{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-top:2px solid var(--stg-acc, ${COLORS.accent});}
           .cf-dk{max-width:470px;margin:0 auto;display:flex;flex-direction:column;gap:6px;}
           .cf-say{font-size:11.5px;font-weight:800;line-height:1.35;text-align:center;color:${FADED};}
           .cf-say.bad{color:${COLORS.rust};}
@@ -1026,9 +1026,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
              system came out; the green .lone ring below is the one piece of
              that signal worth keeping, and it is not a numeral. */
           .cf-sc .d.dim{color:rgba(28,30,36,0.30);}
-          .cf-sc.on{border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(15,118,110,0.28);}
+          .cf-sc.on{border-color:var(--stg-acc, ${COLORS.accent});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 28%, transparent);}
           .cf-dock.notes .cf-sc{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
-          .cf-dock.notes .cf-sc.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});}
+          .cf-dock.notes .cf-sc.on{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});}
           .cf-dock.notes .cf-sc.on .l,.cf-dock.notes .cf-sc.on .d{color:var(--white);}
           .cf-dock.notes .cf-sc.on .d.dim{color:rgba(255,255,255,0.75);}
           .cf-sc.lone{border-color:${COLORS.green};box-shadow:inset 0 0 0 1px ${COLORS.green};}
@@ -1038,9 +1038,9 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-dock .cf-pk .who{font-size:11px;top:3px;right:6px;}
           .cf-drow{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:6px;}
           .cf-db{height:44px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};font-family:${SANS};font-size:12px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 6px;}
-          .cf-db.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .cf-db.go{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);font-size:13px;}
-          .cf-db.go.ready{box-shadow:0 0 0 3px rgba(15,118,110,0.28);}
+          .cf-db.on{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .cf-db.go{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));font-size:13px;}
+          .cf-db.go.ready{box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 28%, transparent);}
           .cf-db.warn{border-color:${COLORS.rust};color:${COLORS.rust};}
           @media(max-width:560px){.cf-cell{width:40px;height:52px;}.cf-cell .cf-ch{font-size:18px;}.cf-pad{grid-template-columns:repeat(5,1fr);width:100%;}.cf-carry,.cf-mk{width:40px;}.cf-carry{height:26px;}}
         `}</style>
@@ -1061,7 +1061,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {sundayDetail}</span>}
           blocks={'CIPHER'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

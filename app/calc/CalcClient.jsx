@@ -738,21 +738,21 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.cl-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accent};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accent};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .cl-btn:hover{background:${COLORS.accentSoft};}
+          .cl-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .cl-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .cl-key{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;padding:0;min-width:0;border-radius:50%;transition:transform .09s ease,background .12s ease,color .12s ease;}
-          .cl-num{background:${COLORS.accentSoft};color:${COLORS.accentDeep};border:1.5px solid ${COLORS.accentTint};}
+          .cl-num{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${COLORS.accentDeep};border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});}
           .cl-op{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${FADED};border:1.5px dashed rgba(28,30,36,0.22);}
-          .cl-key.on{background:${COLORS.accent};color:var(--white);border:1.5px solid ${COLORS.accent};}
-          .cl-key.head{background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};box-shadow:0 0 0 4px ${COLORS.accentTint};}
-          .cl-key.reach{border:1.5px solid ${COLORS.accent};}
+          .cl-key.on{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border:1.5px solid var(--stg-acc, ${COLORS.accent});}
+          .cl-key.head{background:var(--stg-acc, ${COLORS.accentDeep});border-color:var(--stg-acc, ${COLORS.accentDeep});box-shadow:0 0 0 4px var(--stg-surf2, ${COLORS.accentTint});}
+          .cl-key.reach{border:1.5px solid var(--stg-acc, ${COLORS.accent});}
           .cl-key.reach:hover{transform:scale(1.07);}
           .cl-key.blocked{opacity:.3;cursor:default;}
           .cl-key.term{border-radius:14px;}
           .cl-key.solved{background:${COLORS.green};border-color:${COLORS.green};color:var(--white);}
           .cl-flag{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-family:${MONO};font-size:8px;letter-spacing:.1em;text-transform:uppercase;background:${COLORS.ink};color:var(--white);padding:1px 5px;border-radius:99px;font-weight:500;pointer-events:none;}
           .cl-goal{border: 2px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:11px;padding:6px 16px 8px;text-align:center;min-width:104px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};cursor:pointer;font-family:${SANS};}
-          .cl-goal.act{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px ${COLORS.accentTint};}
+          .cl-goal.act{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px var(--stg-surf2, ${COLORS.accentTint});}
           .cl-goal.got{border-color:${COLORS.green};background:${STAGE ? 'var(--stg-surf2)' : '#f2fbf6'};cursor:default;}
           .cl-goal .k{font-family:${MONO};font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${FADED};}
           .cl-goal .v{font-size:34px;font-weight:800;line-height:1.1;letter-spacing:-.03em;color:${INK};font-variant-numeric:tabular-nums;}
@@ -775,7 +775,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 3 targets</span>}
           blocks={'CALC'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -875,7 +875,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Back to start
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: COLORS.accentTint, color: ACC_DEEP }}>
+                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: `var(--stg-surf2, ${COLORS.accentTint})`, color: ACC_DEEP }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -906,7 +906,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', margin: '12px 0 0' }}>
                   {TARGETS.map((t, k) => (
                     <button key={k} type="button" onClick={() => setG((cur) => ({ ...cur, slot: k }))}
-                      style={{ fontFamily: SANS, fontWeight: 800, fontSize: 12, borderRadius: 8, padding: '6px 11px', cursor: 'pointer', border: `1.5px solid ${k === g.slot ? COLORS.accent : 'rgba(28,30,36,0.2)'}`, background: k === g.slot ? COLORS.accentSoft : T.white, color: g.routes[k] ? COLORS.green : COLORS.faded }}>
+                      style={{ fontFamily: SANS, fontWeight: 800, fontSize: 12, borderRadius: 8, padding: '6px 11px', cursor: 'pointer', border: `1.5px solid var(--stg-acc, ${k === g.slot ? COLORS.accent : 'rgba(28,30,36,0.2)'})`, background: k === g.slot ? `color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent)` : T.white, color: g.routes[k] ? COLORS.green : COLORS.faded }}>
                       {t.target} {g.routes[k] ? '✓' : ''}
                     </button>
                   ))}

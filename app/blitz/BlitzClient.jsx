@@ -593,10 +593,10 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           .bz-btn:hover{background:var(--accent-soft);}
           .bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           .bz-choice{font-family:${SANS};display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid;border-radius:9px;padding:15px 12px;transition:background .12s ease,border-color .12s ease;}
-          .bz-grid:not(.nohov) .bz-choice:not(:disabled):hover{background:${COLORS.paper};}
+          .bz-grid:not(.nohov) .bz-choice:not(:disabled):hover{background:var(--stg-surf2, ${COLORS.paper});}
           .bz-prob{font-family:${MONO};font-weight:500;font-size:44px;line-height:1.15;letter-spacing:-0.02em;color:${INK};text-align:center;padding:14px 4px 20px;font-variant-numeric:tabular-nums;}
           @media(max-width:560px){.bz-prob{font-size:36px;padding:10px 2px 16px;}}
-          .bz-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
+          .bz-timebar{height:7px;border-radius:4px;background:var(--stg-surf, ${COLORS.paper});overflow:hidden;}
           .bz-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
         `}</style>
 
@@ -607,7 +607,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           slug="blitz" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           blocks={'BLITZ'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}

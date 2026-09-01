@@ -770,7 +770,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           @keyframes lsshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .ls-shake{animation:lsshake .45s ease;}
           .ls-arrow{width:34px;height:31px;border-radius:7px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
-          .ls-arrow:hover{background:${COLORS.brandSoft};border-color:${COLORS.brand};color:${COLORS.brand};}
+          .ls-arrow:hover{background:var(--stg-surf2, ${COLORS.brandSoft});border-color:var(--stg-acc, ${COLORS.brand});color:var(--stg-acc, ${COLORS.brand});}
           .ls-arrow:disabled{opacity:.25;cursor:default;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:560px){.ls-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ls-ttl h1{font-size:21px;letter-spacing:0.02em;}.ls-ttl .ls-ttl-dt{font-size:15px;}.ls-ttl-dot{display:none;}}
           @media(max-width:430px){.ls-mh-tile{width:34px !important;height:34px !important;font-size:20px !important;}}
@@ -793,7 +793,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.brand})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Nine items</span>}
           blocks={'LISTED'.split('').map((ch, i) => (
-              <div key={i} className="ls-mh-tile" style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 2 ? COLORS.brand : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} className="ls-mh-tile" style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 2 ? `var(--stg-acc, ${COLORS.brand})` : COLORS.ink, color: i === 2 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -853,18 +853,18 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
               const done = g.status !== 'playing';
               const showVal = locked || done || (g.hintIdx === it && g.hintUsed);
               const valChip = showVal ? (
-                <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: locked ? COLORS.lockInk : COLORS.brandInk, background: locked ? COLORS.lockSoft : COLORS.brandSoft, border: `1px solid ${locked ? 'rgba(21,128,61,0.4)' : 'rgba(134,25,143,0.35)'}`, borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>{PUZZLE.items[it].v}</span>
+                <span style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 500, color: locked ? `var(--stg-good, ${COLORS.lockInk})` : `var(--stg-ink, ${COLORS.brandInk})`, background: `var(--stg-surf2, ${locked ? COLORS.lockSoft : COLORS.brandSoft})`, border: `1px solid ${locked ? 'var(--stg-good, rgba(21,128,61,0.4))' : 'var(--stg-acc, rgba(134,25,143,0.35))'}`, borderRadius: 6, padding: '3px 8px', whiteSpace: 'nowrap' }}>{PUZZLE.items[it].v}</span>
               ) : null;
               const draggable = !mobileUi && playing && !locked;
               const dragging = drag && drag.from === slot;
               const dropHere = drag && !dragging && drag.target === slot;
-              const bg = locked ? COLORS.lockSoft : dropHere ? COLORS.brandSoft : near ? COLORS.nearSoft : T.white;
-              const bord = locked ? '1.5px solid rgba(21,128,61,0.5)' : dropHere ? `1.5px solid ${COLORS.brand}` : near ? `1.5px solid ${COLORS.near}` : '1.5px solid rgba(28,30,36,0.32)';
+              const bg = locked ? `var(--stg-surf2, ${COLORS.lockSoft})` : dropHere ? `color-mix(in srgb, var(--stg-acc, ${COLORS.brand}) 16%, transparent)` : near ? `var(--stg-surf2, ${COLORS.nearSoft})` : `var(--stg-surf, ${T.white})`;
+              const bord = locked ? '1.5px solid var(--stg-good, rgba(21,128,61,0.5))' : dropHere ? `1.5px solid var(--stg-acc, ${COLORS.brand})` : near ? `1.5px solid var(--stg-warn, ${COLORS.near})` : '1.5px solid var(--stg-line2, rgba(28,30,36,0.32))';
               return (
                 <div key={it} ref={(el) => { rowRefs.current[slot] = el; }} onPointerDown={draggable ? (e) => startDrag(slot, e) : undefined} title={draggable ? 'Drag to reorder' : undefined}
                   style={{ display: 'flex', alignItems: 'center', gap: 9, background: bg, border: bord, borderRadius: 9, padding: '9px 11px', cursor: draggable ? (dragging ? 'grabbing' : 'grab') : undefined, position: dragging ? 'relative' : undefined, zIndex: dragging ? 5 : undefined, transform: dragging ? `translateY(${drag.dy}px)` : undefined, boxShadow: dragging ? '0 8px 20px rgba(20,22,28,0.22)' : undefined, opacity: dragging ? 0.96 : undefined, touchAction: draggable ? 'none' : undefined }}>
-                  <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: near ? COLORS.nearInk : `var(--stg-mute, ${COLORS.faded})`, textAlign: 'center' }}>{locked ? <Check size={14} color={COLORS.lock} strokeWidth={3} /> : slot + 1}</span>
-                  <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? COLORS.lockInk : `var(--stg-ink, ${COLORS.ink})` }}>{PUZZLE.items[it].t}</span>
+                  <span style={{ flex: '0 0 auto', width: 20, fontFamily: MONO, fontSize: 11, color: near ? `var(--stg-warn, ${COLORS.nearInk})` : `var(--stg-mute, ${COLORS.faded})`, textAlign: 'center' }}>{locked ? <Check size={14} strokeWidth={3} style={{ color: `var(--stg-good, ${COLORS.lock})` }} /> : slot + 1}</span>
+                  <span style={{ flex: '1 1 auto', minWidth: 0, fontFamily: SANS, fontWeight: 700, fontSize: 13.5, lineHeight: 1.35, color: locked ? `var(--stg-good, ${COLORS.lockInk})` : `var(--stg-ink, ${COLORS.ink})` }}>{PUZZLE.items[it].t}</span>
                   {near && playing ? <span title="Off by one place" style={{ flex: '0 0 auto', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-ink, ${COLORS.nearInk})`, background: STAGE ? 'var(--stg-surf2)' : '#fbeec4', border: `1px solid var(--stg-line, ${COLORS.near})`, borderRadius: 5, padding: '2px 6px', whiteSpace: 'nowrap' }}>Off by one</span> : null}
                   {valChip}
                   {playing && !locked && (

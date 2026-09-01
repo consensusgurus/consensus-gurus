@@ -644,7 +644,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
           .bt-btn:hover{background:var(--accent-soft);}
           .bt-tile{box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:${SANS};font-weight:900;text-transform:uppercase;transition:background 0.15s, transform 0.1s;}
           .bt-tile.play{cursor:pointer;}
-          .bt-tile.sel{outline:3px solid ${COLORS.accent};outline-offset:-1px;transform:scale(1.05);z-index:2;}
+          .bt-tile.sel{outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;transform:scale(1.05);z-index:2;}
           .bt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
@@ -662,7 +662,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 7&times;7</span>}
           blocks={'BARTER'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

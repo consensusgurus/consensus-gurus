@@ -811,7 +811,7 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.mc-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .mc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .mc-btn:hover{background:${COLORS.accentSoft};}
+          .mc-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .mc-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .mc-given{font-weight:700;color:${INK};}
           .mc-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
@@ -820,7 +820,7 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
           .mc-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .mc-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .mc-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .mc-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 ${COLORS.accentDeep};}
+          .mc-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 var(--stg-acc, ${COLORS.accentDeep});}
           .mc-pad.armed .mc-pad-n{color:${COLORS.accentTint};}
           .mc-pad .mc-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .mc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -841,7 +841,7 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Nine thermometers</span>}
           blocks={'MERCURY'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

@@ -914,7 +914,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           .sn-mark{font-family:${MONO};font-weight:700;font-size:clamp(7px,1.9vw,10px);line-height:1;letter-spacing:0;white-space:nowrap;}
           .sn-mark.ok{color:${COLORS.green};}
           .sn-mark.off{color:${COLORS.rust};}
-          .sn-sum.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:${COLORS.accentSoft};border-radius:4px;}
+          .sn-sum.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-radius:4px;}
           .sn-sum.done{color:#c3c8cf;}
           .sn-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .sn-given{font-weight:700;color:${INK};}
@@ -924,7 +924,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           .sn-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .sn-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .sn-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .sn-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(9,58,64,0.55);}
+          .sn-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(9,58,64,0.55);}
           .sn-pad.armed .sn-pad-n{color:#c9e6e9;}
           .sn-pad .sn-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .sn-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -948,7 +948,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Six clues</span>}
           blocks={'SANDO'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

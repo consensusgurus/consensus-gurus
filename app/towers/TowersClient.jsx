@@ -825,7 +825,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.tw-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .tw-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .tw-btn:hover{background:${COLORS.accentSoft};}
+          .tw-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .tw-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .tw-given{font-weight:700;color:${INK};}
           .tw-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
@@ -834,11 +834,11 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           .tw-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .tw-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .tw-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .tw-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 ${COLORS.accentDeep};}
+          .tw-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 var(--stg-acc, ${COLORS.accentDeep});}
           .tw-pad.armed .tw-pad-n{color:${COLORS.accentTint};}
           .tw-pad .tw-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .tw-clue{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:${MONO};font-weight:500;font-size:clamp(12px,3vw,17px);color:${INK};user-select:none;line-height:1;min-width:0;min-height:0;}
-          .tw-clue.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:${COLORS.accentSoft};border-radius:4px;}
+          .tw-clue.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border-radius:4px;}
           .tw-mark{font-family:${MONO};font-weight:700;font-size:clamp(7px,1.8vw,9px);line-height:1;letter-spacing:0;}
           .tw-mark.ok{color:${COLORS.green};}
           .tw-mark.off{color:${COLORS.rust};}
@@ -860,7 +860,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 7&times;7</span>}
           blocks={'TOWERS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

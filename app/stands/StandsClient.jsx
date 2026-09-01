@@ -501,14 +501,14 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           .bk-cell.W{background:${COLORS.greenSoft};border-color:${COLORS.green};color:#14532d;}
           .bk-cell.D{background:${STAGE ? 'var(--stg-surf2)' : '#fef3c7'};border-color:#b45309;color:#78350f;}
           .bk-cell.L{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;}
-          .bk-cell.self{background:${COLORS.paper};border-color:transparent;cursor:default;}
+          .bk-cell.self{background:var(--stg-surf, ${COLORS.paper});border-color:transparent;cursor:default;}
           .bk-cell.mirror{cursor:default;opacity:0.72;}
           .bk-tbl{width:100%;border-collapse:collapse;font-family:${SANS};font-size:12.5px;}
           .bk-tbl th{font-family:${MONO};font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:${FADED};font-weight:500;text-align:right;padding:4px 6px;}
           .bk-tbl th:first-child{text-align:left;}
           .bk-tbl td{padding:5px 6px;text-align:right;font-weight:700;color:${INK};border-top:1px solid var(--stg-line, rgba(28,30,36,0.09));}
           .bk-tbl td:first-child{text-align:left;font-weight:800;}
-          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
+          .bk-clue{display:flex;gap:9px;align-items:flex-start;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;color:${INK};}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -524,7 +524,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: THEME.white, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Six Clubs</span>}
           blocks={'STANDS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: THEME.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: THEME.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -614,7 +614,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             <button type="button" className="bk-btn" onClick={submit} disabled={filled !== PAIRS.length} style={filled === PAIRS.length ? { background: `var(--stg-acc, ${COLORS.accent})`, borderColor: COLORS.accent, color: THEME.white } : { opacity: 0.45, cursor: 'not-allowed' }}>
               <Table2 size={14} /> Hand in the sheet
             </button>
-            <button type="button" className="bk-btn" onClick={hint} style={{ background: COLORS.accentSoft, borderColor: 'rgba(29,78,216,0.45)', color: ACC_DEEP }}><Lightbulb size={14} /> Nudge (−2)</button>
+            <button type="button" className="bk-btn" onClick={hint} style={{ background: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)`, borderColor: 'color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent)', color: ACC_DEEP }}><Lightbulb size={14} /> Nudge (−2)</button>
             {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
             {g.rejected >= 2 && <button type="button" className="bk-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>}
           </div>

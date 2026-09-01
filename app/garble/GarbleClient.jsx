@@ -669,7 +669,7 @@ export default function GarbleClient({ puzzles = [], forceNum = null }) {
             <div style={{ fontSize: 15.5, fontWeight: 700, fontStyle: 'italic', color: INK, marginBottom: 10 }}>&ldquo;{PUZZLE.clue}&rdquo;</div>
             <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 10 }}>
               {bank.map((b, i) => (
-                <span key={i} style={{ ...cellBase, width: 26, height: 26, fontSize: 13, background: g.solved[b.wi] || ended ? COLORS.gold : COLORS.paper, color: g.solved[b.wi] || ended ? COLORS.goldInk : COLORS.faded }}>{g.solved[b.wi] || ended ? b.ch : '?'}</span>
+                <span key={i} style={{ ...cellBase, width: 26, height: 26, fontSize: 13, background: g.solved[b.wi] || ended ? COLORS.gold : `var(--stg-surf, ${COLORS.paper})`, color: g.solved[b.wi] || ended ? COLORS.goldInk : COLORS.faded }}>{g.solved[b.wi] || ended ? b.ch : '?'}</span>
               ))}
               <span style={{ fontSize: 11, fontWeight: 700, color: FADED, alignSelf: 'center', marginLeft: 6 }}>your collected letters</span>
             </div>

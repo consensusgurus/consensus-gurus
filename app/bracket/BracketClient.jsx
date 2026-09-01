@@ -430,9 +430,9 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           .bk-m{border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:9px;overflow:hidden;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .bk-s{display:block;width:100%;text-align:left;font-family:${SANS};font-size:12.5px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));padding:8px 9px;cursor:pointer;}
           .bk-s:last-child{border-bottom:none;}
-          .bk-s:hover:not(:disabled){background:${COLORS.accentSoft};}
+          .bk-s:hover:not(:disabled){background:var(--stg-surf2, ${COLORS.accentSoft});}
           .bk-s:disabled{cursor:default;color:var(--muted);}
-          .bk-s.on{background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 ${COLORS.accent};}
+          .bk-s.on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};font-weight:800;box-shadow:inset 3px 0 0 var(--stg-acc, ${COLORS.accent});}
           .bk-s.right{background:${COLORS.greenSoft};color:#14532d;box-shadow:inset 3px 0 0 ${COLORS.green};}
           .bk-s.wrong{background:${COLORS.redSoft};color:#7f1d1d;text-decoration:line-through;box-shadow:inset 3px 0 0 ${COLORS.redInk};}
           .bk-v{font-family:${MONO};font-size:10px;font-weight:500;color:${FADED};margin-left:6px;}
@@ -451,7 +451,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Field of 32</span>}
           blocks={'BRACKET'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 20, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -484,7 +484,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: `1.5px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP, background: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)`, border: `1.5px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
               <span style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
                 picked <b style={{ color: INK, fontWeight: 500 }}>{filled}</b> of {MATCHES}
                 {!playing && <> &nbsp;&middot;&nbsp; scored <b style={{ color: INK, fontWeight: 500 }}>{score}</b>/{TOTAL}</>}

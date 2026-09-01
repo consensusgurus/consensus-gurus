@@ -824,10 +824,10 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.je-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .je-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .je-btn:hover{background:var(--accent-soft);}
-          .je-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .je-btn.primary:hover{background:${COLORS.accentDeep};}
+          .je-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .je-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .je-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .je-tool.on{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});}
+          .je-tool.on{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});}
           .je-cell{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
           .je-cell:hover::after{content:'';position:absolute;inset:0;background:rgba(28,30,36,0.07);}
           .je-x{color:rgba(28,30,36,0.45);font-size:15px;font-weight:800;}
@@ -850,7 +850,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {STARS === 2 ? <>Double Court {N}&times;{N}</> : <>Jubilee {N}&times;{N}</>}</span>}
           blocks={'JESTERS'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 32, height: 32, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 18, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 32, height: 32, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 18, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -871,7 +871,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
           {g.hintUsed && <span>&#128161; hint used</span>}
           {playing && (
             <label style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontFamily: SANS, fontSize: 12, fontWeight: 700, textTransform: 'none', letterSpacing: 0 }}>
-              <input type="checkbox" checked={autoX} onChange={(e) => setAutoX(e.target.checked)} style={{ accentColor: COLORS.accent }} />
+              <input type="checkbox" checked={autoX} onChange={(e) => setAutoX(e.target.checked)} style={{ accentColor: `var(--stg-acc, ${COLORS.accent})` }} />
               auto-✗ when you seat a jester
             </label>
           )}
@@ -932,7 +932,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                       onTouchCancel={endPress}
                       role="button"
                       aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 2 ? 'jester' : showX ? 'ruled out' : 'blank'}${conflict ? ', quarrelling' : ''}. Tap to place the ${tool === 'jester' ? 'jester' : '✗ mark'}; hold or right-click to seat a jester directly.`}
-                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : (doneRegions.has(id) ? REGION_FILLS_DONE : REGION_FILLS)[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px ${COLORS.accent}` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
+                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : (doneRegions.has(id) ? REGION_FILLS_DONE : REGION_FILLS)[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px var(--stg-acc, ${COLORS.accent})` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                     >
                       {v !== 2 && showX && <span className="je-x" style={autoMark ? { opacity: 0.6 } : undefined}>✗</span>}
                       {v === 2 && <JesterMark size={Math.round(cellPx * 0.6)} conflict={conflict} />}

@@ -755,7 +755,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
       background: bg,
       // The quilt is pale in both registers, so its digits are dark in both.
       color: '#0b0d12',
-      boxShadow: isSel ? `inset 0 0 0 2.5px ${COLORS.accent}` : undefined,
+      boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
       borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
       borderBottom: `${wallB ? 2.5 : 1}px solid ${wallB ? 'rgba(28,30,36,0.85)' : 'rgba(28,30,36,0.18)'}`,
@@ -835,7 +835,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
           .ql-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .ql-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .ql-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
-          .ql-pad.armed{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(112,26,117,0.55);}
+          .ql-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(112,26,117,0.55);}
           .ql-pad.armed .ql-pad-n{color:#f6d9f4;}
           .ql-pad .ql-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
           .ql-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -859,7 +859,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Fewer clues</span>}
           blocks={'QUILT'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

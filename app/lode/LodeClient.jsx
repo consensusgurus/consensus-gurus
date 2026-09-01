@@ -630,26 +630,26 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ld-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ld-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .ld-btn:hover{background:var(--accent-soft);}
-          .ld-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .ld-btn.primary:hover{background:${COLORS.accentDeep};}
+          .ld-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .ld-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .ld-btn:disabled{opacity:0.45;cursor:default;}
           .ld-row{display:flex;gap:10px;justify-content:center;}
           .ld-tile{width:58px;height:58px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:900;font-size:25px;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 2px solid var(--stg-line, rgba(28,30,36,0.16));cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(28,30,36,0.14);transition:transform .08s;}
           .ld-tile:active{transform:translateY(2px);box-shadow:none;}
-          .ld-tile.core{background:${COLORS.accent};border-color:${COLORS.accentDeep};color:var(--white);box-shadow:0 2px 0 ${COLORS.accentDeep};}
+          .ld-tile.core{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accentDeep});color:var(--stg-onramp, var(--white));box-shadow:0 2px 0 var(--stg-acc, ${COLORS.accentDeep});}
           @media(max-width:420px){.ld-tile{width:46px;height:46px;font-size:21px;}.ld-row{gap:7px;}}
           .ld-entry{font-family:${SANS};font-weight:800;font-size:22px;letter-spacing:0.13em;text-transform:uppercase;text-align:center;width:100%;border:none;border-bottom: 2.5px solid var(--stg-line2, rgba(28,30,36,0.22));background:transparent;color:${INK};padding:8px 4px;outline:none;caret-color:var(--stg-acc, ${COLORS.accent});}
           .ld-entry::placeholder{letter-spacing:0.02em;font-size:14px;font-weight:700;color:#b6bcc6;text-transform:none;}
           .ld-shake{animation:ldshake .3s;}
           @keyframes ldshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
           .ld-track{position:relative;height:10px;border-radius:999px;background:${STAGE ? 'var(--stg-surf2)' : '#e4e7ec'};overflow:hidden;}
-          .ld-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,${COLORS.accent},#d99a1a);border-radius:999px;transition:width .35s;}
+          .ld-fill{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--stg-acc, ${COLORS.accent}),#d99a1a);border-radius:999px;transition:width .35s;}
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
           .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
-          .ld-wtag.t2{border-color:rgba(161,98,7,0.5);color:var(--stg-acc, ${COLORS.accent});}
-          .ld-wtag.pan{background:${COLORS.accentSoft};border-color:var(--stg-acc, ${COLORS.accent});font-weight:700;}
-          .ld-wtag.new{outline:2px solid ${COLORS.accent};outline-offset:1px;}
+          .ld-wtag.t2{border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 50%, transparent);color:var(--stg-acc, ${COLORS.accent});}
+          .ld-wtag.pan{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});font-weight:700;}
+          .ld-wtag.new{outline:2px solid var(--stg-acc, ${COLORS.accent});outline-offset:1px;}
           /* Tailings: real, unscored. Deliberately the quietest tag on the
              board — dashed and faded, so it reads as acknowledged rather than
              earned and can never be mistaken for a scoring word. */
@@ -672,7 +672,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {ALL_LETTERS.length} letters</span>}
           blocks={'LODE'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? COLORS.accent : COLORS.stone, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.6)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.stone, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.6)' }}>{ch}</div>
             ))}
         />
         )}

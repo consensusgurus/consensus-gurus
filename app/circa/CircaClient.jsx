@@ -582,8 +582,8 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           @keyframes ccrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.cc-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cc-ttl h1{font-size:21px;letter-spacing:0.02em;}.cc-ttl .cc-ttl-dt{font-size:15px;}.cc-ttl-dot{display:none;}}
           .cc-inp{font-family:${MONO};font-weight:500;font-size:30px;letter-spacing:0.14em;text-align:center;width:150px;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .cc-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(14,116,144,0.18);}
-          .cc-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:58px;}
+          .cc-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
+          .cc-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid var(--stg-acc, ${COLORS.accent});background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-radius:9px;padding:0 22px;cursor:pointer;height:58px;}
           .cc-go:active{transform:translateY(1px);}
           .cc-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           @media(max-width:400px){.cc-inp{width:124px;font-size:26px;}.cc-go{padding:0 16px;}}
@@ -606,7 +606,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Tricky</span>}
           blocks={'CIRCA'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 4 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

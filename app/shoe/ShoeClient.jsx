@@ -540,7 +540,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.sho-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .sho-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sho-btn:hover{background:${COLORS.accentSoft};}
+          .sho-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .sh-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:14px 14px 12px;touch-action:manipulation;}
           .sh-card{width:clamp(44px,11.5vw,56px);aspect-ratio:5/7;border-radius:6px;background:${CARD_FACE};border:1px solid ${CARD_EDGE};box-shadow:0 2px 5px rgba(8,15,25,0.45);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;user-select:none;font-family:${SANS};font-weight:800;flex:none;}
           .sh-rank{font-size:clamp(15px,4.4vw,19px);letter-spacing:-0.04em;}
@@ -558,7 +558,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           .sh-act:active{transform:translateY(1px);}
           .sh-act:disabled{opacity:0.35;cursor:default;}
           .sh-act.gold{background:${STAGE ? 'var(--stg-surf2)' : '#f4d98d'};border-color:#e8b43a;color:#5b4104;}
-          .sh-act.deal{background:${COLORS.accentSoft};border-color:rgba(255,255,255,0.9);color:var(--stg-acc, ${COLORS.accent});}
+          .sh-act.deal{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:rgba(255,255,255,0.9);color:var(--stg-acc, ${COLORS.accent});}
           .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--white);}
           .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);margin-top:11px;flex-wrap:wrap;}
           .sh-strip b{color:var(--white);font-weight:500;font-variant-numeric:tabular-nums;}
@@ -578,7 +578,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 7 hands</span>}
           blocks={'SHOE'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 1 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -614,7 +614,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           {R.hands.length > (playing && cur && !cur.settled ? 1 : 0) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
               {R.hands.map((hd, i) => (!hd.settled ? null : (
-                <span key={i} className={`sh-pill ${hd.net > 0 ? (hd.net === 15 ? 'bj' : 'w') : hd.net < 0 ? 'l' : ''}`} style={{ color: INK, background: hd.net > 0 ? (hd.net === 15 ? '#fdf3d8' : '#e7f6ec') : hd.net < 0 ? '#fbeaea' : '#f1f3f6', borderColor: 'rgba(28,30,36,0.2)' }}>
+                <span key={i} className={`sh-pill ${hd.net > 0 ? (hd.net === 15 ? 'bj' : 'w') : hd.net < 0 ? 'l' : ''}`} style={{ color: INK, background: hd.net > 0 ? (hd.net === 15 ? '#fdf3d8' : '#e7f6ec') : hd.net < 0 ? '#fbeaea' : 'var(--stg-surf, #f1f3f6)', borderColor: 'rgba(28,30,36,0.2)' }}>
                   #{i + 1} {fmtChips(hd.net)}
                 </span>
               )))}

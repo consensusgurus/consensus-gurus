@@ -778,7 +778,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
           .pt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .pt-btn:hover{background:var(--accent-soft);}
           .pt-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .pt-tool.on{background:${COLORS.accent};color:var(--white);border-color:var(--stg-acc, ${COLORS.accent});}
+          .pt-tool.on{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});}
           .pt-hit{stroke:transparent;fill:none;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;}
           .pt-svg{touch-action:none;width:100%;height:auto;display:block;-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-touch-callout:none;}
         `}</style>
@@ -797,7 +797,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {n}&times;{n}</span>}
           blocks={'PATHS'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}
@@ -959,7 +959,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             {HAS_CLIFFS && (
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 5, height: 13, borderRadius: 2, background: COLORS.cliff }} /> cliff, no way through</span>
             )}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink, boxShadow: `0 0 0 1px ${SURF_B}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 4, height: 4, borderRadius: 1, background: T.white }} /></span> depot</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}><span style={{ width: 11, height: 11, borderRadius: 3, background: COLORS.ink, boxShadow: `0 0 0 1px ${SURF_B}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ width: 4, height: 4, borderRadius: 1, background: `var(--stg-surf, ${T.white})` }} /></span> depot</span>
           </div>
           {/* The marking's own key, printed only while the marking is up, so
               a red lane is never left for the reader to guess at. */}

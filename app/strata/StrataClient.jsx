@@ -587,19 +587,19 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.st-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .st-btn:hover{background:${COLORS.accentSoft};}
+          .st-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .st-btn:disabled{opacity:0.4;cursor:default;}
-          .st-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .st-btn.primary:hover{background:${COLORS.accentDeep};}
+          .st-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .st-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .st-board{position:relative;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none;}
           .st-tile{position:absolute;display:flex;align-items:center;justify-content:center;
             font-family:${SANS};font-weight:800;border-radius:7px;cursor:pointer;
             background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.15)'};color:${INK};
             transition:top ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),left ${FALL_MS}ms cubic-bezier(.4,.05,.35,1),background 120ms,color 120ms,border-color 120ms,transform 160ms,opacity ${LIFT_MS}ms;}
-          .st-tile.on{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);transform:scale(1.04);}
+          .st-tile.on{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));transform:scale(1.04);}
           .st-tile.lift{background:${COLORS.green};border-color:${COLORS.green};color:var(--white);opacity:0.15;transform:scale(0.82);}
           .st-tile.bad{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#7f1d1d;}
-          .st-tile.flash{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px ${COLORS.accentSoft};}
+          .st-tile.flash{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px var(--stg-surf2, ${COLORS.accentSoft});}
           .st-word{font-family:${MONO};font-size:13px;letter-spacing:0.08em;padding:5px 10px;border-radius:7px;background:#dcfce7;color:${COLORS.green};font-weight:700;}
           .st-slot{font-family:${MONO};font-size:13px;letter-spacing:0.28em;padding:5px 10px;border-radius:7px;background:rgba(28,30,36,0.05);color:${FADED};}
         `}</style>
@@ -616,7 +616,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
             onHelp={() => setShowHelp(true)}
             sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Two Threads</span>}
             blocks={'STRATA'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
           )}

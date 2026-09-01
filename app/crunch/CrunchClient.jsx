@@ -639,7 +639,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           .cr-rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:76px;touch-action:manipulation;}
           .cr-tile{width:76px;height:76px;border-radius:10px;border:2px solid ${STAGE ? 'var(--stg-line2)' : TILE_EDGE};background:${STAGE ? 'var(--stg-surf2)' : TILE_FACE};color:${INK};font-family:${MONO};font-weight:500;font-size:27px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -4px 0 rgba(28,30,36,0.13), 0 2px 0 rgba(28,30,36,0.22);transition:transform .12s ease;}
           .cr-tile:active{transform:translateY(1px);}
-          .cr-tile.on{background:${COLORS.accentSoft};outline:3px solid ${COLORS.accent};outline-offset:2px;}
+          .cr-tile.on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:2px;}
           .cr-op{width:56px;height:52px;border-radius:9px;border:2px solid var(--blue-deep);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};font-family:${MONO};font-size:22px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;}
           .cr-op.on{background:${COLORS.ink};color:var(--white);}
           .cr-op:disabled{opacity:0.35;cursor:default;}
@@ -656,7 +656,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Needs {need}</span>}
           blocks={'CRUNCH'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 5 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}
@@ -775,7 +775,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
           {playing && bestDiff != null && bestDiff > 0 && (
             <div style={{ textAlign: 'center', marginTop: 10 }}>
               <button className="cr-tool" onClick={() => { if (armLock) { setArmLock(false); lockIn(); } else { setArmLock(true); } }}
-                style={{ background: armLock ? COLORS.ink : T.white, color: armLock ? T.white : COLORS.ink, borderColor: COLORS.ink }}>
+                style={{ background: armLock ? COLORS.ink : `var(--stg-surf, ${T.white})`, color: armLock ? T.white : COLORS.ink, borderColor: COLORS.ink }}>
                 {armLock
                   ? `Tap again to end the board at ${scoreFor(bestDiff)}/10`
                   : `Lock in my closest, ${bestDiff} off · ${scoreFor(bestDiff)}/10`}

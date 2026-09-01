@@ -600,7 +600,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
             fontFamily: SANS, fontWeight: 800, fontSize: 21, textTransform: 'uppercase',
             background: outline ? 'transparent' : changed ? COLORS.accent : (STAGE ? 'var(--stg-surf2)' : TILE),
             color: outline ? `var(--stg-mute, ${COLORS.faded})` : changed ? T.white : `var(--stg-ink, ${COLORS.ink})`,
-            border: outline ? `2px dashed ${TILE_EDGE}` : `1.5px solid ${changed ? COLORS.accent : TILE_EDGE}`,
+            border: outline ? `2px dashed ${TILE_EDGE}` : `1.5px solid ${changed ? `var(--stg-acc, ${COLORS.accent})` : TILE_EDGE}`,
             opacity: dim ? 0.55 : 1,
           }}>{ch}</div>
         );
@@ -665,7 +665,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Par {par}</span>}
           blocks={'RUNG'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}
@@ -725,7 +725,7 @@ export default function RungClient({ puzzles = [], forceNum = null }) {
                   aria-label="Type the next rung"
                 />
                 <button className="rg-btn" onClick={submit} disabled={draft.length !== 5}
-                  style={{ background: draft.length === 5 ? COLORS.ink : T.white, color: draft.length === 5 ? T.white : COLORS.faded, opacity: draft.length === 5 ? 1 : 0.55, cursor: draft.length === 5 ? 'pointer' : 'default' }}>
+                  style={{ background: draft.length === 5 ? COLORS.ink : `var(--stg-surf, ${T.white})`, color: draft.length === 5 ? T.white : COLORS.faded, opacity: draft.length === 5 ? 1 : 0.55, cursor: draft.length === 5 ? 'pointer' : 'default' }}>
                   Climb
                 </button>
               </div>

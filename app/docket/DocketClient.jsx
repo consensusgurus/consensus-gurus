@@ -401,14 +401,14 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.dk-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .dk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .dk-btn:hover{background:${COLORS.accentSoft};}
-          .dk-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .dk-btn.primary:hover{background:${COLORS.accentDeep};}
+          .dk-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
+          .dk-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .dk-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .dk-row{display:flex;align-items:stretch;gap:6px;margin-bottom:7px;}
           .dk-choice{display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:10px;padding:11px 13px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
-          .dk-choice:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};}
+          .dk-choice:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:var(--stg-surf2, ${COLORS.accentSoft});}
           .dk-choice:disabled{cursor:default;}
-          .dk-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
+          .dk-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
           .dk-choice.right{border-color:${COLORS.green};background:#dcfce7;}
           .dk-choice.right .k{background:${COLORS.green};color:var(--white);}
           .dk-choice.wrong{border-color:#b91c1c;background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};}
@@ -419,7 +419,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-choice.off:hover:not(:disabled){border-color:rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .dk-x{flex:0 0 auto;width:36px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${FADED};cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.5;padding:0;}
           .dk-x:hover:not(:disabled){opacity:1;border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-acc, ${COLORS.accent});}
-          .dk-x.on{opacity:1;background:${COLORS.accentDeep};border-color:${COLORS.accentDeep};color:var(--white);}
+          .dk-x.on{opacity:1;background:var(--stg-acc, ${COLORS.accentDeep});border-color:var(--stg-acc, ${COLORS.accentDeep});color:var(--stg-onramp, var(--white));}
           .dk-x:disabled{cursor:default;}
           .dk-x:disabled:not(.on){opacity:0.16;}
           .dk-x.on:disabled{opacity:0.8;}
@@ -430,7 +430,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${INK};padding:4px 0;}
           .dk-cond .n{font-family:${MONO};font-weight:700;color:var(--stg-acc, ${COLORS.accent});flex:0 0 auto;}
           .dk-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
-          .dk-pip.on{background:${COLORS.accent};}
+          .dk-pip.on{background:var(--stg-acc, ${COLORS.accent});}
           .dk-pip.miss{background:#b91c1c;}
           .dk-panel{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:11px;padding:12px 14px;margin-bottom:10px;}
           .dk-setup{font-size:14px;line-height:1.6;color:${FADED};font-weight:600;}
@@ -449,7 +449,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
             onHelp={() => setShowHelp(true)}
             sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Two Dimensions</span>}
             blocks={'DOCKET'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
           )}

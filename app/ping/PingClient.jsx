@@ -611,7 +611,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             onClick={() => changeUnit(u)}
             aria-pressed={unit === u}
             title={u === 'km' ? 'Show distances in kilometers' : 'Show distances in miles'}
-            style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, lineHeight: 1.6, border: 'none', cursor: 'pointer', padding: '2px 9px', background: unit === u ? COLORS.ink : T.white, color: unit === u ? T.white : COLORS.faded }}
+            style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, lineHeight: 1.6, border: 'none', cursor: 'pointer', padding: '2px 9px', background: unit === u ? COLORS.ink : `var(--stg-surf, ${T.white})`, color: unit === u ? T.white : COLORS.faded }}
           >
             {u}
           </button>
@@ -708,13 +708,13 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
           .pg-inp{font-family:${SANS};font-weight:700;font-size:18px;width:100%;border:2px solid ${COLORS.ink};border-radius:9px;padding:13px 14px 13px 42px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .pg-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(2,132,199,0.18);}
-          .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
+          .pg-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
+          .pg-go{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid var(--stg-acc, ${COLORS.accent});background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-radius:9px;padding:0 22px;cursor:pointer;height:52px;flex:0 0 auto;}
           .pg-go:active{transform:translateY(1px);}
           .pg-sug{position:absolute;left:0;right:0;top:calc(100% + 6px);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:2px solid ${COLORS.ink};border-radius:10px;box-shadow:0 12px 30px rgba(20,22,28,0.18);overflow:hidden;z-index:20;}
           .pg-sug button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:none;border-bottom:1px solid var(--stg-line, rgba(28,30,36,0.08));padding:10px 13px;cursor:pointer;}
           .pg-sug button:last-child{border-bottom:none;}
-          .pg-sug button:hover,.pg-sug button.on{background:${COLORS.accentSoft};}
+          .pg-sug button:hover,.pg-sug button.on{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .pg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
         `}</style>
 
@@ -735,7 +735,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Tricky</span>}
           blocks={'PING'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

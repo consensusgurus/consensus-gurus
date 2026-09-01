@@ -405,21 +405,21 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.sf-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .sf-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sf-btn:hover{background:${COLORS.accentSoft};}
-          .sf-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .sf-btn.primary:hover{background:${COLORS.accentDeep};}
+          .sf-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
+          .sf-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .sf-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .sf-choice{display:flex;gap:11px;align-items:flex-start;width:100%;text-align:left;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;font-family:${SANS};font-size:14px;line-height:1.45;color:${INK};}
-          .sf-choice:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:${COLORS.accentSoft};}
+          .sf-choice:hover:not(:disabled){border-color:var(--stg-acc, ${COLORS.accent});background:var(--stg-surf2, ${COLORS.accentSoft});}
           .sf-choice:disabled{cursor:default;}
-          .sf-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:${COLORS.accentSoft};color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
+          .sf-choice .k{flex:0 0 auto;width:26px;height:26px;border-radius:6px;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;}
           .sf-choice.right{border-color:${COLORS.green};background:#dcfce7;}
           .sf-choice.right .k{background:${COLORS.green};color:var(--white);}
           .sf-choice.wrong{border-color:#b91c1c;background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};}
           .sf-choice.wrong .k{background:#b91c1c;color:var(--white);}
-          .sf-stmt{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
+          .sf-stmt{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
           .sf-stmt .n{font-family:${MONO};font-weight:700;color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};flex:0 0 auto;}
           .sf-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
-          .sf-pip.on{background:${COLORS.accent};}
+          .sf-pip.on{background:var(--stg-acc, ${COLORS.accent});}
           .sf-pip.miss{background:#b91c1c;}
         `}</style>
 
@@ -435,7 +435,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
             onHelp={() => setShowHelp(true)}
             sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Twelve Items</span>}
             blocks={'SUFFICE'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 34, height: 34, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 19, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
           />
           )}

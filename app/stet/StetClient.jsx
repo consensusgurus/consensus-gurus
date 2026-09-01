@@ -745,12 +745,12 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .st-btn:hover{background:var(--accent-soft);}
           .st-w{cursor:pointer;border-radius:4px;padding:0 1px;transition:background .1s;}
-          .st-w:hover{background:${COLORS.accentSoft};box-shadow:0 0 0 2px ${COLORS.accentSoft};}
-          .st-w-on{background:${COLORS.accentSoft};box-shadow:0 0 0 2px ${COLORS.accent};border-radius:4px;}
-          .st-w-staged{background:${COLORS.accentSoft};box-shadow:0 0 0 2px rgba(3,105,161,0.35);border-radius:4px;text-decoration:line-through;}
+          .st-w:hover{background:var(--stg-surf2, ${COLORS.accentSoft});box-shadow:0 0 0 2px var(--stg-surf2, ${COLORS.accentSoft});}
+          .st-w-on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px var(--stg-acc, ${COLORS.accent});border-radius:4px;}
+          .st-w-staged{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 35%, transparent);border-radius:4px;text-decoration:line-through;}
           .st-inp{font-family:${SANS};font-weight:700;font-size:16px;flex:1 1 auto;min-width:0;border:2px solid ${COLORS.ink};border-radius:9px;padding:9px 12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};outline:none;}
-          .st-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px rgba(3,105,161,0.16);}
-          .st-go{font-family:${SANS};font-weight:800;font-size:13.5px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:9px;padding:0 18px;cursor:pointer;}
+          .st-inp:focus{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 3px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
+          .st-go{font-family:${SANS};font-weight:800;font-size:13.5px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid var(--stg-acc, ${COLORS.accent});background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-radius:9px;padding:0 18px;cursor:pointer;}
           .st-go:active{transform:translateY(1px);}
           .st-lock{font-family:${SANS};font-weight:800;font-size:12px;letter-spacing:0.04em;text-transform:uppercase;border:2px solid ${COLORS.ink};background:${COLORS.ink};color:var(--white);border-radius:8px;padding:6px 13px;cursor:pointer;}
           .st-stet{font-family:${SANS};font-weight:800;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;border:1.5px dashed rgba(28,30,36,0.35);background:none;color:${FADED};border-radius:7px;padding:5px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
@@ -774,7 +774,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Two errors</span>}
           blocks={'STET'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}

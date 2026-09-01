@@ -990,7 +990,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
                   worth more to the two hands actually playing. */}
               <button
                 {...tapProps('hold')}
-                style={{ marginLeft: 'auto', border: `1px solid ${COLORS.line}`, background: g.held ? '#f1f5f9' : '#fff', color: g.held ? '#94a3b8' : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', touchAction: 'none' }}
+                style={{ marginLeft: 'auto', border: `1px solid ${COLORS.line}`, background: g.held ? 'var(--stg-surf, #f1f5f9)' : 'var(--stg-surf, #fff)', color: g.held ? '#94a3b8' : COLORS.faded, borderRadius: 7, padding: '5px 10px', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', touchAction: 'none' }}
               >
                 Hold{g.hold ? <> &middot; <b style={{ color: g.held ? '#94a3b8' : `var(--stg-ink, ${COLORS.ink})` }}>{PIECE_LABEL[g.hold]}</b></> : null}
               </button>

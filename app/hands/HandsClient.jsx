@@ -595,7 +595,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           slug="hands" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           blocks={'HANDS'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 4 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}
@@ -658,7 +658,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                   </div>
                   <button className="hd-tool" onClick={muck} disabled={!muckLeft || !playing}
                     title="Throw this card away and take the next one, sight unseen. One a day."
-                    style={{ marginTop: 8, background: muckLeft && playing ? COLORS.accentSoft : 'rgba(255,255,255,0.55)', borderColor: 'rgba(127,29,29,0.5)', color: '#6d1a1a' }}>
+                    style={{ marginTop: 8, background: muckLeft && playing ? `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)` : 'rgba(255,255,255,0.55)', borderColor: 'color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 50%, transparent)', color: '#6d1a1a' }}>
                     <Undo2 size={14} /> {muckLeft ? 'Muck (1 left)' : 'Muck used'}
                   </button>
                   <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>

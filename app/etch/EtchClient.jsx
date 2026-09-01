@@ -234,8 +234,8 @@ function EtchGallery({ puzzles, rec, currentNum }) {
               title={done ? `${p.subject} \u00b7 ${p.dateLabel}` : `${p.dateLabel} \u00b7 not developed yet`}
               style={{
                 display: 'block', borderRadius: 4, overflow: 'hidden', aspectRatio: '1',
-                background: done ? T.white : '#eceff4',
-                border: here ? `2px solid ${COLORS.accent}` : `1px solid ${done ? 'rgba(28,30,36,0.18)' : 'rgba(28,30,36,0.08)'}`,
+                background: done ? `var(--stg-surf, ${T.white})` : 'var(--stg-surf, #eceff4)',
+                border: here ? `2px solid var(--stg-acc, ${COLORS.accent})` : `1px solid ${done ? 'rgba(28,30,36,0.18)' : 'rgba(28,30,36,0.08)'}`,
                 boxSizing: 'border-box', padding: done ? 2 : 0,
               }}
             >
@@ -946,7 +946,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {sizeLabel}</span>}
           blocks={'ETCH'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 3 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -1049,7 +1049,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     onContextMenu={(e) => { e.preventDefault(); fillDirect(idx); }}
                     style={{
                       background: bg,
-                      boxShadow: pv !== null ? `inset 0 0 0 2px ${COLORS.accent}` : undefined,
+                      boxShadow: pv !== null ? `inset 0 0 0 2px var(--stg-acc, ${COLORS.accent})` : undefined,
                       borderRight: `${c % 5 === 4 && c !== W - 1 ? 2 : 1}px solid ${c % 5 === 4 && c !== W - 1 ? 'rgba(28,30,36,0.75)' : 'rgba(28,30,36,0.22)'}`,
                       borderBottom: `${r % 5 === 4 && r !== H - 1 ? 2 : 1}px solid ${r % 5 === 4 && r !== H - 1 ? 'rgba(28,30,36,0.75)' : 'rgba(28,30,36,0.22)'}`,
                       borderLeft: c === 0 ? '2px solid rgba(28,30,36,0.75)' : undefined,

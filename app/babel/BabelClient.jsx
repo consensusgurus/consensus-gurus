@@ -722,8 +722,8 @@ export default function BabelClient({ puzzles, forceNum }) {
       <div style={{ position: 'relative', zIndex: 2, padding: '18px 16px 0' }}>
         <style>{`
           .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.28));border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
-          .sc-btn:hover{background:${COLORS.paper};}
-          .sc-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .sc-btn:hover{background:var(--stg-surf2, ${COLORS.paper});}
+          .sc-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .sc-btn.primary:hover{background:#0f3d21;}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:#0d3b20;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
@@ -734,16 +734,16 @@ export default function BabelClient({ puzzles, forceNum }) {
              board and the letters washed out, so the tile is warmer, the letter
              is near-black at full weight, and every tile carries a hard edge. */
           .sc-cell.tile{background:${STAGE ? 'var(--stg-surf2)' : '#f0dfba'};border:1px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(86,58,16,0.55)'};color:${STAGE ? 'var(--stg-ink)' : '#12141a'};text-shadow:${STAGE ? 'none' : '0 1px 0 rgba(255,255,255,0.5)'};box-shadow:inset 0 -3px 0 rgba(120,80,20,0.3);}
-          .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 rgba(20,83,45,0.45);}
+          .sc-cell.fresh{background:#b9e0c6;border-color:rgba(13,59,32,0.6);box-shadow:inset 0 -3px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent);}
           .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
-          .sc-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
+          .sc-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
           .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:var(--stg-acc, ${COLORS.accent});}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
           .sc-tile{position:relative;width:42px;height:46px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(120,80,20,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}
           .sc-tile.used{opacity:0.25;box-shadow:none;}
-          .sc-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:2px;}
+          .sc-tile.armed{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:2px;}
           .sc-bag{display:flex;flex-wrap:wrap;gap:3px;}
           .sc-bag span{font-family:${MONO};font-size:11px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:5px;padding:2px 5px;color:${FADED};}
           .sc-bag span b{color:${INK};font-weight:800;margin-right:2px;}
@@ -764,7 +764,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; six tiles</span>}
           blocks={'BABEL'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 42, height: 42, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 25, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}

@@ -484,12 +484,12 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           .wm-btn:hover{background:var(--accent-soft);}
           @media(max-width:560px){.wm-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.wm-ttl h1{font-size:21px;}.wm-ttl-dot{display:none;}}
           .wm-spectrum{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
-          .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,#dc2626);}
+          .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,var(--stg-acc, #dc2626));}
           .wm-scale{display:flex;justify-content:space-between;font-family:${MONO};font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};}
           .wm-inputrow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px;}
           .wm-input{flex:1 1 auto;font-family:${SANS};font-size:16px;font-weight:600;color:${INK};border:2px solid ${COLORS.ink};border-radius:10px;padding:12px 14px;outline:none;min-width:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .wm-input:focus{border-color:var(--stg-acc, ${COLORS.accent});}
-          .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid ${COLORS.accent};background:${COLORS.accent};color:var(--white);border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+          .wm-go{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:14.5px;border:2px solid var(--stg-acc, ${COLORS.accent});background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-radius:10px;padding:0 18px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .wm-go:disabled{opacity:.5;cursor:default;}
           .wm-meta{display:flex;align-items:center;gap:14px;font-family:${MONO};font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:${FADED};margin:2px 0 4px;flex-wrap:wrap;}
           .wm-meta b{font-weight:500;color:${INK};font-variant-numeric:tabular-nums;}
@@ -523,7 +523,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
             onHelp={() => setShowHelp(true)}
             sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Rarer word</span>}
             blocks={'WARMER'.split('').map((ch, i) => (
-                <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+                <div key={i} style={{ width: 40, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 24, background: i === 5 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
               ))}
           />
           )}
@@ -580,7 +580,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
                       <Lightbulb size={13} /> Hint
                     </button>
                   )}
-                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : T.white, border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
+                  <button onClick={giveUp} className="wm-chip" title="Reveal the answer and end the puzzle" style={{ marginLeft: 'auto', background: armGiveUp ? '#fbeaea' : `var(--stg-surf, ${T.white})`, border: `1.5px solid ${armGiveUp ? COLORS.rust : 'rgba(28,30,36,0.3)'}`, color: armGiveUp ? COLORS.rust : COLORS.faded }}>
                     <Flag size={13} /> {armGiveUp ? 'Tap again to reveal' : 'Give up'}
                   </button>
                 </div>

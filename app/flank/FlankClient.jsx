@@ -552,7 +552,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           .fl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
           @media(max-width:560px){.fl-grid{grid-template-columns:1fr;}}
           .fl-slot{display:flex;align-items:center;font-family:${SANS};font-size:14px;border:2px solid;border-radius:9px;padding:10px 12px;line-height:1.3;transition:background .15s ease,border-color .15s ease;}
-          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border: 2px solid var(--stg-line, rgba(28,30,36,0.4));border-radius:9px;padding:11px 13px;color:${INK};background:${T.white};outline:none;}
+          .fl-input{font-family:${SANS};font-weight:700;font-size:16px;width:100%;border: 2px solid var(--stg-line, rgba(28,30,36,0.4));border-radius:9px;padding:11px 13px;color:${INK};background:var(--stg-surf, ${T.white});outline:none;}
           .fl-input:focus{border-color:var(--stg-acc, ${COLORS.accent});}
           .fl-input.shake{animation:flshake .3s linear;}
           @keyframes flshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -567,7 +567,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           slug="flank" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           blocks={'FLANK'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}

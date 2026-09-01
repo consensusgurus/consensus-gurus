@@ -584,14 +584,14 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sw-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .sw-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sw-btn:hover{background:var(--accent-soft);}
-          .sw-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .sw-btn.primary:hover{background:${COLORS.accentDeep};}
-          .sw-card{display:flex;align-items:center;gap:12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid ${COLORS.accent};border-radius:9px;padding:10px 12px;margin-bottom:8px;}
+          .sw-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .sw-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
+          .sw-card{display:flex;align-items:center;gap:12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:9px;padding:10px 12px;margin-bottom:8px;}
           .sw-card b{color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};}
           .sw-mark{color:${INK};flex:0 0 auto;width:38px;height:38px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
           .sw-mark.truth{background:#dcfce7;border-color:var(--success-deep);color:var(--success-deep);}
           .sw-mark.lie{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#b91c1c;}
-          .sw-accuse{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid rgba(190,24,93,0.55);background:${COLORS.accentSoft};color:${COLORS.accentDeep};border-radius:8px;padding:8px 11px;cursor:pointer;}
+          .sw-accuse{flex:0 0 auto;font-family:${SANS};font-weight:800;font-size:12px;border:1.5px solid color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 55%, transparent);background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);color:${COLORS.accentDeep};border-radius:8px;padding:8px 11px;cursor:pointer;}
           .sw-accuse:hover{background:${STAGE ? 'var(--stg-surf2)' : '#fbcfe8'};}
           .sw-accuse:disabled{opacity:0.4;cursor:not-allowed;text-decoration:line-through;}
         `}</style>
@@ -611,7 +611,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; Grand Inquest</span>}
           blocks={'SWORN'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 40, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 23, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
@@ -626,7 +626,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
 
         {/* the story — hidden behind the start tile until the player begins */}
         {!preStart && (
-        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid ${COLORS.accent}`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
+        <div style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontSize: 14.5, lineHeight: 1.6, background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1px solid rgba(28,30,36,0.14)', borderLeft: `4px solid var(--stg-acc, ${COLORS.accent})`, borderRadius: 8, padding: '12px 16px', margin: '0 0 12px', color: INK }}>
           Last night at {PUZZLE.venue}, {PUZZLE.stolen} vanished. {N === 6 ? 'Six' : 'Five'} locals were sworn in, and one of them is the thief. Each gave exactly one statement &mdash; but <b style={{ fontStyle: 'normal' }}>exactly {PUZZLE.k} of the {N} are lying</b>. Liars&rsquo; statements are false; everyone else&rsquo;s are true. Find the thief.
         </div>
         )}

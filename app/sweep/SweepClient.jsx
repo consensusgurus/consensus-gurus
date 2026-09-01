@@ -608,7 +608,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             fontFamily: SANS, fontWeight: 800, fontSize: 14, userSelect: 'none', WebkitUserSelect: 'none',
             WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
             cursor: over ? 'default' : 'pointer',
-            background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? '#fff' : COLORS.covered,
+            background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? 'var(--stg-surf, #fff)' : `var(--stg-surf, ${COLORS.covered})`,
             color: isBoom ? '#fff' : NUM_COLOR[n] || `var(--stg-mute, ${COLORS.faded})`,
             boxShadow: isOpen && !isBoom ? 'none' : 'inset 0 -2px 0 rgba(15,23,42,0.10)',
           }}
@@ -761,7 +761,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 7, fontFamily: SANS, fontWeight: 800, fontSize: 14,
                         padding: '11px 22px', border: 'none', cursor: 'pointer',
-                        background: flagMode === mode ? COLORS.accent : '#fff',
+                        background: flagMode === mode ? `var(--stg-acc, ${COLORS.accent})` : '#fff',
                         color: flagMode === mode ? T.white : `var(--stg-mute, ${COLORS.faded})`,
                       }}
                     >

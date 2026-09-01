@@ -569,8 +569,8 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
           .sk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           @media(max-width:560px){.sk-grid{grid-template-columns:1fr;}}
           .sk-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}
-          .sk-grid:not(.nohov) .sk-choice:not(:disabled):hover{background:${COLORS.paper};}
-          .sk-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
+          .sk-grid:not(.nohov) .sk-choice:not(:disabled):hover{background:var(--stg-surf2, ${COLORS.paper});}
+          .sk-timebar{height:7px;border-radius:4px;background:var(--stg-surf, ${COLORS.paper});overflow:hidden;}
           .sk-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
         `}</style>
 
@@ -581,7 +581,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
           slug="streak" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           blocks={'STREAK'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}
@@ -632,7 +632,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 11 }}>
                 <div className="sk-timebar" style={{ flex: 1 }}>
-                  <div className="sk-timefill" style={{ width: `${Math.round(remainFrac * 100)}%`, background: remainFrac > 0.4 ? COLORS.green : remainFrac > 0.18 ? '#b45309' : COLORS.accent }} />
+                  <div className="sk-timefill" style={{ width: `${Math.round(remainFrac * 100)}%`, background: remainFrac > 0.4 ? COLORS.green : remainFrac > 0.18 ? '#b45309' : `var(--stg-acc, ${COLORS.accent})` }} />
                 </div>
                 <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 500, color: remainFrac > 0.18 ? `var(--stg-mute, ${COLORS.faded})` : `var(--stg-acc, ${COLORS.accent})`, fontVariantNumeric: 'tabular-nums', width: 30, textAlign: 'right' }}>{Math.ceil(remainMs / 1000)}s</span>
               </div>

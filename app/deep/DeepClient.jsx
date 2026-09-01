@@ -570,8 +570,8 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
           .dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           @media(max-width:560px){.dp-grid{grid-template-columns:1fr;}}
           .dp-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}
-          .dp-grid:not(.nohov) .dp-choice:not(:disabled):hover{background:${COLORS.paper};}
-          .dp-timebar{height:7px;border-radius:4px;background:${COLORS.paper};overflow:hidden;}
+          .dp-grid:not(.nohov) .dp-choice:not(:disabled):hover{background:var(--stg-surf2, ${COLORS.paper});}
+          .dp-timebar{height:7px;border-radius:4px;background:var(--stg-surf, ${COLORS.paper});overflow:hidden;}
           .dp-timefill{height:100%;border-radius:4px;transition:width .1s linear;}
           .dp-topic{font-family:${SANS};font-weight:900;font-size:22px;color:var(--stg-acc, ${COLORS.accent});line-height:1.2;}
         `}</style>
@@ -583,7 +583,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
           slug="deep" num={PUZZLE.num} dateLabel={PUZZLE.dateLabel} accent={COLORS.accent}
           blockGap={5} helpTop={13} marginBottom={16} onHelp={() => setShowHelp(true)}
           blocks={'DEEP'.split('').map((ch, i) => (
-            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+            <div key={i} style={{ width: 38, height: 38, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 22, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
           ))}
         />
         )}

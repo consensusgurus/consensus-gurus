@@ -920,28 +920,28 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
           .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .sh-btn:hover{background:var(--accent-soft);}
-          .sh-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
-          .sh-btn.primary:hover{background:${COLORS.accentDk};}
+          .sh-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
+          .sh-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDk}) 86%, var(--stg-ink, var(--white)));}
           .sh-btn:disabled{opacity:0.4;cursor:default;}
           .sh-board{display:grid;grid-template-columns:repeat(${N},${CELL}px);gap:0;background:#cfd8d6;border:2px solid ${COLORS.ink};border-radius:10px;padding:5px;box-shadow:5px 5px 0 rgba(28,30,36,0.14);width:max-content;touch-action:none;}
           .sh-cell{position:relative;width:${CELL}px;height:${CELL}px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(CELL * 0.42)}px;color:${INK};user-select:none;border:1px solid #b9c4c2;background:${STAGE ? 'var(--stg-surf2)' : '#fbfdfc'};}
           .sh-cell.block{background:${COLORS.ink};border-color:var(--stg-ink, ${COLORS.ink});}
-          .sh-cell.filled{background:var(--tint,#d7f0ec);border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
+          .sh-cell.filled{background:var(--tint,color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent));border:1px solid rgba(0,0,0,0.14);color:#0b2b28;cursor:grab;touch-action:none;}
           .sh-cell.filled:active{cursor:grabbing;}
           .sh-cell.dragging{opacity:0.26;}
-          .sh-cell.armed{outline:3px solid ${COLORS.accent};outline-offset:-3px;z-index:2;}
-          .sh-cell.wet{outline:2px dashed ${COLORS.accentDk};outline-offset:-2px;z-index:2;}
+          .sh-cell.armed{outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:-3px;z-index:2;}
+          .sh-cell.wet{outline:2px dashed var(--stg-acc, ${COLORS.accentDk});outline-offset:-2px;z-index:2;}
           .sh-cell.wrong{outline:3px solid ${COLORS.rust};outline-offset:-3px;z-index:2;}
-          .sh-cell.home{box-shadow:inset 0 0 0 3px ${COLORS.accent};}
-          .sh-cell.hover{background:${COLORS.accentSoft};}
+          .sh-cell.home{box-shadow:inset 0 0 0 3px var(--stg-acc, ${COLORS.accent});}
+          .sh-cell.hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
           .sh-cell.hoverbad{background:${STAGE ? 'var(--stg-surf2)' : '#f6dcda'};}
-          .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:${COLORS.accent};}
+          .sh-cell.locked::after{content:'';position:absolute;top:3px;right:3px;width:6px;height:6px;border-radius:50%;background:var(--stg-acc, ${COLORS.accent});}
           .sh-tick{position:absolute;bottom:1px;right:2px;color:${COLORS.green};line-height:1;}
           .sh-tray{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:16px auto 4px;max-width:${TRAYMAX}px;}
           .sh-piece{position:relative;display:grid;gap:2px;padding:5px;border-radius:9px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));box-shadow:0 2px 0 rgba(28,30,36,0.12);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
           .sh-piece:active{cursor:grabbing;}
           .sh-piece.dragging{opacity:0.3;}
-          .sh-piece.armed{outline:3px solid ${COLORS.accent};outline-offset:1px;}
+          .sh-piece.armed{outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:1px;}
           .sh-pc{touch-action:none;width:${TRAYCELL}px;height:${TRAYCELL}px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:${Math.round(TRAYCELL * 0.5)}px;border-radius:4px;color:var(--white);}
           .sh-pc.empty{background:transparent;}
           .sh-ghost{position:fixed;z-index:200;pointer-events:none;display:grid;gap:2px;opacity:0.92;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.25));}
@@ -951,7 +951,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           .sh-status.good{color:${COLORS.green};}
           .sh-status.muted{color:${FADED};}
           .sh-hintbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
-          .sh-hint{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${COLORS.accent};color:${COLORS.accentDk};background:${COLORS.accentSoft};border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+          .sh-hint{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid var(--stg-acc, ${COLORS.accent});color:${COLORS.accentDk};background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sh-hint:disabled{opacity:0.4;cursor:default;border-color:#cbd5d3;color:${FADED};background:${STAGE ? 'var(--stg-surf2)' : '#eef2f1'};}
         `}</style>
 
@@ -969,7 +969,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
             onHelp={() => setShowHelp(true)}
             sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; {N}x{N}</span>}
             blocks={'SHARDS'.split('').map((ch, i) => (
-                <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
+                <div key={i} style={{ width: 34, height: 40, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 21, background: i % 2 === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.55)', transform: `rotate(${(i % 2 ? 1.5 : -1.5)}deg)` }}>{ch}</div>
               ))}
           />
           )}

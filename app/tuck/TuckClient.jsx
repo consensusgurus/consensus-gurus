@@ -735,20 +735,20 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.tk-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .tk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .tk-btn:hover{background:var(--accent-soft);}
-          .tk-btn.primary{background:${COLORS.accent};border-color:var(--stg-acc, ${COLORS.accent});color:var(--white);}
+          .tk-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .tk-btn.primary:hover{background:#7c3609;}
           .tk-btn:disabled{opacity:0.45;cursor:default;}
           .tk-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:3px;background:#dfd8cb;border:2px solid ${COLORS.ink};border-radius:10px;padding:6px;max-width:432px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
           .tk-cell{position:relative;aspect-ratio:1;background:${STAGE ? 'var(--stg-surf2)' : '#fbf9f4'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(14px,3.4vw,21px);color:${INK};cursor:pointer;user-select:none;border:1px solid var(--stg-line, rgba(28,30,36,0.08));}
-          .tk-cell.filled{background:${COLORS.tile};border-color:rgba(146,64,14,0.35);box-shadow:inset 0 -2px 0 rgba(146,64,14,0.18);}
+          .tk-cell.filled{background:${COLORS.tile};border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 35%, transparent);box-shadow:inset 0 -2px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
           .tk-cell.badword{background:${STAGE ? 'var(--stg-surf2)' : '#fbe3e0'};border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
-          .tk-cell.sel{outline:2.5px solid ${COLORS.accent};outline-offset:-1px;z-index:1;}
+          .tk-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
           .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});}
           .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
-          .tk-tile{position:relative;width:40px;height:44px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(146,64,14,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(146,64,14,0.25);}
+          .tk-tile{position:relative;width:40px;height:44px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(146,64,14,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 25%, transparent);}
           .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});}
           .tk-tile.used{opacity:0.28;box-shadow:none;}
-          .tk-tile.armed{outline:2.5px solid ${COLORS.accent};outline-offset:1px;}
+          .tk-tile.armed{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:1px;}
           .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .tk-wtag.invalid{color:${COLORS.rust};border-color:rgba(192,57,43,0.4);}
           .tk-status{font-size:12.5px;font-weight:700;min-height:18px;}
@@ -772,7 +772,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           onHelp={() => setShowHelp(true)}
           sunday={PUZZLE.sunday && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500, color: `var(--stg-onramp, ${T.white})`, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 4, padding: '2px 6px' }}>Sunday Edition &middot; 15 letters</span>}
           blocks={'TUCK'.split('').map((ch, i) => (
-              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? COLORS.accent : COLORS.ink, color: T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
+              <div key={i} style={{ width: 44, height: 44, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: SANS, fontWeight: 900, fontSize: 26, background: i === 0 ? `var(--stg-acc, ${COLORS.accent})` : COLORS.ink, color: i === 0 ? `var(--stg-onramp, ${T.white})` : T.white, boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.65)' }}>{ch}</div>
             ))}
         />
         )}
