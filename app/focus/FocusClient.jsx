@@ -675,7 +675,14 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
                 </div>
               )}
               <div style={{ minHeight: 19, marginTop: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: notice && notice.kind === 'miss' ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})` }}>
-                {notice ? notice.msg : <>Type, then pick a name. <b style={{ color: INK }}>A pick is a guess.</b></>}
+                {/* THE LIST COMMITS, IT DOES NOT FILL. Every other autocomplete on earth
+                    puts the suggestion in the box and waits, so a reader taps one to see
+                    it written down and has spent a frame instead. That is worth warning
+                    about, but the warning has to name the COST in the unit on screen: it
+                    read "A pick is a guess", which invents "pick" for an action nobody
+                    has named and then defines it as another word from the rules panel
+                    (owner, 2026-09-01: "that seems dumb"). Say what happens. */}
+                {notice ? notice.msg : <>Type, then choose a name. <b style={{ color: INK }}>Choosing one spends a frame.</b></>}
               </div>
             </div>
           )}

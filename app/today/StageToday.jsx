@@ -1913,6 +1913,17 @@ const CSS = `
    takes the category hue and the bar fills — and the words stay legible. */
 .sty-circ.full .sty-cnum{color:var(--cc);}
 .sty-circ.full .sty-cnum i{color:var(--cc);opacity:.6;}
+/* ON A PALE GROUND A CATEGORY HUE IS A RULE, NOT INK. The nine hues are picked
+   to carry a 4px bar and a border, which owe 3:1; as TEXT on the white card
+   they owe 4.5 and the warm ones are nowhere near it (Trivia's orange is
+   2.26:1 on white, measured live on the light home). So the light register
+   darkens the hue rather than dropping it, which keeps the category readable
+   AS that category. The denominator takes the ordinary muted ink instead of
+   the same hue at .6: opacity composites toward the ground, so on a pale one
+   it makes the quiet half quieter AND lighter, which is the wrong direction
+   twice. Hierarchy comes from size and weight here, as everywhere else. */
+[data-stage-theme=light] .sty-circ.full .sty-cnum{color:color-mix(in srgb, var(--cc) 55%, #0b0d12);}
+[data-stage-theme=light] .sty-circ.full .sty-cnum i{color:var(--stg-mute);opacity:1;}
 .sty-circ.full{border-color:color-mix(in srgb, var(--cc) 40%, transparent);}
 
 /* ── the categories ────────────────────────────────────────────────────── */
