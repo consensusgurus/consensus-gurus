@@ -438,7 +438,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.vn-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .vn-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .vn-btn:hover{background:var(--accent-soft);}
+          .vn-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .vn-chip{font-family:${SANS};font-weight:800;font-size:12.5px;letter-spacing:0.03em;border-radius:7px;padding:7px 10px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};}
           .vn-chip:hover{border-color:var(--stg-acc, ${COLORS.accent});}
           .vn-chip.held{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};}

@@ -69,6 +69,10 @@ const TILE_EDGE = T.ink;
 const TILE_MADE = '#efe4c8';   // a tile you made rather than were dealt
 const SLATE = '#22262e';       // the target board
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_crunch_help_seen';
@@ -634,7 +638,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.cr-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .cr-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .cr-btn:hover{background:var(--accent-soft);}
+          .cr-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .cr-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .cr-rack{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:76px;touch-action:manipulation;}
           .cr-tile{width:76px;height:76px;border-radius:10px;border:2px solid ${STAGE ? 'var(--stg-line2)' : TILE_EDGE};background:${STAGE ? 'var(--stg-surf2)' : TILE_FACE};color:${INK};font-family:${MONO};font-weight:500;font-size:27px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 -4px 0 rgba(28,30,36,0.13), 0 2px 0 rgba(28,30,36,0.22);transition:transform .12s ease;}
@@ -774,7 +778,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
 
           {playing && bestDiff != null && bestDiff > 0 && (
             <div style={{ textAlign: 'center', marginTop: 10 }}>
-              <button className="cr-tool" onClick={() => { if (armLock) { setArmLock(false); lockIn(); } else { setArmLock(true); } }}
+              <button className="cr-tool" onClick={() => { if (armLock) { if (Date.now() - armLock < ARM_MIN_MS) return; setArmLock(false); lockIn(); } else { setArmLock(Date.now()); } }}
                 style={{ background: armLock ? COLORS.ink : `var(--stg-surf, ${T.white})`, color: armLock ? T.white : COLORS.ink, borderColor: COLORS.ink }}>
                 {armLock
                   ? `Tap again to end the board at ${scoreFor(bestDiff)}/10`
@@ -791,7 +795,7 @@ export default function CrunchClient({ puzzles = [], forceNum = null }) {
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
               Number, operation, number. Undo as often as you like.
             </span>
-            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+            <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
               style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Eye size={13} /> {armReveal ? 'Tap again — ends the board and scores nothing' : 'Give up'}
             </button>

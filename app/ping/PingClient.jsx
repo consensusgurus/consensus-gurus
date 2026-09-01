@@ -68,6 +68,10 @@ const COLORS = {
   green: T.successDeep,        // found it
   greenSoft: '#eefaf1',
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
@@ -729,7 +733,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.pg-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .pg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .pg-btn:hover{background:var(--accent-soft);}
+          .pg-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @keyframes pgfade{from{opacity:0;}}
           @keyframes pgrow{from{opacity:0;transform:translateY(-4px);}}
           @media(max-width:560px){.pg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.pg-ttl h1{font-size:21px;letter-spacing:0.02em;}.pg-ttl .pg-ttl-dt{font-size:15px;}.pg-ttl-dot{display:none;}}
@@ -890,7 +894,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                 </button>
               )}
               {guesses.length > 0 && (
-                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                   title="Give up: reveals the city and scores you on your closest guess"
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armReveal ? 'Tap again to give up (you keep your closeness score)' : 'Give up & reveal'}

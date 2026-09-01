@@ -77,6 +77,10 @@ const DARK_SQ = 'var(--stg-sq-d, #4f6b58)';
 const RED_PC = T.danger, RED_PC_DK = '#7a2318';
 const BLK_PC = '#26282e', BLK_PC_DK = '#0e0f12';
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_check_help_seen';
@@ -702,7 +706,7 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.ck-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ck-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ck-btn:hover{background:var(--accent-soft);}
+          .ck-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .ck-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ck-sq{position:relative;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;}
           .ck-pc{width:76%;height:76%;border-radius:50%;pointer-events:none;box-shadow:inset 0 -3px 5px rgba(0,0,0,0.34), inset 0 3px 4px rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;}
@@ -823,11 +827,11 @@ export default function CheckClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>Tap a red piece, then tap where it goes. No take-back.</span>
             <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(true); } }}
+              <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmRestart(false); setArmReveal(Date.now()); } }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the board and scores nothing' : 'Give up'}
               </button>
-              <button onClick={() => { if (armRestart) { setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(true); } }}
+              <button onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; setArmRestart(false); restartGame(); } else { setArmReveal(false); setArmRestart(Date.now()); } }}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <RotateCcw size={13} /> {armRestart ? 'Tap again — records a loss and deals a fresh board' : 'Restart'}
               </button>

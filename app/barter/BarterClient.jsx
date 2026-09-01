@@ -643,7 +643,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.bt-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .bt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .bt-btn:hover{background:var(--accent-soft);}
+          .bt-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .bt-tile{box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;border-radius:8px;font-family:${SANS};font-weight:900;text-transform:uppercase;transition:background 0.15s, transform 0.1s;}
           .bt-tile.play{cursor:pointer;}
           .bt-tile.sel{outline:3px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;transform:scale(1.05);z-index:2;}

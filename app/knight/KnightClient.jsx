@@ -92,6 +92,10 @@ const COLORS = {
   knightEdge: 'rgba(55,48,163,0.30)',
   green: T.successDeep,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_knight_help_seen';
@@ -608,7 +612,8 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
   // untouched, so it is a fresh grid inside the same run. Undoable like any move.
   function clearBoard() {
     if (!playing || !hasEntries) return;
-    if (!armClear) { setArmClear(true); return; }
+    if (!armClear) { setArmClear(Date.now()); return; }
+    if (Date.now() - armClear < ARM_MIN_MS) return;
     setArmClear(false);
     pushUndo();
     setSel(-1);
@@ -987,7 +992,7 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
                   : 'Tap a square then a number, or pick a number then tap squares'}
             </span>
             {identity && filledCount > 0 && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and fills the solution' : 'Reveal & end'}
               </button>

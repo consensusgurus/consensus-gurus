@@ -802,7 +802,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.ow-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .ow-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ow-btn:hover{background:var(--accent-soft);}
+          .ow-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .ow-opt{font-family:${SANS};font-weight:800;font-size:13.5px;border: 2px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:9px;padding:9px 14px;cursor:pointer;}
           .ow-opt:hover{border-color:var(--stg-acc, ${COLORS.accent});}
           .ow-opt-on{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));box-shadow:0 0 0 3px rgba(232,180,58,0.45);}

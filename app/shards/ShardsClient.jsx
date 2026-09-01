@@ -919,7 +919,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.sh-wrap{padding-left:10px !important;padding-right:10px !important;}}
           @media(max-width:560px){.sh-cols{gap:0 !important;}.sh-trayhead{display:none;}.sh-tray{margin-top:10px !important;}}
           .sh-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sh-btn:hover{background:var(--accent-soft);}
+          .sh-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .sh-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .sh-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDk}) 86%, var(--stg-ink, var(--white)));}
           .sh-btn:disabled{opacity:0.4;cursor:default;}

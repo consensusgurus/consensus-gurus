@@ -66,6 +66,11 @@ const COLORS = {
   accentSoft: '#e6f6fa',
   green: T.successDeep,
 };
+const PRESS_SLOP_PX = 12;      // drift a long press tolerates before it reads as a scroll, same as Sweep's
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_hedge_help_seen';
@@ -208,6 +213,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
   // tool.
   const [tool, setTool] = useState('x');   // 'x' | 'line'
   const pressTimer = useRef(null);
+  const pressPos = useRef({ x: 0, y: 0 });
   const longFired = useRef(false);
   const [canUndo, setCanUndo] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -521,8 +527,9 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
 
   // hold (mobile) or right-click (desktop) draws the loop line directly; the
   // longFired flag swallows the click/contextmenu that follows the long-press.
-  function startPress(kind, idx) {
+  function startPress(kind, idx, e) {
     longFired.current = false;
+    if (e) pressPos.current = { x: e.clientX, y: e.clientY };
     clearTimeout(pressTimer.current);
     pressTimer.current = setTimeout(() => {
       longFired.current = true;
@@ -530,7 +537,16 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
     }, 420);
   }
-  function endPress() { clearTimeout(pressTimer.current); }
+  function endPress() { clearTimeout(pressTimer.current); pressTimer.current = null; }
+  // DRIFT TOLERANCE, NOT ZERO TOLERANCE, per Sweep's own note: a finger on a
+  // small target always moves a pixel or two, and cancelling on that would turn
+  // an intended hold into the tap it was not. Past PRESS_SLOP_PX the finger has
+  // gone somewhere else and the hold is abandoned.
+  function movePress(e) {
+    const p = pressPos.current;
+    if (!pressTimer.current) return;
+    if (Math.abs(e.clientX - p.x) > PRESS_SLOP_PX || Math.abs(e.clientY - p.y) > PRESS_SLOP_PX) endPress();
+  }
 
   function useHint() {
     if (!hintOk) return;
@@ -685,7 +701,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.hg-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .hg-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .hg-btn:hover{background:var(--accent-soft);}
+          .hg-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @media(max-width:560px){.hg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.hg-ttl h1{font-size:21px;}.hg-ttl-dot{display:none;}}
           .hg-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .hg-tool.on{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});}
@@ -801,7 +817,8 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                   strokeWidth={HIT}
                   onClick={() => { if (longFired.current) { longFired.current = false; return; } tapSeg(s.kind, s.idx); }}
                   onContextMenu={(e) => { e.preventDefault(); if (longFired.current) { longFired.current = false; return; } drawLineSeg(s.kind, s.idx); }}
-                  onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(s.kind, s.idx); }}
+                  onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(s.kind, s.idx, e); }}
+                  onPointerMove={movePress}
                   onPointerUp={endPress}
                   onPointerLeave={endPress}
                   onPointerCancel={endPress} />
@@ -839,7 +856,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
                 : 'Marking: tap a segment for a × (no line here), tap again to clear. Switch to Line to draw — or hold / right-click any segment to draw one.'}
             </span>
             {identity && (rightDrawn > 0 || errors > 0) && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and draws the loop' : 'Reveal & end'}
               </button>

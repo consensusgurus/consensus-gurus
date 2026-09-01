@@ -743,7 +743,7 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.st-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .st-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .st-btn:hover{background:var(--accent-soft);}
+          .st-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .st-w{cursor:pointer;border-radius:4px;padding:0 1px;transition:background .1s;}
           .st-w:hover{background:var(--stg-surf2, ${COLORS.accentSoft});box-shadow:0 0 0 2px var(--stg-surf2, ${COLORS.accentSoft});}
           .st-w-on{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px var(--stg-acc, ${COLORS.accent});border-radius:4px;}

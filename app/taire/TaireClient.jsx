@@ -85,6 +85,10 @@ const BLACK_PIP = T.ink;
 // fan reveals REVEAL px of each card beneath, which is exactly the index block.
 const CARD_W = 52, CARD_H = 74, REVEAL = 26;
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_taire_help_seen';
@@ -646,7 +650,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.ta-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ta-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ta-btn:hover{background:var(--accent-soft);}
+          .ta-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .ta-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ta-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:14px 12px 18px;touch-action:manipulation;}
           .ta-card{-webkit-tap-highlight-color:transparent;transition:transform .12s ease;}
@@ -806,7 +810,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>
               Tap a card, then tap where it goes. No undo.
             </span>
-            <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+            <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
               style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
               <Eye size={13} /> {armReveal ? 'Tap again — ends the deal and scores nothing' : 'Give up'}
             </button>

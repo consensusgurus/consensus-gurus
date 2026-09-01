@@ -493,7 +493,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.bk-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .bk-btn:hover{background:var(--accent-soft);}
+          .bk-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .bk-grid{border-collapse:separate;border-spacing:3px;font-family:${SANS};}
           .bk-grid th{font-size:10.5px;font-weight:800;color:${FADED};padding:2px 4px;text-align:left;white-space:nowrap;}
           .bk-grid th.col{writing-mode:vertical-rl;transform:rotate(180deg);height:64px;text-align:right;}

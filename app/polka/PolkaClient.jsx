@@ -76,6 +76,10 @@ const COLORS = {
   accentDeep: '#0d6b30',       // pressed / shadow
   green: T.successDeep,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_polka_help_seen';
@@ -209,8 +213,8 @@ function DotsOverlay({ dots, n }) {
     <svg viewBox={`0 0 ${n} ${n}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 3 }} aria-hidden="true">
       {out.map((d) => (
         d.t === 2
-          ? <circle key={d.key} cx={d.x} cy={d.y} r={0.13} fill="#1c1e24" />
-          : <circle key={d.key} cx={d.x} cy={d.y} r={0.13} fill="#ffffff" stroke="#1c1e24" strokeWidth={0.045} />
+          ? <circle key={d.key} cx={d.x} cy={d.y} r={0.13} style={{ fill: 'var(--stg-ink, #1c1e24)' }} />
+          : <circle key={d.key} cx={d.x} cy={d.y} r={0.13} strokeWidth={0.045} style={{ fill: 'var(--stg-cell, #ffffff)', stroke: 'var(--stg-ink, #1c1e24)' }} />
       ))}
     </svg>
   );
@@ -605,7 +609,8 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
   // untouched, so it is a fresh grid inside the same run. Undoable like any move.
   function clearBoard() {
     if (!playing || !hasEntries) return;
-    if (!armClear) { setArmClear(true); return; }
+    if (!armClear) { setArmClear(Date.now()); return; }
+    if (Date.now() - armClear < ARM_MIN_MS) return;
     setArmClear(false);
     pushUndo();
     setSel(-1);
@@ -976,7 +981,7 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
                   : 'Tap a square then a number, or pick a number then tap squares'}
             </span>
             {identity && filledCount > 0 && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and fills the solution' : 'Reveal & end'}
               </button>

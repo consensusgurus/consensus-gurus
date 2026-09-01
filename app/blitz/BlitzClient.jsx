@@ -590,7 +590,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         <style>{`
           @media(max-width:560px){.bz-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .bz-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .bz-btn:hover{background:var(--accent-soft);}
+          .bz-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .bz-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           .bz-choice{font-family:${SANS};display:flex;align-items:center;justify-content:center;gap:10px;border:2px solid;border-radius:9px;padding:15px 12px;transition:background .12s ease,border-color .12s ease;}
           .bz-grid:not(.nohov) .bz-choice:not(:disabled):hover{background:var(--stg-surf2, ${COLORS.paper});}

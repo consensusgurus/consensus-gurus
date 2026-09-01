@@ -423,7 +423,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.bk-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .bk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .bk-btn:hover{background:var(--accent-soft);}
+          .bk-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .bk-rounds{display:flex;gap:10px;align-items:flex-start;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;}
           .bk-col{flex:0 0 auto;width:168px;display:flex;flex-direction:column;justify-content:space-around;gap:8px;min-height:100%;}
           .bk-rh{font-family:${MONO};font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${FADED};margin-bottom:2px;}

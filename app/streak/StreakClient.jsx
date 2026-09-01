@@ -565,7 +565,7 @@ export default function StreakClient({ puzzles = [], questionsByNum = {}, forceN
         <style>{`
           @media(max-width:560px){.sk-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .sk-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .sk-btn:hover{background:var(--accent-soft);}
+          .sk-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .sk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
           @media(max-width:560px){.sk-grid{grid-template-columns:1fr;}}
           .sk-choice{font-family:${SANS};font-weight:700;font-size:14.5px;text-align:left;border:2px solid;border-radius:9px;padding:12px 13px;line-height:1.35;transition:background .12s ease,border-color .12s ease;}

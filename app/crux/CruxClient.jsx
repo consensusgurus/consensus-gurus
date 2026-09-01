@@ -62,6 +62,10 @@ const COLORS = {
   rust: T.danger,
   faded: T.muted,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // Static furniture only: everything here is one colour whatever the game is
 // doing. Anything that varies by state is set at its source above, and the
@@ -1370,7 +1374,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
           .cx-tries{display:flex;flex-direction:column;gap:4px;max-height:126px;overflow-y:auto;scrollbar-width:thin;}
           @media(max-width:560px){.cx-tries{max-height:96px;}}
           .cl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid var(--blue-deep);background:${STAGE ? 'transparent' : 'var(--white)'};color:var(--blue-deep);border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .cl-btn:hover{background:var(--accent-soft);}
+          .cl-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .cx-cur{position:relative;}
           .cx-cur::after{content:'';position:absolute;bottom:14%;left:22%;right:22%;height:2.5px;background:var(--blue);animation:cxcaret 1.1s step-end infinite;}
           @keyframes cxcaret{50%{opacity:0;}}
@@ -1610,7 +1614,7 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
 
           {/* lock it in: single shot, concludes the puzzle — armed two-tap */}
           {readyToLock && (
-            <button onClick={() => { if (armLock) { lockIn(); } else { setArmLock(true); setTimeout(() => setArmLock(false), 3500); } }}
+            <button onClick={() => { if (armLock) { if (Date.now() - armLock < ARM_MIN_MS) return; lockIn(); } else { setArmLock(Date.now()); setTimeout(() => setArmLock(false), 3500); } }}
               style={{ width: '100%', fontFamily: SANS, fontWeight: 800, fontSize: 15, letterSpacing: '0.05em', textTransform: 'uppercase', padding: '15px 10px', borderRadius: 10, border: 'none', background: armLock ? (STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.ink) : (STAGE ? STAGE_C : COLORS.ember), color: STAGE ? (armLock ? INK : 'var(--stg-onramp, #08222e)') : T.white, cursor: 'pointer', marginTop: 18, marginBottom: 14 }}>
               {armLock ? 'Tap again — this ends the puzzle' : 'Submit answers'}
             </button>

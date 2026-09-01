@@ -80,6 +80,10 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import { T } from '@/lib/theme';
 import { DIRS, freshState, applyMove, anyLegal, isCleared, fillOf } from '@/lib/chomp-engine';
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
@@ -799,6 +803,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
       };
       if (!map[e.key]) return;
       e.preventDefault();
+      if (e.repeat) return;   // a held key is not a sequence of moves: every step here is permanent
       move(map[e.key]);
     };
     window.addEventListener('keydown', onKey);
@@ -998,14 +1003,14 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                           The icons tell the two 'Press again' states apart, and
                           the consequence line below names whichever is armed. */}
                       <button
-                        onClick={() => { if (armRestart) { setArmRestart(false); restartRun(); } else { setArmGive(false); setArmRestart(true); } }}
+                        onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; setArmRestart(false); restartRun(); } else { setArmGive(false); setArmRestart(Date.now()); } }}
                         title={armRestart ? 'Records this run as it stands, then deals the board again' : 'Record this run as it stands and start the board over'}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
                       </button>
                       <button
-                        onClick={() => { if (armGive) { setArmGive(false); giveUp(); } else { setArmRestart(false); setArmGive(true); } }}
+                        onClick={() => { if (armGive) { if (Date.now() - armGive < ARM_MIN_MS) return; setArmGive(false); giveUp(); } else { setArmRestart(false); setArmGive(Date.now()); } }}
                         title={armGive ? 'Ends the run and records it as it stands' : 'End the run now and record it as it stands'}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armGive ? COLORS.block : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >

@@ -73,6 +73,10 @@ const COLORS = {
   lock: T.successDeep,
   lockSoft: '#eefaf1',
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
@@ -751,7 +755,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.dt-wrap{padding-left:14px !important;padding-right:14px !important;}}
           .dt-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .dt-btn:hover{background:var(--accent-soft);}
+          .dt-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .dt-btn:disabled{opacity:.45;cursor:default;}
           @keyframes dtshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .dt-shake{animation:dtshake .45s ease;}
@@ -882,7 +886,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
                 </button>
               )}
               {identity && checksUsed > 0 && (
-                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the timeline' : 'Reveal the timeline & end'}
                 </button>

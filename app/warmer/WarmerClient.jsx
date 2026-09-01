@@ -65,6 +65,10 @@ const COLORS = {
   green: T.successDeep,
   rust: T.danger,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_warmer_help_seen';
@@ -384,7 +388,8 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
 
   function giveUp() {
     if (!playing) return;
-    if (!armGiveUp) { setArmGiveUp(true); return; }
+    if (!armGiveUp) { setArmGiveUp(Date.now()); return; }
+    if (Date.now() - armGiveUp < ARM_MIN_MS) return;
     setArmGiveUp(false);
     const g2 = { ...g, status: 'gaveup', tEnd: Date.now() };
     if (!g2.t0) g2.t0 = Date.now();
@@ -481,7 +486,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
         <style>{`
           @media(max-width:560px){.wm-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .wm-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .wm-btn:hover{background:var(--accent-soft);}
+          .wm-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @media(max-width:560px){.wm-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.wm-ttl h1{font-size:21px;}.wm-ttl-dot{display:none;}}
           .wm-spectrum{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
           .wm-grad{height:14px;border-radius:99px;background:linear-gradient(90deg,#3b5bdb,#0ea5e9 24%,#84cc16 47%,#f59e0b 68%,#ea580c 84%,var(--stg-acc, #dc2626));}

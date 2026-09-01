@@ -547,21 +547,21 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           .sh-suit{font-size:clamp(13px,3.8vw,16px);margin-top:2px;}
           .sh-back{background:repeating-linear-gradient(45deg,#0a3d5c,#0a3d5c 4px,${FELT_EDGE} 4px,${FELT_EDGE} 8px);border-color:rgba(255,255,255,0.25);}
           .sh-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-height:52px;}
-          .sh-lab{font-family:${MONO};font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.75);width:52px;flex:none;}
-          .sh-tot{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 7px;border-radius:6px;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);font-family:${MONO};font-size:12px;color:var(--white);}
-          .sh-tot.made{background:rgba(255,255,255,0.92);color:${INK};border-color:rgba(255,255,255,0.9);font-weight:700;}
-          .sh-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-family:${MONO};font-size:11px;font-weight:500;border:1px solid rgba(255,255,255,0.28);color:var(--white);background:rgba(255,255,255,0.10);}
+          .sh-lab{font-family:${MONO};font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--stg-mute, rgba(255,255,255,0.75));width:52px;flex:none;}
+          .sh-tot{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:26px;padding:0 7px;border-radius:6px;background:var(--stg-cell, rgba(255,255,255,0.14));border:1px solid var(--stg-cell-line, rgba(255,255,255,0.25));font-family:${MONO};font-size:12px;color:var(--stg-ink, var(--white));}
+          .sh-tot.made{background:var(--stg-acc, rgba(255,255,255,0.92));color:var(--stg-onramp, ${INK});border-color:var(--stg-acc, rgba(255,255,255,0.9));font-weight:700;}
+          .sh-pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-family:${MONO};font-size:11px;font-weight:500;border:1px solid var(--stg-line2, rgba(255,255,255,0.28));color:var(--stg-ink, var(--white));background:var(--stg-surf, rgba(255,255,255,0.10));}
           .sh-pill.w{background:rgba(74,222,128,0.22);border-color:rgba(74,222,128,0.55);}
           .sh-pill.l{background:rgba(248,113,113,0.20);border-color:rgba(248,113,113,0.5);}
           .sh-pill.bj{background:rgba(232,180,58,0.28);border-color:rgba(232,180,58,0.7);}
-          .sh-act{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.02em;border:2px solid rgba(255,255,255,0.9);background:rgba(255,255,255,0.94);color:${INK};border-radius:9px;padding:12px 0;flex:1 1 0;cursor:pointer;}
+          .sh-act{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.02em;border:2px solid var(--stg-cell-line, rgba(255,255,255,0.9));background:var(--stg-cell, rgba(255,255,255,0.94));color:var(--stg-ink, ${COLORS.ink});border-radius:9px;padding:12px 0;flex:1 1 0;cursor:pointer;}
           .sh-act:active{transform:translateY(1px);}
           .sh-act:disabled{opacity:0.35;cursor:default;}
-          .sh-act.gold{background:${STAGE ? 'var(--stg-surf2)' : '#f4d98d'};border-color:#e8b43a;color:#5b4104;}
-          .sh-act.deal{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:rgba(255,255,255,0.9);color:var(--stg-acc, ${COLORS.accent});}
-          .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--white);}
-          .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.72);margin-top:11px;flex-wrap:wrap;}
-          .sh-strip b{color:var(--white);font-weight:500;font-variant-numeric:tabular-nums;}
+          .sh-act.gold{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, #e8b43a);color:var(--stg-acc, #5b4104);}
+          .sh-act.deal{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, rgba(255,255,255,0.9));color:var(--stg-acc, ${COLORS.accent});}
+          .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--stg-ink, var(--white));}
+          .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--stg-mute, rgba(255,255,255,0.72));margin-top:11px;flex-wrap:wrap;}
+          .sh-strip b{color:var(--stg-ink, var(--white));font-weight:500;font-variant-numeric:tabular-nums;}
         `}</style>
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>

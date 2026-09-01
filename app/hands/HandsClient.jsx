@@ -573,7 +573,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.hd-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .hd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .hd-btn:hover{background:var(--accent-soft);}
+          .hd-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .hd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .hd-tool:disabled{opacity:0.4;cursor:default;}
           .hd-felt{background:${FELT};border:10px solid ${FELT_EDGE};border-radius:12px;padding:13px 12px 15px;touch-action:manipulation;}

@@ -64,6 +64,10 @@ const COLORS = {
   green: T.successDeep,        // solved / dead on
   greenSoft: '#eefaf1',
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const PAPER = '#fbf9f4';
@@ -599,7 +603,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.cc-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .cc-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .cc-btn:hover{background:var(--accent-soft);}
+          .cc-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @keyframes ccfade{from{opacity:0;}}
           @keyframes ccstamp{from{opacity:0;transform:scale(.94);}}
           @keyframes ccrow{from{opacity:0;transform:translateY(-4px);}}
@@ -747,7 +751,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 </button>
               )}
               {identity && guesses.length > 0 && (
-                <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+                <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the year' : 'Reveal & end'}
                 </button>

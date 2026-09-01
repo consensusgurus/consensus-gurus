@@ -548,7 +548,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         <style>{`
           @media(max-width:560px){.fl-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .fl-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .fl-btn:hover{background:var(--accent-soft);}
+          .fl-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .fl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
           @media(max-width:560px){.fl-grid{grid-template-columns:1fr;}}
           .fl-slot{display:flex;align-items:center;font-family:${SANS};font-size:14px;border:2px solid;border-radius:9px;padding:10px 12px;line-height:1.3;transition:background .15s ease,border-color .15s ease;}

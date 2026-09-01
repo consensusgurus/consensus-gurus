@@ -77,6 +77,10 @@ const COLORS = {
   goldSoft: '#fff7e6',
   green: T.successDeep,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_niche_help_seen';
@@ -634,7 +638,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-head{display:flex;align-items:center;justify-content:center;text-align:center;font-family:${SANS};font-weight:800;color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border:1.5px solid var(--stg-surf2, ${COLORS.accentTint});border-radius:8px;padding:6px 4px;line-height:1.22;min-height:44px;}
           .nc-cell{position:relative;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.22));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 5px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;min-height:58px;overflow:hidden;}
           .nc-cell.filled{border-color:var(--stg-surf2, ${COLORS.accentTint});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);cursor:default;}
-          .nc-cell.rare{border-color:${COLORS.gold};background:${COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
+          .nc-cell.rare{border-color:var(--stg-warn, ${COLORS.gold});background:${STAGE ? 'color-mix(in srgb, var(--stg-warn) 20%, transparent)' : COLORS.goldSoft};box-shadow:0 0 0 2px rgba(180,83,9,0.18);}
           .nc-cell.sel{border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 0 0 2.5px color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 25%, transparent);}
           .nc-cell.miss{background:${STAGE ? 'var(--stg-surf2)' : '#fafbfc'};}
           .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${INK};overflow-wrap:anywhere;}
@@ -806,7 +810,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
                 {sel >= 0 ? 'Suggestions only offer answers from the universe. Wrong fits still cost a guess.' : 'Tap an empty cell to answer it.'}
               </span>
               {filled + g.misses > 0 && (
-                <button onClick={() => { if (armEnd) { setArmEnd(false); endNow(); } else { setArmEnd(true); } }}
+                <button onClick={() => { if (armEnd) { if (Date.now() - armEnd < ARM_MIN_MS) return; setArmEnd(false); endNow(); } else { setArmEnd(Date.now()); } }}
                   style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armEnd ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                   <Eye size={13} /> {armEnd ? 'Tap again — ends the board and scores it' : 'End & score'}
                 </button>

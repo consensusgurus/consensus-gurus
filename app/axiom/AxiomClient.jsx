@@ -76,6 +76,7 @@ const COLORS = {
   redSoft: '#fee2e2',
   redInk: '#b91c1c',
 };
+const PRESS_SLOP_PX = 12;      // drift a long press tolerates before it reads as a scroll, same as Sweep's
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_axiom_help_seen';
@@ -381,6 +382,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   const toastTimer = useRef(null);
   const viewedRef = useRef(false);
   const pressTimer = useRef(null);
+  const pressPos = useRef({ x: 0, y: 0 });
   const longFired = useRef(false);
 
   const [showChrome, setShowChrome] = useState(false);
@@ -589,8 +591,9 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
   }
   // Hold (mobile) or right-click (desktop) spends a test whatever the tool is
   // set to; longFired swallows the click that follows the long press.
-  function startPress(i) {
+  function startPress(i, e) {
     longFired.current = false;
+    if (e) pressPos.current = { x: e.clientX, y: e.clientY };
     clearTimeout(pressTimer.current);
     pressTimer.current = setTimeout(() => {
       longFired.current = true;
@@ -598,7 +601,16 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
     }, 420);
   }
-  function endPress() { clearTimeout(pressTimer.current); }
+  function endPress() { clearTimeout(pressTimer.current); pressTimer.current = null; }
+  // DRIFT TOLERANCE, NOT ZERO TOLERANCE, per Sweep's own note: a finger on a
+  // small target always moves a pixel or two, and cancelling on that would turn
+  // an intended hold into the tap it was not. Past PRESS_SLOP_PX the finger has
+  // gone somewhere else and the hold is abandoned.
+  function movePress(e) {
+    const p = pressPos.current;
+    if (!pressTimer.current) return;
+    if (Math.abs(e.clientX - p.x) > PRESS_SLOP_PX || Math.abs(e.clientY - p.y) > PRESS_SLOP_PX) endPress();
+  }
   function tapTile(i) {
     if (longFired.current) { longFired.current = false; return; }
     if (mode === 'test') testTile(i); else toggleMark(i);
@@ -724,7 +736,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.ax-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .ax-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ax-btn:hover{background:var(--accent-soft);}
+          .ax-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .ax-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
           @media(max-width:560px){.ax-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}}
           .ax-tile{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.04em;border-radius:9px;padding:13px 4px;cursor:pointer;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};text-align:center;overflow:hidden;text-overflow:ellipsis;}
@@ -843,7 +855,8 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
                     className={`ax-tile ${cls}${t.g ? ' given' : ''}${marked ? ' marked' : ''}`}
                     onClick={() => tapTile(i)}
                     onContextMenu={(e) => { e.preventDefault(); if (longFired.current) { longFired.current = false; return; } testTile(i); }}
-                    onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(i); }}
+                    onPointerDown={(e) => { if (e.pointerType === 'touch') startPress(i, e); }}
+                    onPointerMove={movePress}
                     onPointerUp={endPress}
                     onPointerLeave={endPress}
                     onPointerCancel={endPress}

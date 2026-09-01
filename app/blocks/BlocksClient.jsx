@@ -60,6 +60,10 @@ import {
 } from '@/lib/blocks-seq';
 import { meRequest } from '@/app/quizMeClient';
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
@@ -705,9 +709,18 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
       ctx.strokeStyle = PIECES[key].e; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.globalAlpha = 1;
     };
+    // A canvas cannot be reached by a DOM contrast sweep, so the well reads the
+    // stage tokens for itself, the way Chomp's boardPalette does. Off the stage
+    // the custom properties are undefined and the fallbacks paint it white
+    // exactly as before.
+    const wcs = typeof window !== 'undefined' ? getComputedStyle(cvs) : null;
+    const wtok = (name, fallback) => {
+      const got = wcs && wcs.getPropertyValue(name);
+      return got && got.trim() ? got.trim() : fallback;
+    };
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = '#ffffff'; rr(0, 0, W, H, 12); ctx.fill();
-    ctx.strokeStyle = COLORS.well; ctx.lineWidth = 2; rr(1, 1, W - 2, H - 2, 11); ctx.stroke();
+    ctx.fillStyle = wtok('--stg-cell', '#ffffff'); rr(0, 0, W, H, 12); ctx.fill();
+    ctx.strokeStyle = wtok('--stg-cell-line', COLORS.well); ctx.lineWidth = 2; rr(1, 1, W - 2, H - 2, 11); ctx.stroke();
     const st = gRef.current;
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (st.grid[y][x]) tile(x, y, st.grid[y][x]);
     if (!st.cur || st.status !== 'playing') return;
@@ -1076,7 +1089,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
               <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <button
                   type="button"
-                  onClick={() => { if (armRestart) replayRun(); else setArmRestart(true); }}
+                  onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; replayRun(); } else setArmRestart(Date.now()); }}
                   title={armRestart ? 'Starts this run over' : 'Start this run over'}
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >

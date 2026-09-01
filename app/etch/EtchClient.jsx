@@ -69,6 +69,10 @@ const COLORS = {
   accentSoft: '#f3f8e8',
   green: T.successDeep,
 };
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_etch_help_seen';
@@ -649,6 +653,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     const p = pendRef.current;
     clearPending();
     if (!p) return;
+    if (p.off) return;                      // lifted off the board: nothing lands, nothing is scored
     const cur = gRef.current;
     if (cur.status !== 'playing') return;
     const targets = p.run.filter((i) => i >= 0 && i < N && cur.cells[i] !== p.val);
@@ -730,7 +735,22 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
     if (!p) return;
     positionAim(e.clientX, e.clientY);
     const idx = cellFromPoint(e.clientX, e.clientY);
-    if (idx < 0) return;
+    if (idx < 0) {
+      // OFF THE BOARD, which is the natural way to bail out of a stroke. Mark
+      // it rather than ignoring the move, so a release out here throws the
+      // stroke away instead of committing whatever the last in-board run was.
+      // The preview and the callout both go, so the cancel is visible BEFORE
+      // the finger lifts and nothing is left naming a square you have left.
+      if (!p.off) { p.off = true; clearTimeout(aimTimer.current); setPend(null); setAim(null); }
+      return;
+    }
+    if (p.off) {
+      // Back on the board: redraw. p.run is emptied so the sameCells guard
+      // below cannot mistake the restored preview for "no change".
+      p.off = false;
+      p.run = [];
+      setAim({ idx, val: p.val, aiming: p.aiming });
+    }
     if (p.aiming) {
       // Aim mode: still one square, and it follows the finger. The action is
       // re-derived from whatever square is now under it, so sliding onto a
@@ -922,7 +942,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
             .et-wrap .loft-stage{padding-left:3px !important;padding-right:3px !important;}
           }
           .et-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .et-btn:hover{background:var(--accent-soft);}
+          .et-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @media(max-width:560px){.et-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.et-ttl h1{font-size:21px;}.et-ttl-dot{display:none;}}
           .et-cell{box-sizing:border-box;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;position:relative;}
           .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${INK};min-width:0;min-height:0;line-height:1;}
@@ -1122,7 +1142,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
                     : 'Filling: tap a square, or drag across a run to fill it.')}
             </span>
             {identity && (filledRight > 0 || errors > 0) && (
-              <button onClick={() => { if (armReveal) { setArmReveal(false); revealEnd(); } else { setArmReveal(true); } }}
+              <button onClick={() => { if (armReveal) { if (Date.now() - armReveal < ARM_MIN_MS) return; setArmReveal(false); revealEnd(); } else { setArmReveal(Date.now()); } }}
                 style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armReveal ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <Eye size={13} /> {armReveal ? 'Tap again — ends the puzzle and shows the picture' : 'Reveal & end'}
               </button>

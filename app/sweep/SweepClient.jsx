@@ -55,6 +55,10 @@ import { T } from '@/lib/theme';
 import { arcadeRanksForKey } from '@/lib/daily-games';
 import { COLS, ROWS, decodeField, idx, neighbors, numberAt } from '@/lib/sweep-field';
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const COLORS = {
@@ -791,7 +795,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
               <div style={{ textAlign: 'center', marginTop: 10 }}>
                 <button
                   type="button"
-                  onClick={() => { if (armRestart) replayRun(); else setArmRestart(true); }}
+                  onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; replayRun(); } else setArmRestart(Date.now()); }}
                   style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >
                   <RotateCcw size={13} /> {armRestart ? 'Press again to start over' : 'Restart run'}

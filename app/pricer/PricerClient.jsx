@@ -755,7 +755,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
         <style>{`
           @media(max-width:560px){.pr-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .pr-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .pr-btn:hover{background:var(--accent-soft);}
+          .pr-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           /* ---- the arena: a bracket zoomed all the way in ---- */
           .pr-arena{position:relative;display:grid;grid-template-columns:150px minmax(0,1fr) 172px;gap:0 20px;align-items:stretch;
                     background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border:1px solid ${COLORS.line};border-radius:12px;padding:13px 15px;overflow:hidden;}

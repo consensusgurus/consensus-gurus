@@ -629,7 +629,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
         <style>{`
           @media(max-width:560px){.ld-wrap{padding-left:10px !important;padding-right:10px !important;}}
           .ld-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
-          .ld-btn:hover{background:var(--accent-soft);}
+          .ld-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .ld-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .ld-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .ld-btn:disabled{opacity:0.45;cursor:default;}

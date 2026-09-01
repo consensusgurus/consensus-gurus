@@ -77,6 +77,10 @@ const BOX_FOE_INK = 'var(--stg-mute, #78716c)';
 // tile on the home. Inset, so a 1px rule cannot move a grid cell.
 const BOX_MINE_RIM = 'inset 0 0 0 1px var(--stg-acc, transparent)';
 
+// The arm-then-confirm controls do not move when armed, so the second tap of
+// an accidental double-tap used to land on the armed state long before the
+// label change could be read. A confirm this fast was never a decision.
+const ARM_MIN_MS = 400;
 const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 const HELP_KEY = 'sot_chain_help_seen';
@@ -544,10 +548,11 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   function revealEnd() {
     if (!armReveal) {
       setArmRestart(false);
-      setArmReveal(true);
+      setArmReveal(Date.now());
       setTimeout(() => setArmReveal(false), 3500);
       return;
     }
+    if (Date.now() - armReveal < ARM_MIN_MS) return;
     setArmReveal(false);
     finish(gRef.current, 'gaveup');
   }
@@ -575,10 +580,11 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
   function restartGame() {
     if (!armRestart) {
       setArmReveal(false);
-      setArmRestart(true);
+      setArmRestart(Date.now());
       setTimeout(() => setArmRestart(false), 3500);
       return;
     }
+    if (Date.now() - armRestart < ARM_MIN_MS) return;
     setArmRestart(false);
     const cur = gRef.current;
     if (cur.status === 'playing' && cur.t0) {
