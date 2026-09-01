@@ -47,6 +47,7 @@ import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
 import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
+import ThemePop from '../ThemePop';
 import StageLadder from '../StageLadder';
 import StageWelcome from '../StageWelcome';
 import MindLoftMark from '../MindLoftMark';
@@ -973,6 +974,10 @@ export default function StageToday() {
             <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span>
           ) : null}
         </button>
+        {/* THE EXPLICIT POINTER at the switch above, first visit only. It is
+            the cap's LAST CHILD on purpose: it reads its own parent to find
+            the glyph and measure itself against it. */}
+        <ThemePop />
       </div>
       <div className="sty-prog"><span style={{ width: `${total ? (playedCount / total) * 100 : 0}%` }} /></div>
 
@@ -1300,7 +1305,7 @@ const CSS = `
 .sty *{box-sizing:border-box;}
 
 /* ── the cap: one line ─────────────────────────────────────────────────── */
-.sty-cap{display:flex;align-items:center;gap:22px;padding:11px 22px;
+.sty-cap{display:flex;align-items:center;gap:22px;padding:11px 22px;position:relative;
   border-bottom:1px solid var(--stg-line);}
 .sty-id{display:flex;align-items:baseline;gap:11px;min-width:0;}
 /* The mark and the words are ONE object, so they centre on each other; the date

@@ -26,6 +26,7 @@
 // picks one, exactly as every daily client does: an inline style beats a
 // stylesheet, so a root setting --stg-acc directly could never be re-themed.
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
+import ThemePop from '../ThemePop';
 import { categoryColor, categoryColorLight, categoryOnrampLight } from '@/lib/category-ramp';
 import MindLoftMark from '../MindLoftMark';
 import StageFooter from '../StageFooter';
@@ -99,6 +100,10 @@ export default function CircuitFrame({ cat = null, label = 'Circuits', progress 
           )}
           {intro ? <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span> : null}
         </button>
+        {/* THE EXPLICIT POINTER at the switch above, first visit only. It is
+            the cap's LAST CHILD on purpose: it reads its own parent to find
+            the glyph and measure itself against it. */}
+        <ThemePop />
       </div>
 
       {/* The hairline reads the same as it does on the home: how much of this
@@ -121,7 +126,7 @@ const CSS = `
   font-family:${SANS};-webkit-font-smoothing:antialiased;}
 .cfr *{box-sizing:border-box;}
 
-.cfr-cap{display:flex;align-items:center;gap:18px;padding:11px 22px;
+.cfr-cap{display:flex;align-items:center;gap:18px;padding:11px 22px;position:relative;
   border-bottom:1px solid var(--stg-line);}
 .cfr-id{display:flex;align-items:baseline;gap:11px;min-width:0;margin-right:auto;}
 /* The mark and the words are ONE object so they centre on each other; the

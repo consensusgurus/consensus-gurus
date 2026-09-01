@@ -1,0 +1,104 @@
+'use client';
+// THE EXPLICIT POINTER AT THE LIGHT SWITCH (owner, 2026-09-01).
+//
+// Two quieter pointers already existed and neither one ever says the words. The
+// ring (useThemeHint) says only "there is a control here"; the first-load flip
+// (useThemeIntro) shows what it DOES without naming it, and both are over in a
+// few seconds. A reader who is not watching the cap at second one gets nothing
+// from either. So a first-time reader now also gets this: a bubble under the
+// glyph that names the register, points at the switch with an arrow, and
+// carries the switch itself so they never have to find the icon at all.
+//
+// IT IS A SIBLING OF THE SWITCH INSIDE THE CAP, not a portal to <body> and not
+// position:fixed. Three reasons, in the order they cost something to learn:
+//
+//   1. THE PALETTE IS SCOPED TO .stage-page. Every --stg-* token is declared on
+//      that element, and each client publishes its category accent as an inline
+//      --stg-acc-dk / --stg-acc-lt on it, so a node portalled to <body> would
+//      inherit none of them and would have to re-read them with
+//      getComputedStyle and republish them as inline vars. A child of the cap
+//      simply has them, in whichever register the reader is in.
+//   2. NO CAP IS STICKY, so a fixed bubble would come away from the glyph on
+//      the first scroll and need a scroll listener to chase it. An absolutely
+//      positioned child of the cap scrolls with it for free.
+//   3. It cannot live INSIDE the switch the way the flip's name chip does
+//      (.stg-tlab, which gets away with it by being pointer-events:none): this
+//      one holds buttons, and a button inside a button is invalid markup and
+//      would fire the toggle on its way through.
+//
+// THE POSITION IS MEASURED, never written per cap. The three caps carry
+// different paddings (20 / 22 / 22px) and the home's cap becomes a grid under
+// 700px, so a constant would be wrong on two surfaces and wrong again on a
+// phone. Measure the cap and the glyph, subtract, done.
+//
+// Mount it as the LAST CHILD of the cap. It reads its own parent to find the
+// switch, so no ref is threaded through any cap and it takes no props.
+import { useEffect, useRef, useState } from 'react';
+import { useThemePop, writeStageTheme } from '@/lib/stage-theme';
+
+// The three caps that draw a switch: StageChrome (every daily), StageToday (the
+// home), CircuitFrame (the circuit pages). A fourth cap adds its class here.
+const SWITCH = '.stg-theme, .sty-tg, .cfr-tg';
+
+export default function ThemePop() {
+  const [open, dismiss] = useThemePop();
+  const ref = useRef(null);
+  const [at, setAt] = useState(null);
+
+  useEffect(() => {
+    if (!open) { setAt(null); return undefined; }
+    let raf = 0;
+    const place = () => {
+      const el = ref.current;
+      const cap = el && el.parentElement;
+      const btn = cap && cap.querySelector(SWITCH);
+      if (!btn) { setAt(null); return; }
+      const c = cap.getBoundingClientRect();
+      const b = btn.getBoundingClientRect();
+      if (!b.width) { setAt(null); return; }
+      setAt({
+        top: Math.round(b.bottom - c.top + 9),
+        right: Math.round(Math.max(0, c.right - b.right)),
+        // The arrow sits under the MIDDLE of the glyph. The bubble's right edge
+        // is the glyph's right edge, so half the glyph's own width is the whole
+        // offset, whatever the cap's padding happens to be.
+        arrow: Math.round(Math.max(8, b.width / 2 - 6)),
+      });
+    };
+    place();
+    const on = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(place); };
+    window.addEventListener('resize', on);
+    return () => { window.removeEventListener('resize', on); cancelAnimationFrame(raf); };
+  }, [open]);
+
+  if (!open) return null;
+
+  // Rendered before it is placed, hidden rather than absent: the effect needs
+  // the node in the document to measure its parent, so a bubble that waited for
+  // its own coordinates could never get them.
+  return (
+    <div
+      ref={ref}
+      className="stg-tpop"
+      role="dialog"
+      aria-label="Light mode"
+      style={at ? { top: at.top, right: at.right } : { visibility: 'hidden' }}
+    >
+      <i className="stg-tpop-arw" style={{ right: at ? at.arrow : 12 }} aria-hidden="true" />
+      {/* The X closes it, and there is no "Not now" beside it. That is the
+          house pattern for a pop-up on this site: a second dismissal reads as
+          a decision being asked for when none is. */}
+      <button type="button" className="stg-tpop-x" onClick={dismiss} aria-label="Dismiss">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+          strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+      <b>Prefer a lighter page?</b>
+      <p>This is the light switch. It flips the whole site between light and dark, and it sits in this bar on every page.</p>
+      <button type="button" className="stg-tpop-go" onClick={() => writeStageTheme('light')}>
+        Switch to light
+      </button>
+    </div>
+  );
+}

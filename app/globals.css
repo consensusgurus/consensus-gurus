@@ -514,3 +514,68 @@ html.stg-flip .stage-page * {
   background: var(--stg-acc); color: var(--stg-onramp, #08222e);
   padding: 4px 8px; border-radius: 7px;
 }
+
+/* THE EXPLICIT POINTER at the light switch (owner, 2026-09-01), drawn by
+   app/ThemePop.jsx. The bubble is an absolutely positioned child of whichever
+   cap is on the page and it MEASURES the glyph, so there is not one per-cap
+   offset in this block: top, right and the arrow all arrive as inline pixels.
+   What lives here is the look alone, and it lives here rather than in the three
+   cap stylesheets for the same reason the chip above it does. Each cap makes
+   itself position:relative in its own sheet. */
+.stg-tpop {
+  position: absolute; z-index: 40;
+  width: 268px; max-width: calc(100vw - 22px);
+  padding: 13px 14px 14px; border-radius: 13px; text-align: left;
+  background: var(--stg-raise, #0e131f);
+  border: 1.5px solid var(--stg-acc, #38bdf8);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .38);
+  animation: stg-tpop-in .24s ease-out both;
+}
+.stg-tpop b {
+  display: block; padding-right: 22px;
+  font-size: 13.5px; font-weight: 800; letter-spacing: -.005em;
+  color: var(--stg-ink, #e9edf4);
+}
+.stg-tpop p {
+  margin: 5px 0 11px; font-size: 11.5px; line-height: 1.5;
+  color: var(--stg-ink2, #9aa8c4);
+}
+/* One square rotated into the border: two of its sides carry the bubble's
+   border colour and its fill is the bubble's own ground, so it reads as the
+   panel continuing rather than as a triangle sitting on top of it. */
+.stg-tpop-arw {
+  position: absolute; top: -6px; width: 11px; height: 11px;
+  transform: rotate(45deg);
+  background: var(--stg-raise, #0e131f);
+  border-left: 1.5px solid var(--stg-acc, #38bdf8);
+  border-top: 1.5px solid var(--stg-acc, #38bdf8);
+}
+/* Accent fill carrying --stg-onramp, which is the token for ink ON the accent
+   and is set per CATEGORY rather than per register: the three warm steps carry
+   near-black where the other six carry white. */
+.stg-tpop-go {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 13px; border: 0; border-radius: 8px; cursor: pointer;
+  font-family: 'JetBrains Mono', 'DM Mono', ui-monospace, monospace;
+  font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700;
+  background: var(--stg-acc, #38bdf8); color: var(--stg-onramp, #08222e);
+}
+.stg-tpop-go:hover { filter: brightness(1.08); }
+.stg-tpop-x {
+  position: absolute; top: 7px; right: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; cursor: pointer;
+  background: none; border: 0; border-radius: 6px;
+  color: var(--stg-mute, #66748f);
+}
+.stg-tpop-x:hover { color: var(--stg-ink, #e9edf4); }
+.stg-tpop-go:focus-visible,
+.stg-tpop-x:focus-visible { outline: 2px solid var(--stg-acc); outline-offset: 2px; }
+@keyframes stg-tpop-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stg-tpop { animation: none; }
+}
+

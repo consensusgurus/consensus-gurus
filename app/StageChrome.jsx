@@ -36,6 +36,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MindLoftMark from './MindLoftMark';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
+import ThemePop from './ThemePop';
 // The stage swaps LoftCap out, and LoftCap was carrying the whole .loft-*
 // sheet that LoftFinish depends on, so the end card rendered unstyled.
 import { LoftSheet } from './LoftCap';
@@ -281,6 +282,10 @@ export default function StageChrome({
             <span className="stg-tlab">{intro === 'light' ? 'Light mode' : 'Dark mode'}</span>
           ) : null}
         </button>
+        {/* THE EXPLICIT POINTER at the switch above, first visit only. It is
+            the cap's LAST CHILD on purpose: it reads its own parent to find
+            the glyph and measure itself against it. */}
+        <ThemePop />
       </div>
 
       <LoftSheet />
@@ -372,7 +377,7 @@ const MONO = "'DM Mono',ui-monospace,'SFMono-Regular',monospace";
 const CSS = `
 .stg-top{background:var(--stg-ground,#0b0f1a);font-family:${SANS};color:var(--stg-ink,#e9edf4);}
 
-.stg-cap{display:flex;align-items:center;gap:16px;padding:12px 20px;}
+.stg-cap{display:flex;align-items:center;gap:16px;padding:12px 20px;position:relative;}
 .stg-id{display:flex;flex-direction:column;gap:1px;min-width:0;}
 .stg-id i{font-family:${MONO};font-style:normal;font-size:9.5px;letter-spacing:.15em;
   text-transform:uppercase;color:var(--stg-mute2,#66748f);display:block;overflow:hidden;
