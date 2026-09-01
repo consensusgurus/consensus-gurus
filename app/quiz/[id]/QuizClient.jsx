@@ -1439,7 +1439,7 @@ export default function QuizClient({ quizId }) {
                   {lb.map((row, i) => {
                     const mine = identity && row.username === identity.username;
                     return (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? COLORS.accSoft : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? COLORS.accBorder : COLORS.line}` }}>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 76px 64px', gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? `var(--stg-chip,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? `var(--stg-acc,${COLORS.accBorder})` : `var(--stg-line,${COLORS.line})`}` }}>
                         <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? COLORS.ember : `var(--stg-mute,${COLORS.faded})` }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
                         <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${COLORS.faded}88`, cursor: 'pointer' }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{row.tryNum ? <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 400, color: FADED, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
@@ -1704,7 +1704,7 @@ export default function QuizClient({ quizId }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   {chStepIds.map((_, k) => (
-                    <span key={k} style={{ width: 9, height: 9, borderRadius: '50%', boxSizing: 'border-box', background: k < chStepIdx ? COLORS.ember : 'transparent', border: k === chStepIdx ? `2.5px solid ${COLORS.ember}` : `1.5px solid ${COLORS.accBorder}` }} />
+                    <span key={k} style={{ width: 9, height: 9, borderRadius: '50%', boxSizing: 'border-box', background: k < chStepIdx ? COLORS.ember : 'transparent', border: k === chStepIdx ? `2.5px solid ${COLORS.ember}` : `1.5px solid ${`var(--stg-acc,${COLORS.accBorder})`}` }} />
                   ))}
                 </span>
                 <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: FADED }}>Quiz {chStepIdx + 1} of {chN}</span>
@@ -2024,7 +2024,7 @@ export default function QuizClient({ quizId }) {
                       <span>{i + 1} / {answers.length}</span>
                       <span>{solved} solved</span>
                     </div>
-                    <div style={{ borderRadius: 14, border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.rust : COLORS.faded + '44'}`, background: f ? `var(--stg-surf,${T.white})` : reveal ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '34px 22px', textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
+                    <div style={{ borderRadius: 14, border: `1px solid ${f ? COLORS.forest : reveal ? COLORS.rust : `var(--stg-line,${COLORS.faded})` + '44'}`, background: f ? `var(--stg-surf,${T.white})` : reveal ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '34px 22px', textAlign: 'center', minHeight: 150, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 18 }}>
                       <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(26px, 5vw, 40px)', lineHeight: 1.1, color: INK }}>{a.label}</div>
                       {f ? (
                         <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600, color: COLORS.forest }}>{a.t}</div>
@@ -2059,7 +2059,7 @@ export default function QuizClient({ quizId }) {
                   ? { whiteSpace: 'normal', overflowWrap: 'normal', wordBreak: 'normal' } // multi-word: wrap at spaces, never mid-word
                   : { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }; // single word: ellipsis, don't break
                 return (
-                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? COLORS.accBorder : isActive ? COLORS.ember : reveal ? COLORS.rust : COLORS.line}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? COLORS.accSoft : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
+                  <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? `var(--stg-acc,${COLORS.accBorder})` : isActive ? COLORS.ember : reveal ? COLORS.rust : `var(--stg-line,${COLORS.line})`}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? `var(--stg-chip,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
                       <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
@@ -2105,7 +2105,7 @@ export default function QuizClient({ quizId }) {
                       const f = found[gi];
                       const rev = ended && revealed && !f;
                       return (
-                        <div key={gi} style={{ borderRadius: 10, border: `1px solid ${f ? COLORS.forest : rev ? COLORS.rust : COLORS.faded + '33'}`, borderRadius: 8, background: f ? `var(--stg-surf,${T.white})` : rev ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '9px 11px', transition: 'all .2s' }}>
+                        <div key={gi} style={{ borderRadius: 10, border: `1px solid ${f ? COLORS.forest : rev ? COLORS.rust : `var(--stg-line,${COLORS.faded})` + '33'}`, borderRadius: 8, background: f ? `var(--stg-surf,${T.white})` : rev ? '#f6ead9' : `var(--stg-surf,${COLORS.paper})`, padding: '9px 11px', transition: 'all .2s' }}>
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                             <span style={{ fontFamily: MONO, fontSize: 11, color: FADED, flex: 'none' }}>{gi + 1}</span>
                             <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 500, color: INK, lineHeight: 1.2 }}>{a.clue}</span>

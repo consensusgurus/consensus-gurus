@@ -212,6 +212,12 @@ sweep('raw-hex body ink', /color: '#4a4339'/g, "color: `var(--stg-ink2,#4a4339)`
     'T.surfaceAlt': '--stg-surf2',
     'COLORS.cream': '--stg-surf', 'COLORS.paper': '--stg-surf',
     'COLORS.ink': '--stg-surf2',
+    // A FOUND SLOT is a meaning chip: it gives up its pale accent WASH on the
+    // stage and keeps its accent hairline and its tick, so it stops being the
+    // brightest thing on a near-black page while still reading as found.
+    // --stg-chip is defined only on .stage-page, so the fallback keeps the old
+    // wash everywhere else.
+    'COLORS.accSoft': '--stg-chip',
   };
   const FG = { 'COLORS.cream': '--stg-ink', 'COLORS.ink': '--stg-ink',
     'COLORS.faded': '--stg-mute', 'COLORS.soft': '--stg-mute' };
@@ -257,7 +263,16 @@ sweep('raw-hex body ink', /color: '#4a4339'/g, "color: `var(--stg-ink2,#4a4339)`
     s = lines.join('\n');
     return hits;
   };
+  // BORDERS TOO, and for the same reason: a found slot's accent hairline and a
+  // row's rule are both written as ternary arms. COLORS.line and COLORS.ink are
+  // near-black on near-black here, which is not a subtle border, it is no
+  // border at all -- element edges simply stop existing.
+  const BD = { 'COLORS.accBorder': '--stg-acc', 'COLORS.line': '--stg-line', 'COLORS.ink': '--stg-line',
+    'COLORS.faded': '--stg-line' };
   bgN = pass('background', BG, false);
+  const bdN = pass('border', BD, true) + pass('borderColor', BD, false);
+  n += bdN;
+  console.log(`  · ternary borders: ${bdN}`);
   // `color:` is restricted to TERNARIES on purpose: the bare ones are already
   // owned by the INK / FADED consts the chrome pass declared, and converting
   // them again would be two mechanisms for one decision.
