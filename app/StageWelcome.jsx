@@ -42,6 +42,7 @@
 // already fetches; a figure with no value is skipped rather than guessed, and a
 // case with no figures at all does not show.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { fetchDayStatus, etToday } from './useDayStats';
 
 // ── the ending's constants, not a new set ──────────────────────────────────
@@ -55,6 +56,14 @@ const FLOOD_COUNT = 820;    // the lead's climb, which is also its dwell
 // page says which game you are most improved at. So each figure gets long
 // enough to land and the finished set is held for over a second.
 const FLOOD_STAMP = 560;    // every other figure lands this far after the last
+// THE RECAP'S ROWS GET LESS, and it is not a compromise on the owner's "too
+// quick to read". Those 560ms are for figures that differ from each other, so
+// each one has to be parsed on arrival. A recap row is the SAME SHAPE every
+// time (a place, a game), so after the first one the reader is reading a value
+// rather than working out what they are looking at. Uncapped by owner ruling
+// 2026-08-31, so a ten-game day is a real list and the per-row cost is what
+// keeps it from being a minute long.
+const FLOOD_ROW = 420;
 const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
@@ -103,6 +112,28 @@ function Count({ to, ms }) {
 // figures are what differ between arrivals; the greeting is just a greeting.
 const HELLO = 'Welcome back, ';
 
+// A recap row is a place and a game, and it carries the field the same way the
+// cap does (#3/91), so the two surfaces state a standing identically.
+function rowsOf(recap) {
+  if (!recap || !recap.length) return [];
+  return recap.map((r) => ({
+    k: r.k, row: true, v: '#' + r.rank,
+    sub: r.field ? '/' + r.field : null,
+    lab: r.name,
+  }));
+}
+
+// WITHOUT THIS THE RECAP READS AS TODAY. A screen that says "Welcome back" over
+// a date, then prints a row of placements, is claiming those are current unless
+// something says otherwise.
+function capOf(mdy) {
+  const m = /^(\d+)-(\d+)-(\d+)$/.exec(String(mdy || ''));
+  if (!m) return null;
+  const d = new Date(Date.UTC(2000 + Number(m[3]), Number(m[1]) - 1, Number(m[2])));
+  return 'Last time out · ' + d.toLocaleDateString('en-US',
+    { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+}
+
 function readName() {
   try {
     const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
@@ -137,6 +168,11 @@ export default function StageWelcome({ capRef }) {
   const [on, setOn] = useState(false);     // decided in an effect: server renders null
   const [data, setData] = useState(null);  // the daily-status payload
   const [settled, setSettled] = useState(false); // the read has answered, blank means blank
+  // THE RECAP, and whether its read is done. Separate from `settled` because it
+  // is a SECOND request that only a cross-day arrival makes, and the queue must
+  // not treat "still fetching the recap" as "this reader has no figures".
+  const [recap, setRecap] = useState(null);
+  const [recapDone, setRecapDone] = useState(false);
   const [name, setName] = useState('');
   const today = useMemo(() => {
     try {
@@ -222,6 +258,64 @@ export default function StageWelcome({ capRef }) {
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); timers.current = []; }, []);
 
+  // WHERE THEY PLACED, LAST TIME THEY PLAYED (owner, 2026-08-31). On a
+  // cross-day arrival the figures that describe TODAY are all zero, and the
+  // ones that are left (a streak, a site rank) are abstract standing. What a
+  // returning player actually wants is the day they last played, so this reads
+  // their per-game placements off it.
+  //
+  // ONE CALL, NO NEW ENDPOINT: /api/quiz/daily-combined already takes a date,
+  // and its `me.perGame` carries an UNCAPPED registered-board rank per game
+  // (the public board is sliced to ten, that map is not), so a 40th place reads
+  // as truly as a 2nd. `lastPlayed` off daily-status is what says which day to
+  // ask for, so nothing has to be guessed or stored.
+  //
+  // It is chained behind daily-status rather than fired in parallel, because
+  // until that answers we do not know this is a cross-day arrival, and firing it
+  // for everyone would put a second request on every homepage load to serve the
+  // minority who see a recap. The lead figure lands off daily-status while this
+  // is in flight, so the chain costs the sequence nothing.
+  useEffect(() => {
+    if (!on || !data) return;
+    const last = data.lastPlayed;
+    const gap = daysBetween(last, etToday());
+    if (data.playedToday || gap == null || gap < 1) { setRecapDone(true); return; }
+    let alive = true;
+    const p = new URLSearchParams();
+    p.set('date', last);
+    try {
+      const a = localStorage.getItem('sot_quiz_anon'); if (a) p.set('anonId', a);
+      const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
+      if (id && id.email) p.set('email', id.email);
+    } catch (e) {}
+    fetch('/api/quiz/daily-combined?' + p.toString())
+      .then((r) => r.json())
+      .then((d) => {
+        if (!alive) return;
+        const per = d && d.me && d.me.perGame;
+        if (!per) { setRecapDone(true); return; }
+        const fieldOf = new Map();
+        for (const g of (d.games || [])) fieldOf.set(g.key, g.registered || g.field || null);
+        const rows = Object.keys(per)
+          .map((k) => {
+            const r = per[k];
+            const rank = r && typeof r.rank === 'number' ? r.rank : null;
+            if (!rank) return null;
+            const g = DAILY_GAME_MAP[k];
+            return { k: 'g:' + k, rank, name: (g && g.name) || k, field: fieldOf.get(k) || null };
+          })
+          .filter(Boolean)
+          // BEST FIRST. The reader's best finish is the one worth opening on,
+          // and a list that starts strong is read further than one that does not.
+          .sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+        setRecap(rows);
+        setRecapDone(true);
+      })
+      .catch(() => { if (alive) setRecapDone(true); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on, data]);
+
   // ── the case, and its figures ────────────────────────────────────────────
   const view = useMemo(() => {
     const today = etToday();
@@ -273,12 +367,10 @@ export default function StageWelcome({ capRef }) {
     if (gap === 1) {
       const st = num(data.streak);
       return {
+        caption: capOf(data.lastPlayed),
         figs: [
           st ? { k: 'streak', lead: true, count: st, lab: 'day streak' } : null,
-          num(data.communityRank) ? {
-            k: 'rank', v: `#${data.communityRank.toLocaleString()}`,
-            lab: num(data.communityTotal) ? `of ${data.communityTotal.toLocaleString()}` : 'rank',
-          } : null,
+          ...rowsOf(recap),
         ].filter(Boolean),
       };
     }
@@ -287,20 +379,27 @@ export default function StageWelcome({ capRef }) {
     // and never as a verdict: no scolding, and the spent streak is reported as
     // the best it reached rather than as something lost.
     if (gap != null && gap >= 2) {
+      const rows = rowsOf(recap);
       return {
+        caption: rows.length ? capOf(data.lastPlayed) : null,
         figs: [
           { k: 'away', lead: true, count: gap, lab: gap === 1 ? 'day away' : 'days away' },
-          num(data.communityRank) ? {
-            k: 'rank', v: `#${data.communityRank.toLocaleString()}`,
-            lab: num(data.communityTotal) ? `of ${data.communityTotal.toLocaleString()}` : 'rank',
-          } : null,
-          num(data.streakGameDays) >= 2 ? { k: 'best', v: String(data.streakGameDays), lab: 'best streak' } : null,
+          // A long absence often has no recap worth showing (the last day was
+          // months ago, or they placed in nothing), so the standing figures stay
+          // as the fallback rather than leaving the arrival a lead and nothing.
+          ...(rows.length ? rows : [
+            num(data.communityRank) ? {
+              k: 'rank', v: `#${data.communityRank.toLocaleString()}`,
+              lab: num(data.communityTotal) ? `of ${data.communityTotal.toLocaleString()}` : 'rank',
+            } : null,
+            num(data.streakGameDays) >= 2 ? { k: 'best', v: String(data.streakGameDays), lab: 'best streak' } : null,
+          ]),
         ].filter(Boolean),
       };
     }
 
     return { figs: [] };
-  }, [data]);
+  }, [data, recap]);
 
   // ── the two edges of the hold, anchored to mount ─────────────────────────
   useEffect(() => {
@@ -315,8 +414,11 @@ export default function StageWelcome({ capRef }) {
   useEffect(() => {
     if (!on || !held || goneRef.current) return;
     const figs = view.figs;
-    // Still reading and nothing to show yet: hold here. That is the wait.
-    if (!settled && !expired && shown >= figs.length) return;
+    // Still reading and nothing to show yet: hold here. That is the wait. The
+    // recap is a second read, so a cross-day arrival is not "settled" until it
+    // has answered, or the whole list would be skipped as an empty one.
+    const ready = settled && recapDone;
+    if (!ready && !expired && shown >= figs.length) return;
     if (shown >= figs.length) return;
     // ONE DWELL PER STEP, guarded by a ref: this effect re-runs whenever the
     // payload arrives, and a dwell scheduled with a cleanup would be cancelled
@@ -325,9 +427,9 @@ export default function StageWelcome({ capRef }) {
     stepRef.current = shown;
     const next = figs[shown];
     // ITS DWELL IS ITS COUNT, so the screen cannot leave mid-climb.
-    at(next.lead ? FLOOD_COUNT + 180 : FLOOD_STAMP, () => setShown((s) => s + 1));
+    at(next.lead ? FLOOD_COUNT + 180 : (next.row ? FLOOD_ROW : FLOOD_STAMP), () => setShown((s) => s + 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, held, shown, view, settled, expired]);
+  }, [on, held, shown, view, settled, recapDone, expired]);
 
   // ── the collapse, once the queue has run out ─────────────────────────────
   useEffect(() => {
@@ -335,7 +437,7 @@ export default function StageWelcome({ capRef }) {
     const ran = shown >= view.figs.length;
     // A settled read with no figures at all is not an arrival worth holding.
     if (!ran && !expired) return;
-    if (!settled && !expired) return;
+    if ((!settled || !recapDone) && !expired) return;
     goneRef.current = true;
     at(FLOOD_SETTLE, () => {
       const el = capRef && capRef.current;
@@ -350,7 +452,7 @@ export default function StageWelcome({ capRef }) {
       at(FLOOD_SHRINK + 40 + FLOOD_FADE, finish);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, held, shown, view, settled, expired]);
+  }, [on, held, shown, view, settled, recapDone, expired]);
 
   // Any key skips, exactly as any tap does.
   useEffect(() => {
@@ -382,8 +484,12 @@ export default function StageWelcome({ capRef }) {
         {/* Each figure mounts when the queue reaches it, so the stamp is an
             animation on mount rather than a class anyone has to toggle. */}
         <div className="stw-figs">
+          {/* It lands with the first placement rather than up front, so the
+              lead figure is not sharing its moment with a heading. */}
+          {view.caption && shown > 0 && view.figs.some((f, i) => f.row && i < shown)
+            ? <div className="stw-cap">{view.caption}</div> : null}
           {view.figs.map((f, i) => (i < shown ? (
-            <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.good ? ' good' : '')}>
+            <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.row ? ' row' : '') + (f.good ? ' good' : '')}>
               <b>
                 {f.count != null
                   ? <>{f.pre || ''}<Count to={f.count} ms={FLOOD_COUNT} /></>
@@ -434,7 +540,7 @@ const CSS = `
 .stw-hand{color:var(--stg-ink2,#aab5c7);font-weight:600;}
 
 .stw-figs{margin-top:26px;display:flex;flex-wrap:wrap;justify-content:center;
-  align-items:flex-end;gap:16px 42px;}
+  align-items:flex-end;gap:16px 42px;max-width:1000px;}
 /* THE STAMP, the ending's own: an overshoot on the way down, so a figure LANDS
    rather than fades. It is the one motion here that says a number just arrived.
    The fill holds the end state, since each figure mounts once and never leaves. */
@@ -448,6 +554,17 @@ const CSS = `
   font-size:clamp(9px,1.15vw,11px);letter-spacing:.16em;text-transform:uppercase;
   opacity:.72;margin-top:9px;}
 .stw-fig.good b{color:var(--stg-up,#6ee7b7);}
+/* A RECAP ROW IS SMALLER THAN A FIGURE, because there can be ten of them and
+   they are a list rather than a headline. The value keeps tabular numerals so
+   the places line up as they wrap. */
+.stw-fig.row b{font-size:clamp(19px,2.6vw,27px);}
+.stw-fig.row b i{font-size:.5em;opacity:.55;margin-left:2px;}
+.stw-fig.row i.cl{font-size:clamp(8.5px,1vw,10px);letter-spacing:.13em;margin-top:6px;opacity:.66;}
+/* The heading for the list, on its own line above it. */
+.stw-cap{flex-basis:100%;text-align:center;margin-bottom:2px;
+  font-family:${MONO};font-size:clamp(9px,1.1vw,10.5px);letter-spacing:.17em;
+  text-transform:uppercase;font-weight:700;opacity:.5;
+  animation:stw-stamp 300ms cubic-bezier(.2,.9,.3,1.3) both;}
 /* The lead takes a line of its own at display size and the rest land in a row
    underneath it, exactly as the ending sets the IQ over its standings. */
 .stw-fig.lead{flex-basis:100%;}
