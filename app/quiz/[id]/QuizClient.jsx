@@ -1751,7 +1751,7 @@ export default function QuizClient({ quizId }) {
               <div style={{ textAlign: 'center', marginBottom: 18 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 800, color: (isTopScore || win) ? COLORS.forest : COLORS.ember, marginBottom: 6 }}>{heading}</div>
                 <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{dispScore}<span style={{ fontSize: 22, color: FADED }}> / {total}</span></div>
-                <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
+                <p style={{ fontFamily: SANS, fontSize: 13, color: `var(--stg-ink2,#4a4339)`, margin: '6px 0 0' }}>{resultLine}{lastElapsed != null ? ` · ${fmtTime(lastElapsed)}` : ''}</p>
               </div>
               {React.cloneElement(eloPanel, { placement })}
               <RegisterRankLine rank={regRank} onRegister={openRegister} />
@@ -1789,7 +1789,7 @@ export default function QuizClient({ quizId }) {
                 )}
                 {!identity && claimOpen && (
                   <div style={{ maxWidth: 420, margin: '0 auto' }}>
-                    <p style={{ fontFamily: SANS, fontSize: 13, color: '#4a4339', margin: '0 0 10px', textAlign: 'center' }}>
+                    <p style={{ fontFamily: SANS, fontSize: 13, color: `var(--stg-ink2,#4a4339)`, margin: '0 0 10px', textAlign: 'center' }}>
                       {canReveal
                         ? `Pick a display name to reveal the answers you missed. It also posts this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`
                         : `Pick a display name to post this ${dispScore}/${total} to the leaderboard. Email is optional (required only for prizes), and no password is needed.`}
@@ -1846,7 +1846,7 @@ export default function QuizClient({ quizId }) {
                   printing them here as well says it twice. Only the CHIPS are
                   gated: the answer input and the Play button share this row and
                   stay at both widths. */}
-              {!LOFT && (() => {
+              {!LOFT && !QSTAGE && (() => {
                 const base = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, flex: 'none', height: 50, padding: '0 12px', border: `1px solid var(--stg-line,${COLORS.line})`, borderRadius: 9, background: `var(--stg-surf,${T.white})`, fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1 };
                 const live = started && !ended;
                 return (<>
@@ -1937,7 +1937,7 @@ export default function QuizClient({ quizId }) {
             {!started && !ended && (
               <div style={{ textAlign: 'center', padding: '26px 24px 30px', borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, background: `var(--stg-surf,${COLORS.paper})`, marginTop: 4 }}>
                 <h2 style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 26, margin: '2px 0 6px' }}>{introHeadline}</h2>
-                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: '#4a4339', maxWidth: 470, margin: '0 auto 6px' }}>{introBody}</p>
+                <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: `var(--stg-ink2,#4a4339)`, maxWidth: 470, margin: '0 auto 6px' }}>{introBody}</p>
                 <p style={{ fontFamily: SANS, fontSize: 15, lineHeight: 1.5, color: FADED, maxWidth: 460, margin: '0 auto 16px' }}>{quiz.blurb}</p>
                 <QuizIdleActions onStart={start} quizId={quiz.id} onLeaderboard={() => setTab('stats')} />
               </div>

@@ -136,4 +136,24 @@ patch('app/quiz/[id]/QuizLoftFinish.jsx', [
       title={title}`],
 ]);
 
+// ── QuizIdleActions: the START button every quiz format shares ─────────────
+//
+// One button, twelve clients. It is the biggest object on every quiz's idle
+// screen and it was the last thing on a converted stage still wearing the
+// brand's own blue -- the CTA rule's whole point being that a mid-tone
+// saturated fill carrying white ink reads as a button borrowed from another
+// design.
+//
+// IT TAKES var() AND NOT A FLAG, and that is the interesting part. This
+// component knows nothing about the stage and should not have to: a custom
+// property is resolved by the browser against the element the style lands on,
+// so the button simply wears whatever accent the page it is standing on
+// publishes. Undefined off the stage, so the fallback paints and every
+// unconverted quiz is byte-identical.
+patch('app/quiz/[id]/QuizIdleActions.jsx', [
+  ['start button', "background: C.ember, color: T.white,",
+   "background: `var(--stg-acc,${C.ember})`, color: `var(--stg-onramp,${T.white})`,",
+   'var(--stg-acc'],
+]);
+
 console.log(`patched ${total} edits across the shared components`);

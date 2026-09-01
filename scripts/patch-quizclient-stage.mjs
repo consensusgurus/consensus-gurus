@@ -131,6 +131,17 @@ edit('leaderboard teaser', `          {!LOFT && tab !== 'stats' && !mAppPlay && 
 edit('inline end screen', `        {ended && tab === 'play' && !LOFT && (() => {`,
   `        {ended && tab === 'play' && !LOFT && !QSTAGE && (() => {`);
 
+// THE SCORE AND THE CLOCK, ONCE. The client already knew this rule and had
+// written it down: "The cap carries the score and the clock on a loft page, so
+// printing them here as well says it twice." It was gated on !LOFT alone, and
+// on the stage LOFT is FALSE, so the cap's figure row and the board's own chips
+// both rendered -- 0/10 and 1:30, twice, an inch apart. Only the CHIPS move;
+// the answer input and the Play button share that row and stay.
+edit('score chips', `              {!LOFT && (() => {
+                const base = {`,
+  `              {!LOFT && !QSTAGE && (() => {
+                const base = {`);
+
 // ── 6. THE ENDING IS A CURTAIN ──────────────────────────────────────────────
 //      LoftFinish picks between its own card and StageFinish's band, and on a
 //      daily it picks from the URL because the stage is sitewide there. On a

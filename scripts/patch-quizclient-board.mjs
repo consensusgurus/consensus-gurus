@@ -164,6 +164,20 @@ sweep('faded borders', /\$\{COLORS\.faded\}(33|55)`/g,
   if (!acc || !chip) throw new Error('expected both an accent fill and a dark chip in this client; origin has moved');
 }
 
+// ── 5b. A RAW HEX IS A PALETTE TOO ─────────────────────────────────────────
+//
+// Every sweep above matches a NAME (COLORS.x, T.x), so a colour written as a
+// literal is invisible to all of them -- the same blind spot as a palette that
+// is not called `accent`, wearing different clothes. Three of this client's
+// most-read lines are one: the idle screen's rules paragraph, the result line
+// and the reveal note all paint '#4a4339', a warm near-black chosen for cream,
+// which on this ground is unreadable at 1.4:1 while every checker reports clean.
+//
+// It becomes the SECONDARY ink rather than the primary: these are three
+// subordinate lines under a heading, and that relationship should survive the
+// move.
+sweep('raw-hex body ink', /color: '#4a4339'/g, "color: `var(--stg-ink2,#4a4339)`", 3);
+
 // ── 6. THE MODULE-LEVEL HELPERS, which no const can reach ──────────────────
 //
 // ghostBtn, labelStyle, fieldStyle and StatBox sit at the FOOT of this file,
