@@ -16,7 +16,6 @@ import Footer from '../../Footer';
 import Count from '../../Count';
 import QuizNavHeader from '../../quizzes/QuizNavHeader';
 import StageChrome from '../../StageChrome';
-import StageLadder from '../../StageLadder';
 import { isQuizStage, QUIZ_ACC_VARS } from '@/lib/quiz-stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -1617,14 +1616,6 @@ export default function QuizClient({ quizId }) {
     ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: `var(--stg-surf2,${COLORS.ink})`, color: COLORS.cream, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
     : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? `var(--stg-surf2,${COLORS.ink})` : `var(--stg-surf,${COLORS.paper})`, color: started && !ended ? `var(--stg-ink,${COLORS.cream})` : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
 
-  // Neutral rather than the accent: the rail sits directly under the cap's
-  // progress hairline, which is already drawn in the accent, and two accented
-  // graphics an inch apart read as one broken one.
-  const stageBlocks = [{
-    n: total,
-    c: 'var(--stg-ink2,#aab5c7)',
-    on: Array.from({ length: total }, (_, i) => !!found[i]),
-  }];
   return (
     <div className={QSTAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
       data-stage-theme={QSTAGE ? stageTheme : undefined}
@@ -1671,7 +1662,6 @@ export default function QuizClient({ quizId }) {
           quizId={quiz.id}
           scoreWord="correct"
           stripOn={!started || ended}
-          ladder={QSTAGE ? <StageLadder label={total === 1 ? 'Answer' : 'Answers'} blocks={stageBlocks} /> : null}
           panelBody={QSTAGE ? fullLeaderboard : null}
         />
       )}

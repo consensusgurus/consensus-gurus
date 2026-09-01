@@ -47,7 +47,6 @@ import useDayStats from '../useDayStats';
 import useCategoryRank from '../useCategoryRank';
 import LoftFinish from '../LoftFinish';
 import StageChrome from '../StageChrome';
-import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { useStageRoom } from '@/lib/stage-fit';
@@ -71,32 +70,17 @@ const SANS = "'Manrope', system-ui, -apple-system, sans-serif";
 // !important is load-bearing rather than lazy: these elements carry INLINE
 // styles from the Loft build, and a plain rule loses to an inline one.
 // The vertical room the STAGE reserves above the board. The Loft page kept
-// 430px for a masthead, a stat bar and a cap; the stage shows one line. Both
-// the grid's cell clamp and the ladder gutter's height read this, which is
-// what makes "the ladder matches the board" structural rather than two
-// numbers that happen to agree at one window size.
+// 430px for a masthead, a stat bar and a cap; the stage shows one line. The
+// grid's cell clamp reads it, so the board sizes itself against the real
+// chrome rather than against a number that happened to agree once.
 const STAGE_VROOM = 330;
 const STAGE_BOARD_CSS = `
-/* THE GUTTER IS A FIXED COLUMN BESIDE THE BOARD, not a stretched one.
-   align-items:stretch made it as tall as a 14 row crossword, which turned
-   twelve rungs into twelve slabs running past the fold, and flex:1 on the
-   board column pinned the pair to the left edge with the ladder adrift in
-   the margin. Centre the pair and give the ladder a height of its own. */
-.stage-page .cx-a{display:flex;gap:24px;align-items:flex-start;justify-content:center;}
-.stage-page .cx-gut{flex:0 0 88px;align-self:flex-start;
-  /* The grid's own height budget, so the ladder and the board track each
-     other at every window size rather than agreeing at one. */
-  height:clamp(200px, calc(100vh - var(--cx-room, ${STAGE_VROOM}px)), 560px);}
-.stage-page .cx-a > *:not(.cx-gut){flex:0 1 660px;min-width:0;}
-@media(max-width:640px){
-  .stage-page .cx-a{flex-direction:column;gap:12px;align-items:stretch;}
-  /* HEIGHT, not min-height. The desktop rule above sets height: to a clamp
-     whose FLOOR is 200px, so resetting min-height undid a property that rule
-     never set: a phone reserved 200px of column for a ladder that renders 37px
-     tall, and the board opened 222px down the page (owner, 2026-08-31: "a huge
-     gap at the top"). Undo the property that was actually set. */
-  .stage-page .cx-gut{flex:none;min-height:0;height:auto;}
-}
+/* THE BOARD IS THE ONLY THING IN THIS ROW. It stood beside an 88px ladder
+   gutter until 2026-09-01; with the gutter gone .cx-a is a centring wrapper
+   and nothing else, and the board has its full column back. */
+.stage-page .cx-a{display:flex;justify-content:center;}
+.stage-page .cx-a > *{flex:0 1 660px;min-width:0;}
+@media(max-width:640px){.stage-page .cx-a{align-items:stretch;}}
 .stage-page .cl-key:not(.cl-kx){background:var(--stg-surf2,rgba(255,255,255,0.08))!important;
   color:var(--stg-ink,#e9edf4)!important;border:1px solid var(--stg-line,rgba(255,255,255,0.11))!important;}
 .stage-page .cl-btn{background:transparent!important;color:var(--stg-ink,#e9edf4)!important;
@@ -1151,29 +1135,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   // card fill the same column as the navy grid below. The board keeps its own
   // cell size (CS_FILL) and stays centered inside that wider card, so its
   // height is unchanged and it still fits on one screen.
-  // THE LADDER: one rung per word, one block per category, rung length the
-  // word's length. A word scores TWICE in Crux, once for being found and
-  // once for being filed under the right category, so a rung fills in two
-  // segments rather than switching on: half-lit is found but not yet placed,
-  // which is the one thing the figures cannot say. 6 of 12 words does not
-  // tell you that two of them are still floating.
-  // ONE BLOCK, IN SLOT ORDER, ONE COLOUR, EQUAL RUNGS. Built off slots rather
-  // than categories on purpose: this ladder reports PROGRESS and must not
-  // report IDENTITY. Grouping by category told you where a word files the
-  // moment you solved it, the per-category colour said the same thing again,
-  // and a width derived from word length leaked every category's letter counts
-  // before the first guess. Slot order is already printed on the board, so a
-  // lit rung says nothing the board does not.
-  const stageBlocks = [{
-    n: PUZZLE.slots.length,
-    // Neutral for the same reason the board is: this rail is inches from the
-    // category chips and a coloured rung reads as one of them.
-    c: STAGE ? 'var(--stg-ink2,#aab5c7)' : STAGE_C,
-    on: PUZZLE.slots.map((sl) => g.solved[sl.id] && g.assigned[sl.word] !== undefined),
-    // Half-lit is found but not yet filed, which is the one thing the figures
-    // cannot say: 6 of 12 words does not tell you two are still floating.
-    half: PUZZLE.slots.map((sl) => g.solved[sl.id] && g.assigned[sl.word] === undefined),
-  }];
   const allWordsSolved = PUZZLE.slots.every((s) => g.solved[s.id]);
   // The vertical room the board actually has. The Loft reserved 430px for a
   // masthead, a stat bar and a cap; the stage shows one line, so it reserves
@@ -1189,13 +1150,9 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
   const CS_MIN = STAGE ? 30 : 42;
   const CS_FILL = Math.max(48, Math.min(58, Math.round((540 - (COLS - 1) * 3) / COLS))); // fill toward ~540px, leaving room for the keyboard
   // The board's own column, matching DailyGamesGrid, so it stays centred at
-  // its own size. GUT_W and GUT_GAP mirror the .cx-gut rule in the stage
-  // stylesheet: on the stage the rail is ADDED to the column rather than taken
-  // out of it, or the ladder is paid for with the board's width and the board
-  // comes out ~18% narrower than the same board on the Loft.
-  const GUT_W = 88;
-  const GUT_GAP = 24;
-  const COLW = STAGE ? 640 + GUT_W + GUT_GAP : 640;
+  // its own size. One width at both registers now that no gutter is added to
+  // it on the stage.
+  const COLW = 640;
 
   // Board-driven filing overlays: the word you've picked up glows (cx-armed),
   // solved-but-unfiled words are underlined (cx-unfiled), and each filed word
@@ -1453,11 +1410,6 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
         )}
 
         <div className="cx-a">
-        {STAGE && (
-          <div className="cx-gut">
-            <StageLadder vertical label="Words" blocks={stageBlocks} />
-          </div>
-        )}
         <div className={LOFT && !STAGE ? 'loft-stage' : undefined}>
           {/* start tile — sits where the board goes; the puzzle stays sealed
               (not rendered) until the player presses Start, which begins the clock. */}

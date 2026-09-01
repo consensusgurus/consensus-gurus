@@ -35,7 +35,6 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
-import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
@@ -268,32 +267,6 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('suds');
   const STAGE_ACC = { '--stg-acc-dk': gameColor('suds'), '--stg-acc-lt': gameColorLight('suds'), '--stg-onramp-lt': gameOnrampLight('suds') };
   const Cap = STAGE ? StageChrome : LoftCap;
-  // NAMED boxIdx, NOT boxOf. A second `boxOf` here would shadow the
-  // module-level boxOf(r, c) for the whole component, and because this one
-  // takes a single INDEX it would silently drop the column argument at every
-  // other call site: boxOf(r, c) becomes boxOf(r), which returns the row BAND.
-  // That shipped, and it lit the entire top three rows as peers of a cell in
-  // box 2 and scrubbed pencil marks from 27 cells instead of 9. A shadow does
-  // not throw, so nothing catches it but reading the board.
-  const boxIdx = (i) => Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3);
-  // NINE BLOCKS OF NINE, mirroring the grid. It used to be each box's FREE
-  // cells only, so the blocks came out different widths on a board everyone
-  // reads as uniform 9x9 (owner asked why). The width was reporting how many
-  // GIVENS each box happens to have, which is true but is not what a ladder is
-  // for, and it made the rail look broken.
-  //
-  // A given is half-lit (it was already there) and a cell you filled is lit,
-  // which is the same two-level reading the rest of the stage uses.
-  const stageBlocks = Array.from({ length: 9 }, (_, b) => {
-    const inBox = Array.from({ length: 81 }, (_, i) => i).filter((i) => boxIdx(i) === b);
-    const free = new Set(FREE);
-    return {
-      n: inBox.length,
-      c: STAGE_C,
-      on: inBox.map((i) => free.has(i) && !!cells[i]),
-      half: inBox.map((i) => !free.has(i)),
-    };
-  });
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
@@ -817,7 +790,6 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="suds" quizId={PUZZLE.quizId}
           progress={FREE.length ? filledCount / FREE.length : 0}
-          ladder={STAGE ? <StageLadder height={44} label="Boxes" blocks={stageBlocks} /> : null}
           name="Suds"
           cat="Sudoku"
           outcome={playing ? null : (won ? 'won' : 'lost')}

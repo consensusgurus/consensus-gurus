@@ -46,7 +46,6 @@ import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
-import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
@@ -406,20 +405,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const Cap = STAGE ? StageChrome : LoftCap;
-  // DEPTH ONLY. A rung lights when its ply has been PLAYED. `errors` is in
-  // scope and is deliberately not read: nothing may tell a player the round
-  // is lost while they can still play it.
-  const stageBlocks = Array.from({ length: PUZZLE.mateIn }, (_, mv) => {
-    const last = mv === PUZZLE.mateIn - 1;
-    const count = last ? 1 : 2;
-    const first = mv * 2;
-    return {
-      n: count,
-      c: STAGE_C,
-      on: Array.from({ length: count }, (_, i) => first + i < moves.length),
-      w: Array.from({ length: count }, (_, i) => ((first + i) % 2 === 0 ? 1 : 0.5)),
-    };
-  });
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
@@ -963,7 +948,6 @@ export default function MateClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="mate" quizId={PUZZLE.quizId}
           progress={moves.length / Math.max(1, PUZZLE.mateIn * 2 - 1)}
-          ladder={STAGE ? <StageLadder height={44} label="The line" blocks={stageBlocks} /> : null}
           name="Mate"
           cat="End Game"
           outcome={playing ? null : (won ? 'won' : 'lost')}

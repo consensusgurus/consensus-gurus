@@ -158,7 +158,6 @@ export default function StageChrome({
   stripOn = true,
   boardOn = true,
   homeHref = '/',
-  ladder = null,
   // WHAT THE RANKINGS CHIP OPENS, when it is not a daily's board.
   //
   // The panel's whole job is "show me the standings without taking the board
@@ -342,15 +341,12 @@ export default function StageChrome({
         </div>
       ) : null}
 
-      {/* THE LADDER, as a full-width RAIL rather than a gutter.
-          The run puts it in a 136px gutter because a question is one line of
-          text with acres of space beside it. A board that already fills the
-          column has no such gutter to give, so the same drawing runs the width
-          under the cap, where it reads as the page's own progress. StageLadder
-          renders either way (pass vertical for a gutter), and which one a game
-          wants is a property of its BOARD, not of the stage. */}
-      {ladder ? <div className="stg-rail">{ladder}</div> : null}
-
+      {/* NO LADDER HERE (owner, 2026-09-01). The rung strip was generalised
+          off the Gauntlet run onto five game surfaces, where it reported a
+          count the board already prints and read as a second, broken progress
+          bar an inch under the cap's own. It lives on where it earns its keep:
+          the run's own GauntletLadder, and the home, where a rung is a whole
+          game rather than one square of one. */}
       {panel ? (
         <div className="stg-panel" id="stg-rankings" role="region" aria-label="Rankings">
           <div className="stg-pin">
@@ -441,19 +437,11 @@ const CSS = `
 .stg-sy{margin-left:auto;flex:none;color:var(--stg-acc);font-family:${MONO};font-size:10px;
   letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 
-/* IN FLOW, never over. Nothing is hidden behind it and it needs no scrim. */
-.stg-rail{max-width:1180px;margin:0 auto;padding:14px 20px 2px;}
 .stg-panel{border-bottom:1px solid var(--stg-line);background:var(--stg-panel,#0d1220);}
 .stg-pin{max-width:1180px;margin:0 auto;padding:16px 20px 20px;}
 .stg-px{display:block;margin:14px auto 0;background:none;border:1px solid var(--stg-line);
   border-radius:99px;color:var(--stg-mute2,#66748f);font-family:${MONO};font-size:9.5px;letter-spacing:.13em;
   text-transform:uppercase;padding:6px 16px;cursor:pointer;}
-
-/* LAYOUT the game lays its board into: a gutter for the ladder and the board
-   on the ground beside it. On a phone the gutter lies down above the board. */
-.stg-body{display:flex;gap:26px;max-width:1180px;margin:0 auto;padding:26px 20px 40px;}
-.stg-gut{flex:0 0 96px;display:flex;flex-direction:column;min-height:200px;}
-.stg-play{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:center;}
 
 @media(max-width:900px){
   /* TWO ROWS ON A PHONE (owner, 2026-08-31: "too much stuff mashed together").
@@ -483,11 +471,8 @@ const CSS = `
   .stg-sn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
   .stg-sf{flex:none;}
   .stg-pin{padding:14px 13px 18px;}
-  .stg-rail{padding:11px 13px 2px;}
 }
 @media(max-width:640px){
-  .stg-body{flex-direction:column;gap:14px;padding:14px 12px 30px;}
-  .stg-gut{flex:none;min-height:0;}
   .stg-rank{padding:5px 8px;}
   .stg-rank span{display:none;}
 }

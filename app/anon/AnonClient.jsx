@@ -48,7 +48,6 @@ import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
-import StageLadder from '../StageLadder';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
 import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
@@ -249,15 +248,6 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
-  // THE LADDER: one rung per answer, two blocks, the SPINE and the free
-  // bank. The spine earns its own block because its initials spell the
-  // author, which is the payoff and the reason to keep going.
-  const stageBlocks = STAGE ? [[0, PUZZLE.spine], [PUZZLE.spine, A.length]].map(([from, to]) => ({
-    n: to - from,
-    c: STAGE_C,
-    on: A.slice(from, to).map((a) => a.c.every((i) => !!fill[i])),
-    w: A.slice(from, to).map((a) => 0.38 + (a.w.length - 4) * 0.12),
-  })) : [];
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
@@ -714,7 +704,6 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
       {LOFT && (
         <Cap gameKey="anon" quizId={PUZZLE.quizId}
           progress={N ? filledCount / N : 0}
-          ladder={STAGE ? <StageLadder height={44} label="Answers" blocks={stageBlocks} /> : null}
           name="Anon"
           cat="Word"
           outcome={playing ? null : (won ? 'won' : (nSolved > 0 ? 'part' : 'lost'))}
