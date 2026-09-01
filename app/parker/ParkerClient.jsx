@@ -92,7 +92,9 @@ const RED_EDGE = 'var(--stg-onramp, #7a2318)';
 const PAINT = ['#6b7f9e', '#8a9a6b', '#a8846b', '#7f9e94', '#9e8a6b', '#6b8a9e', '#a89a6b', '#8a6b7f', '#7f8a6b', '#9e6b6b', '#6b9e8a', '#8a7f9e'];
 const TRUCK = ['#3f4a5c', '#4c5c3f', '#5c4c3f', '#3f5c55', '#5c553f', '#3f4f5c'];
 const BLOCK_LIFT = ['var(--stg-b1)', 'var(--stg-b2)', 'var(--stg-b3)', 'var(--stg-b4)'];
-const BLOCK_EDGE = [0.34, 0.48, 0.64, 0.82];
+// Raised from [.34 .48 .64 .82] after looking at the LIGHT register live: a green
+// edge at 34% on a near-white block is not an edge. These read on both grounds.
+const BLOCK_EDGE = [0.46, 0.60, 0.74, 0.90];
 
 // WHICH LIFT A BLOCK GETS IS DECIDED BY THE BOARD, not by its place in the array.
 // Four steps into a thirteen block lot means repeats, and a repeat only matters
