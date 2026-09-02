@@ -476,6 +476,12 @@ export default function CruxClient({ puzzles = [], forceNum = null, loft = false
             );
           }
           setG(st);
+          // The save carries no selection, so a resumed board opened on the
+          // first slot even when that slot was already solved, and typing into
+          // a solved slot is (rightly) ignored. Every key then went nowhere
+          // until the player happened to click another word. Land on the
+          // first UNSOLVED slot instead.
+          if (st.status === 'playing' && st.solved[PUZZLE.slots[0].id]) setSel(nextUnsolved(st, PUZZLE.slots[0].id));
         }
       }
       setGateRules(!localStorage.getItem(HELP_KEY));
