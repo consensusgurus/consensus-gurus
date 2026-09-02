@@ -64,6 +64,8 @@ for (const sport of ['cfb', 'nfl']) {
       if (!teamById(sport, id) && sport === 'nfl') fail(`${sport}: game ${g.id} has unknown team id ${id}`);
     }
     if (!(Number.isFinite(g.hs) && Number.isFinite(g.as))) fail(`${sport}: game ${g.id} has no score`);
+    const hasBox = g.hy != null || g.ay != null;
+    if (hasBox && !(Number.isFinite(g.hy) && Number.isFinite(g.ay) && g.hy >= 0 && g.ay >= 0)) fail(`${sport}: game ${g.id} has a half box score`);
     if (g.n !== 0 && g.n !== 1) fail(`${sport}: game ${g.id} neutral flag must be 0 or 1`);
   }
   const lseen = new Set();
@@ -80,7 +82,8 @@ for (const sport of ['cfb', 'nfl']) {
       if (!teamById(sport, g.hid) && !teamById(sport, g.aid)) fail(`cfb: ${g.id} has no registered team on either side`);
     }
   }
-  ok(`${(block.games || []).length} games and ${(block.lines || []).length} lines resolve`);
+  const boxed = (block.games || []).filter((g) => g.hy != null).length;
+  ok(`${(block.games || []).length} games (${boxed} with box scores) and ${(block.lines || []).length} lines resolve`);
 
   // 3. the board
   const r = computeComposite(block, sport);

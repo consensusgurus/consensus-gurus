@@ -70,6 +70,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
   };
   const cellTitle = (c, r) => {
     if (c.kind === 'pillar' && r.pts[c.id] != null) return `${signed(r.pts[c.id])} points vs an average team`;
+    if (c.id === 'ats' && r.pts.ats != null) return `${signed(r.pts.ats)} per game against the closing spread, luck-adjusted`;
     if (c.kind === 'source' && r.ranks[c.id] != null) return `scored as rank ${r.ranks[c.id]}`;
     return undefined;
   };
@@ -282,7 +283,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
                       const shown = r.shown[c.id];
                       if (c.kind === 'source' && !c.ok) return <td key={c.id} className={`cell out${tg}`}>{shown == null ? '—' : shown}</td>;
                       if (shown == null) return <td key={c.id} className={`cell nr${tg}`}>{'—'}</td>;
-                      if (c.kind === 'record') return <td key={c.id} className={`cell rv${tg}`}>{shown}</td>;
+                      if (c.kind === 'record') return <td key={c.id} className={`cell rv${tg}`} title={cellTitle(c, r)}>{shown}</td>;
                       const v = r.ranks[c.id];
                       if (v == null) return <td key={c.id} className={`cell rv${tg}`}>{shown}</td>;
                       const dev = r.rank - v;   // positive: this column is HIGHER on them
@@ -369,10 +370,15 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
           <b>How the rating is built.</b> Every team gets a rating in points better than an average{' '}
           {sport === 'nfl' ? 'NFL' : 'FBS'} team on a neutral field, from each of three pillars, and
           the composite is their weighted sum.{' '}
-          <b>Results</b> is what actually happened: each game&rsquo;s margin, capped at{' '}
-          {sport === 'nfl' ? 21 : 28} points, solved across the whole schedule so that beating good
-          teams counts for more than beating bad ones, blended 60/40 with a win rating so a win counts
-          beyond its margin.{' '}
+          <b>Results</b> is what actually happened, in three parts. A luck-adjusted margin: half the
+          scoreboard, half what the yardage says the margin should have been, so a team that doubled
+          its opponent&rsquo;s yards and lost on fumbles is docked about half of what the score says,
+          while a team that was out-gained and still lost takes the full hit. Margins are capped at{' '}
+          {sport === 'nfl' ? 21 : 28} points and solved across the whole schedule so that beating good
+          teams counts for more than beating bad ones. A win rating, so a win counts beyond its margin.
+          And performance against the spread: how far above or below the closing line&rsquo;s
+          expectation each game landed, which already prices the opponent and the site. Blended
+          45 / 30 / 25.{' '}
           <b>Betting markets</b> is what money says: a rating fit to the last three weeks of point
           spreads, blended with the futures boards.{' '}
           <b>Analytics models</b> is what the models say: every live model, placed on the same points

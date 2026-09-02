@@ -107,18 +107,38 @@ gone; a points scale needs none of them.
 
 ### Pillar R, Results: what actually happened
 
-Input: every completed game this season (`block.games`, ESPN ids, scores, neutral flag).
+Input: every completed game this season (`block.games`, ESPN ids, scores, neutral flag, and from
+2026-09-01 the box-score totals `hy / ay` yards and `hto / ato` turnovers from the ESPN summary
+endpoint, `boxscore.teams[].statistics` totalYards and turnovers).
 
-1. Capped margin `m = clamp(home - away, -C, C)`, `C = 28` CFB, `21` NFL. A 45-point win says
-   nothing a 28-point win does not, and uncapped margins reward running up the score.
-2. Margin rating: ridge least squares, `minimize sum (m - H*site - (r_h - r_a))^2 + lam sum r^2`,
+1. **Luck-adjusted margin (owner rule, 2026-09-01).** `madj = 0.5 * m + 0.5 * (beta * yardDiff + hf * site)`,
+   with `beta` fit on every 2025 game (0.070 points per yard NFL, 0.105 CFB; turnovers were worth
+   4.2 to 4.4 points each in the same regression and are deliberately NOT in the yards term).
+   Turnovers move the score and barely move the yards, so a team that doubled its opponent's
+   yardage and lost on fumbles is docked about half of what the scoreboard says, while a team
+   that was out-gained and still failed to cover takes the full hit. A game with no box score
+   falls back to its raw margin. On 2025 the 50/50 blend predicted marginally better than the raw
+   margin (NFL results-only MAE 10.41 to 10.35, CFB SU 71.1 to 72.3) and yards alone predicted
+   worse (NFL 61.5), so 50/50 is where it stays.
+2. Capped `madj = clamp(madj, -C, C)`, `C = 28` CFB, `21` NFL. A 45-point win says nothing a
+   28-point win does not, and uncapped margins reward running up the score.
+3. Margin rating: ridge least squares, `minimize sum (madj - H*site - (r_h - r_a))^2 + lam sum r^2`,
    `lam = 1` (one phantom game against an average team, so a 1-0 team is not +40). A team's rating
    equals its average margin plus the average rating of its opponents, so schedule strength is
    built in. Every unregistered CFB opponent pools into ONE FCS node.
-3. Win rating: Bradley-Terry with home field, penalized maximum likelihood, so a win counts beyond
-   its margin. Scaled to points by matching its spread to the margin rating's.
-4. `R = 0.6 * margin + 0.4 * wins`. A team that has not played yet sits at the played teams' mean,
-   which is zero after centring: no evidence reads as average, never as a penalty.
+4. Win rating: Bradley-Terry with home field on the ACTUAL result, so a win counts beyond its
+   margin. Scaled to points by matching its spread to the margin rating's.
+5. **Performance against the spread (owner rule, 2026-09-01).** For every played game with a
+   closing line, `cover = madj - (-sp)`, the luck-adjusted margin minus what the line expected.
+   A team's cover term is its mean cover, shrunk by `n / (n + 4)`. The line already prices the
+   opponent and the site, so this is a schedule-adjusted measure that needs no solver. It adds
+   NOTHING to prediction on 2025 (the market reprices after every game; results-only CFB MAE
+   12.58 to 12.85 with it) and it is here as a resume term, what a team did against what was
+   expected of it, at a quarter of the pillar. The page shows the ATS record (on the scoreboard's
+   cover, since that is what "covered" means) with the luck-adjusted average on hover.
+6. `R = 0.45 * margin + 0.30 * wins + 0.25 * cover`. A team that has not played yet sits at the
+   played teams' mean, which is zero after centring: no evidence reads as average, never as a
+   penalty.
 
 Home field is FIT only once there are three games per team (`fitHomeField`); before that it is
 `hf` from `PARAMS` (2.5 CFB, 2.0 NFL). With fewer games the parameter is confounded with the
@@ -245,6 +265,7 @@ already used by the 2025 backtest:
 | Feed | Endpoint | Notes |
 |---|---|---|
 | Games (results) | `site.api.espn.com/apis/site/v2/sports/football/{college-football|nfl}/scoreboard?dates={yr}&seasontype=2&week={w}` (CFB add `&groups=80&limit=400`) | completed games only (`status.type.state === 'post'`); store `{ w, id, d, hid, aid, n, hs, as }` with ESPN team ids and `n = 1` on `neutralSite` |
+| Box scores | `site.api.espn.com/apis/site/v2/sports/football/{college-football|nfl}/summary?event={id}` | `boxscore.teams[].statistics`, names `totalYards` and `turnovers` (`displayValue`, parse the leading number); `homeAway` on each team. Store as `hy, ay, hto, ato` on the game. CFB summaries often lack plays and yards per play, which is why the adjustment uses total yards |
 | Lines | upcoming: same scoreboard, `competitions[0].odds[0].spread` (HOME-team spread, DraftKings); played: `sports.core.api.espn.com/v2/sports/football/leagues/{lg}/events/{id}/competitions/{id}/odds`, provider id 58 (ESPN BET), `homeTeamOdds.close.pointSpread.american` | keep the current week and the two before it; `sp` is the home spread, negative = home favoured |
 
 Both endpoints are CORS-open, so a session gathers them with `fetch()` from a www.espn.com tab in
