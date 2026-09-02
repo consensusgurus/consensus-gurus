@@ -1140,7 +1140,8 @@ export default function StageToday() {
               it rather than sitting empty (owner, 2026-08-31). */}
           {!who ? (
             <a className="sty-signup" href="/quizzes?signup=1">
-              <b>Sign up</b><i>keep your scores</i>
+              {/* Copy is the owner's, title case (2026-09-02). */}
+              <b>Choose a Name</b><i>Keep Your Stats</i>
             </a>
           ) : null}
           {who ? <div className="sty-who"><b>{who}</b><i>player</i></div> : null}
@@ -1844,8 +1845,7 @@ ${PATCH_CSS}
 .sty-signup{display:flex;flex-direction:column;text-decoration:none;color:var(--stg-onramp,#08222e);
   background:var(--stg-acc);border-radius:8px;padding:5px 12px;}
 .sty-signup b{font-size:13px;font-weight:800;line-height:1.2;}
-.sty-signup i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.11em;
-  text-transform:uppercase;opacity:.8;}
+.sty-signup i{font-style:normal;font-size:11px;font-weight:700;line-height:1.2;opacity:.85;}
 /* ── the live feed ─────────────────────────────────────────────────────── */
 .sty-live{display:grid;gap:5px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
 .sty-lrow{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--stg-ink);
@@ -2135,6 +2135,14 @@ ${PATCH_CSS}
   .sty-figs{grid-area:fg;margin-left:0;gap:0;justify-content:space-between;
     border-top:1px solid var(--stg-line);padding:9px 0;min-height:44px;align-items:center;}
   .sty-figs>div{min-width:0;}
+  /* THE GUEST CONTROL FILLS THE ROW on a phone (owner, 2026-09-02): the two
+     lines become one, "Choose a Name - Keep Your Stats", edge to edge, since
+     it is the only thing in the figures row for a guest. */
+  .sty-signup{flex:1 1 100%;flex-direction:row;justify-content:center;align-items:baseline;gap:6px;
+    padding:10px 12px;min-height:40px;}
+  .sty-signup b{font-size:14px;}
+  .sty-signup i{font-size:13px;}
+  .sty-signup i::before{content:'- ';}
   .sty-three{grid-template-columns:1fr;}
   .sty-ord{flex-wrap:wrap;}
   .sty-wrap{padding:18px 14px 56px;gap:22px;}
