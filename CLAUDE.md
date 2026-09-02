@@ -7209,3 +7209,54 @@ None of these exists in any bank's verifier today, and each would have caught a 
    range also appears in the stem. That alone flags the Klose question before it ships.
 4. **A choice that the stem already names.** Fail when any choice string appears verbatim in its
    own stem: it is never a real option and it tells the player the setter was padding.
+
+## Quotes had a 12% tail with no quotation in it, and the tail is where a bank rots
+
+The same 2026-09-02 sweep found the worst single defect on the site's newest bank. **88 of the
+750 Quotes questions, 11.7%, contain no quotation, no paraphrased utterance and no written
+work.** They are plain history, science and biography trivia sitting in a bank whose entire
+premise is the attribution of words: *"Which president appears on the American one dollar
+bill?"*, *"Which barrier divided a German city from 1961 until 1989?"*, *"Which war ended with
+the armistice signed on 11 November 1918?"*
+
+**The distribution is the whole lesson.** Days 1 to 25 are 94% on subject. Days 26 to 30 are
+**42% off subject, 52 of 125**. The author did not lose the plot; they ran out of quotations and
+padded the tail. That is what a bank's last days look like whenever the supply of the thing the
+game is actually about runs thinner than the schedule, and it is invisible to every checker,
+because a padded question is perfectly well formed.
+
+**So: audit a bank's LAST days first.** The tail is where the authoring effort was thinnest and
+where the off-subject padding collects, and it is also the part nobody has played yet, so it is
+the only part that can still be fixed. Days 26 to 30 were rebuilt here; the 36 scattered through
+days 1 to 25 are mostly played and frozen.
+
+**The subject almost always has a real line available.** Every replacement kept its lane, its
+tier and usually its subject, and only changed what the question turns on: the dollar-bill
+question became Washington's letter to the Newport synagogue, Mendeleev became the dream he is
+SAID to have described to a friend, Nightingale became her line about never giving or taking an
+excuse. Where no unbanked quotation existed for a subject (the Berlin Wall, the Anglo-Zulu war),
+the subject changed rather than the question staying padded.
+
+### Script and Quotes are GENERATED. Never edit their questions.js
+
+Both banks are built by `scripts/gen-mcq.mjs` from `scripts/script-source.mjs` and
+`scripts/quotes-source.mjs`, and their headers say so. Edit the SOURCE and rebuild:
+
+```
+node scripts/gen-mcq.mjs script scripts/script-source.mjs app/script 2026-08-30
+node scripts/gen-mcq.mjs quotes scripts/quotes-source.mjs app/quotes 2026-08-30
+```
+
+Two properties make this safe, and both are worth knowing before touching either file. The
+correct answer's POSITION is never authored: the generator derives it from a per-day column plan
+that depends on the day number and slot alone. And the distractor shuffle is seeded on the
+question's ID, not its text. So **rewriting `q`, `a` and `d` leaves every correct index exactly
+where it was**, which is what lets a source edit pass the column-balance and no-three-in-a-row
+checks with no thought at all. A rebuild of an unchanged source is byte-identical, so the
+generated diff is exactly the entries you edited and nothing else.
+
+**The source has no ids**, which makes anchoring an edit awkward. Key the edit by the GENERATED
+id, look that id's question text up in `app/<key>/questions.js`, and use that text to find the
+source entry. Anchoring on the generator's own output is the only anchor that cannot drift,
+and normalise both sides: `esc` folds curly quotes and en dashes on the way out, so the source
+and the bank do not always read identically.

@@ -184,7 +184,7 @@ export const DAYS = [
 { c: 'Movies', t: 5, q: "What is the profession of the lead character in Jean-Pierre Melville's Le Samourai?", a: 'A contract killer', d: ['A jazz pianist', 'A police inspector', 'A jewel thief'] },
 { c: 'Television', t: 5, q: 'Which 1970s British sitcom was set in a badly run hotel in Torquay?', a: 'Fawlty Towers', d: ['Are You Being Served?', 'Rising Damp', 'Porridge'] },
 { c: 'Actors & Directors', t: 5, q: 'Who sent a representative to decline his Best Actor Oscar in 1973?', a: 'Marlon Brando', d: ['George C. Scott', 'Paul Newman', 'Jack Nicholson'] },
-{ c: 'Awards & Box Office', t: 5, q: 'What was the top prize called at the very first Academy Awards ceremony?', a: 'Outstanding Picture', d: ['Best Production', 'Best Motion Picture', 'Picture of the Year'] },
+{ c: 'Awards & Box Office', t: 5, q: 'In which Los Angeles hotel was the first Academy Awards ceremony held, as a private dinner in 1929?', a: 'The Hollywood Roosevelt', d: ['The Beverly Wilshire', 'The Ambassador', 'The Biltmore'] },
 { c: 'Behind the Scenes', t: 5, q: 'Which 1915 feature is studied for its technical innovations alongside its notorious racism?', a: 'The Birth of a Nation', d: ['Intolerance', 'Broken Blossoms', 'The Cabinet of Dr. Caligari'] },
 ],
 
@@ -271,7 +271,7 @@ export const DAYS = [
 { c: 'Movies', t: 3, q: 'In which city is The Third Man set?', a: 'Vienna', d: ['Berlin', 'Prague', 'Budapest'] },
 { c: 'Television', t: 3, q: 'Which British sitcom centered on the socially ambitious Hyacinth Bucket?', a: 'Keeping Up Appearances', d: ['Absolutely Fabulous', 'Butterflies', 'To the Manor Born'] },
 { c: 'Actors & Directors', t: 3, q: 'Which actor played Atticus Finch in the film of To Kill a Mockingbird?', a: 'Gregory Peck', d: ['Henry Fonda', 'James Stewart', 'Spencer Tracy'] },
-{ c: 'Awards & Box Office', t: 3, q: 'Which actor was the youngest ever to win a competitive Academy Award for Best Actor?', a: 'Adrien Brody', d: ['Marlon Brando', 'Richard Dreyfuss', 'Matt Damon'] },
+{ c: 'Awards & Box Office', t: 3, q: 'Which actor was twenty-nine when he took Best Actor for The Pianist in 2003?', a: 'Adrien Brody', d: ['Marlon Brando', 'Richard Dreyfuss', 'Matt Damon'] },
 { c: 'Behind the Scenes', t: 3, q: 'Which crew member heads the electrical department and is responsible for lighting?', a: 'The gaffer', d: ['The foley artist', 'The script supervisor', 'The dolly grip'] },
 
 { c: 'Movies', t: 4, q: 'In Once Upon a Time in the West, what does the harmonica-playing stranger want?', a: "Revenge for his brother's death", d: ['A stolen gold shipment', 'A railroad contract', 'His wife returned'] },
@@ -304,7 +304,7 @@ export const DAYS = [
 { c: 'Movies', t: 3, q: 'What was Travis Bickle before he drove a cab in Taxi Driver?', a: 'A Marine', d: ['A police officer', 'A prison guard', 'A long haul trucker'] },
 { c: 'Television', t: 3, q: "Which nightly news programme did Walter Cronkite sign off with 'and that's the way it is'?", a: 'The CBS Evening News', d: ['NBC Nightly News', '60 Minutes', 'Meet the Press'] },
 { c: 'Actors & Directors', t: 3, q: 'Which director made Blue Velvet and Mulholland Drive?', a: 'David Lynch', d: ['David Cronenberg', 'Terry Gilliam', 'Darren Aronofsky'] },
-{ c: 'Awards & Box Office', t: 3, q: 'Which film was the first to take more than one hundred million dollars at the American box office?', a: 'Jaws', d: ['The Godfather', 'Star Wars', 'The Exorcist'] },
+{ c: 'Awards & Box Office', t: 3, q: 'Which film was the first to earn more than one hundred million dollars in North American distributor rentals?', a: 'Jaws', d: ['The Godfather', 'Star Wars', 'The Exorcist'] },
 { c: 'Behind the Scenes', t: 3, q: 'What does shooting day for night mean?', a: 'Filming in daylight and treating the image to look like night', d: ['Shooting only after sunset', 'Running two units at once', 'Building a night scene on a sound stage'] },
 
 { c: 'Movies', t: 4, q: 'What is the profession of Harry Caul in The Conversation?', a: 'A surveillance expert', d: ['A journalist', 'A priest', 'A locksmith'] },
@@ -433,7 +433,7 @@ export const DAYS = [
 { c: 'Awards & Box Office', t: 2, q: "Which film about a suburban man's midlife unravelling won Best Picture at the 2000 ceremony?", a: 'American Beauty', d: ['The Sixth Sense', 'The Insider', 'The Green Mile'] },
 { c: 'Behind the Scenes', t: 2, q: 'Which 1939 film opens in sepia and switches to color when the heroine arrives in another land?', a: 'The Wizard of Oz', d: ['Gone with the Wind', 'The Adventures of Robin Hood', 'Snow White and the Seven Dwarfs'] },
 
-{ c: 'Movies', t: 3, q: 'What does the unravelling anchorman in Network urge viewers to shout out of their windows?', a: 'That they are mad as hell and will not take it any more', d: ['That the network should be shut down', 'That they will cancel their subscriptions', 'That the war must end'] },
+{ c: 'Movies', t: 3, q: 'In The Usual Suspects, what is the name of the crime lord the police are hunting?', a: 'Keyser Soze', d: ['Kobayashi', 'Redfoot', 'Dean Keaton'] },
 { c: 'Television', t: 3, q: 'Which sitcom is set behind the scenes of a live sketch show at 30 Rockefeller Plaza?', a: '30 Rock', d: ['Studio 60 on the Sunset Strip', 'The Larry Sanders Show', 'Sports Night'] },
 { c: 'Actors & Directors', t: 3, q: 'Which director made La Haine?', a: 'Mathieu Kassovitz', d: ['Jacques Audiard', 'Olivier Assayas', 'Cedric Klapisch'] },
 { c: 'Awards & Box Office', t: 3, q: 'Which Clint Eastwood western won Best Picture at the 1993 ceremony?', a: 'Unforgiven', d: ['Scent of a Woman', 'The Crying Game', 'A Few Good Men'] },
@@ -466,7 +466,7 @@ export const DAYS = [
 { c: 'Awards & Box Office', t: 2, q: 'Which film won Best Picture at the 2019 ceremony?', a: 'Green Book', d: ['Roma', 'BlacKkKlansman', 'Bohemian Rhapsody'] },
 { c: 'Behind the Scenes', t: 2, q: 'What does coverage mean on a film set?', a: 'Shooting a scene from several angles to give the editor choices', d: ['Marking where actors stand', 'Choosing the frame', 'Rigging the lights'] },
 
-{ c: 'Movies', t: 3, q: 'In On the Waterfront, what does Terry Malloy say he could have been?', a: 'A contender', d: ['A champion', 'A somebody', 'A free man'] },
+{ c: 'Movies', t: 3, q: "In The Truman Show, what falls out of the sky outside the hero's house near the start of the film?", a: 'A studio light', d: ['A weather balloon', 'A camera drone', 'A billboard'] },
 { c: 'Television', t: 3, q: 'Which sitcom frames its whole run as a father telling his children a very long story?', a: 'How I Met Your Mother', d: ['Friends', 'The Goldbergs', 'Modern Family'] },
 { c: 'Actors & Directors', t: 3, q: 'Which actress played the title role in Annie Hall?', a: 'Diane Keaton', d: ['Mia Farrow', 'Louise Lasser', 'Carrie Fisher'] },
 { c: 'Awards & Box Office', t: 3, q: 'Which film about an autistic savant and his brother won Best Picture at the 1989 ceremony?', a: 'Rain Man', d: ['Mississippi Burning', 'Working Girl', 'Dangerous Liaisons'] },
@@ -559,7 +559,7 @@ export const DAYS = [
 { c: 'Awards & Box Office', t: 1, q: 'Which Academy Award category honors the best film not in the English language?', a: 'Best International Feature Film', d: ['Best Foreign Director', 'Best World Cinema', 'Best Global Picture'] },
 { c: 'Behind the Scenes', t: 1, q: 'Who calls action and cut on a film set?', a: 'The director', d: ['The producer', 'The cinematographer', 'The editor'] },
 
-{ c: 'Movies', t: 2, q: 'What does Chief Brody say they are going to need, on first seeing the shark in Jaws?', a: 'A bigger boat', d: ['More men', 'A stronger cage', 'Better bait'] },
+{ c: 'Movies', t: 2, q: 'In Jumanji, what do two children find in the attic that unleashes a jungle on their town?', a: 'A board game', d: ['A comic book', 'A music box', 'A brass telescope'] },
 { c: 'Television', t: 2, q: "Which BBC series moved Conan Doyle's consulting detective into present-day London?", a: 'Sherlock', d: ['Elementary', 'Endeavour', 'Luther'] },
 { c: 'Actors & Directors', t: 2, q: 'Which director made Boyhood, shooting it over twelve years?', a: 'Richard Linklater', d: ['Kelly Reichardt', 'Andrew Haigh', 'Jeff Nichols'] },
 { c: 'Awards & Box Office', t: 2, q: "Which film about a British monarch's speech therapy won Best Picture at the 2011 ceremony?", a: "The King's Speech", d: ['The Social Network', 'Black Swan', 'Inception'] },

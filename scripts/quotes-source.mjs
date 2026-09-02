@@ -199,7 +199,7 @@ export const DAYS = [
 { c: 'History & War', t: 5, q: 'Whose funeral oration for the Athenian war dead is preserved by Thucydides?', a: 'Pericles', d: ['Solon', 'Cleisthenes', 'Themistocles'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which philosopher wrote that what does not kill him makes him stronger?', a: 'Friedrich Nietzsche', d: ['Arthur Schopenhauer', 'Soren Kierkegaard', 'Max Stirner'] },
 { c: 'Books & Authors', t: 5, q: "Which author wrote the line 'Reader, I married him'?", a: 'Charlotte Bronte', d: ['Emily Bronte', 'Anne Bronte', 'George Eliot'] },
-{ c: 'Screen Lines', t: 5, q: "Which character utters the word 'Rosebud' at the start of Citizen Kane?", a: 'Charles Foster Kane', d: ['Jedediah Leland', 'Jerry Thompson', 'Susan Alexander'] },
+{ c: 'Screen Lines', t: 5, q: "Which character murmurs the word 'Rosebud' as he dies in the opening scene of Orson Welles's 1941 film?", a: 'Charles Foster Kane', d: ['Jedediah Leland', 'Jerry Thompson', 'Susan Alexander'] },
 ],
 
 // ── Day 6 ──────────────────────────────────────────────────────────────────
@@ -208,7 +208,7 @@ export const DAYS = [
 { c: 'History & War', t: 1, q: "Which suffragette leader adopted 'Deeds not words' as her movement's motto?", a: 'Emmeline Pankhurst', d: ['Millicent Fawcett', 'Sylvia Pankhurst', 'Emily Davison'] },
 { c: 'Science, Letters & Ideas', t: 1, q: 'Which inventor summoned an assistant with the first words sent by telephone?', a: 'Alexander Graham Bell', d: ['Thomas Edison', 'Guglielmo Marconi', 'Samuel Morse'] },
 { c: 'Books & Authors', t: 1, q: "Which story opens by insisting that Marley was dead, to begin with?", a: 'A Christmas Carol', d: ['Great Expectations', 'The Pickwick Papers', 'Nicholas Nickleby'] },
-{ c: 'Screen Lines', t: 1, q: "Which character reveals 'I am your father' in The Empire Strikes Back?", a: 'Darth Vader', d: ['Obi-Wan Kenobi', 'Emperor Palpatine', 'Yoda'] },
+{ c: 'Screen Lines', t: 1, q: 'Which character clicks her heels together and repeats that there is no place like home?', a: 'Dorothy Gale', d: ['Glinda', 'The Wizard', 'Auntie Em'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president declared an unconditional war on poverty and promised a Great Society?', a: 'Lyndon B. Johnson', d: ['John F. Kennedy', 'Harry S. Truman', 'Hubert Humphrey'] },
 { c: 'History & War', t: 2, q: 'Which president called December 7, 1941 a date which will live in infamy?', a: 'Franklin D. Roosevelt', d: ['Harry S. Truman', 'Douglas MacArthur', 'Cordell Hull'] },
@@ -232,7 +232,7 @@ export const DAYS = [
 { c: 'History & War', t: 5, q: 'Which Roman historian records a chieftain saying the Romans make a desert and call it peace?', a: 'Tacitus', d: ['Livy', 'Suetonius', 'Sallust'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Who made the greatest happiness of the greatest number the foundation of his moral philosophy?', a: 'Jeremy Bentham', d: ['William Paley', 'David Hume', 'Adam Smith'] },
 { c: 'Books & Authors', t: 5, q: 'Which poet called hope the thing with feathers?', a: 'Emily Dickinson', d: ['Christina Rossetti', 'Elizabeth Barrett Browning', 'Emily Bronte'] },
-{ c: 'Screen Lines', t: 5, q: 'Which character in The Karate Kid runs the Cobra Kai dojo?', a: 'John Kreese', d: ['Mr. Miyagi', 'Daniel LaRusso', 'Johnny Lawrence'] },
+{ c: 'Screen Lines', t: 5, q: 'Which character in The Karate Kid orders his own pupil to sweep the leg in the tournament final?', a: 'John Kreese', d: ['Mr. Miyagi', 'Daniel LaRusso', 'Johnny Lawrence'] },
 ],
 
 // ── Day 7 ──────────────────────────────────────────────────────────────────
@@ -441,7 +441,7 @@ export const DAYS = [
 { c: 'Books & Authors', t: 1, q: 'Which novel opens with a great fish moving silently through the night water?', a: 'Jaws', d: ['Moby-Dick', 'The Old Man and the Sea', 'Twenty Thousand Leagues Under the Sea'] },
 { c: 'Screen Lines', t: 1, q: "Which character insists there's no crying in baseball in A League of Their Own?", a: 'Jimmy Dugan', d: ['Dottie Hinson', 'Kit Keller', 'Marla Hooch'] },
 
-{ c: 'Presidents & Politics', t: 2, q: 'Which president warned in 1961 of the disastrous rise of misplaced power?', a: 'Dwight D. Eisenhower', d: ['John F. Kennedy', 'Harry S. Truman', 'Lyndon B. Johnson'] },
+{ c: 'Presidents & Politics', t: 2, q: 'Which president said that every gun made and every warship launched signifies a theft from those who hunger?', a: 'Dwight D. Eisenhower', d: ['John F. Kennedy', 'Harry S. Truman', 'Lyndon B. Johnson'] },
 { c: 'History & War', t: 2, q: 'Which commander declared the die was cast as he crossed a small river into Italy?', a: 'Julius Caesar', d: ['Sulla', 'Pompey', 'Mark Antony'] },
 { c: 'Science, Letters & Ideas', t: 2, q: 'Which astronomer wrote that the book of nature is written in the language of mathematics?', a: 'Galileo Galilei', d: ['Johannes Kepler', 'Nicolaus Copernicus', 'Tycho Brahe'] },
 { c: 'Books & Authors', t: 2, q: 'Which novel opens with a colonel facing a firing squad and remembering a distant afternoon?', a: 'One Hundred Years of Solitude', d: ['Love in the Time of Cholera', 'The Autumn of the Patriarch', 'Pedro Paramo'] },
@@ -451,7 +451,7 @@ export const DAYS = [
 { c: 'History & War', t: 3, q: 'Which Chinese leader wrote that a revolution is not a dinner party?', a: 'Mao Zedong', d: ['Zhou Enlai', 'Deng Xiaoping', 'Sun Yat-sen'] },
 { c: 'Science, Letters & Ideas', t: 3, q: 'Which French thinker declared that property is theft?', a: 'Pierre-Joseph Proudhon', d: ['Mikhail Bakunin', 'Peter Kropotkin', 'Georges Sorel'] },
 { c: 'Books & Authors', t: 3, q: 'Which novel ends by warning never to tell anybody anything, or you start missing everybody?', a: 'The Catcher in the Rye', d: ['Franny and Zooey', 'A Separate Peace', 'On the Road'] },
-{ c: 'Screen Lines', t: 3, q: "Which character corrects a sheriff with 'They call me MISTER Tibbs!'?", a: 'Virgil Tibbs', d: ['Chief Gillespie', 'Sam Wood', 'Eric Endicott'] },
+{ c: 'Screen Lines', t: 3, q: 'Which character, asked by a Mississippi police chief what he is called back home, answers with a title in front of his surname?', a: 'Virgil Tibbs', d: ['Chief Gillespie', 'Sam Wood', 'Eric Endicott'] },
 
 { c: 'Presidents & Politics', t: 4, q: 'Which president called the White House the finest prison in the world?', a: 'Harry S. Truman', d: ['Franklin D. Roosevelt', 'Lyndon B. Johnson', 'Dwight D. Eisenhower'] },
 { c: 'History & War', t: 4, q: 'Which Nez Perce leader surrendered in 1877 saying he would fight no more forever?', a: 'Chief Joseph', d: ['Sitting Bull', 'Crazy Horse', 'Geronimo'] },
@@ -526,10 +526,10 @@ export const DAYS = [
 { c: 'Screen Lines', t: 4, q: "Which character slaps a man and orders him to snap out of it in Moonstruck?", a: 'Loretta Castorini', d: ['Ronny Cammareri', 'Rose Castorini', 'Johnny Cammareri'] },
 
 { c: 'Presidents & Politics', t: 5, q: 'Which Athenian lawgiver defended his reforms in his own surviving verse?', a: 'Solon', d: ['Cleisthenes', 'Pericles', 'Draco'] },
-{ c: 'History & War', t: 5, q: "Which Roman historian's account preserves Hannibal's boyhood oath against Rome?", a: 'Livy', d: ['Polybius', 'Tacitus', 'Sallust'] },
+{ c: 'History & War', t: 5, q: "Which historian, writing in Latin, preserved Hannibal's boyhood oath against Rome in his history of the city from its founding?", a: 'Livy', d: ['Polybius', 'Tacitus', 'Sallust'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which photographer said the camera teaches people how to see without a camera?', a: 'Dorothea Lange', d: ['Ansel Adams', 'Walker Evans', 'Margaret Bourke-White'] },
 { c: 'Books & Authors', t: 5, q: "Which poet opened a famous poem with the invitation 'Let us go then, you and I'?", a: 'T. S. Eliot', d: ['Ezra Pound', 'Wallace Stevens', 'Hart Crane'] },
-{ c: 'Screen Lines', t: 5, q: 'Which private investigator in Who Framed Roger Rabbit cannot stand toons?', a: 'Eddie Valiant', d: ['Roger Rabbit', 'Jessica Rabbit', 'Judge Doom'] },
+{ c: 'Screen Lines', t: 5, q: 'Which character in Who Framed Roger Rabbit growls that he does not work for toons?', a: 'Eddie Valiant', d: ['Roger Rabbit', 'Jessica Rabbit', 'Judge Doom'] },
 ],
 
 // ── Day 16 ─────────────────────────────────────────────────────────────────
@@ -603,7 +603,7 @@ export const DAYS = [
 { c: 'Presidents & Politics', t: 1, q: 'Which president told a 1936 rally that he welcomed the hatred of the financial interests?', a: 'Franklin D. Roosevelt', d: ['Woodrow Wilson', 'Theodore Roosevelt', 'Harry S. Truman'] },
 { c: 'History & War', t: 1, q: "Which leader named his campaign of nonviolent resistance 'satyagraha', or truth-force?", a: 'Mahatma Gandhi', d: ['Jawaharlal Nehru', 'Subhas Chandra Bose', 'B. R. Ambedkar'] },
 { c: 'Science, Letters & Ideas', t: 1, q: 'Which scientist was the first person to win Nobel Prizes in two different sciences?', a: 'Marie Curie', d: ['Linus Pauling', 'John Bardeen', 'Frederick Sanger'] },
-{ c: 'Books & Authors', t: 1, q: 'Which story opens by telling of four little rabbits named Flopsy, Mopsy, Cottontail and Peter?', a: 'The Tale of Peter Rabbit', d: ['The Wind in the Willows', 'Winnie-the-Pooh', 'The Tale of Squirrel Nutkin'] },
+{ c: 'Books & Authors', t: 1, q: "Which story begins with a mother telling her four children to keep out of Mr. McGregor's garden?", a: 'The Tale of Peter Rabbit', d: ['The Wind in the Willows', 'Winnie-the-Pooh', 'The Tale of Squirrel Nutkin'] },
 { c: 'Screen Lines', t: 1, q: 'Which character tells Simba to remember who he is in The Lion King?', a: 'Mufasa', d: ['Scar', 'Rafiki', 'Zazu'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which British statesman coined the phrase about a special relationship between Britain and the United States?', a: 'Winston Churchill', d: ['Clement Attlee', 'Anthony Eden', 'Harold Macmillan'] },
@@ -661,7 +661,7 @@ export const DAYS = [
 { c: 'History & War', t: 5, q: 'Which Chinese strategist wrote that all warfare is based on deception?', a: 'Sun Tzu', d: ['Wu Qi', 'Sima Rangju', 'Jiang Ziya'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which philosopher held that to be is to be perceived?', a: 'George Berkeley', d: ['David Hume', 'John Locke', 'Thomas Reid'] },
 { c: 'Books & Authors', t: 5, q: "Which poet wrote that a man's reach should exceed his grasp?", a: 'Robert Browning', d: ['Alfred Tennyson', 'Matthew Arnold', 'Algernon Swinburne'] },
-{ c: 'Screen Lines', t: 5, q: 'Which character asks whether this is the end of Rico as he dies?', a: 'Rico Bandello', d: ['Joe Massara', 'Otero', 'Big Boy'] },
+{ c: 'Screen Lines', t: 5, q: 'Which character in Little Caesar, shot down behind a billboard, dies asking whether this can really be the end of him?', a: 'Rico Bandello', d: ['Joe Massara', 'Otero', 'Big Boy'] },
 ],
 
 // ── Day 20 ─────────────────────────────────────────────────────────────────
@@ -676,7 +676,7 @@ export const DAYS = [
 { c: 'History & War', t: 2, q: 'Who told the Commons in 1940 that when asked their aim, he could answer in one word: victory?', a: 'Winston Churchill', d: ['Neville Chamberlain', 'Clement Attlee', 'Lord Halifax'] },
 { c: 'Science, Letters & Ideas', t: 2, q: 'Which physicist formulated the uncertainty principle?', a: 'Werner Heisenberg', d: ['Niels Bohr', 'Erwin Schrodinger', 'Max Born'] },
 { c: 'Books & Authors', t: 2, q: "Which novel opens mid-sentence with 'riverrun, past Eve and Adam's'?", a: 'Finnegans Wake', d: ['Ulysses', 'Dubliners', 'A Portrait of the Artist as a Young Man'] },
-{ c: 'Screen Lines', t: 2, q: "Which character cries 'It's alive!' over his creation in the 1931 Frankenstein?", a: 'Henry Frankenstein', d: ['The Monster', 'Doctor Waldman', 'Fritz'] },
+{ c: 'Screen Lines', t: 2, q: "Which character cries 'It's alive!' over the body he has brought to life in a 1931 Universal horror film?", a: 'Henry Frankenstein', d: ['The Monster', 'Doctor Waldman', 'Fritz'] },
 
 { c: 'Presidents & Politics', t: 3, q: 'Which president introduced the domino theory at a 1954 press conference?', a: 'Dwight D. Eisenhower', d: ['Harry S. Truman', 'John F. Kennedy', 'Lyndon B. Johnson'] },
 { c: 'History & War', t: 3, q: 'Which Prussian field marshal said no plan of operations survives contact with the enemy?', a: 'Helmuth von Moltke', d: ['Alfred von Schlieffen', 'Erich Ludendorff', 'Paul von Hindenburg'] },
@@ -736,7 +736,7 @@ export const DAYS = [
 { c: 'History & War', t: 1, q: 'Which aviator became the first woman to fly the Atlantic solo, in 1932?', a: 'Amelia Earhart', d: ['Bessie Coleman', 'Beryl Markham', 'Harriet Quimby'] },
 { c: 'Science, Letters & Ideas', t: 1, q: 'Which physicist wrote that he had no special talent and was only passionately curious?', a: 'Albert Einstein', d: ['Max Planck', 'Niels Bohr', 'Erwin Schrodinger'] },
 { c: 'Books & Authors', t: 1, q: 'Which series of novels sends the Pevensie children through a wardrobe?', a: 'The Chronicles of Narnia', d: ['The Dark Is Rising', 'His Dark Materials', 'The Borrowers'] },
-{ c: 'Screen Lines', t: 1, q: 'Which character is the anxious grandson dragged between dimensions in Rick and Morty?', a: 'Morty Smith', d: ['Rick Sanchez', 'Summer Smith', 'Jerry Smith'] },
+{ c: 'Screen Lines', t: 1, q: "Which character answers his grandfather's schemes with a nervous 'Aw geez' as he is dragged between dimensions?", a: 'Morty Smith', d: ['Rick Sanchez', 'Summer Smith', 'Jerry Smith'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president told a divided country that we are all Republicans, we are all Federalists?', a: 'Thomas Jefferson', d: ['John Adams', 'James Madison', 'James Monroe'] },
 { c: 'History & War', t: 2, q: 'Which battle cry followed the sinking of an American warship in Havana harbour in 1898?', a: 'Remember the Maine', d: ['Remember the Alamo', 'Remember Pearl Harbor', 'Fifty-four Forty or Fight'] },
@@ -805,7 +805,7 @@ export const DAYS = [
 { c: 'Screen Lines', t: 1, q: "Which character insists 'I'm not a smart man, but I know what love is'?", a: 'Forrest Gump', d: ['Jenny Curran', 'Lieutenant Dan', 'Mrs. Gump'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president told Congress in 1941 that the world should rest on four essential human freedoms?', a: 'Franklin D. Roosevelt', d: ['Herbert Hoover', 'Calvin Coolidge', 'Woodrow Wilson'] },
-{ c: 'History & War', t: 2, q: 'Which Union president delivered a two-minute address dedicating a battlefield cemetery?', a: 'Abraham Lincoln', d: ['Andrew Johnson', 'Ulysses S. Grant', 'Edward Everett'] },
+{ c: 'History & War', t: 2, q: "Which writer set new words about the coming of the Lord to the marching tune of John Brown's Body?", a: 'Julia Ward Howe', d: ['Harriet Beecher Stowe', 'Louisa May Alcott', 'Emily Dickinson'] },
 { c: 'Science, Letters & Ideas', t: 2, q: 'Which naturalist sailed as a young man aboard the Beagle?', a: 'Charles Darwin', d: ['Thomas Huxley', 'Alfred Russel Wallace', 'Joseph Hooker'] },
 { c: 'Books & Authors', t: 2, q: "Which novel's last words are that he loved Big Brother?", a: 'Nineteen Eighty-Four', d: ['Brave New World', 'Fahrenheit 451', 'Darkness at Noon'] },
 { c: 'Screen Lines', t: 2, q: "Which character shouts 'Great Scott!' at almost every crisis?", a: 'Doc Brown', d: ['Marty McFly', 'Biff Tannen', 'Jennifer Parker'] },
@@ -826,7 +826,7 @@ export const DAYS = [
 { c: 'History & War', t: 5, q: 'Which Carthaginian is said to have complained that his countrymen knew how to win a victory but not how to use one?', a: 'Maharbal', d: ['Hasdrubal', 'Hamilcar Barca', 'Mago'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which physicist wrote that the imagination of nature is far greater than the imagination of man?', a: 'Richard Feynman', d: ['Freeman Dyson', 'John Wheeler', 'Murray Gell-Mann'] },
 { c: 'Books & Authors', t: 5, q: 'Which novelist described a character as a man of the crowd in a story of that name?', a: 'Edgar Allan Poe', d: ['Nathaniel Hawthorne', 'Washington Irving', 'Charles Brockden Brown'] },
-{ c: 'Screen Lines', t: 5, q: 'Which character orders the unauthorised nuclear attack that begins the crisis in Dr. Strangelove?', a: 'General Jack D. Ripper', d: ['General Turgidson', 'Colonel Bat Guano', 'Major Kong'] },
+{ c: 'Screen Lines', t: 5, q: 'Which character in Dr. Strangelove warns of a Communist plot to sap and impurify all of our precious bodily fluids?', a: 'General Jack D. Ripper', d: ['General Turgidson', 'Colonel Bat Guano', 'Major Kong'] },
 ],
 
 // ── Day 25 ─────────────────────────────────────────────────────────────────
@@ -864,48 +864,48 @@ export const DAYS = [
 
 // ── Day 26 ────────────────────────────────────────────────────
 [
-{ c: 'Presidents & Politics', t: 1, q: 'Which president was the only one elected to four terms?', a: 'Franklin D. Roosevelt', d: ['Woodrow Wilson', 'Theodore Roosevelt', 'Harry S. Truman'] },
+{ c: 'Presidents & Politics', t: 1, q: 'Which president told a frightened country in 1933 that the only thing to fear is fear itself?', a: 'Franklin D. Roosevelt', d: ['Woodrow Wilson', 'Theodore Roosevelt', 'Harry S. Truman'] },
 { c: 'History & War', t: 1, q: 'Which minister wrote that the ultimate measure of a man is where he stands in moments of challenge?', a: 'Martin Luther King Jr.', d: ['Malcolm X', 'Ralph Abernathy', 'Howard Thurman'] },
-{ c: 'Science, Letters & Ideas', t: 1, q: 'Which inventor held more than a thousand American patents, among them a practical light bulb?', a: 'Thomas Edison', d: ['Nikola Tesla', 'George Westinghouse', 'Joseph Swan'] },
+{ c: 'Science, Letters & Ideas', t: 1, q: 'Which brothers telegraphed home from a North Carolina beach in 1903 to report four successful flights?', a: 'The Wright brothers', d: ['The Montgolfier brothers', 'The Lumiere brothers', 'The Voisin brothers'] },
 { c: 'Books & Authors', t: 1, q: 'Which novel follows a boy named Jonas who is given the assignment of Receiver at twelve?', a: 'The Giver', d: ['A Wrinkle in Time', 'Holes', 'Bridge to Terabithia'] },
 { c: 'Screen Lines', t: 1, q: 'Which character opens the song by calling Hakuna Matata a wonderful phrase?', a: 'Timon', d: ['Pumbaa', 'Rafiki', 'Zazu'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president wrote that no man is good enough to govern another without that other man consenting?', a: 'Abraham Lincoln', d: ['Thomas Jefferson', 'James Madison', 'John Quincy Adams'] },
 { c: 'History & War', t: 2, q: 'Which king is said to have ordered the tide to halt, to show his courtiers the limits of royal power?', a: 'Canute', d: ['Alfred the Great', 'Harold Godwinson', 'Ethelred the Unready'] },
-{ c: 'Science, Letters & Ideas', t: 2, q: 'Which physicist won a Nobel Prize for proposing that light arrives in discrete packets?', a: 'Albert Einstein', d: ['Max Planck', 'Niels Bohr', 'Arthur Compton'] },
+{ c: 'Science, Letters & Ideas', t: 2, q: 'Which physicist objected to the new quantum theory by insisting that God does not play dice?', a: 'Albert Einstein', d: ['Max Planck', 'Niels Bohr', 'Arthur Compton'] },
 { c: 'Books & Authors', t: 2, q: 'Which poet declared that hell is a city much like London?', a: 'Percy Bysshe Shelley', d: ['William Blake', 'Lord Byron', 'Thomas Hood'] },
 { c: 'Screen Lines', t: 2, q: 'Which character in Goodfellas demands to know whether he is funny like a clown?', a: 'Tommy DeVito', d: ['Henry Hill', 'Jimmy Conway', 'Paulie Cicero'] },
 
-{ c: 'Presidents & Politics', t: 3, q: 'Which candidate ran for president five times as a socialist, the last time from a prison cell?', a: 'Eugene V. Debs', d: ['Norman Thomas', 'Robert La Follette', 'Henry Wallace'] },
-{ c: 'History & War', t: 3, q: 'Which organiser united the French underground and died under interrogation in 1943?', a: 'Jean Moulin', d: ['Pierre Brossolette', 'Henri Frenay', 'Jean Cavailles'] },
-{ c: 'Science, Letters & Ideas', t: 3, q: 'Which friar traced inheritance through generations of pea plants in a monastery garden?', a: 'Gregor Mendel', d: ['Hugo de Vries', 'William Bateson', 'Carl Correns'] },
+{ c: 'Presidents & Politics', t: 3, q: 'Which candidate told a court in 1918 that while there was a lower class he was in it, and while a soul sat in prison he was not free?', a: 'Eugene V. Debs', d: ['Norman Thomas', 'Robert La Follette', 'Henry Wallace'] },
+{ c: 'History & War', t: 3, q: 'Whose lines about the long sobs of autumn violins were broadcast by the BBC as the coded signal to the French underground before D-Day?', a: 'Paul Verlaine', d: ['Arthur Rimbaud', 'Charles Baudelaire', 'Guillaume Apollinaire'] },
+{ c: 'Science, Letters & Ideas', t: 3, q: 'Which biologist said his reaction on grasping the argument of the Origin of Species was how extremely stupid not to have thought of that?', a: 'Thomas Huxley', d: ['Alfred Russel Wallace', 'Joseph Hooker', 'Charles Lyell'] },
 { c: 'Books & Authors', t: 3, q: 'Which novelist wrote a story about the death of a Russian judge named Ivan Ilyich?', a: 'Leo Tolstoy', d: ['Fyodor Dostoevsky', 'Nikolai Gogol', 'Ivan Goncharov'] },
 { c: 'Screen Lines', t: 3, q: "Which character insists that deserving has got nothing to do with it in Unforgiven?", a: 'Will Munny', d: ['Little Bill Daggett', 'Ned Logan', 'The Schofield Kid'] },
 
 { c: 'Presidents & Politics', t: 4, q: 'Which secretary of war said the only way to make a man trustworthy is to trust him?', a: 'Henry Stimson', d: ['Cordell Hull', 'Frank Knox', 'Dean Acheson'] },
-{ c: 'History & War', t: 4, q: 'Which lord admiral, rather than Drake, actually commanded the English fleet against the Spanish Armada?', a: 'Lord Howard of Effingham', d: ['John Hawkins', 'Martin Frobisher', 'Walter Raleigh'] },
+{ c: 'History & War', t: 4, q: 'Which nobleman wrote to Philip II pleading inexperience and seasickness, and was ordered to command the Armada anyway?', a: 'The Duke of Medina Sidonia', d: ['The Marquis of Santa Cruz', 'The Duke of Parma', 'Don John of Austria'] },
 { c: 'Science, Letters & Ideas', t: 4, q: 'Which writer preserved the saying of Heraclitus that everything flows and nothing stands still?', a: 'Plato', d: ['Aristotle', 'Diogenes Laertius', 'Plutarch'] },
 { c: 'Books & Authors', t: 4, q: 'Which poet wrote that he can connect nothing with nothing?', a: 'T. S. Eliot', d: ['Ezra Pound', 'W. B. Yeats', 'Wallace Stevens'] },
 { c: 'Screen Lines', t: 4, q: 'Which character tells a jury in The Verdict that today they are the law?', a: 'Frank Galvin', d: ['Ed Concannon', 'Laura Fischer', 'Judge Hoyle'] },
 
 { c: 'Presidents & Politics', t: 5, q: 'Which Roman emperor wrote that the best revenge is to be unlike the one who did the injury?', a: 'Marcus Aurelius', d: ['Seneca', 'Epictetus', 'Cicero'] },
-{ c: 'History & War', t: 5, q: "Which Zulu king's army destroyed a British column at Isandlwana in 1879?", a: 'Cetshwayo', d: ['Shaka', 'Dingane', 'Mpande'] },
+{ c: 'History & War', t: 5, q: 'Which emperor warned the League of Nations in 1936 that it was his people today and would be theirs tomorrow?', a: 'Haile Selassie', d: ['Menelik II', 'Iyasu V', 'Zewditu'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which mathematician held that the art of proposing a question is worth more than solving it?', a: 'Georg Cantor', d: ['David Hilbert', 'Felix Klein', 'Henri Poincare'] },
 { c: 'Books & Authors', t: 5, q: 'Which poet, on a moonlit beach, begged his love that they be true to one another?', a: 'Matthew Arnold', d: ['Alfred Tennyson', 'Arthur Hugh Clough', 'Robert Browning'] },
-{ c: 'Screen Lines', t: 5, q: "Which character in Casablanca runs the Blue Parrot and buys Rick's cafe?", a: 'Signor Ferrari', d: ['Captain Renault', 'Ugarte', 'Major Strasser'] },
+{ c: 'Screen Lines', t: 5, q: "Which character calls human beings Casablanca's leading commodity?", a: 'Signor Ferrari', d: ['Captain Renault', 'Ugarte', 'Major Strasser'] },
 ],
 
 // ── Day 27 ─────────────────────────────────────────────────────────────────
 [
-{ c: 'Presidents & Politics', t: 1, q: 'Which president signed the Civil Rights Act of 1964?', a: 'Lyndon B. Johnson', d: ['John F. Kennedy', 'Dwight D. Eisenhower', 'Richard Nixon'] },
-{ c: 'History & War', t: 1, q: 'Which navigator crossed the Atlantic in 1492 with the Nina, the Pinta and the Santa Maria?', a: 'Christopher Columbus', d: ['Ferdinand Magellan', 'Vasco da Gama', 'Amerigo Vespucci'] },
+{ c: 'Presidents & Politics', t: 1, q: 'Which politician, then the mayor of Minneapolis, told the 1948 Democratic convention it was time to walk out of the shadow of states rights into the bright sunshine of human rights?', a: 'Hubert Humphrey', d: ['Adlai Stevenson', 'Estes Kefauver', 'Alben Barkley'] },
+{ c: 'History & War', t: 1, q: 'Which merchant dictated an account of his travels in the East while a prisoner in Genoa?', a: 'Marco Polo', d: ['Ibn Battuta', 'John Mandeville', 'Niccolo da Conti'] },
 { c: 'Science, Letters & Ideas', t: 1, q: 'Which naturalist wrote that a man who dares to waste one hour of time has not discovered the value of life?', a: 'Charles Darwin', d: ['Thomas Huxley', 'Herbert Spencer', 'Alfred Russel Wallace'] },
 { c: 'Books & Authors', t: 1, q: 'Which book opens on a warm evening in the Seeonee hills as a wolf family wakes?', a: 'The Jungle Book', d: ['Just So Stories', 'Kim', 'The Wind in the Willows'] },
 { c: 'Screen Lines', t: 1, q: "Which character closes his address to the United Nations with 'Wakanda forever'?", a: "T'Challa", d: ['Everett Ross', 'Ulysses Klaue', 'Killmonger'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president wrote that the government is us, that we are the government, you and I?', a: 'Theodore Roosevelt', d: ['Woodrow Wilson', 'William Howard Taft', 'Calvin Coolidge'] },
-{ c: 'History & War', t: 2, q: 'Which American general drove the Third Army across France in 1944?', a: 'George Patton', d: ['Omar Bradley', 'Courtney Hodges', 'Mark Clark'] },
-{ c: 'Science, Letters & Ideas', t: 2, q: 'Which Danish astronomer recorded the most precise observations of the sky made before the telescope?', a: 'Tycho Brahe', d: ['Johannes Kepler', 'Nicolaus Copernicus', 'Christiaan Huygens'] },
+{ c: 'History & War', t: 2, q: 'Which American general wrote that a good plan violently executed now is better than a perfect plan next week?', a: 'George Patton', d: ['Omar Bradley', 'Courtney Hodges', 'Mark Clark'] },
+{ c: 'Science, Letters & Ideas', t: 2, q: 'Which physicist is remembered for quipping that all science is either physics or stamp collecting?', a: 'Ernest Rutherford', d: ['J. J. Thomson', 'Niels Bohr', 'James Chadwick'] },
 { c: 'Books & Authors', t: 2, q: "Which novel opens with the blunt sentence that its title character was drunk?", a: 'Elmer Gantry', d: ['Babbitt', 'Main Street', 'Arrowsmith'] },
 { c: 'Screen Lines', t: 2, q: "Which character shouts 'You can't sit with us!' at Regina George over a dress-code violation?", a: 'Gretchen Wieners', d: ['Janis Ian', 'Cady Heron', 'Damian Hubbard'] },
 
@@ -916,13 +916,13 @@ export const DAYS = [
 { c: 'Screen Lines', t: 3, q: 'Which character in The Wire warns that if you come at the king, you best not miss?', a: 'Omar Little', d: ['Stringer Bell', 'Avon Barksdale', 'Jimmy McNulty'] },
 
 { c: 'Presidents & Politics', t: 4, q: 'Which chancellor said on resigning that the government gave the impression of being in office but not in power?', a: 'Norman Lamont', d: ['John Major', 'Michael Heseltine', 'Kenneth Clarke'] },
-{ c: 'History & War', t: 4, q: 'Which Spartan commander destroyed the Athenian fleet at Aegospotami?', a: 'Lysander', d: ['Brasidas', 'Gylippus', 'Agesilaus'] },
+{ c: 'History & War', t: 4, q: "Which Spartan commander answered critics of his trickery by saying that where the lion's skin will not reach, it must be pieced out with the fox's?", a: 'Lysander', d: ['Brasidas', 'Gylippus', 'Agesilaus'] },
 { c: 'Science, Letters & Ideas', t: 4, q: 'Which essayist wrote that a foolish consistency is the hobgoblin of little minds?', a: 'Ralph Waldo Emerson', d: ['Henry David Thoreau', 'Walt Whitman', 'Margaret Fuller'] },
 { c: 'Books & Authors', t: 4, q: 'Which novelist wrote of a mother haunted by the daughter she lost, in a book called Beloved?', a: 'Toni Morrison', d: ['Alice Walker', 'Gloria Naylor', 'Paule Marshall'] },
 { c: 'Screen Lines', t: 4, q: "Which character asks a rival 'How do you like them apples?' through a window?", a: 'Will Hunting', d: ['Chuckie Sullivan', 'Sean Maguire', 'Skylar'] },
 
 { c: 'Presidents & Politics', t: 5, q: "Which lord chancellor said on the scaffold that he died the king's good servant, but God's first?", a: 'Thomas More', d: ['Thomas Cromwell', 'Thomas Wolsey', 'John Fisher'] },
-{ c: 'History & War', t: 5, q: 'Which Aztec ruler received Cortes at Tenochtitlan in 1519?', a: 'Moctezuma II', d: ['Cuauhtemoc', 'Cuitlahuac', 'Ahuitzotl'] },
+{ c: 'History & War', t: 5, q: 'Which soldier of Cortes wrote an eyewitness history of the conquest of Mexico in his old age?', a: 'Bernal Diaz del Castillo', d: ['Francisco Lopez de Gomara', 'Toribio de Benavente', 'Diego Duran'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which mathematician spent the night before a fatal duel writing out a new branch of algebra?', a: 'Evariste Galois', d: ['Niels Henrik Abel', 'Carl Jacobi', 'Augustin-Louis Cauchy'] },
 { c: 'Books & Authors', t: 5, q: 'Which Russian novelist wrote a satire in which the devil visits Moscow?', a: 'Mikhail Bulgakov', d: ['Andrei Platonov', 'Isaac Babel', 'Yevgeny Zamyatin'] },
 { c: 'Screen Lines', t: 5, q: 'Which character says that every man dies, but not every man really lives?', a: 'William Wallace', d: ['Robert the Bruce', 'Hamish Campbell', 'Argyle Wallace'] },
@@ -930,14 +930,14 @@ export const DAYS = [
 
 // ── Day 28 ─────────────────────────────────────────────────────────────────
 [
-{ c: 'Presidents & Politics', t: 1, q: 'Which president was assassinated in Dallas in November 1963?', a: 'John F. Kennedy', d: ['Lyndon B. Johnson', 'Robert Kennedy', 'Franklin D. Roosevelt'] },
-{ c: 'History & War', t: 1, q: 'Which nurse tended the wounded in the Crimea and became known as the Lady with the Lamp?', a: 'Florence Nightingale', d: ['Mary Seacole', 'Clara Barton', 'Edith Cavell'] },
-{ c: 'Science, Letters & Ideas', t: 1, q: 'Which scientist discovered both radium and polonium?', a: 'Marie Curie', d: ['Lise Meitner', 'Irene Joliot-Curie', 'Dorothy Hodgkin'] },
+{ c: 'Presidents & Politics', t: 1, q: 'Which president appealed in 1969 to the great silent majority of Americans for support over Vietnam?', a: 'Richard Nixon', d: ['Lyndon B. Johnson', 'Dwight D. Eisenhower', 'John F. Kennedy'] },
+{ c: 'History & War', t: 1, q: 'Which nurse attributed her success to never having given or taken an excuse?', a: 'Florence Nightingale', d: ['Mary Seacole', 'Clara Barton', 'Edith Cavell'] },
+{ c: 'Science, Letters & Ideas', t: 1, q: 'Which scientist wrote to her brother that one never notices what has been done, only what remains to be done?', a: 'Marie Curie', d: ['Lise Meitner', 'Irene Joliot-Curie', 'Dorothy Hodgkin'] },
 { c: 'Books & Authors', t: 1, q: 'Which novel opens with a girl growing tired of sitting by her sister on the bank?', a: "Alice's Adventures in Wonderland", d: ['Through the Looking-Glass', 'The Water-Babies', 'Peter Pan'] },
 { c: 'Screen Lines', t: 1, q: "Which character wishes that the odds be ever in your favour?", a: 'Effie Trinket', d: ['Katniss Everdeen', 'Haymitch Abernathy', 'Caesar Flickerman'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which prime minister called Russia a riddle wrapped in a mystery inside an enigma?', a: 'Winston Churchill', d: ['Neville Chamberlain', 'Clement Attlee', 'Anthony Eden'] },
-{ c: 'History & War', t: 2, q: 'Which Roman is said to have thrust his hand into a fire to show an enemy king his contempt for pain?', a: 'Mucius Scaevola', d: ['Horatius Cocles', 'Cincinnatus', 'Camillus'] },
+{ c: 'History & War', t: 2, q: 'Which emperor is said to have lamented as he died what an artist the world was losing in him?', a: 'Nero', d: ['Caligula', 'Commodus', 'Domitian'] },
 { c: 'Science, Letters & Ideas', t: 2, q: 'Which physician described the circulation of the blood in a 1628 treatise?', a: 'William Harvey', d: ['Andreas Vesalius', 'Ambroise Pare', 'Marcello Malpighi'] },
 { c: 'Books & Authors', t: 2, q: 'Which novel opens with the scent of bitter almonds and the fate of unrequited love?', a: 'Love in the Time of Cholera', d: ['One Hundred Years of Solitude', 'Chronicle of a Death Foretold', 'The General in His Labyrinth'] },
 { c: 'Screen Lines', t: 2, q: "Which character growls 'Nobody tosses a Dwarf' before a leap?", a: 'Gimli', d: ['Legolas', 'Aragorn', 'Boromir'] },
@@ -950,39 +950,39 @@ export const DAYS = [
 
 { c: 'Presidents & Politics', t: 4, q: 'Which secretary of state remarked that power is the ultimate aphrodisiac?', a: 'Henry Kissinger', d: ['Dean Rusk', 'William Rogers', 'Cyrus Vance'] },
 { c: 'History & War', t: 4, q: 'Which king of Epirus won the costly victories that gave a phrase to the language?', a: 'Pyrrhus', d: ['Hannibal', 'Antiochus III', 'Mithridates'] },
-{ c: 'Science, Letters & Ideas', t: 4, q: 'Which Danish astronomer first showed that light travels at a finite speed, using the moons of Jupiter?', a: 'Ole Romer', d: ['Christiaan Huygens', 'Giovanni Cassini', 'James Bradley'] },
+{ c: 'Science, Letters & Ideas', t: 4, q: 'Which mathematician, asked why God did not appear in his account of the heavens, is said to have replied that he had no need of that hypothesis?', a: 'Pierre-Simon Laplace', d: ['Joseph-Louis Lagrange', "Jean le Rond d'Alembert", 'Adrien-Marie Legendre'] },
 { c: 'Books & Authors', t: 4, q: 'Which Nigerian novelist took the title of his first book from a line by W. B. Yeats?', a: 'Chinua Achebe', d: ['Wole Soyinka', "Ngugi wa Thiong'o", 'Ben Okri'] },
 { c: 'Screen Lines', t: 4, q: "Which character bursts in announcing that nobody expects the Spanish Inquisition?", a: 'Cardinal Ximenez', d: ['Cardinal Biggles', 'Cardinal Fang', 'Reg'] },
 
 { c: 'Presidents & Politics', t: 5, q: 'Which king is said to have asked who would rid him of a turbulent priest?', a: 'Henry II', d: ['Henry I', 'Stephen', 'Richard I'] },
-{ c: 'History & War', t: 5, q: 'Which Norse voyager is credited in the sagas with reaching North America around the year 1000?', a: 'Leif Erikson', d: ['Erik the Red', 'Bjarni Herjolfsson', 'Thorfinn Karlsefni'] },
-{ c: 'Science, Letters & Ideas', t: 5, q: 'Which astronomer predicted the return of the comet that now carries his name?', a: 'Edmond Halley', d: ['John Flamsteed', 'James Bradley', 'Nevil Maskelyne'] },
+{ c: 'History & War', t: 5, q: 'Which Icelandic chieftain wrote the Prose Edda, the fullest written source for the myths of the north?', a: 'Snorri Sturluson', d: ['Saxo Grammaticus', 'Ari Thorgilsson', 'Sturla Thordarson'] },
+{ c: 'Science, Letters & Ideas', t: 5, q: 'Which astronomer wrote that if the comet returned as he predicted, candid posterity would not refuse to acknowledge that an Englishman had found it first?', a: 'Edmond Halley', d: ['John Flamsteed', 'James Bradley', 'Nevil Maskelyne'] },
 { c: 'Books & Authors', t: 5, q: 'Which Sicilian prince wrote a single novel, published after his death, about a fading aristocracy?', a: 'Giuseppe Tomasi di Lampedusa', d: ['Italo Calvino', 'Alberto Moravia', 'Cesare Pavese'] },
 { c: 'Screen Lines', t: 5, q: 'Which character tells his brother in the back of a car that he could have been a contender?', a: 'Terry Malloy', d: ['Charley Malloy', 'Johnny Friendly', 'Edie Doyle'] },
 ],
 
 // ── Day 29 ─────────────────────────────────────────────────────────────────
 [
-{ c: 'Presidents & Politics', t: 1, q: 'Which president was the first to live in the White House?', a: 'John Adams', d: ['George Washington', 'Thomas Jefferson', 'James Madison'] },
-{ c: 'History & War', t: 1, q: 'Which war ended with the armistice signed on 11 November 1918?', a: 'The First World War', d: ['The Second World War', 'The Franco-Prussian War', 'The Crimean War'] },
-{ c: 'Science, Letters & Ideas', t: 1, q: 'Which chemist arranged the elements into the table still used today?', a: 'Dmitri Mendeleev', d: ['Antoine Lavoisier', 'John Dalton', 'Robert Boyle'] },
-{ c: 'Books & Authors', t: 1, q: 'Which picture book opens with a tree who loved a little boy?', a: 'The Giving Tree', d: ['The Velveteen Rabbit', 'Corduroy', 'The Little House'] },
+{ c: 'Presidents & Politics', t: 1, q: 'Which president wrote from the new presidential mansion a prayer that none but honest and wise men might ever rule under its roof?', a: 'John Adams', d: ['George Washington', 'Thomas Jefferson', 'James Madison'] },
+{ c: 'History & War', t: 1, q: "Which soldier poet called it the old lie that it is sweet and fitting to die for one's country?", a: 'Wilfred Owen', d: ['Siegfried Sassoon', 'Rupert Brooke', 'Robert Graves'] },
+{ c: 'Science, Letters & Ideas', t: 1, q: 'Which chemist is said to have told a friend that he saw in a dream a table in which all the elements fell into place?', a: 'Dmitri Mendeleev', d: ['Antoine Lavoisier', 'John Dalton', 'Robert Boyle'] },
+{ c: 'Books & Authors', t: 1, q: 'Which picture book ends with a tired old man resting on the stump of the friend who had given him everything?', a: 'The Giving Tree', d: ['The Velveteen Rabbit', 'Corduroy', 'The Little House'] },
 { c: 'Screen Lines', t: 1, q: 'Which character narrates the mission to boldly go where no man has gone before?', a: 'Captain Kirk', d: ['Spock', 'Dr. McCoy', 'Montgomery Scott'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president campaigned on the doctrine of peace through strength?', a: 'Ronald Reagan', d: ['Richard Nixon', 'Jimmy Carter', 'George H. W. Bush'] },
-{ c: 'History & War', t: 2, q: 'Which general commanded all Union armies at the end of the American Civil War?', a: 'Ulysses S. Grant', d: ['George Meade', 'Henry Halleck', 'George McClellan'] },
-{ c: 'Science, Letters & Ideas', t: 2, q: 'Which surgeon introduced antiseptic operating using carbolic acid?', a: 'Joseph Lister', d: ['Ignaz Semmelweis', 'William Halsted', 'John Hunter'] },
+{ c: 'History & War', t: 2, q: 'Which commander answered a request for terms at Fort Donelson by saying that nothing but unconditional and immediate surrender could be accepted?', a: 'Ulysses S. Grant', d: ['George Meade', 'Henry Halleck', 'George McClellan'] },
+{ c: 'Science, Letters & Ideas', t: 2, q: 'Which surgeon set out the antiseptic principle of surgery in a series of papers published in The Lancet in 1867?', a: 'Joseph Lister', d: ['Ignaz Semmelweis', 'William Halsted', 'John Hunter'] },
 { c: 'Books & Authors', t: 2, q: "Which novel opens with the warning 'You better not never tell nobody but God'?", a: 'The Color Purple', d: ['Beloved', 'Their Eyes Were Watching God', 'Sula'] },
 { c: 'Screen Lines', t: 2, q: "Which character says he is serious, and not to call him Shirley?", a: 'Dr. Rumack', d: ['Ted Striker', 'Elaine Dickinson', 'Captain Oveur'] },
 
 { c: 'Presidents & Politics', t: 3, q: 'Which prime minister told a Harvard audience that the price of greatness is responsibility?', a: 'Winston Churchill', d: ['Clement Attlee', 'Anthony Eden', 'Harold Macmillan'] },
-{ c: 'History & War', t: 3, q: 'Which general seized power in France in 1799 and made himself first consul?', a: 'Napoleon Bonaparte', d: ['Lazare Carnot', 'Emmanuel Sieyes', 'Jean-Victor Moreau'] },
+{ c: 'History & War', t: 3, q: 'Which general is said to have told his army before a battle in Egypt that forty centuries were looking down on them from the pyramids?', a: 'Napoleon Bonaparte', d: ['Jean-Baptiste Kleber', 'Louis Desaix', 'Jean Lannes'] },
 { c: 'Science, Letters & Ideas', t: 3, q: 'Which philosopher argued that a just city would be governed by philosopher kings?', a: 'Plato', d: ['Aristotle', 'Xenophon', 'Isocrates'] },
 { c: 'Books & Authors', t: 3, q: 'Which poet asked what happens to a dream deferred?', a: 'Langston Hughes', d: ['Countee Cullen', 'Claude McKay', 'Jean Toomer'] },
 { c: 'Screen Lines', t: 3, q: 'Which character warns a kidnapper down the phone that he has a very particular set of skills?', a: 'Bryan Mills', d: ['Kim Mills', 'Lenore', 'Marko'] },
 
 { c: 'Presidents & Politics', t: 4, q: 'Which president complained that nothing brings out the lower traits of human nature like office seeking?', a: 'Rutherford B. Hayes', d: ['James Garfield', 'Chester Arthur', 'Grover Cleveland'] },
-{ c: 'History & War', t: 4, q: 'Which cavalry officer led the charge of the Light Brigade at Balaclava?', a: 'Lord Cardigan', d: ['Lord Lucan', 'Lord Raglan', 'Louis Nolan'] },
+{ c: 'History & War', t: 4, q: 'Which French general, watching a British cavalry charge at Balaclava, called it magnificent but said it was not war?', a: 'Pierre Bosquet', d: ['Francois Canrobert', 'Armand de Saint-Arnaud', 'Patrice de MacMahon'] },
 { c: 'Science, Letters & Ideas', t: 4, q: 'Which writer answered Edmund Burke and then argued for the rights of woman?', a: 'Mary Wollstonecraft', d: ['Harriet Taylor Mill', 'Olympe de Gouges', 'Hannah More'] },
 { c: 'Books & Authors', t: 4, q: 'Which novelist wrote Middlemarch under a name that was not her own?', a: 'George Eliot', d: ['Elizabeth Gaskell', 'Margaret Oliphant', 'Charlotte Yonge'] },
 { c: 'Screen Lines', t: 4, q: "Which character yells 'Get to the chopper!' in Predator?", a: 'Dutch', d: ['Dillon', 'Blain', 'Billy'] },
@@ -996,32 +996,32 @@ export const DAYS = [
 
 // ── Day 30 ─────────────────────────────────────────────────────────────────
 [
-{ c: 'Presidents & Politics', t: 1, q: 'Which president appears on the American one dollar bill?', a: 'George Washington', d: ['Abraham Lincoln', 'Thomas Jefferson', 'Alexander Hamilton'] },
-{ c: 'History & War', t: 1, q: 'Which barrier divided a German city from 1961 until 1989?', a: 'The Berlin Wall', d: ["Hadrian's Wall", 'The Maginot Line', 'The Siegfried Line'] },
-{ c: 'Science, Letters & Ideas', t: 1, q: 'Which physicist published the general theory of relativity in 1915?', a: 'Albert Einstein', d: ['Max Planck', 'Hendrik Lorentz', 'Henri Poincare'] },
+{ c: 'Presidents & Politics', t: 1, q: 'Which president wrote to a Rhode Island synagogue that the government of the United States gives to bigotry no sanction and to persecution no assistance?', a: 'George Washington', d: ['John Adams', 'Thomas Jefferson', 'James Madison'] },
+{ c: 'History & War', t: 1, q: 'Which climber, asked why he wanted to climb Everest, answered that it was because it is there?', a: 'George Mallory', d: ['Edmund Hillary', 'Tenzing Norgay', 'Eric Shipton'] },
+{ c: 'Science, Letters & Ideas', t: 1, q: 'Which physicist wrote that the eternal mystery of the world is its comprehensibility?', a: 'Albert Einstein', d: ['Max Planck', 'Hendrik Lorentz', 'Henri Poincare'] },
 { c: 'Books & Authors', t: 1, q: 'Which novel opens with a farmer locking the hen-houses for the night but forgetting the pop-holes?', a: 'Animal Farm', d: ['Nineteen Eighty-Four', 'Watership Down', 'Lord of the Flies'] },
 { c: 'Screen Lines', t: 1, q: "Which character announces 'I'm Mary Poppins, y'all' in Guardians of the Galaxy Vol. 2?", a: 'Yondu', d: ['Star-Lord', 'Rocket', 'Drax'] },
 
 { c: 'Presidents & Politics', t: 2, q: 'Which president wrote that the only limit to our realisation of tomorrow will be our doubts of today?', a: 'Franklin D. Roosevelt', d: ['Woodrow Wilson', 'Harry S. Truman', 'Herbert Hoover'] },
-{ c: 'History & War', t: 2, q: 'Which British commander led the Eighth Army to victory at El Alamein?', a: 'Bernard Montgomery', d: ['Claude Auchinleck', 'Harold Alexander', 'Archibald Wavell'] },
+{ c: 'History & War', t: 2, q: 'Which German general wrote Infantry Attacks about his First World War service, years before he led the Afrika Korps?', a: 'Erwin Rommel', d: ['Heinz Guderian', 'Erich von Manstein', 'Albert Kesselring'] },
 { c: 'Science, Letters & Ideas', t: 2, q: 'Which physicist devised the thought experiment about a cat in a sealed box?', a: 'Erwin Schrodinger', d: ['Werner Heisenberg', 'Niels Bohr', 'Paul Dirac'] },
 { c: 'Books & Authors', t: 2, q: 'Which novel opens outside a squat grey building of only thirty-four storeys?', a: 'Brave New World', d: ['Nineteen Eighty-Four', 'Fahrenheit 451', 'Erewhon'] },
 { c: 'Screen Lines', t: 2, q: 'Which character says you either die a hero or live long enough to see yourself become the villain?', a: 'Harvey Dent', d: ['Bruce Wayne', 'The Joker', 'Rachel Dawes'] },
 
 { c: 'Presidents & Politics', t: 3, q: 'Which president said he had never advocated war except as a means of peace?', a: 'Ulysses S. Grant', d: ['William Tecumseh Sherman', 'Rutherford B. Hayes', 'James Garfield'] },
-{ c: 'History & War', t: 3, q: 'Which German officer planted the bomb in the July 1944 plot against Hitler?', a: 'Claus von Stauffenberg', d: ['Ludwig Beck', 'Carl Goerdeler', 'Henning von Tresckow'] },
+{ c: 'History & War', t: 3, q: "Which German officer said, on hearing that the plot against Hitler had failed, that a man's moral worth is settled only where he is ready to give his life for his convictions?", a: 'Henning von Tresckow', d: ['Claus von Stauffenberg', 'Ludwig Beck', 'Carl Goerdeler'] },
 { c: 'Science, Letters & Ideas', t: 3, q: 'Which philosopher wrote Being and Time?', a: 'Martin Heidegger', d: ['Edmund Husserl', 'Karl Jaspers', 'Hans-Georg Gadamer'] },
 { c: 'Books & Authors', t: 3, q: 'Which Colombian novelist wrote the saga of the Buendia family in Macondo?', a: 'Gabriel Garcia Marquez', d: ['Mario Vargas Llosa', 'Julio Cortazar', 'Carlos Fuentes'] },
 { c: 'Screen Lines', t: 3, q: 'Which character describes eating a census taker with fava beans and a nice Chianti?', a: 'Hannibal Lecter', d: ['Clarice Starling', 'Jack Crawford', 'Buffalo Bill'] },
 
 { c: 'Presidents & Politics', t: 4, q: 'Which author of the Federalist Papers argued that energy in the executive is a leading character in good government?', a: 'Alexander Hamilton', d: ['James Madison', 'John Jay', 'Gouverneur Morris'] },
-{ c: 'History & War', t: 4, q: 'Which commander was proclaimed emperor by his troops in Britain in 306?', a: 'Constantine', d: ['Maxentius', 'Licinius', 'Galerius'] },
-{ c: 'Science, Letters & Ideas', t: 4, q: 'Which Greek astronomer produced the first known scale of stellar brightness?', a: 'Hipparchus', d: ['Ptolemy', 'Eratosthenes', 'Aristarchus'] },
+{ c: 'History & War', t: 4, q: 'Which emperor is said to have seen a sign in the sky before a battle, with words telling him to conquer by it?', a: 'Constantine', d: ['Maxentius', 'Licinius', 'Galerius'] },
+{ c: 'Science, Letters & Ideas', t: 4, q: 'Which Greek astronomer is credited with the verse saying that when he traces the winding courses of the stars he no longer touches the earth with his feet?', a: 'Ptolemy', d: ['Hipparchus', 'Eratosthenes', 'Aristarchus'] },
 { c: 'Books & Authors', t: 4, q: 'Which poet wrote of anyone who lived in a pretty how town?', a: 'e. e. cummings', d: ['Wallace Stevens', 'Hart Crane', 'William Carlos Williams'] },
 { c: 'Screen Lines', t: 4, q: "Which character says 'Chewie, we're home' on stepping back aboard his old ship?", a: 'Han Solo', d: ['Leia Organa', 'Rey', 'Finn'] },
 
-{ c: 'Presidents & Politics', t: 5, q: 'Which French revolutionary was stabbed to death in his bath in 1793?', a: 'Jean-Paul Marat', d: ['Georges Danton', 'Camille Desmoulins', 'Louis Saint-Just'] },
-{ c: 'History & War', t: 5, q: 'Which admiral led the Ming treasure fleets across the Indian Ocean in the fifteenth century?', a: 'Zheng He', d: ['Wang Jinghong', 'Hong Bao', 'Zhou Man'] },
+{ c: 'Presidents & Politics', t: 5, q: 'Which revolutionary leader told his executioner to show his head to the people, because it was well worth seeing?', a: 'Georges Danton', d: ['Jean-Paul Marat', 'Camille Desmoulins', 'Louis Saint-Just'] },
+{ c: 'History & War', t: 5, q: 'Which admiral had a stone tablet raised recording that his fleets had crossed more than a hundred thousand li of vast ocean?', a: 'Zheng He', d: ['Wang Jinghong', 'Hong Bao', 'Zhou Man'] },
 { c: 'Science, Letters & Ideas', t: 5, q: 'Which Scottish philosopher wrote A Treatise of Human Nature in his twenties?', a: 'David Hume', d: ['Adam Ferguson', 'Thomas Reid', 'Dugald Stewart'] },
 { c: 'Books & Authors', t: 5, q: 'Which Italian novelist wrote a book made of ten unfinished novels addressed to its reader?', a: 'Italo Calvino', d: ['Umberto Eco', 'Primo Levi', 'Cesare Pavese'] },
 { c: 'Screen Lines', t: 5, q: 'Which character descends a staircase declaring she is ready for her close-up?', a: 'Norma Desmond', d: ['Joe Gillis', 'Max von Mayerling', 'Betty Schaefer'] },
