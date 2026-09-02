@@ -5747,6 +5747,19 @@ fallback only fills a gap. Resolved by DISPLAY NAME because that is what the car
 is handed, and guessing a key there would be the registry-key-is-not-route-name
 trap. Calc was given its prop in the same push regardless.
 
+## The A-to-Z / Reorder bar sits at the FOOT for a new phone visitor (owner, 2026-09-02)
+
+On `/today` (`app/today/StageToday.jsx`) the `.sty-ord` bar (A to Z, Reorder categories, Reset)
+renders ONCE, from the `ordBar` const, in one of two places: at the top of the sections, or under
+the last category row when `ordBelow` is true. `ordBelow = narrow && returning === false`, where
+`narrow` is the page's existing `<=640px` flag and `returning` is the WelcomeOverlay footprint test
+(saved identity, any `sot_<key>_day` breadcrumb, any per-puzzle save; storage unreadable counts as
+returning). The reasoning: those two controls rearrange a page a first-time reader has not read
+yet, and on a phone they took the first line under the cap. A returning or registered reader keeps
+them at the top. `returning` is null until its effect runs, so the server and the first client paint
+agree (bar at the top) and only a new phone visitor sees it drop, once. Desktop is unchanged for
+everyone. Do not add a second copy of the bar's JSX; render `ordBar`.
+
 ## Your standing: the home answers "how did I finish in each game" (owner, 2026-09-01)
 
 `/today` (`app/today/StageToday.jsx`) could not answer the one question a player

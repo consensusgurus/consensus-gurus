@@ -949,6 +949,49 @@ export default function StageToday() {
   }, []);
   const ladH = narrow ? 20 : 54;
 
+  // WHERE THE A-TO-Z / REORDER BAR SITS (owner, 2026-09-02). A first-time or
+  // unregistered visitor on a phone gets it at the FOOT of the categories, not
+  // the top: those two controls rearrange a page the reader has not read yet,
+  // and on a 390px screen they took the first line under the cap. A returning
+  // or registered reader keeps them at the top, where a habit expects them.
+  // "Returning" is the footprint test WelcomeOverlay uses: a saved identity,
+  // any sot_<key>_day breadcrumb, or any per-puzzle save. null until the effect
+  // runs, so the server and the first client paint agree (bar at the top); a
+  // new phone visitor sees it drop once, on that first paint only.
+  const [returning, setReturning] = useState(null);
+  useEffect(() => {
+    let r = false;
+    try {
+      if (localStorage.getItem('sot_quiz_identity')) r = true;
+      for (let i = 0; !r && i < localStorage.length; i += 1) {
+        const k = localStorage.key(i) || '';
+        if (!k.startsWith('sot_')) continue;
+        if (/^sot_.+_day$/.test(k)) r = true;
+        else if (/^sot_(?!quiz_|vid_)[a-z]+_\d/.test(k)) r = true;
+      }
+    } catch (e) { r = true; }
+    setReturning(r);
+  }, []);
+  const ordBelow = narrow && returning === false;
+  const ordBar = (
+    <div className="sty-ord">
+      <button type="button" className={'sty-more sty-ordb' + (az ? ' on' : '')} onClick={toggleAz}>
+        {az ? 'By category' : 'A to Z'}
+      </button>
+      {/* Reordering categories is meaningless while the categories are not
+          being shown, so the control goes away rather than sitting there
+          inert. */}
+      {!az ? (
+        <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
+          {reorder ? 'Done reordering' : 'Reorder categories'}
+        </button>
+      ) : null}
+      {!az && reorder && handOrder ? (
+        <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
+      ) : null}
+    </div>
+  );
+
   // HOW MANY CIRCUITS FIT is a question only the rendered grid can answer, so
   // it is read off the element's own computed columns rather than derived from
   // a breakpoint. Re-measured on resize; falls back to three before it mounts.
@@ -1308,23 +1351,9 @@ export default function StageToday() {
 
         {/* THE ORDER IS THE READER'S. Arrows rather than dragging: they work
             with a thumb and with a keyboard, and the order they write is the
-            same sot_cat_order the other home reads. */}
-        <div className="sty-ord">
-          <button type="button" className={'sty-more sty-ordb' + (az ? ' on' : '')} onClick={toggleAz}>
-            {az ? 'By category' : 'A to Z'}
-          </button>
-          {/* Reordering categories is meaningless while the categories are not
-              being shown, so the control goes away rather than sitting there
-              inert. */}
-          {!az ? (
-            <button type="button" className="sty-more sty-ordb" onClick={() => setReorder((v) => !v)}>
-              {reorder ? 'Done reordering' : 'Reorder categories'}
-            </button>
-          ) : null}
-          {!az && reorder && handOrder ? (
-            <button type="button" className="sty-more sty-ordb" onClick={() => saveOrder(null)}>Reset to default</button>
-          ) : null}
-        </div>
+            same sot_cat_order the other home reads. It renders ONCE, here or
+            under the categories (`ordBelow`, decided above). */}
+        {!ordBelow ? ordBar : null}
 
         {circuits.length ? (
           /* THE SAME OBJECT AS EVERY OTHER SECTION (owner, 2026-08-31): the 4px
@@ -1417,6 +1446,8 @@ export default function StageToday() {
             </section>
           );
         })}
+
+        {ordBelow ? ordBar : null}
 
         {/* THE DAY'S THREE RECORDS, and the grid decides which of them share a
             row (owner, 2026-09-01). Your standing and the board are the two
