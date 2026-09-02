@@ -14,11 +14,17 @@
 //   4. focal points inside the picture, licences from the allowed set, and
 //      an author on every row (it is printed under the reveal);
 //   5. subject option lists are unique after folding, so two entries can
-//      never collide in the type-ahead.
+//      never collide in the type-ahead;
+//   6. THE MATCHER FINDS EVERY ANSWER, from its own name and from the same
+//      words in a different order. A reader who knows the answer must never
+//      be handed an empty list, which is exactly what shipped: "Starry
+//      Starry Night" found nothing on the day the answer was The Starry
+//      Night (reader report, 2026-09-02). These cases FAIL against the old
+//      substring-only rule and pass against matchOptions.
 // Exit code is non-zero on any failure, with ✗ / … prefixes, so verify-all
 // picks it up.
 import { PUZZLES } from '../app/focus/puzzles.js';
-import { SUBJECTS, subjectFor, fold } from '../app/focus/subjects.js';
+import { SUBJECTS, subjectFor, fold, matchOptions } from '../app/focus/subjects.js';
 
 let fails = 0;
 const bad = (m) => { fails++; console.log('✗ ' + m); };
@@ -77,6 +83,49 @@ for (const s of SUBJECTS) {
   if (s.options.length < 30) bad(`${s.label}: only ${s.options.length} options; the first frame needs a real field`);
 }
 ok(`7 subjects, ${SUBJECTS.reduce((n, s) => n + s.options.length, 0)} options`);
+
+// 6. the type-ahead reaches every answer
+// A reader types the name they know, not the name as filed, so each answer is
+// probed three ways: as written, with its words shuffled, and with the last
+// word half typed (the list rebuilds on every keystroke). Then the reported
+// case verbatim, and a check that a doubled word still finds a name carrying
+// one of it, which is the specific thing the old rule could not do.
+const shuffle = (str) => {
+  const w = fold(str).split(' ');
+  return w.length < 2 ? null : [...w.slice(1), w[0]].join(' ');
+};
+let unreach = 0;
+for (const p of PUZZLES) {
+  const opts = subjectFor(p.live).options;
+  const w = fold(p.a).split(' ');
+  const probes = [p.a, [...w.slice(0, -1), w[w.length - 1].slice(0, Math.max(1, w[w.length - 1].length - 2))].join(' ')];
+  const sh = shuffle(p.a);
+  if (sh) probes.push(sh);
+  for (const probe of probes) {
+    if (!matchOptions(probe, opts, []).includes(p.a)) { unreach++; bad(`day ${p.num} (${p.a}): typing "${probe}" does not offer it`); }
+  }
+}
+if (!unreach) ok('every answer is reachable from its name, its words reordered, and a half-typed last word');
+
+const REPORTED = [
+  ['Starry Starry Night', 'The Starry Night', 'paintings'],
+  ['starry night starry', 'The Starry Night', 'paintings'],
+  ['night starry', 'The Starry Night', 'paintings'],
+  ['great wave kanagawa', 'The Great Wave off Kanagawa', 'paintings'],
+  ['bridge golden gate', 'Golden Gate Bridge', 'landmarks'],
+  ['tower eiffel', 'Eiffel Tower', 'landmarks'],
+];
+let repBad = 0;
+for (const [typed, want, key] of REPORTED) {
+  const s = SUBJECTS.find((x) => x.key === key);
+  if (!s) { bad(`no subject keyed ${key}`); repBad++; continue; }
+  if (!matchOptions(typed, s.options, []).includes(want)) { bad(`typing "${typed}" should offer ${want}`); repBad++; }
+}
+// A spent name never comes back, and a query under two characters offers nothing.
+const ANIMALS = SUBJECTS.find((s) => s.key === 'animals').options;
+if (matchOptions('Toucan', ANIMALS, ['Toucan']).includes('Toucan')) { bad('a name already guessed is still being offered'); repBad++; }
+if (matchOptions('t', ANIMALS, []).length) { bad('a one-character query should offer nothing'); repBad++; }
+if (!repBad) ok('reported cases resolve; spent names stay out; one character offers nothing');
 
 // weekday map sanity: the launch day is a Wednesday and must land on Paintings
 if (subjectFor('2026-09-02').key !== 'paintings') bad('2026-09-02 should map to Paintings (Wednesday)');

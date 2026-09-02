@@ -105,5 +105,49 @@ export function subjectFor(dateStr) {
 }
 
 // Loose matching for the type-ahead: case, accents, apostrophes and
-// punctuation all fold away, so "rubiks" finds Rubik’s Cube.
+// punctuation all fold away, so "rubiks" finds Rubik’s Cube. Words survive as
+// words, separated by single spaces, because matchOptions below reads them.
 export const fold = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’']/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+
+// THE TYPE-AHEAD MATCHES ON WORDS, IN ANY ORDER, NOT ON ONE RUNNING STRING.
+//
+// It used to match a prefix or a substring of the whole folded name and
+// nothing else, which is fine right up until a reader types the name they
+// actually know. A player recognised The Starry Night off the FIRST frame,
+// typed "Starry Starry Night", and got an empty list: no row to tap, no Enter
+// chip, and no message of any kind until they pressed a key they had no
+// reason to press (reader report, 2026-09-02). "starry starry night" is
+// neither a prefix nor a substring of "the starry night", so the one reader
+// who knew the answer instantly was the one the box went silent on. Word
+// order, a leading article and a doubled word are the reader's business, not
+// the matcher's.
+//
+// Three tiers, best first, so the strongest match still leads the list and
+// Enter still takes something predictable:
+//   1. the name STARTS with what was typed        "starry n"
+//   2. the name CONTAINS what was typed           "starry night"
+//   3. every word typed is the PREFIX OF SOME WORD in the name, any order
+//                                                 "starry starry night",
+//                                                 "night starry", "night s"
+// Tier 3 deliberately does NOT require distinct words: "starry starry" has to
+// find a name carrying one "starry", which is the whole reported case. It
+// tests prefixes rather than whole words because the list rebuilds on every
+// keystroke, so a half-typed last word must still match. A single-word query
+// reaches tier 3 with nothing new to say (tier 2 already covers it), so the
+// widening only ever changes a multi-word query.
+export function matchOptions(query, options, spent) {
+  const n = fold(query);
+  if (n.length < 2) return [];
+  const words = n.split(' ');
+  const skip = spent instanceof Set ? spent : new Set(spent || []);
+  const starts = [], has = [], loose = [];
+  for (const o of options) {
+    if (skip.has(o)) continue;
+    const f = fold(o);
+    if (f.startsWith(n)) { starts.push(o); continue; }
+    if (f.includes(n)) { has.push(o); continue; }
+    const parts = f.split(' ');
+    if (words.every((w) => parts.some((p) => p.startsWith(w)))) loose.push(o);
+  }
+  return [...starts, ...has, ...loose].slice(0, 6);
+}

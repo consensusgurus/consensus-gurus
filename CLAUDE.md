@@ -6964,3 +6964,48 @@ any load where daily-status or /api/quiz/me outlasts 260ms (`?welcome=0` plus a 
 query, zoom on the cap at ~0.45s). Chrome MCP screenshots time out mid-animation; a
 screenshot at 0.6s catches the patches under the fading-in curtain and one at ~2.5s the
 words on the dark ground.
+
+## A TYPE-AHEAD MATCHES ON WORDS, AND AN EMPTY LIST OWES AN EXPLANATION (owner rule, 2026-09-02)
+
+Reader report on Focus: "I looked at the picture today and right away recognised the
+colouring as Starry Starry Night. Typed the answer and nothing happened... there was
+nothing to click on when I first tried, no enter appeared even to say if the double use
+of starry was wrong and I'd lost one guess."
+
+Both halves of that are the same class of bug, and both generalize past Focus.
+
+**1. Word order and repeated words are the reader's business, not the matcher's.**
+`matchOptions` (app/focus/subjects.js) matched a prefix or a substring of the whole folded
+name and nothing else. The day's answer was `The Starry Night`; `starry starry night` is
+neither a prefix nor a substring of `the starry night`, so the ONE reader who knew the
+answer off frame 1 was the one the box went silent on. Note the shape: the matcher was
+strictest exactly where the player was most confident, because a player who knows a thing
+types the name they know rather than the name as filed.
+
+Three tiers now, best first, so Enter still takes something predictable: the name STARTS
+with what was typed, else the name CONTAINS it, else **every word typed is the prefix of
+some word in the name, in any order, with no distinctness required**. Prefixes rather than
+whole words because the list rebuilds on every keystroke, so a half-typed last word must
+still match; no distinctness because "starry starry" has to find a name carrying one
+"starry", which IS the reported case. A single-word query reaches tier 3 with nothing new
+to say, so the widening only ever changes a multi-word query. **This is the same rule
+`keyHit` already uses for quizzes** (see the quiz key-design section), and a new game that
+asks a reader to type a name should start from it rather than rediscovering it.
+
+**2. AN EMPTY SUGGESTION LIST IS A STATE, AND IT MUST SPEAK.** The box rendered no row, no
+Enter chip, and a standing hint reading "Type, then choose a name", which is advice for
+somebody who has not typed yet. The only acknowledgement of a non-match was a 2.2s toast
+that fired on Enter, a key the reader had no reason to press with nothing on screen to
+press it for. So the line under the box now flips the moment 2+ characters produce zero
+suggestions, and it answers the question the reader is actually asking: **"No name on
+today's list matches that. It has cost you nothing."** Persistent, not a toast. The Enter
+toast came off in the same pass, since the line was already saying it permanently.
+
+Any input that filters a list owes the reader the same two things: match on what they
+would type, and never render an empty result in silence.
+
+**Gate: `scripts/verify-focus.mjs` check 6.** Every bank answer must be reachable by typing
+its name, its words reordered, and its last word half typed, plus the reported cases
+verbatim. Confirmed to FAIL (37 failures, naming "Starry Starry Night") against the old
+substring-only rule, which is the point: a check that has never been shown to fail has not
+been tested.

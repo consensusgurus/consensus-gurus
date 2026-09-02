@@ -12,7 +12,11 @@
 // A guess is a PICK from the type-ahead, never free text: the weekday subject
 // (subjects.js) carries the whole answer universe, so a typo costs nothing
 // and every spent frame was a real, named wrong answer. Enter takes the top
-// suggestion.
+// suggestion. The matching itself lives in matchOptions (subjects.js) and
+// reads WORDS in any order, so "Starry Starry Night" finds The Starry Night;
+// and when it finds nothing the line under the box says so on the keystroke,
+// because an empty list with no explanation is what this game got wrong
+// first (reader report, 2026-09-02).
 //
 // The photo comes from /api/focus/img?n=<num>, which refuses a day that is
 // not yet live, so the client never holds tomorrow's picture. The bank row
@@ -55,7 +59,7 @@ import { CONTEST, contestIsLive } from '@/lib/contest';
 import { isLoft } from '@/lib/loft';
 import { T } from '@/lib/theme';
 import { meRequest } from '@/app/quizMeClient';
-import { subjectFor, fold } from './subjects';
+import { subjectFor, fold, matchOptions } from './subjects';
 
 const COLORS = {
   cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent,
@@ -417,19 +421,15 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
     noticeRef.current = setTimeout(() => setNotice(null), 2200);
   }
 
-  const suggestions = useMemo(() => {
-    const n = fold(q);
-    if (n.length < 2) return [];
-    const spent = new Set(g.wrong);
-    const starts = [], has = [];
-    for (const o of OPTIONS) {
-      if (spent.has(o)) continue;
-      const f = fold(o);
-      if (f.startsWith(n)) starts.push(o);
-      else if (f.includes(n)) has.push(o);
-    }
-    return [...starts, ...has].slice(0, 6);
-  }, [q, OPTIONS, g.wrong]);
+  const suggestions = useMemo(() => matchOptions(q, OPTIONS, g.wrong), [q, OPTIONS, g.wrong]);
+  // SILENCE IS THE BUG. An empty list used to say nothing at all: no row, no
+  // Enter chip, and a standing hint that still read "Type, then choose a
+  // name", which is advice for someone who has not typed yet. So the moment
+  // the list comes back empty the line under the box says so, and says the
+  // one thing the reader is actually asking, which is whether that cost them
+  // a frame. Persistent, not a toast: the 2.2s notice was the other half of
+  // why this went unexplained.
+  const noMatch = fold(q).length >= 2 && suggestions.length === 0;
 
   function guess(name) {
     const cur = gRef.current;
@@ -456,8 +456,11 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
     setTimeout(() => { try { inputRef.current && inputRef.current.focus(); } catch (e) {} }, 30);
   }
   function onEnter() {
-    if (suggestions.length) { guess(suggestions[0]); return; }
-    if (fold(q).length >= 2) say('Nothing on today’s list matches that. Try another spelling; it costs nothing.');
+    // Enter takes the top suggestion, and does nothing at all when there is
+    // none. It used to flash a toast saying nothing matched; the line under
+    // the box now says that permanently, so the toast was the same sentence
+    // twice, one of which erased itself.
+    if (suggestions.length) guess(suggestions[0]);
   }
 
   function shareUrl() { return withRef(`mindloftdaily.com/focus${isTodays ? '' : `?p=${PUZZLE.num}`}`); }
@@ -685,7 +688,9 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
                     read "A pick is a guess", which invents "pick" for an action nobody
                     has named and then defines it as another word from the rules panel
                     (owner, 2026-09-01: "that seems dumb"). Say what happens. */}
-                {notice ? notice.msg : <>Type, then choose a name. <b style={{ color: INK }}>Choosing one spends a frame.</b></>}
+                {notice ? notice.msg
+                  : noMatch ? <>No name on today’s list matches that. <b style={{ color: INK }}>It has cost you nothing.</b></>
+                  : <>Type, then choose a name. <b style={{ color: INK }}>Choosing one spends a frame.</b></>}
               </div>
             </div>
           )}
