@@ -21,7 +21,26 @@
 // before reaching the one that hands them forward).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
-import { RAMP_ORDER, categoryColor } from '@/lib/category-ramp';
+import { RAMP_ORDER, RAMP_INK, categoryColor, categoryColorLight, categoryOnrampLight } from '@/lib/category-ramp';
+// THE REGISTER PICKS THE HUE, and this file is why that rule needs saying a
+// second time. Every other stage surface publishes BOTH twins of its category
+// step (--stg-acc-dk / --stg-acc-lt) and lets globals.css choose one; this one
+// wrote the DARK ramp straight into an inline --tc, so on the light register a
+// whole card of tiles and chips wore the near-black register's pastels on
+// white. Two things went wrong at once, and only the first was reported: Logic
+// came out LIME on a page painted GREEN (the ramp's one deliberate hue
+// exception, categoryColorLight's own note), and all ten steps sat at 1.4-2:1
+// against the white surface they were drawn on, so the left rule that says
+// which category a tile belongs to could barely be seen at all.
+//
+// It cannot be fixed the usual way HERE: this component ships its CSS as a
+// <style> TEXT CHILD, and React escapes an apostrophe inside one, so a
+// [data-stage-theme='light'] selector would arrive at the CSS parser as
+// &#x27; and the whole light block would be dropped on the floor (see
+// scripts/verify-inline-style-quotes.mjs). So the choice is made in JS, which
+// is what StageToday and PremierePop already do, and useStageTheme is what
+// makes it repaint when the reader flips the switch with the card open.
+import { useStageTheme } from '@/lib/stage-theme';
 // ONE READING OF A BOARD ROW, shared with the tile panel and the stage's leader
 // strip. See the file's own header: a row carries both the 0-15 placement points
 // and what the player actually did, and only the second means anything next to
@@ -346,10 +365,10 @@ function doneToday() {
   return out;
 }
 
-function Tile({ g, played }) {
+function Tile({ g, played, light }) {
   return (
     <a className={'stf-tile' + (played ? ' done' : '')} href={g.href || `/${g.key}`}
-      style={{ '--tc': categoryColor(g.cat) }}>
+      style={{ '--tc': light ? categoryColorLight(g.cat) : categoryColor(g.cat) }}>
       <GameGlyph gameKey={g.key} size={14} />
       <span>{g.name}</span>
     </a>
@@ -456,6 +475,14 @@ export default function StageFinish({
     setFlood(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Which register the page is in. The store rather than the DOM attribute,
+  // because it SUBSCRIBES: a reader who flips the light switch while the card
+  // is open repaints the hues with everything else instead of leaving one
+  // card's worth of tiles in the register they came from. It resolves to the
+  // same default the page root does ('light'), so the first paint agrees.
+  const [stageTheme] = useStageTheme();
+  const light = stageTheme === 'light';
 
   const [cat, setCat] = useState(null);        // null | a category | 'all'
   const [arch, setArch] = useState(false);     // this game's own back catalogue
@@ -754,7 +781,7 @@ export default function StageFinish({
           <section>
             <div className="stf-eb">{me ? `More ${me.cat} puzzles` : 'More puzzles'}</div>
             <div className="stf-tiles">
-              {sameCat.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+              {sameCat.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} light={light} />)}
             </div>
           </section>
         ) : null}
@@ -778,7 +805,15 @@ export default function StageFinish({
               {RAMP_ORDER.map((c) => (
                 <button key={c} type="button"
                   className={'stf-cat' + (cat === c ? ' on' : '')}
-                  style={{ '--tc': categoryColor(c) }}
+                  style={{
+                    '--tc': light ? categoryColorLight(c) : categoryColor(c),
+                    // The ink that carries ON that step when the chip is the
+                    // selected one and fills. One per step on the light
+                    // register, because the three warm ones stay pastel and
+                    // take the near-black instead of white; one for all ten on
+                    // the dark register, where every step is a pastel.
+                    '--tci': light ? categoryOnrampLight(c) : RAMP_INK,
+                  }}
                   onClick={() => setCat((v) => (v === c ? null : c))}>{c}</button>
               ))}
             </div>
@@ -791,7 +826,7 @@ export default function StageFinish({
                 {cat === 'all' ? 'All daily puzzles' : cat} <em>&middot; {catList.length}</em>
               </div>
               <div className="stf-tiles">
-                {catList.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} />)}
+                {catList.map((g) => <Tile key={g.key} g={g} played={played.has(g.key)} light={light} />)}
               </div>
             </div>
           ) : null}
@@ -892,7 +927,15 @@ const CSS = `
   border:1px solid var(--stg-line);border-left:3px solid var(--tc);border-radius:7px;
   padding:6px 11px;}
 .stf-cat:hover{color:var(--stg-ink);border-color:var(--stg-line2);border-left-color:var(--tc);}
-.stf-cat.on{color:var(--tc);border-color:var(--tc);}
+/* THE SELECTED CHIP FILLS, rather than writing its own hue as text. Colour as
+   INK is the one use the ramp cannot carry: gold, orange and amber keep their
+   value in the light register (they flip their ink instead of darkening, since
+   a gold dark enough to hold white text is brown), so End Game, Trivia and
+   Arcade as text on white are ~1.9:1 and unreadable. Filled, they are the
+   ramp's own object: the step, with the step's ink on it, which is what the
+   home's category bands and the curtain already are. It also reads as selected
+   from further away than a coloured outline did. */
+.stf-cat.on{background:var(--tc);border-color:var(--tc);color:var(--tci,${RAMP_INK});}
 .stf-catlist{margin-top:12px;}
 
 /* One tile shape for both lists: the A-to-Z panel and More-of-the-same. */
