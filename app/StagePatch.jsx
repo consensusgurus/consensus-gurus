@@ -26,9 +26,17 @@
 //
 // It carries NO stylesheet of its own: a page mounts several, so the CSS is
 // exported once (PATCH_CSS) and the page interpolates it into its own <style>.
-// The cover is the DARK ground in both registers, deliberately: on the pale
-// home it is the same door the once-a-day arrival draws, at the size of one
-// cell, and a reader who saw the Ramp at breakfast recognises it at lunch.
+// THE COVER IS THE DOOR ON THE PALE REGISTER AND A CELL ON THE DARK ONE
+// (owner, 2026-09-01: "what about light vs dark populating items"). On the
+// pale home it is the near-black ground the once-a-day arrival draws, at the
+// size of one cell, so a reader who saw the Ramp at breakfast recognises it at
+// lunch. On the dark register that same near-black is the page itself, so the
+// cover vanished and only the rungs showed, a row of dots with no shape around
+// them. There it takes the stage's empty-cell token (--stg-cell, the one
+// surface defined to be seen against the ground) with its hairline, which is
+// what an empty playable square already looks like on every board. The page
+// publishes both through --stg-patch-bg / --stg-patch-line; the fallbacks are
+// the pale register's.
 //
 // Usage: a positioned parent, then <StagePatch on={stillWaiting} />.
 
@@ -85,7 +93,8 @@ export default function StagePatch({ on, radius = 6 }) {
 }
 
 export const PATCH_CSS = `
-.stg-patch{position:absolute;inset:0;z-index:3;background:#0b0f1a;overflow:hidden;
+.stg-patch{position:absolute;inset:0;z-index:3;background:var(--stg-patch-bg,#0b0f1a);
+  box-shadow:inset 0 0 0 1px var(--stg-patch-line,transparent);overflow:hidden;
   display:flex;align-items:flex-end;gap:2px;pointer-events:none;
   -webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0);}
 .stg-patch i{flex:1;height:4px;opacity:.18;animation:stg-rung 1.2s linear infinite;}

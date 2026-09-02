@@ -1054,7 +1054,10 @@ export default function StageToday() {
   }, [done, inprog]);
 
   return (
-    <div className="sty stage-page" data-stage-theme={stageTheme}>
+    <div className="sty stage-page" data-stage-theme={stageTheme}
+      style={light
+        ? { '--stg-patch-bg': '#0b0f1a', '--stg-patch-line': 'transparent' }
+        : { '--stg-patch-bg': 'var(--stg-cell)', '--stg-patch-line': 'var(--stg-cell-line)' }}>
       <style>{CSS}</style>
       <StageWelcome capRef={capRef} />
       {/* NEW-GAME PREMIERES: once per launch, returning players who have not
