@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CheckClient from './CheckClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -17,7 +19,7 @@ import { SITE_URL } from '@/lib/site';
 // renders only after the board is over, is the one place the key may be named.
 
 export const metadata = {
-  title: 'Check — Free Daily Checkers Puzzle | Mind Loft',
+  title: 'Free Daily Checkers Puzzle: Check | Mind Loft',
   description:
     'A free daily checkers puzzle. Red to play, with a forced sweep on the board: capture every black piece in three moves, four on Sundays. Exactly one first move does it, and there is no take-back. No app, no signup, and a new board every day.',
   alternates: { canonical: '/check' },
@@ -92,6 +94,7 @@ export default function CheckPage({ searchParams }) {
       <Suspense fallback={null}>
         <CheckClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="check" stage={isStageServer('check', searchParams)} />
     </>
   );
 }

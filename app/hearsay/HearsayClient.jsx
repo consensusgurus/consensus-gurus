@@ -887,7 +887,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Hearsay</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Hearsay is a free daily logic puzzle from Mind Loft, in the family made famous by Cheryl&rsquo;s Birthday. A shortlist of candidates is public. Two people (three on Sundays) are each told one detail of the secret entry and nothing more, and then they talk. Your job is to work out which entry they are circling.

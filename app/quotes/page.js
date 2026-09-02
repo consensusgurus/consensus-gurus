@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import QuotesClient from './QuotesClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // browser, so the rest of the bank never reaches a client.
 
 export const metadata = {
-  title: 'Quotes — Free Daily Who Said It Trivia Game | Mind Loft',
+  title: 'Free Daily Who Said It Trivia Game: Quotes | Mind Loft',
   description:
     'A free daily quotation quiz. Twenty-five famous lines from presidents, generals, scientists, writers and film characters climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new twenty-five every day.',
   alternates: { canonical: '/quotes' },
@@ -86,6 +88,7 @@ export default function QuotesPage({ searchParams }) {
       <Suspense fallback={null}>
         <QuotesClient key={picked.num} puzzles={lightPuzzles} questionsByNum={{ [picked.num]: questions }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="quotes" stage={isStageServer('quotes', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import EmceeClient from './EmceeClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // to a 7×7 pinwheel with 22.
 
 export const metadata = {
-  title: 'Emcee — Free Daily Mini Crossword | Mind Loft',
+  title: 'Free Daily Mini Crossword: Emcee | Mind Loft',
   description:
     'A free daily mini crossword — a 5×5 grid of everyday words with fair Across and Down clues, done in a minute or two. The grid checks itself when the last square lands, and Sundays go bigger.',
   alternates: { canonical: '/emcee' },
@@ -122,6 +124,7 @@ export default function EmceePage({ searchParams }) {
       <Suspense fallback={null}>
         <EmceeClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="emcee" stage={isStageServer('emcee', searchParams)} />
     </>
   );
 }

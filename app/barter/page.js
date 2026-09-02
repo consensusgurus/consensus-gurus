@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import BarterClient from './BarterClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // reaches the browser.
 
 export const metadata = {
-  title: 'Barter — Free Daily Letter-Trade Word Puzzle | Mind Loft',
+  title: 'Free Daily Letter-Trade Word Puzzle: Barter | Mind Loft',
   description:
     'A free daily word puzzle. Six words interlock in a lattice, every letter is already on the board, and you trade two tiles at a time. Green locks, yellow belongs in a crossing word, and the budget is the proven minimum number of trades plus five. Solve at par for a perfect game, with a bigger 7x7 Edition on Sundays.',
   alternates: { canonical: '/barter' },
@@ -100,6 +102,7 @@ export default function BarterPage({ searchParams }) {
       <Suspense fallback={null}>
         <BarterClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="barter" stage={isStageServer('barter', searchParams)} />
     </>
   );
 }

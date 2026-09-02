@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import QueenClient from './QueenClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // position nor any day's answer ever reaches the browser.
 
 export const metadata = {
-  title: 'Queen — Free Daily Chess Endgame (King and Pawn) | Mind Loft',
+  title: 'Free Daily Chess Endgame (King and Pawn): Queen | Mind Loft',
   description:
     'A free daily king-and-pawn endgame. White to move with a proven promotion in a fixed number of moves, exactly one first move that keeps it, and a perfect tablebase defence. Opposition, spare tempi, the square of the pawn: the endgame every chess player is told to learn first, one position a day.',
   alternates: { canonical: '/queen' },
@@ -105,6 +107,7 @@ export default function QueenPage({ searchParams }) {
       <Suspense fallback={null}>
         <QueenClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="queen" stage={isStageServer('queen', searchParams)} />
     </>
   );
 }

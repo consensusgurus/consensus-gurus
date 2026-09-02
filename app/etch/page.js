@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import EtchClient from './EtchClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // nothing about a puzzle nobody can play yet.
 
 export const metadata = {
-  title: 'Etch — Free Daily Nonogram (Picross) | Mind Loft',
+  title: 'Free Daily Nonogram (Picross): Etch | Mind Loft',
   description:
     'A free daily nonogram, also called picross or griddler. The row and column clues give the run lengths of filled squares. Fill the grid by pure logic, never guesswork, and a picture appears. One solution, a new picture every day, 10x10 on weekdays, a 15x15 on Saturday and a 20x20 Edition on Sunday.',
   alternates: { canonical: '/etch' },
@@ -103,6 +105,7 @@ export default function EtchPage({ searchParams }) {
       <Suspense fallback={null}>
         <EtchClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="etch" stage={isStageServer('etch', searchParams)} />
     </>
   );
 }

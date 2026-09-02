@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import StrataClient from './StrataClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // why the bank proves every placement unique.
 
 export const metadata = {
-  title: 'Strata — Daily Word Excavation Game | Mind Loft',
+  title: 'Daily Word Excavation Game: Strata | Mind Loft',
   description:
     'A free daily word game you dig out. Every letter belongs to one of the hidden words, all members of a category you are not told. Find a word and the letters above it fall, which is what lets you read the next one. Bigger grid and two threads on Sundays.',
   alternates: { canonical: '/strata' },
@@ -107,6 +109,7 @@ export default function StrataPage({ searchParams }) {
       <Suspense fallback={null}>
         <StrataClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="strata" stage={isStageServer('strata', searchParams)} />
     </>
   );
 }

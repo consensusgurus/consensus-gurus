@@ -1296,7 +1296,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Cages — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Cages</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Cages is a free daily killer sudoku from Mind Loft. Killer sudoku takes the printed clues away and replaces them with arithmetic: the 81 squares are divided into dashed cages, each labelled with the total of the digits inside it, and no digit repeats within a cage. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once. The board starts completely empty, and there is always a single, logical solution &mdash; no guessing required.

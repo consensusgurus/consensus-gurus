@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import MateClient from './MateClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // the solution tree that comes with it) never reaches the browser.
 
 export const metadata = {
-  title: 'Mate — Free Daily Chess Puzzle (Mate in Two) | Mind Loft',
+  title: 'Free Daily Chess Puzzle (Mate in Two): Mate | Mind Loft',
   description:
     'A free daily chess puzzle. White to play and force checkmate in two, with exactly one first move that works. Tap a piece and its legal squares light up, so no chess notation is needed. Play the line out against Black’s best defence, keep a streak, and Sundays step up to a mate in three.',
   alternates: { canonical: '/mate' },
@@ -99,6 +101,7 @@ export default function MatePage({ searchParams }) {
       <Suspense fallback={null}>
         <MateClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="mate" stage={isStageServer('mate', searchParams)} />
     </>
   );
 }

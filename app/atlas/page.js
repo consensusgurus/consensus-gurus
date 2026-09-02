@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import AtlasClient from './AtlasClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // the browser, so the rest of the bank never reaches a client.
 
 export const metadata = {
-  title: 'Atlas — Free Daily Geography Quiz Game | Mind Loft',
+  title: 'Free Daily Geography Quiz Game: Atlas | Mind Loft',
   description:
     'A free daily geography gauntlet. Twenty-five questions on capitals, rivers, flags, borders and landmarks climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new map every day.',
   alternates: { canonical: '/atlas' },
@@ -86,6 +88,7 @@ export default function AtlasPage({ searchParams }) {
       <Suspense fallback={null}>
         <AtlasClient key={picked.num} puzzles={lightPuzzles} questionsByNum={{ [picked.num]: questions }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="atlas" stage={isStageServer('atlas', searchParams)} />
     </>
   );
 }

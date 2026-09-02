@@ -1296,7 +1296,7 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Shards - crawlable prose */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Shards</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Shards is a free daily word puzzle from Mind Loft, a jigsaw crossword. The grid arrives already solved but shattered into lettered puzzle pieces, and you reassemble it so that every across and down run of letters reads as a word. There are no clues. The letters are the clues, and the shapes are how you fit them back together.

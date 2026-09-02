@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ParkerClient from './ParkerClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // are gated by Eastern date here, so tomorrow's board never reaches the browser.
 
 export const metadata = {
-  title: 'Parker — Free Daily Sliding Block Puzzle | Mind Loft',
+  title: 'Free Daily Sliding Block Puzzle: Parker | Mind Loft',
   description:
     'A free daily sliding-block puzzle. A jammed six by six lot, blocks that each slide on one axis, and a red block that has to reach the one gap in the wall. Every board is solved exactly, so you play against a real par and a perfect line that nobody can beat. No app, no signup, and a new jam every day.',
   alternates: { canonical: '/parker' },
@@ -87,6 +89,7 @@ export default function ParkerPage({ searchParams }) {
       <Suspense fallback={null}>
         <ParkerClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="park" stage={isStageServer('park', searchParams)} />
     </>
   );
 }

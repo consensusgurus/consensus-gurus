@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import TowersClient from './TowersClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Towers — Free Daily Skyscrapers Puzzle | Mind Loft',
+  title: 'Free Daily Skyscrapers Puzzle: Towers | Mind Loft',
   description:
     'A free daily skyscrapers puzzle. Every row and column holds each tower height once, and the border clues count the towers you can see, taller ones hiding shorter ones. One logical solution, a new 5×5 board every day, and a 7×7 Edition on Sundays.',
   alternates: { canonical: '/towers' },
@@ -110,6 +112,7 @@ export default function TowersPage({ searchParams }) {
       <Suspense fallback={null}>
         <TowersClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="towers" stage={isStageServer('towers', searchParams)} />
     </>
   );
 }

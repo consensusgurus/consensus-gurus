@@ -1066,7 +1066,7 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Carve — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Carve</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Carve is a free daily number puzzle from Mind Loft. Each day gives you a fresh grid of digits and a handful of colored anchor squares. Slice the whole board into connected blocks, one grown from each anchor, so that every block adds up to the same target. There is always exactly one valid carving &mdash; the anchors pin it down.

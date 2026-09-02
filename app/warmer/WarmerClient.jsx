@@ -779,7 +779,7 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
       )}
 
       {/* About Warmer — crawlable prose for search */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Warmer</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Warmer is a free daily word puzzle from Mind Loft. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.

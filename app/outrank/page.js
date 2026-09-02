@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import OutrankClient from './OutrankClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outrank — Daily Crowd Puzzle: Predict the Crowd’s Ranking | Mind Loft',
+  title: 'Daily Crowd Puzzle, Predict the Crowd’s Ranking: Outrank | Mind Loft',
   description:
     'A free daily puzzle where the crowd is the answer key. Vote your favorite from a themed slate, then predict how everyone playing today ranks the whole list. Seven items in the Sunday Edition. Exact slot pays double; the order shifts all day as votes arrive.',
   alternates: { canonical: '/outrank' },
@@ -141,6 +143,7 @@ export default function OutrankPage({ searchParams }) {
       <Suspense fallback={null}>
         <OutrankClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="outrank" stage={isStageServer('outrank', searchParams)} />
     </>
   );
 }

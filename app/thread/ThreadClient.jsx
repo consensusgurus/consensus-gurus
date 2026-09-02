@@ -916,7 +916,7 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Thread</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Thread is a free daily movie puzzle from Mind Loft. Nine films are each described in one sentence by someone who technically watched them and missed the point entirely, and all nine share one hidden thread: a director, an actor, a year, a city, a way of ending. Name the films, in any order and at no cost for a wrong guess, then call the thread. The earlier you call it right, the more it pays, and three wrong calls lock it at zero.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import QuiltClient from './QuiltClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -13,7 +15,7 @@ import { SITE_URL } from '@/lib/site';
 // at 26.
 
 export const metadata = {
-  title: 'Quilt — Free Daily Jigsaw Sudoku | Mind Loft',
+  title: 'Free Daily Jigsaw Sudoku: Quilt | Mind Loft',
   description:
     'A free daily jigsaw sudoku — fill the 9×9 grid so every row, column, and irregular region holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/quilt' },
@@ -110,6 +112,7 @@ export default function QuiltPage({ searchParams }) {
       <Suspense fallback={null}>
         <QuiltClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="quilt" stage={isStageServer('quilt', searchParams)} />
     </>
   );
 }

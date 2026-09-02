@@ -1167,7 +1167,7 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Mercury — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Mercury</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Mercury is a free daily thermo sudoku from Mind Loft. Each day gives you a 9×9 sudoku with thermometers drawn on the grid: along every thermometer the digits strictly increase from the round bulb to the tip. Rows, columns, and 3×3 boxes still hold 1 through 9 exactly once, and the thermometers plus a handful of printed digits carry the rest.

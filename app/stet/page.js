@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import StetClient from './StetClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // sentences with finer copy-desk calls.
 
 export const metadata = {
-  title: 'Stet — Daily Copy-Desk Word Puzzle: Find the Wrong Word or Grammar Slip | Mind Loft',
+  title: 'Daily Copy-Desk Word Puzzle, Find the Wrong Word or Grammar Slip: Stet | Mind Loft',
   description:
     "A free daily word puzzle — you're the copy editor. Almost every sentence in today's brief hides one wrong word or grammar slip (real words only, so spellcheck can't save you): free reign, should of, a mute point. But some sentences are clean — stamp those 'stet.' Tap it, fix it, keep a clean desk.",
   alternates: { canonical: '/stet' },
@@ -122,6 +124,7 @@ export default function StetPage({ searchParams }) {
       <Suspense fallback={null}>
         <StetClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="stet" stage={isStageServer('stet', searchParams)} />
     </>
   );
 }

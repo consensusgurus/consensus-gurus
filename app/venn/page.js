@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import VennClient from './VennClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Venn — Free Daily Logic Puzzle: Sort the Overlaps | Mind Loft',
+  title: 'Free Daily Logic Puzzle, Sort the Overlaps: Venn | Mind Loft',
   description: 'A free daily logic puzzle. Three overlapping circles, twelve words, and every region prints how many words belong in it, so a misfiling always shows up in the arithmetic. New sheet every day.',
   alternates: { canonical: '/venn' },
   manifest: '/api/pwa-manifest?game=venn',
@@ -87,6 +89,7 @@ export default function VennPage({ searchParams }) {
       <Suspense fallback={null}>
         <VennClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="venn" stage={isStageServer('venn', searchParams)} />
     </>
   );
 }

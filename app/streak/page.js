@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import StreakClient from './StreakClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // of the bank never reaches a client.
 
 export const metadata = {
-  title: 'Streak — Free Daily Trivia Survival Game | Mind Loft',
+  title: 'Free Daily Trivia Survival Game: Streak | Mind Loft',
   description:
     'A free daily trivia gauntlet. Forty questions climb from easy to brutal, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same forty. No app, no signup, a new gauntlet every day.',
   alternates: { canonical: '/streak' },
@@ -86,6 +88,7 @@ export default function StreakPage({ searchParams }) {
       <Suspense fallback={null}>
         <StreakClient key={picked.num} puzzles={lightPuzzles} questionsByNum={{ [picked.num]: questions }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="streak" stage={isStageServer('streak', searchParams)} />
     </>
   );
 }

@@ -947,7 +947,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Barter</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Barter is a free daily word puzzle from Mind Loft. Six words interlock in a lattice, and every letter the answer needs is already on the board, just in the wrong places. Tap two tiles to trade them: solid blue means a letter has found its home, faded blue means it belongs somewhere else in one of the words crossing that square, and grey means it belongs to a different word entirely.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CircaClient from './CircaClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // same hunt with a trickier moment.
 
 export const metadata = {
-  title: 'Circa — Daily History Puzzle: Guess the Year | Mind Loft',
+  title: 'Daily History Puzzle, Guess the Year: Circa | Mind Loft',
   description:
     'A free daily history puzzle — one famous moment, six guesses to pin the exact year. Every miss plays hot and cold: earlier or later, and how close you are. Land within three years to solve it; a dead-on first guess is a perfect score.',
   alternates: { canonical: '/circa' },
@@ -122,6 +124,7 @@ export default function CircaPage({ searchParams }) {
       <Suspense fallback={null}>
         <CircaClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="circa" stage={isStageServer('circa', searchParams)} />
     </>
   );
 }

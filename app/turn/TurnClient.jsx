@@ -1084,7 +1084,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Turn</h2>
         <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           Turn is the daily Othello endgame. Everybody has played the game once, usually badly and usually as a child, by grabbing as many discs as possible and wondering why they lost. Almost nobody plays the last ten squares, which is where the whole thing is actually decided and where it stops being a game of chance.

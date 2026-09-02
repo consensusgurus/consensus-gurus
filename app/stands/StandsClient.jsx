@@ -760,7 +760,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Stands</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Stands is a free daily logic puzzle from Mind Loft. A small league played a full round robin, the results sheet was lost, and a handful of facts survive: a points total here, an unbeaten run there, one remembered result. Rebuild every match.

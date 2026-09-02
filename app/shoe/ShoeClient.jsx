@@ -860,7 +860,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Shoe — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Shoe</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Shoe is a free daily blackjack puzzle from Mind Loft. Every player faces the same shoe: five hands of blackjack dealt from one fixed 36-card shoe, the same cards in the same order for everyone, which turns blackjack from a gamble into a decision game a leaderboard can rank. Hit, stand, or double on a 10-chip stake; the dealer stands on every 17; blackjack pays 3 to 2; there are no splits.

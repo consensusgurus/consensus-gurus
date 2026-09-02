@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import AxiomClient from './AxiomClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // browser by finding the one spec that agrees with every tile.
 
 export const metadata = {
-  title: 'Axiom — Free Daily Logic Puzzle: Find the Hidden Rule | Mind Loft',
+  title: 'Free Daily Logic Puzzle, Find the Hidden Rule: Axiom | Mind Loft',
   description:
     'A free daily logic puzzle. One hidden rule splits a board of words, five candidate rules are on the table, and you get a handful of tests to tell them apart. New board every day.',
   alternates: { canonical: '/axiom' },
@@ -117,6 +119,7 @@ export default function AxiomPage({ searchParams }) {
       <Suspense fallback={null}>
         <AxiomClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="axiom" stage={isStageServer('axiom', searchParams)} />
     </>
   );
 }

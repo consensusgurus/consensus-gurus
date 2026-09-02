@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import TallyClient from './TallyClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -10,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 // are a 5×5 board; Sundays step up to 6×6.
 
 export const metadata = {
-  title: 'Tally — Free Daily Number Puzzle (Sudoku-style) | Mind Loft',
+  title: 'Free Daily Number Puzzle (Sudoku-style): Tally | Mind Loft',
   description:
     'A free daily number puzzle — fill the grid from a rack of tiles so every row and column hits its target. A logic puzzle in the sudoku family, with a new board every day and a bigger 6×6 grid on Sundays.',
   alternates: { canonical: '/tally' },
@@ -132,6 +134,7 @@ export default function TallyPage({ searchParams }) {
       <Suspense fallback={null}>
         <TallyClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="tally" stage={isStageServer('tally', searchParams)} />
     </>
   );
 }

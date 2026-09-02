@@ -1081,7 +1081,7 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Dating — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Dating</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Dating is a free daily history puzzle from Mind Loft. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.

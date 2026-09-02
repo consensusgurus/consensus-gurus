@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import BabelClient from './BabelClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // decide the spread.
 
 export const metadata = {
-  title: 'Babel — Daily Word Tile Endgame Puzzle: The Bag Is Empty | Mind Loft',
+  title: 'Daily Word Tile Endgame Puzzle, The Bag Is Empty: Babel | Mind Loft',
   description:
     'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s benchmark on spread.',
   alternates: { canonical: '/babel' },
@@ -107,6 +109,7 @@ export default function BabelPage({ searchParams }) {
       <Suspense fallback={null}>
         <BabelClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="babel" stage={isStageServer('babel', searchParams)} />
     </>
   );
 }

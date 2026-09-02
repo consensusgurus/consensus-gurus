@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import DatingClient from './DatingClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // evergreen URL — the dated /quiz/dating-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Dating — Free Daily History Ordering Puzzle | Mind Loft',
+  title: 'Free Daily History Ordering Puzzle: Dating | Mind Loft',
   description:
     'A free daily history puzzle — put five moments from history in chronological order in three checks or fewer. Every correct placement locks in with its year. New puzzle every day, and six moments in the Sunday Edition.',
   alternates: { canonical: '/dating' },
@@ -97,6 +99,7 @@ export default function DatingPage({ searchParams }) {
       <Suspense fallback={null}>
         <DatingClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="dating" stage={isStageServer('dating', searchParams)} />
     </>
   );
 }

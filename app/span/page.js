@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SpanClient from './SpanClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // dated /quiz/span-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Span — Free Daily Geography Border Puzzle | Mind Loft',
+  title: 'Free Daily Geography Border Puzzle: Span | Mind Loft',
   description:
     'A free daily geography puzzle — connect two countries with the shortest chain of land borders you can find. Perfect is the shortest road on the map. New route every day.',
   alternates: { canonical: '/span' },
@@ -97,6 +99,7 @@ export default function SpanPage({ searchParams }) {
       <Suspense fallback={null}>
         <SpanClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="span" stage={isStageServer('span', searchParams)} />
     </>
   );
 }

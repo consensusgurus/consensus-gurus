@@ -1002,7 +1002,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Niche — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Niche</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Niche is a free daily trivia grid from Mind Loft. Each day gives you a 3x3 grid whose rows and columns are broad categories from one universe, and every cell wants an answer that fits both at once: a country that is landlocked AND borders France, an animal that lays eggs AND lives in the water. Twelve guesses cover the nine cells, every attempt spends one, and an answer can only be used once per board.

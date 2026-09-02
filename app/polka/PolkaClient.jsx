@@ -1180,7 +1180,7 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Polka — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Polka</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Polka is a free daily kropki sudoku from Mind Loft. The 9×9 grid opens completely empty: not one digit is printed. Instead, every pair of neighbouring squares carries a clue &mdash; a white dot when the two digits differ by exactly 1, a black dot when one is double the other, and no dot at all when neither is true. The empty edges are clues too, and they do half the solving.

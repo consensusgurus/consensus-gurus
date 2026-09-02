@@ -864,7 +864,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Focus</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Focus is a free daily picture game from Mind Loft. One photo a day is shown as a tight crop at nine times magnification, and the puzzle is to name it. Every wrong name pulls the camera back a frame; the sixth frame is the whole photo and one last guess. The earlier the frame, the more it pays.

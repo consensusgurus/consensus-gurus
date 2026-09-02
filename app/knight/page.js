@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import KnightClient from './KnightClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -19,7 +21,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Knight — Free Daily Anti-Knight Sudoku | Mind Loft',
+  title: 'Free Daily Anti-Knight Sudoku: Knight | Mind Loft',
   description:
     'A free daily anti-knight sudoku. An ordinary 9×9 plus one rule: no digit repeats a chess knight’s move away. Select a square and its knights light up. One logical solution, notes and a free hint, a new board every day, and a thirteen-clue Edition on Sundays.',
   alternates: { canonical: '/knight' },
@@ -114,6 +116,7 @@ export default function KnightPage({ searchParams }) {
       <Suspense fallback={null}>
         <KnightClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="knight" stage={isStageServer('knight', searchParams)} />
     </>
   );
 }

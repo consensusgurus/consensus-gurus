@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import WarmerClient from './WarmerClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // list of the rest — so future words never reach the browser.
 
 export const metadata = {
-  title: 'Warmer — Daily Word Puzzle: Hotter or Colder | Mind Loft',
+  title: 'Daily Word Puzzle, Hotter or Colder: Warmer | Mind Loft',
   description:
     'A free daily word puzzle — one secret word, and every guess tells you how close it is in meaning on a cold-to-hot spectrum. Ocean is scorching for "sea," pencil is freezing. Unlimited guesses; the leaderboard ranks fewest guesses, fastest time. The Sunday Edition hides a rarer word.',
   alternates: { canonical: '/warmer' },
@@ -119,6 +121,7 @@ export default function WarmerPage({ searchParams }) {
       <Suspense fallback={null}>
         <WarmerClient key={forceNum || 'today'} active={active} puzzles={meta} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="warmer" stage={isStageServer('warmer', searchParams)} />
     </>
   );
 }

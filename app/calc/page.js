@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CalcClient from './CalcClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -21,7 +23,7 @@ import { SITE_URL } from '@/lib/site';
 // to the client, so future boards never reach a browser.
 
 export const metadata = {
-  title: 'Calc — Free Daily Number Path Puzzle | Mind Loft',
+  title: 'Free Daily Number Path Puzzle: Calc | Mind Loft',
   description:
     'A free daily number puzzle. Walk from the first button to the last across a grid of numbers and operators, one touching button at a time, and land on exactly the target. Reads left to right like a calculator. A new board every day, and three targets on Sundays.',
   alternates: { canonical: '/calc' },
@@ -118,6 +120,7 @@ export default function CalcPage({ searchParams }) {
       <Suspense fallback={null}>
         <CalcClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="calc" stage={isStageServer('calc', searchParams)} />
     </>
   );
 }

@@ -982,7 +982,7 @@ export default function FeudClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Feud — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Feud</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Feud is a free daily crowd-survey game from Mind Loft with a live answer key. Every day brings five everyday prompts &mdash; name something people do when they can&rsquo;t sleep, name a food that&rsquo;s better as a leftover &mdash; and you type three answers per prompt, blind. There is no hidden answer list written by an editor: the key is the live tally of what today&rsquo;s players actually say. Your answers are votes, and the moment you lock in they join the crowd everyone else is scored against.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import RedactClient from './RedactClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // view-source (the Extra stance), not a security boundary.
 
 export const metadata = {
-  title: 'Redact — Daily Uncover-the-Article Game | Mind Loft',
+  title: 'Daily Uncover-the-Article Game: Redact | Mind Loft',
   description:
     'A free daily deduction game: an entire article about a mystery subject is blacked out, and every word you guess is uncovered wherever it appears. Name the subject to win. A new article every day, harder on Sundays.',
   alternates: { canonical: '/redact' },
@@ -108,6 +110,7 @@ export default function RedactPage({ searchParams }) {
       <Suspense fallback={null}>
         <RedactClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="redact" stage={isStageServer('redact', searchParams)} />
     </>
   );
 }

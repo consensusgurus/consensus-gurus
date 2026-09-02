@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import AlibiClient from './AlibiClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // clues with its own brute-force solver, so the answer never ships.
 
 export const metadata = {
-  title: 'Alibi — Daily Logic Puzzle: Solve the Whodunit | Mind Loft',
+  title: 'Daily Logic Puzzle, Solve the Whodunit: Alibi | Mind Loft',
   description:
     'A free daily logic deduction puzzle — four suspects, four rooms, four departure times, four curious items, and five of each in the Sunday Edition. Every witness statement is true; work the deduction boards and close the case. A new mystery every day.',
   alternates: { canonical: '/alibi' },
@@ -131,6 +133,7 @@ export default function AlibiPage({ searchParams }) {
       <Suspense fallback={null}>
         <AlibiClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="alibi" stage={isStageServer('alibi', searchParams)} />
     </>
   );
 }

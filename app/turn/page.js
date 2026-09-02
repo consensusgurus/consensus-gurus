@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import TurnClient from './TurnClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // that wins it never reach the browser.
 
 export const metadata = {
-  title: 'Turn — Free Daily Othello Endgame Puzzle | Mind Loft',
+  title: 'Free Daily Othello Endgame Puzzle: Turn | Mind Loft',
   description:
     'A free daily Othello endgame. Ten squares left, the game is already won for you, and exactly one square keeps it. Play the wrong one and there is no take-back: a solver that reads the position to the last disc plays out the rest, so the win never comes back. Flipping the fewest discs is the right habit, and some days it is the losing move.',
   alternates: { canonical: '/turn' },
@@ -99,6 +101,7 @@ export default function TurnPage({ searchParams }) {
       <Suspense fallback={null}>
         <TurnClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="turn" stage={isStageServer('turn', searchParams)} />
     </>
   );
 }

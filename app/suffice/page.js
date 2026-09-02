@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SufficeClient from './SufficeClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // answer key never ships over the wire (the Sworn pattern).
 
 export const metadata = {
-  title: 'Suffice — Daily Data Sufficiency Puzzle | Mind Loft',
+  title: 'Daily Data Sufficiency Puzzle: Suffice | Mind Loft',
   description:
     'A free daily logic game built on the data-sufficiency format: a question you never answer, and two statements. Decide what is enough to settle it. Eight items a day, twelve on Sundays, every answer machine-proved.',
   alternates: { canonical: '/suffice' },
@@ -106,6 +108,7 @@ export default function SufficePage({ searchParams }) {
       <Suspense fallback={null}>
         <SufficeClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="suffice" stage={isStageServer('suffice', searchParams)} />
     </>
   );
 }

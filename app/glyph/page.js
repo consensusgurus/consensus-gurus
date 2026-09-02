@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import GlyphClient from './GlyphClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // key) never reaches the browser.
 
 export const metadata = {
-  title: 'Glyph — Free Daily Codeword Puzzle | Mind Loft',
+  title: 'Free Daily Codeword Puzzle: Glyph | Mind Loft',
   description:
     'A free daily codeword, the crossword with no clues. Every letter is replaced by a number from 1 to 26, the same number always meaning the same letter. Crack the whole alphabet from two or three given letters. One solution, a new grid every day, and a bigger 17x17 Edition on Sundays.',
   alternates: { canonical: '/glyph' },
@@ -99,6 +101,7 @@ export default function GlyphPage({ searchParams }) {
       <Suspense fallback={null}>
         <GlyphClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="glyph" stage={isStageServer('glyph', searchParams)} />
     </>
   );
 }

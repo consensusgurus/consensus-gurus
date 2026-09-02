@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ChainClient from './ChainClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // wins it never reach the browser.
 
 export const metadata = {
-  title: 'Chain — Free Daily Dots and Boxes Puzzle | Mind Loft',
+  title: 'Free Daily Dots and Boxes Puzzle: Chain | Mind Loft',
   description:
     'A free daily dots-and-boxes endgame. The boxes are counted, you are already winning, and exactly one edge keeps it. Draw the wrong one and there is no take-back: a perfect engine plays the game out, so the win never comes back. The free box is usually a trap, and some days it is not.',
   alternates: { canonical: '/chain' },
@@ -99,6 +101,7 @@ export default function ChainPage({ searchParams }) {
       <Suspense fallback={null}>
         <ChainClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="chain" stage={isStageServer('chain', searchParams)} />
     </>
   );
 }

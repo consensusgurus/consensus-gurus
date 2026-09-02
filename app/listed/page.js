@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ListedClient from './ListedClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // canonical, evergreen URL — the dated /quiz/listed-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Listed: Free Daily Ranking Puzzle | Mind Loft',
+  title: 'Free Daily Ranking Puzzle: Listed | Mind Loft',
   description:
     'A free daily ranking puzzle. Eight real things, one measurable quantity, five submits. Green locks a row that is exactly right, amber means you are off by one place. New list every day, and nine items in the Sunday Edition.',
   alternates: { canonical: '/listed' },
@@ -97,6 +99,7 @@ export default function ListedPage({ searchParams }) {
       <Suspense fallback={null}>
         <ListedClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="listed" stage={isStageServer('listed', searchParams)} />
     </>
   );
 }

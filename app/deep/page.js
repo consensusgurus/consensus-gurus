@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import DeepClient from './DeepClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { QUESTION_MAP } from './questions';
 import { T } from '@/lib/theme';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // fifteen ship to the browser, so the rest of the bank never reaches a client.
 
 export const metadata = {
-  title: 'Deep — Free Daily Single-Topic Trivia Game | Mind Loft',
+  title: 'Free Daily Single-Topic Trivia Game: Deep | Mind Loft',
   description:
     'A free daily trivia dive. One subject a day, fifteen questions on it, and they get harder the deeper you go. One wrong answer ends the run. Twenty seconds a question, everyone plays the same fifteen. No app, no signup, a new topic every day.',
   alternates: { canonical: '/deep' },
@@ -86,6 +88,7 @@ export default function DeepPage({ searchParams }) {
       <Suspense fallback={null}>
         <DeepClient key={picked.num} puzzles={lightPuzzles} questionsByNum={{ [picked.num]: questions }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="deep" stage={isStageServer('deep', searchParams)} />
     </>
   );
 }

@@ -1145,7 +1145,7 @@ export default function QueenClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Queen</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Queen is a free daily chess endgame from Mind Loft. Every position is a king and one pawn against a bare king, with a proven win: walk the pawn to the eighth rank and promote it, safely, against a defence that never makes a mistake. Tap a piece and its legal squares light up, so no chess notation is needed.

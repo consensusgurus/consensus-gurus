@@ -1069,7 +1069,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ fontSize: 17, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Chain</h2>
         <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: '0 0 9px' }}>
           Chain is the daily boxes endgame. Everyone knows the game from the back of a school exercise book: join two dots, close a box, go again. Almost nobody plays the ending, which is where the whole thing is actually decided.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import PlotClient from './PlotClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // solution) never reaches the browser.
 
 export const metadata = {
-  title: 'Plot — Free Daily Rectangle Puzzle (Shikaku) | Mind Loft',
+  title: 'Free Daily Rectangle Puzzle (Shikaku): Plot | Mind Loft',
   description:
     'A free daily rectangle puzzle, also called shikaku or divide by squares. Every number is the size of the plot it belongs to, so divide the whole board into rectangles that each hold one number and cover exactly that many cells. One solution, pure deduction with no guessing, and a bigger 12x12 Edition on Sundays.',
   alternates: { canonical: '/plot' },
@@ -99,6 +101,7 @@ export default function PlotPage({ searchParams }) {
       <Suspense fallback={null}>
         <PlotClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="plot" stage={isStageServer('plot', searchParams)} />
     </>
   );
 }

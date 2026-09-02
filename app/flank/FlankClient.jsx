@@ -827,7 +827,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Flank</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Flank is a free daily geography game from Mind Loft. One country is revealed each day, and your job is to name every country that shares a land border with it. A correct neighbor banks itself the moment you finish typing it. A real country that does not border costs a strike, and three strikes end the run, so the game is less about typing speed and more about whether you can actually see the map in your head.

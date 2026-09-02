@@ -836,7 +836,7 @@ export default function DeepClient({ puzzles = [], questionsByNum = {}, forceNum
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Deep</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Deep is a free daily trivia game from Mind Loft. Every day it picks one subject, from Ancient Rome to the periodic table, and asks fifteen questions about it that get harder the further you go. The first three are gimmes. The last three are for people who really know the thing. One wrong answer ends the dive, so your score is simply how far down you got.

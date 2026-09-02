@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ShardsClient from './ShardsClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // pieces into the one grid where every run is a real word.
 
 export const metadata = {
-  title: 'Shards - Daily Jigsaw Crossword | Mind Loft',
+  title: 'Daily Jigsaw Crossword: Shards | Mind Loft',
   description:
     'A free daily word puzzle: a mini crossword arrives already solved but shattered into lettered puzzle pieces. Reassemble them so every across and down run is a real word. No clues, one verified solution, a fresh grid every day.',
   alternates: { canonical: '/shards' },
@@ -102,6 +104,7 @@ export default function ShardsPage({ searchParams }) {
       <Suspense fallback={null}>
         <ShardsClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="shards" stage={isStageServer('shards', searchParams)} />
     </>
   );
 }

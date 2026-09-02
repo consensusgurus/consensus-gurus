@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import LodeClient from './LodeClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // before anything reaches the client.
 
 export const metadata = {
-  title: 'Lode — Free Daily Word Puzzle: Seven Letters, Rare Words Pay | Mind Loft',
+  title: 'Free Daily Word Puzzle, Seven Letters, Rare Words Pay: Lode | Mind Loft',
   description:
     'A free daily word puzzle and a fresh spin on the letters puzzle. Seven letters, one core letter every word must use, and points that reward rare words over long ones. Strike the vein, then chase the Mother Lode. New board every day.',
   alternates: { canonical: '/lode' },
@@ -142,6 +144,7 @@ export default function LodePage({ searchParams }) {
       <Suspense fallback={null}>
         <LodeClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="lode" stage={isStageServer('lode', searchParams)} />
     </>
   );
 }

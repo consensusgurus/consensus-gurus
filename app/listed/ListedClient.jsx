@@ -1111,7 +1111,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Listed — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Listed</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Listed is a free daily ranking puzzle from Mind Loft. Each day deals eight real things and one measurable quantity, shuffled out of order. Your job is to rank them. You get five submits, and every submit grades each row: green means exactly right and locks it in with the real figure revealed, amber means you are off by exactly one place, and grey means you are further away than that.

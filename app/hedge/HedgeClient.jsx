@@ -1046,7 +1046,7 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Hedge</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Hedge is a free daily slitherlink from Mind Loft, the loop puzzle also known as fences or takegaki. Every day you get a grid of numbered cells, and one single closed loop that satisfies all of them. A number says exactly how many of that cell&rsquo;s four sides the loop uses. Only some cells are numbered, and the blank ones are meant to be blank: they carry no rule, so the loop is free to use as many of their sides as the numbers around them demand.

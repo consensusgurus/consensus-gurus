@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import BracketClient from './BracketClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // and the client recomputes each matchup, exactly as the verifier does.
 
 export const metadata = {
-  title: 'Bracket — Free Daily Puzzle: Fill the Bracket of Facts | Mind Loft',
+  title: 'Free Daily Puzzle, Fill the Bracket of Facts: Bracket | Mind Loft',
   description:
     'A free daily bracket puzzle. Sixteen real things, one comparison question, fifteen picks, and no feedback until the end. Your picks propagate, so one bad call in round one busts everything downstream. New field every day.',
   alternates: { canonical: '/bracket' },
@@ -88,6 +90,7 @@ export default function BracketPage({ searchParams }) {
       <Suspense fallback={null}>
         <BracketClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="bracket" stage={isStageServer('bracket', searchParams)} />
     </>
   );
 }

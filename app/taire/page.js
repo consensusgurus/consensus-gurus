@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import TaireClient from './TaireClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // Eastern date here, so tomorrow's board never reaches the browser.
 
 export const metadata = {
-  title: 'Taire — Free Daily Solitaire Puzzle | Mind Loft',
+  title: 'Free Daily Solitaire Puzzle: Taire | Mind Loft',
   description:
     'A free daily solitaire puzzle. Two suits dealt face up with a free cell or two beside them, sixteen cards early in the week and twenty from Thursday on. No hidden cards and no luck, so every deal is winnable and everybody plays the same one. You play against par, the number a clean line comes home in, and perfect, the proven minimum nobody beats. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/taire' },
@@ -90,6 +92,7 @@ export default function TairePage({ searchParams }) {
       <Suspense fallback={null}>
         <TaireClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="taire" stage={isStageServer('taire', searchParams)} />
     </>
   );
 }

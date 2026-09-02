@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import DefendClient from './DefendClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // so tomorrow's position (and the move that saves it) never reaches the browser.
 
 export const metadata = {
-  title: 'Defend — Free Daily Chess Puzzle (Black to Play and Survive) | Mind Loft',
+  title: 'Free Daily Chess Puzzle (Black to Play and Survive): Defend | Mind Loft',
   description:
     'A free daily chess puzzle from the defending side. White is threatening mate, at least five moves look like they answer it, and exactly one does. Tap a piece and its legal squares light up, so no chess notation is needed. Finding the save only buys the next one: hold the position for three moves against White’s best try, keep a streak, and Sundays hold for four.',
   alternates: { canonical: '/defend' },
@@ -102,6 +104,7 @@ export default function DefendPage({ searchParams }) {
       <Suspense fallback={null}>
         <DefendClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="defend" stage={isStageServer('defend', searchParams)} />
     </>
   );
 }

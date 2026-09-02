@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import FourClient from './FourClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // the winning column that comes with it) never reaches the browser.
 
 export const metadata = {
-  title: 'Four — Free Daily Connect Four Puzzle | Mind Loft',
+  title: 'Free Daily Connect Four Puzzle: Four | Mind Loft',
   description:
     'A free daily Connect Four puzzle. The position is already won for you, in four moves, and exactly one column keeps it. Drop the wrong one and there is no take-back: a perfect engine plays the game out, so the win never comes back. Keep a streak, and Sundays step up to a win in five.',
   alternates: { canonical: '/four' },
@@ -99,6 +101,7 @@ export default function FourPage({ searchParams }) {
       <Suspense fallback={null}>
         <FourClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="four" stage={isStageServer('four', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import EncoreClient from './EncoreClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -13,7 +15,7 @@ import { SITE_URL } from '@/lib/site';
 // tomorrow's grid and its answers never ship to a browser.
 
 export const metadata = {
-  title: 'Encore — Free Daily Crossword | Mind Loft',
+  title: 'Free Daily Crossword: Encore | Mind Loft',
   description:
     'A free daily crossword: a 9x9 grid of everyday words with fair Across and Down clues, fully checked so every letter is confirmed by a crossing. The grid checks itself when the last square lands, and Sundays step up to 11x11.',
   alternates: { canonical: '/encore' },
@@ -111,6 +113,7 @@ export default function EncorePage({ searchParams }) {
       <Suspense fallback={null}>
         <EncoreClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="encore" stage={isStageServer('encore', searchParams)} />
     </>
   );
 }

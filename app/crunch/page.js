@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CrunchClient from './CrunchClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -9,7 +11,7 @@ import { SITE_URL } from '@/lib/site';
 // date here, so tomorrow's round never reaches the browser.
 
 export const metadata = {
-  title: 'Crunch — Free Daily Numbers Game | Mind Loft',
+  title: 'Free Daily Numbers Game: Crunch | Mind Loft',
   description:
     'A free daily numbers game. Six numbers, four operations, and a three-digit target to hit exactly. Every round is proved solvable before it ships. No app, no signup, a new round every day.',
   alternates: { canonical: '/crunch' },
@@ -79,6 +81,7 @@ export default function CrunchPage({ searchParams }) {
       <Suspense fallback={null}>
         <CrunchClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="crunch" stage={isStageServer('crunch', searchParams)} />
     </>
   );
 }

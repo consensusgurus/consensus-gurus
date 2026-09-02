@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { T } from '@/lib/theme';
+import DailyRoster from './DailyRoster';
 
 // Shared, site-wide footer. Deliberately font/brand-neutral (it inherits the
 // surrounding page's body font and uses neutral grays) so it reads correctly on
@@ -154,6 +155,7 @@ export default function Footer() {
           </div>
         ))}
       </div>
+      <div style={{ maxWidth: 1040, margin: '0 auto' }}><DailyRoster variant="light" /></div>
       <div
         style={{
           maxWidth: 1040,

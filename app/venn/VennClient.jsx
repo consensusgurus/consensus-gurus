@@ -720,7 +720,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Venn</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Venn is a free daily logic puzzle from Mind Loft. Three overlapping circles, each one a plain property of a word, and a tray of words that between them fill every region of the diagram, including the sliver in the middle where all three are true at once.

@@ -1197,7 +1197,7 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Towers — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Towers</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Towers is a free daily skyscrapers puzzle from Mind Loft. Fill the grid with tower heights so that every row and every column holds each height exactly once, like a sudoku with no boxes. The clues sit outside the grid: each printed number counts the towers visible looking down that row or column from that side, because a taller tower hides every shorter one behind it.

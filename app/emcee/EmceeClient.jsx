@@ -1109,7 +1109,7 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Emcee — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Emcee</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Emcee is a free daily mini crossword from Mind Loft. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.

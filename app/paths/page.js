@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import PathsClient from './PathsClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -13,7 +15,7 @@ import { SITE_URL } from '@/lib/site';
 // tomorrow's cheapest network never reaches the browser.
 
 export const metadata = {
-  title: 'Paths — Free Daily Network Puzzle | Mind Loft',
+  title: 'Free Daily Network Puzzle: Paths | Mind Loft',
   description:
     'A free daily network puzzle. Link every town back to the depot for as little as you can, where ridge lanes cost double, river crossings cost triple, cliffs cannot be crossed at all and old track is free. Every board carries a proven cheapest network, so a perfect score is real. New board daily, harder as the week goes on, bigger 13x13 Edition on Sundays.',
   alternates: { canonical: '/paths' },
@@ -101,6 +103,7 @@ export default function PathsPage({ searchParams }) {
       <Suspense fallback={null}>
         <PathsClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="paths" stage={isStageServer('paths', searchParams)} />
     </>
   );
 }

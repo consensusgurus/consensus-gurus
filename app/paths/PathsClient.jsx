@@ -1202,7 +1202,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Paths</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Paths is a free daily network puzzle from Mind Loft. One depot, a scatter of towns, a river and two ridges, and the job is to link every town back to the depot for as little as you can. Ridge lanes cost double and crossings cost triple, so the shortest route and the cheapest one are rarely the same thing. Later in the week the map gets harder: cliffs block lanes outright, and stretches of old track are free to run along if you spot them.

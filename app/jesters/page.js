@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import JesterClient from './JesterClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // with its own backtracking solver, so the answer never ships.
 
 export const metadata = {
-  title: 'Jesters — Daily Logic Puzzle: Seat the Court | Mind Loft',
+  title: 'Daily Logic Puzzle, Seat the Court: Jesters | Mind Loft',
   description:
     'A free daily placement puzzle in the Star Battle family — seat a jester in every row, column and colored court, with no two jesters touching. Exactly one solution, pure deduction. A new court every day, harder as the week goes on, and two jesters per row from Thursday through Sunday.',
   alternates: { canonical: '/jesters' },
@@ -134,6 +136,7 @@ export default function JesterPage({ searchParams }) {
       <Suspense fallback={null}>
         <JesterClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="jester" stage={isStageServer('jester', searchParams)} />
     </>
   );
 }

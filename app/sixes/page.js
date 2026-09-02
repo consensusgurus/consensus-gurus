@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SixesClient from './SixesClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Sixes — Free Daily Mini Sudoku (6×6) | Mind Loft',
+  title: 'Free Daily Mini Sudoku (6×6): Sixes | Mind Loft',
   description:
     'A free daily mini sudoku. Fill the 6×6 grid so every row, column, and 2×3 box holds 1–6 with no repeats. One logical solution, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/sixes' },
@@ -113,6 +115,7 @@ export default function SixesPage({ searchParams }) {
       <Suspense fallback={null}>
         <SixesClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="sixes" stage={isStageServer('sixes', searchParams)} />
     </>
   );
 }

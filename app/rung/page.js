@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import RungClient from './RungClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -9,7 +11,7 @@ import { SITE_URL } from '@/lib/site';
 // tomorrow's pair never reaches the browser.
 
 export const metadata = {
-  title: 'Rung — Free Daily Word Ladder | Mind Loft',
+  title: 'Free Daily Word Ladder: Rung | Mind Loft',
   description:
     'A free daily word ladder. Change one letter at a time to climb from one five-letter word to another, every rung a real word. You play against par, the length a clean climb comes in at, and perfect, the proven shortest ladder. No app, no signup, a new climb every day.',
   alternates: { canonical: '/rung' },
@@ -79,6 +81,7 @@ export default function RungPage({ searchParams }) {
       <Suspense fallback={null}>
         <RungClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="rung" stage={isStageServer('rung', searchParams)} />
     </>
   );
 }

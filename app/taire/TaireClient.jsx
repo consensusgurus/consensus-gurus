@@ -987,7 +987,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Taire</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Taire is a free daily solitaire from Mind Loft. Two suits dealt face up into columns of four with a free cell or two beside them: sixteen cards early in the week, twenty from Thursday on. Nothing is hidden and nothing is shuffled mid-game, so there is no luck in it: the deal you get is the deal everybody else gets today, and it is always winnable.

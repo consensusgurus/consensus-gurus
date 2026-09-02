@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import MercuryClient from './MercuryClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Mercury — Free Daily Thermo Sudoku | Mind Loft',
+  title: 'Free Daily Thermo Sudoku: Mercury | Mind Loft',
   description:
     'A free daily thermo sudoku. An ordinary 9×9 plus thermometers: digits climb from each bulb to its tip. One logical solution, notes and a free hint, a new board every day, and a nine-thermometer Edition on Sundays.',
   alternates: { canonical: '/mercury' },
@@ -111,6 +113,7 @@ export default function MercuryPage({ searchParams }) {
       <Suspense fallback={null}>
         <MercuryClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="mercury" stage={isStageServer('mercury', searchParams)} />
     </>
   );
 }

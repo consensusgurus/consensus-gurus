@@ -239,10 +239,10 @@ export default function StageChrome({
             ) : null}
             {dateLabel && !dateShort ? <span>{dateLabel}</span> : null}
           </i>
-          <b>
+          <h1>
             {name}
             {sunday ? <u>{sunday}</u> : null}
-          </b>
+          </h1>
         </div>
 
         <button
@@ -378,8 +378,8 @@ const CSS = `
 .stg-id i{font-family:${MONO};font-style:normal;font-size:9.5px;letter-spacing:.15em;
   text-transform:uppercase;color:var(--stg-mute2,#66748f);display:block;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
-.stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
-.stg-id b u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
+.stg-id h1{margin:0;font:inherit;font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
+.stg-id h1 u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg-acc);
   border-radius:99px;padding:3px 8px;}
 .stg-fg{display:flex;gap:26px;padding:9px 20px;
@@ -453,7 +453,7 @@ const CSS = `
      figures get the full width to themselves and space out evenly, so four fit
      without shrinking the title. */
   .stg-cap{gap:10px;padding:10px 13px;}
-  .stg-id b{font-size:15px;}
+  .stg-id h1{font-size:15px;}
   .stg-brand{gap:6px;padding-right:9px;}
   .stg-brand b{font-size:11.5px;}
   .stg-dl{display:none;}

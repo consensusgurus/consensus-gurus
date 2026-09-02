@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import HandsClient from './HandsClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -17,7 +19,7 @@ import { SITE_URL } from '@/lib/site';
 // reaches the browser.
 
 export const metadata = {
-  title: 'Hands — Free Daily Poker Solitaire Puzzle | Mind Loft',
+  title: 'Free Daily Poker Solitaire Puzzle: Hands | Mind Loft',
   description:
     'A free daily poker puzzle. Twenty five cards are dealt one at a time into a five by five grid, and every row and column scores as a poker hand. Nothing is shuffled mid game and everybody plays the identical deal, so there is no luck in it, only the order you commit to. One muck a day, no undo. Play against par, the score an ordinary round comes home with, and ace, the best our solver managed playing blind. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/hands' },
@@ -92,6 +94,7 @@ export default function HandsPage({ searchParams }) {
       <Suspense fallback={null}>
         <HandsClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="hands" stage={isStageServer('hands', searchParams)} />
     </>
   );
 }

@@ -24,6 +24,7 @@
 import { useEffect, useRef, useState } from 'react';
 import MindLoftMark from './MindLoftMark';
 import { FOOTER_COLS } from './Footer';
+import DailyRoster from './DailyRoster';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
 const SANS = 'Manrope, ui-sans-serif, system-ui, -apple-system, sans-serif';
@@ -89,6 +90,7 @@ export default function StageFooter({ visitors: given }) {
           </div>
         ))}
       </div>
+      <DailyRoster variant="stage" />
       <div className="stgf-base">
         <span>&copy; {new Date().getFullYear()} Mind Loft</span>
         <span>As an Amazon Associate, Mind Loft earns from qualifying purchases.</span>

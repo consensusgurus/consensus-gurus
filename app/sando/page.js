@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SandoClient from './SandoClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -14,7 +16,7 @@ import { SITE_URL } from '@/lib/site';
 // printing just six.
 
 export const metadata = {
-  title: 'Sando — Free Daily Sandwich Sudoku | Mind Loft',
+  title: 'Free Daily Sandwich Sudoku: Sando | Mind Loft',
   description:
     'A free daily sandwich sudoku — the number beside each row and column is the total of the digits sitting between that line\u2019s 1 and its 9, so a 0 means the sandwich is empty and the two are side by side. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/sando' },
@@ -111,6 +113,7 @@ export default function SandoPage({ searchParams }) {
       <Suspense fallback={null}>
         <SandoClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="sando" stage={isStageServer('sando', searchParams)} />
     </>
   );
 }

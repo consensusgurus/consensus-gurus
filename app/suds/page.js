@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SudsClient from './SudsClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -10,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 // a standard 9×9 board; Sundays step up to a harder Edition with fewer clues.
 
 export const metadata = {
-  title: 'Suds — Free Daily Sudoku | Mind Loft',
+  title: 'Free Daily Sudoku: Suds | Mind Loft',
   description:
     'A free daily sudoku — fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/suds' },
@@ -121,6 +123,7 @@ export default function SudsPage({ searchParams }) {
       <Suspense fallback={null}>
         <SudsClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="suds" stage={isStageServer('suds', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import FibClient from './FibClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // never reaches the browser.
 
 export const metadata = {
-  title: 'Fib — Free Daily Logic Puzzle With One Lying Clue | Mind Loft',
+  title: 'Free Daily Logic Puzzle With One Lying Clue: Fib | Mind Loft',
   description:
     'A free daily logic grid where every row and column holds 1 to 5 once, the open end of each inequality sign points at the larger number, and exactly one of those signs is lying. Solve the grid, then accuse the clue that lied. One provable answer, no guessing, and a bigger 6x6 Edition on Sundays.',
   alternates: { canonical: '/fib' },
@@ -99,6 +101,7 @@ export default function FibPage({ searchParams }) {
       <Suspense fallback={null}>
         <FibClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="fib" stage={isStageServer('fib', searchParams)} />
     </>
   );
 }

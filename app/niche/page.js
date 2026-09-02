@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import NicheClient from './NicheClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // reach a browser.
 
 export const metadata = {
-  title: 'Niche — Free Daily Trivia Grid | Mind Loft',
+  title: 'Free Daily Trivia Grid: Niche | Mind Loft',
   description:
     'A free daily trivia grid. Fill the 3×3 with answers that fit both their row and column category — countries, states, animals, movies, TV, teams, and musicians, a different universe every day. Rare answers are the flex. New board daily, 4×4 Countries Edition on Sundays.',
   alternates: { canonical: '/niche' },
@@ -113,6 +115,7 @@ export default function NichePage({ searchParams }) {
       <Suspense fallback={null}>
         <NicheClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="niche" stage={isStageServer('niche', searchParams)} />
     </>
   );
 }

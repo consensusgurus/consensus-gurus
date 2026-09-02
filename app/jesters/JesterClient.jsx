@@ -1186,7 +1186,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Jester — crawlable prose for search, server-rendered */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Jesters is a free daily logic puzzle from Mind Loft &mdash; a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Wednesday, two apiece on the bigger boards from Thursday through Sunday. No two jesters may ever touch, not even at the corners.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SwornClient from './SwornClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // ships.
 
 export const metadata = {
-  title: 'Sworn — Daily Liars Puzzle: Find the Thief | Mind Loft',
+  title: 'Daily Liars Puzzle, Find the Thief: Sworn | Mind Loft',
   description:
     'A free daily Knights-and-Knaves logic puzzle — a handful of locals under oath, exactly so many of them lying, one of them a thief. Work the contradictions and name the culprit. A new inquest every day, six sworn on Sundays.',
   alternates: { canonical: '/sworn' },
@@ -133,6 +135,7 @@ export default function SwornPage({ searchParams }) {
       <Suspense fallback={null}>
         <SwornClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="sworn" stage={isStageServer('sworn', searchParams)} />
     </>
   );
 }

@@ -841,7 +841,7 @@ export default function SportClient({ puzzles = [], questionsByNum = {}, forceNu
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Sport</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Sport is a free daily sports quiz from Mind Loft. Twenty-five multiple-choice questions climb from ones anyone can answer to ones almost nobody can, and a single wrong answer ends the run. Your score is simply how many you cleared in a row, which makes every question a small act of nerve: the further you get, the more you have to lose.

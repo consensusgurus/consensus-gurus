@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import PolkaClient from './PolkaClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Polka — Free Daily Kropki Sudoku | Mind Loft',
+  title: 'Free Daily Kropki Sudoku: Polka | Mind Loft',
   description:
     'A free daily kropki sudoku. No digits printed, only dots: white means neighbours differ by 1, black means one is double the other, no dot means neither. One logical solution, a new deal every day, hardest on Sundays.',
   alternates: { canonical: '/polka' },
@@ -111,6 +113,7 @@ export default function PolkaPage({ searchParams }) {
       <Suspense fallback={null}>
         <PolkaClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="polka" stage={isStageServer('polka', searchParams)} />
     </>
   );
 }

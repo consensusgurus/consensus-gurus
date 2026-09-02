@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import SweepClient from './SweepClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // the page, which is the part that would actually matter.
 
 export const metadata = {
-  title: 'Sweep — Free Daily Minesweeper With No Bottom | Mind Loft',
+  title: 'Free Daily Minesweeper With No Bottom: Sweep | Mind Loft',
   description:
     'Sweep is a free daily minesweeper that runs downward forever. Everyone digs the same field, and every field is checked before it ships so it can always be solved without guessing. One life a run, unlimited runs, and your best one takes the leaderboard.',
   alternates: { canonical: '/sweep' },
@@ -95,6 +97,7 @@ export default function SweepPage({ searchParams }) {
       <Suspense fallback={null}>
         <SweepClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="sweep" stage={isStageServer('sweep', searchParams)} />
     </>
   );
 }

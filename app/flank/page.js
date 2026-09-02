@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import FlankClient from './FlankClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { BORDERS } from './borders';
 import { T } from '@/lib/theme';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // browser, so tomorrow's country never reaches a client.
 
 export const metadata = {
-  title: 'Flank — Free Daily Country Borders Game | Mind Loft',
+  title: 'Free Daily Country Borders Game: Flank | Mind Loft',
   description:
     'A free daily geography game. One country is revealed each day; name every country on its land border before three wrong guesses end the run. Monday starts with one border, Sunday hands you a fourteen-neighbor giant. No app, no signup, a new country every day.',
   alternates: { canonical: '/flank' },
@@ -89,6 +91,7 @@ export default function FlankPage({ searchParams }) {
       <Suspense fallback={null}>
         <FlankClient key={picked.num} puzzles={lightPuzzles} dayByNum={{ [picked.num]: { c: picked.c, a: picked.a } }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="flank" stage={isStageServer('flank', searchParams)} />
     </>
   );
 }

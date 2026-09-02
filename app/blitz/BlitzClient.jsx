@@ -860,7 +860,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         </div>
       )}
 
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Blitz</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Blitz is a free daily mental math game from Mind Loft. Twenty arithmetic problems climb through five rounds, from two-digit addition and the times tables up to two-digit multiplication, awkward percentages, order of operations and cubes. You get fifteen seconds each and one life, so your score is simply how far up the ladder you got before a wrong answer or an empty clock stopped you.

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import DocketClient from './DocketClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -20,7 +22,7 @@ import { SITE_URL } from '@/lib/site';
 // else's trademark.
 
 export const metadata = {
-  title: 'Docket — Daily Logic Game | Mind Loft',
+  title: 'Daily Logic Game: Docket | Mind Loft',
   description:
     'A free daily logic game in a familiar but retired section of an important standardized test: one setup, a handful of conditions, and five questions about what those conditions force. Five a day, a bigger two-dimension board on Sundays, every answer machine-proved.',
   alternates: { canonical: '/docket' },
@@ -111,6 +113,7 @@ export default function DocketPage({ searchParams }) {
       <Suspense fallback={null}>
         <DocketClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="docket" stage={isStageServer('docket', searchParams)} />
     </>
   );
 }

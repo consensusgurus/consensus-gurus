@@ -1115,7 +1115,7 @@ export default function EncoreClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Encore — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Encore</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Encore is a free daily crossword from Mind Loft, and it is the long one. Nine squares by nine on weekdays, with around twenty-six numbered Across and Down answers, so it asks for a few minutes rather than a few seconds. If you want the sprint version, that is <a href="/emcee" style={{ color: INK, fontWeight: 800 }}>Emcee</a>, our five by five mini.

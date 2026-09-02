@@ -1074,7 +1074,7 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Outwit — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Outwit</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Outwit is a free daily puzzle from Mind Loft where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, find the number nobody else takes, and finish by undercutting the crowd&rsquo;s average &mdash; by a fraction that shifts from day to day, so the equilibrium is never the same twice.

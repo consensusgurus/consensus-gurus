@@ -1105,7 +1105,7 @@ export default function AxiomClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Axiom — crawlable prose for search, server-rendered */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Axiom</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Axiom is a free daily logic puzzle from Mind Loft, built on the oldest experiment in reasoning: find the hidden rule. A board of ordinary words is split by a rule you cannot see. A few tiles are flipped for you, a short list of candidate rules sits underneath, and a small budget of tests is all you get to tell them apart.

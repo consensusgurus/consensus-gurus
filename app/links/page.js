@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import LinksClient from './LinksClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // dated /quiz/links-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Links — Free Daily Word Grouping Puzzle | Mind Loft',
+  title: 'Free Daily Word Grouping Puzzle: Links | Mind Loft',
   description:
     'A free daily word grouping puzzle — sixteen words hide four threads of four. Find every thread before four mistakes find you. New puzzle every day, and the Sunday Edition lays twice as many traps.',
   alternates: { canonical: '/links' },
@@ -100,6 +102,7 @@ export default function LinksPage({ searchParams }) {
       <Suspense fallback={null}>
         <LinksClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="links" stage={isStageServer('links', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ChompClient from './ChompClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -9,7 +11,7 @@ import { SITE_URL } from '@/lib/site';
 // daily, so tomorrow's board never reaches a browser.
 
 export const metadata = {
-  title: 'Chomp — Free Daily Route Puzzle | Mind Loft',
+  title: 'Free Daily Route Puzzle: Chomp | Mind Loft',
   description:
     'Chomp is a free daily route puzzle. A cast of mascots on a small board, eaten in order, and every square you touch stays yours for the rest of the run. There is exactly one route that gets all of them and it uses every square on the board, so your own trail is the only obstacle and one wrong turn ends the run. One board a day, the same for everybody, you do not need them all, and replay is free.',
   alternates: { canonical: '/chomp' },
@@ -89,6 +91,7 @@ export default function ChompPage({ searchParams }) {
       <Suspense fallback={null}>
         <ChompClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="chomp" stage={isStageServer('chomp', searchParams)} />
     </>
   );
 }

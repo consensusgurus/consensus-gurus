@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import FocusClient from './FocusClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // that is not yet live.
 
 export const metadata = {
-  title: 'Focus — Free Daily Zoomed Photo Guessing Game | Mind Loft',
+  title: 'Free Daily Zoomed Photo Guessing Game: Focus | Mind Loft',
   description:
     'A free daily picture game. One photo a day is shown as a close zoomed-in crop; name it before six frames pull the camera all the way back. Landmarks, animals, paintings, machines, famous faces, the world from above and space, one subject a day. No app, no signup, a new photo every day.',
   alternates: { canonical: '/focus' },
@@ -84,6 +86,7 @@ export default function FocusPage({ searchParams }) {
       <Suspense fallback={null}>
         <FocusClient key={picked.num} puzzles={lightPuzzles} dayByNum={{ [picked.num]: { a: picked.a, lic: picked.lic, by: picked.by, fx: picked.fx, fy: picked.fy } }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="focus" stage={isStageServer('focus', searchParams)} />
     </>
   );
 }

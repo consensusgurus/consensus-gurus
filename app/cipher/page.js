@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CipherClient from './CipherClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -10,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 // here). One cryptarithm a day, machine-verified to a unique solution.
 
 export const metadata = {
-  title: 'Cipher — Daily Cryptarithm: Crack the Letter Math | Mind Loft',
+  title: 'Daily Cryptarithm, Crack the Letter Math: Cipher | Mind Loft',
   description:
     'A free daily cryptarithm — one WORD + WORD = WORD equation where every letter hides a different digit. Exactly one solution, no guessing required. Crack it clean for a perfect 10, and take on four addends in the Sunday Edition.',
   alternates: { canonical: '/cipher' },
@@ -121,6 +123,7 @@ export default function CipherPage({ searchParams }) {
       <Suspense fallback={null}>
         <CipherClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="cipher" stage={isStageServer('cipher', searchParams)} />
     </>
   );
 }

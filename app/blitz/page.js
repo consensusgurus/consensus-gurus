@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import BlitzClient from './BlitzClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { PROBLEM_MAP } from './problems';
 import { T } from '@/lib/theme';
@@ -13,7 +15,7 @@ import { SITE_URL } from '@/lib/site';
 // authoring metadata for scripts/verify-blitz.mjs and no business of the page.
 
 export const metadata = {
-  title: 'Blitz — Free Daily Mental Math Game | Mind Loft',
+  title: 'Free Daily Mental Math Game: Blitz | Mind Loft',
   description:
     'A free daily mental arithmetic game. Twenty problems climb from two-digit addition to two-digit multiplication, percentages and cubes. Fifteen seconds each, one life, everyone plays the same twenty. No app, no signup, new problems every day.',
   alternates: { canonical: '/blitz' },
@@ -92,6 +94,7 @@ export default function BlitzPage({ searchParams }) {
       <Suspense fallback={null}>
         <BlitzClient key={picked.num} puzzles={lightPuzzles} problemsByNum={{ [picked.num]: problems }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="blitz" stage={isStageServer('blitz', searchParams)} />
     </>
   );
 }

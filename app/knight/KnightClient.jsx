@@ -1186,7 +1186,7 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Knight — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Knight</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Knight is a free daily anti-knight sudoku from Mind Loft. Each day gives you a 9×9 grid with one rule added to the usual three: no digit may repeat a chess knight&apos;s move away from itself, two squares one way and one square across. Rows, columns, and 3×3 boxes still hold 1 through 9 exactly once, and that fourth constraint does so much of the work that the board can print far fewer digits than an ordinary sudoku needs.

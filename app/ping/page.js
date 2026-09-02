@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import PingClient from './PingClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -13,7 +15,7 @@ import { SITE_URL } from '@/lib/site';
 // hide a trickier city.
 
 export const metadata = {
-  title: 'Ping — Daily City Puzzle: Guess the City by Distance | Mind Loft',
+  title: 'Daily City Puzzle, Guess the City by Distance: Ping | Mind Loft',
   description:
     'A free daily geography puzzle — one secret world city, no clues. Guess any city and Ping tells you exactly how many miles away it is. Home in and keep guessing until you find it; the fewer guesses, the better your score.',
   alternates: { canonical: '/ping' },
@@ -124,6 +126,7 @@ export default function PingPage({ searchParams }) {
       <Suspense fallback={null}>
         <PingClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="ping" stage={isStageServer('ping', searchParams)} />
     </>
   );
 }

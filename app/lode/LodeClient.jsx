@@ -1022,7 +1022,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Lode — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Lode</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Lode is a free daily word puzzle from Mind Loft, and a fresh answer to the make-words-from-letters puzzle. Every player gets the same seven letters, with one core letter that every word must contain, and eight letters in the Sunday Edition. Words must be four letters or longer, and you can reuse a letter as often as you like. A word that uses every letter on the board is a pangram.

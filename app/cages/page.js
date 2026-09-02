@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CagesClient from './CagesClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // only day that prints a five-cell cage.
 
 export const metadata = {
-  title: 'Cages — Free Daily Killer Sudoku | Mind Loft',
+  title: 'Free Daily Killer Sudoku: Cages | Mind Loft',
   description:
     'A free daily killer sudoku — no digits printed, just cages labelled with the total of the digits inside them. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/cages' },
@@ -112,6 +114,7 @@ export default function CagesPage({ searchParams }) {
       <Suspense fallback={null}>
         <CagesClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="cages" stage={isStageServer('cages', searchParams)} />
     </>
   );
 }

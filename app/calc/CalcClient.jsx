@@ -1096,7 +1096,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Calc — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 680, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 680, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Calc</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Calc is a free daily number puzzle from Mind Loft. The board is a grid of calculator buttons that alternate number, operator, number. You walk from the top-left button to the bottom-right one, a touching button at a time, and the route you walk is a sum: it reads left to right the way a calculator does, so 7 + 8 &times; 2 comes out at 30 rather than 23. Land on the last button holding exactly the target and the day is yours.

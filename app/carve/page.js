@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CarveClient from './CarveClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -10,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 // are a 6×6 board in six blocks; Sundays step up to a 7×7 board in nine.
 
 export const metadata = {
-  title: 'Carve — Free Daily Number Puzzle | Mind Loft',
+  title: 'Free Daily Number Puzzle: Carve | Mind Loft',
   description:
     'A free daily equal-sum puzzle — carve the grid into connected blocks, one per colored anchor, so every block adds to the same target. One valid carving, a clean solve wins, and Sundays go bigger.',
   alternates: { canonical: '/carve' },
@@ -121,6 +123,7 @@ export default function CarvePage({ searchParams }) {
       <Suspense fallback={null}>
         <CarveClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="carve" stage={isStageServer('carve', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import AnonClient from './AnonClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Anon — Free Daily Acrostic Puzzle | Mind Loft',
+  title: 'Free Daily Acrostic Puzzle: Anon | Mind Loft',
   description:
     'A free daily acrostic with no clues. A passage sits in the grid, one box per letter, and every box also belongs to one answer in the bank, so a letter typed in either half appears in the other. Some answers carry a category you can recite in your head; about half carry none at all. Finish it and the first letters of the answers have spelled out who wrote it. New passage daily, longer one on Sundays.',
   alternates: { canonical: '/anon' },
@@ -96,6 +98,7 @@ export default function AnonPage({ searchParams }) {
       <Suspense fallback={null}>
         <AnonClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="anon" stage={isStageServer('anon', searchParams)} />
     </>
   );
 }

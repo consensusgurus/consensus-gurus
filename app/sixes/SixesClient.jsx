@@ -1150,7 +1150,7 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Sixes — crawlable prose, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Sixes</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Sixes is a free daily mini sudoku from Mind Loft. Each day gives you a 6×6 grid with a handful of printed clues. Fill in the rest so that every row, every column, and every box holds the digits 1 through 6 exactly once. A box here is one of the six blocks two squares tall and three squares wide, marked off by the heavy lines.

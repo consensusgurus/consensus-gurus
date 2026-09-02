@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import FeudClient from './FeudClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // questions go to the client.
 
 export const metadata = {
-  title: 'Feud — Daily Crowd Survey Game: Match What Everyone Says | Mind Loft',
+  title: 'Daily Crowd Survey Game, Match What Everyone Says: Feud | Mind Loft',
   description:
     'A free daily survey game with a LIVE answer key: five everyday prompts, three answers each, and the key is whatever today’s players say. Match the crowd, bank their percentages, and watch the shares shift all day.',
   alternates: { canonical: '/feud' },
@@ -137,6 +139,7 @@ export default function FeudPage({ searchParams }) {
       <Suspense fallback={null}>
         <FeudClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="feud" stage={isStageServer('feud', searchParams)} />
     </>
   );
 }

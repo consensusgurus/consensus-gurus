@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ShoeClient from './ShoeClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -16,7 +18,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Shoe — Free Daily Blackjack Puzzle | Mind Loft',
+  title: 'Free Daily Blackjack Puzzle: Shoe | Mind Loft',
   description:
     'A free daily blackjack puzzle. Five hands off one fixed shoe, the same cards in the same order for every player. Hit, stand, or double, count what you have seen, and beat the book line. New shoe daily, seven hands off the whole deck on Sundays.',
   alternates: { canonical: '/shoe' },
@@ -113,6 +115,7 @@ export default function ShoePage({ searchParams }) {
       <Suspense fallback={null}>
         <ShoeClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="shoe" stage={isStageServer('shoe', searchParams)} />
     </>
   );
 }

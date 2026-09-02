@@ -907,7 +907,7 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Links — crawlable prose for search, server-rendered into the initial HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Links</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Links is a free daily word grouping puzzle from Mind Loft. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.

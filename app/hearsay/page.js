@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import HearsayClient from './HearsayClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // derived in the browser rather than shipped.
 
 export const metadata = {
-  title: 'Hearsay — Free Daily Logic Puzzle: Deduce What They Know | Mind Loft',
+  title: 'Free Daily Logic Puzzle, Deduce What They Know: Hearsay | Mind Loft',
   description:
     'A free daily logic puzzle in the Cheryl’s Birthday family. Two people are each told one detail of a secret card, then they talk. Work out which card it is from what they admit they do not know. New case every day.',
   alternates: { canonical: '/hearsay' },
@@ -117,6 +119,7 @@ export default function HearsayPage({ searchParams }) {
       <Suspense fallback={null}>
         <HearsayClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="hearsay" stage={isStageServer('hearsay', searchParams)} />
     </>
   );
 }

@@ -295,7 +295,7 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue,
   // inheriting the section's (owner, 2026-08-31). In a category row every card
   // is that category anyway, so passing nothing keeps the row's colour.
   return (
-    <a className={`sty-g ${state}${res ? ' res' : ''}`} href={`${routeOf(g)}?stage=1${tq}`}
+    <a className={`sty-g ${state}${res ? ' res' : ''}`} href={`${routeOf(g)}${tq ? '?' + tq.slice(1) : ''}`}
       style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
       {res ? (
@@ -1419,7 +1419,7 @@ export default function StageToday() {
                   {standing.map((r, i) => (
                     <tr key={r.key} className="sty-revr" style={{ '--cc': hueFor(r.g.cat), '--i': i }}>
                       <td className="sty-sg">
-                        <a href={`${routeOf(r.g)}?stage=1${tq}`}>
+                        <a href={`${routeOf(r.g)}${tq ? '?' + tq.slice(1) : ''}`}>
                           <Glyph k={r.key} size={15} />{r.g.name}
                         </a>
                       </td>
@@ -1485,7 +1485,7 @@ export default function StageToday() {
             {live.length ? (
               <div className="sty-live" style={{ '--lrows': Math.ceil(live.length / 2) }}>
                 {live.map((fp, i) => (
-                  <a key={`${fp.quizId}-${i}`} className="sty-lrow sty-revr" href={`${routeOf(fp.game)}?stage=1${tq}`}
+                  <a key={`${fp.quizId}-${i}`} className="sty-lrow sty-revr" href={`${routeOf(fp.game)}${tq ? '?' + tq.slice(1) : ''}`}
                     style={{ '--cc': hueFor(fp.game.cat), '--i': i }}>
                     <Glyph k={fp.game.key} size={15} />
                     <span className="sty-lname">{fp.game.name}</span>

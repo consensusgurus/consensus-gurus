@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import BlocksClient from './BlocksClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // frame, and the day's shape order is generated from its quizId in the client.
 
 export const metadata = {
-  title: 'Blocks — Free Daily Falling-Shapes Puzzle | Mind Loft',
+  title: 'Free Daily Falling-Shapes Puzzle: Blocks | Mind Loft',
   description:
     'Blocks is a free daily falling-shapes puzzle. Everyone gets the same shapes in the same order, so the leaderboard compares decisions and not luck. Play as many runs as you like and your best one takes the board, it never speeds up, and you can pause and come back whenever you like. Nine shapes: the classic seven plus a corner and a plus.',
   alternates: { canonical: '/blocks' },
@@ -91,6 +93,7 @@ export default function BlocksPage({ searchParams }) {
       <Suspense fallback={null}>
         <BlocksClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="blocks" stage={isStageServer('blocks', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import HedgeClient from './HedgeClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // browser.
 
 export const metadata = {
-  title: 'Hedge — Free Daily Slitherlink Loop Puzzle | Mind Loft',
+  title: 'Free Daily Slitherlink Loop Puzzle: Hedge | Mind Loft',
   description:
     'A free daily slitherlink, the loop puzzle also known as fences. Draw one single closed loop so every numbered cell has exactly that many of its four sides on the loop. Only some cells carry a number, and the blank ones are unconstrained by design. One logical solution, a new grid every day, and a bigger 10x10 Edition on Sundays.',
   alternates: { canonical: '/hedge' },
@@ -99,6 +101,7 @@ export default function HedgePage({ searchParams }) {
       <Suspense fallback={null}>
         <HedgeClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="hedge" stage={isStageServer('hedge', searchParams)} />
     </>
   );
 }

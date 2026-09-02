@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import StandsClient from './StandsClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -12,7 +14,7 @@ import { SITE_URL } from '@/lib/site';
 // the verifier does, so nothing but the puzzle itself ever ships.
 
 export const metadata = {
-  title: 'Stands — Free Daily Logic Puzzle: Rebuild the Results | Mind Loft',
+  title: 'Free Daily Logic Puzzle, Rebuild the Results: Stands | Mind Loft',
   description: 'A free daily logic puzzle. A small league played a full round robin, the results sheet was lost, and a handful of facts survive. Exactly one set of results fits them. New season every day.',
   alternates: { canonical: '/stands' },
   manifest: '/api/pwa-manifest?game=stands',
@@ -87,6 +89,7 @@ export default function StandsPage({ searchParams }) {
       <Suspense fallback={null}>
         <StandsClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="stands" stage={isStageServer('stands', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import OutwitClient from './OutwitClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -15,7 +17,7 @@ import { SITE_URL } from '@/lib/site';
 // crowd could be reverse-engineered before playing.
 
 export const metadata = {
-  title: 'Outwit — Daily Crowd Puzzle: Beat Everyone Playing Today | Mind Loft',
+  title: 'Daily Crowd Puzzle, Beat Everyone Playing Today: Outwit | Mind Loft',
   description:
     'A free daily puzzle where the puzzle is other people. Five game-theory prompts against the whole field: dodge the popular pick, read the herd, meet the crowd, be the rare bird, then undercut the average by a fraction that changes daily. Six prompts in the Sunday Edition. Then see where everyone actually went.',
   alternates: { canonical: '/outwit' },
@@ -144,6 +146,7 @@ export default function OutwitPage({ searchParams }) {
       <Suspense fallback={null}>
         <OutwitClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="outwit" stage={isStageServer('outwit', searchParams)} />
     </>
   );
 }

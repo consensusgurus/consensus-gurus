@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import TuckClient from './TuckClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // chase the solver-verified benchmark.
 
 export const metadata = {
-  title: 'Tuck — Daily Word Puzzle: Same Letters, Highest Score Wins | Mind Loft',
+  title: 'Daily Word Puzzle, Same Letters, Highest Score Wins: Tuck | Mind Loft',
   description:
     'A free daily word puzzle — everyone gets the same 14 letters, and 15 in the Sunday Edition. Tuck them into your own interlocking crossword grid: every run must be a word, intersections score double, and each day has a solver-verified benchmark to beat.',
   alternates: { canonical: '/tuck' },
@@ -122,6 +124,7 @@ export default function TuckPage({ searchParams }) {
       <Suspense fallback={null}>
         <TuckClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="tuck" stage={isStageServer('tuck', searchParams)} />
     </>
   );
 }

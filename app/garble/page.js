@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import GarbleClient from './GarbleClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // /quiz/garble-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Garble — Free Daily Word Scramble Puzzle | Mind Loft',
+  title: 'Free Daily Word Scramble Puzzle: Garble | Mind Loft',
   description:
     'A free daily word scramble puzzle — untangle five garbled words, feed their gold letters into a clued finale, and finish in the fewest misses. New puzzle every day, and a six-letter Sunday Edition each week.',
   alternates: { canonical: '/garble' },
@@ -102,6 +104,7 @@ export default function GarblePage({ searchParams }) {
       <Suspense fallback={null}>
         <GarbleClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="garble" stage={isStageServer('garble', searchParams)} />
     </>
   );
 }

@@ -886,7 +886,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
           )}
         </div>
 
-        <section style={{ display: (focusMode || STAGE) ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: FADED }}>
+        <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: FADED }}>
           <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Sweep</h2>
           <p style={{ margin: '0 0 9px' }}>
             Sweep is a daily minesweeper with no bottom edge. Everyone digs the same field on the same day, so the

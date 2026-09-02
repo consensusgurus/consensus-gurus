@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ThreadClient from './ThreadClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -10,7 +12,7 @@ import { SITE_URL } from '@/lib/site';
 // a client. The shared daily consumers get the light rows only.
 
 export const metadata = {
-  title: 'Thread — Free Daily Movie Puzzle, Nine Films and One Hidden Thread | Mind Loft',
+  title: 'Free Daily Movie Puzzle, Nine Films and One Hidden Thread: Thread | Mind Loft',
   description:
     'A free daily movie puzzle. Nine films are each described in one sentence by someone who missed the point, and all nine share one hidden thread. Name the films, call the thread, and call it early for more points. No app, no signup, a new board every day.',
   alternates: { canonical: '/thread' },
@@ -82,6 +84,7 @@ export default function ThreadPage({ searchParams }) {
       <Suspense fallback={null}>
         <ThreadClient key={picked.num} puzzles={lightPuzzles} dayByNum={{ [picked.num]: { tiles: picked.tiles, threads: picked.threads, decoys: picked.decoys || [] } }} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="thread" stage={isStageServer('thread', searchParams)} />
     </>
   );
 }

@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import ExtraClient from './ExtraClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
@@ -11,7 +13,7 @@ import { SITE_URL } from '@/lib/site';
 // strips run out. Sundays run a trickier story.
 
 export const metadata = {
-  title: 'Extra — Daily History Puzzle: Name the Redacted Headline | Mind Loft',
+  title: 'Daily History Puzzle, Name the Redacted Headline: Extra | Mind Loft',
   description:
     "A free daily history puzzle — one historic front page with the giveaway words blacked out. Name the story; every wrong guess tears one more word free. Six tears, one hint, and a perfect score for naming it cold.",
   alternates: { canonical: '/extra' },
@@ -122,6 +124,7 @@ export default function ExtraPage({ searchParams }) {
       <Suspense fallback={null}>
         <ExtraClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="extra" stage={isStageServer('extra', searchParams)} />
     </>
   );
 }

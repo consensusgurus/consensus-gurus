@@ -1200,7 +1200,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
       )}
 
       {/* About Quilt — crawlable prose for search, server-rendered into the HTML */}
-      <section style={{ position: 'relative', display: (focusMode || STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
+      <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Quilt</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Quilt is a free daily jigsaw sudoku from Mind Loft. Each day gives you a fresh 9×9 grid, a handful of printed clues, and nine irregular regions in place of the usual 3×3 boxes. Fill in the rest so that every row, every column, and every region holds the digits 1 through 9 exactly once. There is always a single, logical solution &mdash; no guessing required.

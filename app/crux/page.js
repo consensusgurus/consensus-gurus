@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import CruxClient from './CruxClient';
+import StageTail from '../StageTail';
+import { isStageServer } from '@/lib/stage';
 import { PUZZLES } from './puzzles';
 import { SITE_URL } from '@/lib/site';
 
@@ -8,7 +10,7 @@ import { SITE_URL } from '@/lib/site';
 // /quiz/crux-* stubs canonicalize here).
 
 export const metadata = {
-  title: 'Crux — Free Daily Word Puzzle | Mind Loft',
+  title: 'Free Daily Word Puzzle: Crux | Mind Loft',
   description:
     'A clueless crossword and a free daily word puzzle. Eight hidden words interlock, and four categories are the only hints. New puzzle every day.',
   alternates: { canonical: '/crux' },
@@ -97,6 +99,7 @@ export default function CruxPage({ searchParams }) {
       <Suspense fallback={null}>
         <CruxClient key={forceNum || 'today'} puzzles={visiblePuzzles} forceNum={forceNum} />
       </Suspense>
+      <StageTail self="crux" stage={isStageServer('crux', searchParams)} />
     </>
   );
 }
