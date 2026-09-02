@@ -43,7 +43,15 @@
 // Usage: a positioned parent, then <StagePatch on={stillWaiting} />.
 
 import { useEffect, useRef, useState } from 'react';
-import { CATEGORY_RAMP, CATEGORY_RAMP_LIGHT } from '@/lib/category-ramp';
+
+// GREYSCALE, NOT THE CATEGORY RAMP (owner, 2026-09-01: "get rid of the
+// colorization of that - just show a black to grey scale scroll"). Ten rungs
+// still, still the running loop, but a ramp from black to grey on the pale
+// page and from white to grey on the near-black one, so the loading state is a
+// texture and not a second colour system sitting in the header. `light` picks
+// which end is the dark one.
+const GREY_LIGHT = ['#0b0d12', '#1c2029', '#2d323d', '#3e4451', '#4f5665', '#606879', '#717a8d', '#828ca1', '#939eb5', '#a4b0c9'];
+const GREY_DARK = ['#e9edf4', '#d6dbe4', '#c3c9d4', '#b0b7c4', '#9da5b4', '#8a93a4', '#778194', '#646f84', '#515d74', '#3e4b64'];
 
 const FLOOR = 260;   // the doorway's warm-cache floor
 const MIN = 400;     // the least a shown patch may stay
@@ -87,7 +95,7 @@ export default function StagePatch({ on, light = true, radius = 6 }) {
       style={{ borderRadius: radius }}
       aria-hidden="true"
     >
-      {(light ? CATEGORY_RAMP_LIGHT : CATEGORY_RAMP).map((c, i) => (
+      {(light ? GREY_LIGHT : GREY_DARK).map((c, i) => (
         <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />
       ))}
     </span>

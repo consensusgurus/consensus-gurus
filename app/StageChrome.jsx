@@ -224,8 +224,14 @@ export default function StageChrome({
             saying WHOSE. So the words are back, they sit to the LEFT of the
             identity, and the whole cap now reads left to right as where you
             are: the site, then the category and date, then the game. */}
+        {/* THE MARK WEARS THE CATEGORY (owner, 2026-09-01: "our recolor is
+            supposed to hit the logo top left - it did at one point"). The brain's
+            blue is the category step on a game page, the same hue the cap band
+            and the board take. The WORD stays the brand blue: it is 13px text,
+            and the three warm steps (gold, orange, amber) do not hold as text on
+            paper, while the mark is a filled glyph and reads at any step. */}
         <a className="stg-brand" href={homeTo} aria-label="Mind Loft home" title="Mind Loft">
-          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-brand,#7dd3fc)" />
+          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-acc, var(--stg-brand,#7dd3fc))" />
           <b>Mind <em>Loft</em></b>
         </a>
 

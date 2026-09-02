@@ -67,11 +67,21 @@ const COLORS = {
 // Old against new is the two line weights the page already defines; mine against
 // theirs is the accent against a lift. Nothing here needs a fifth value.
 const DOT = 'var(--stg-line3, #1c1e24)';
-const EDGE_OLD = 'var(--stg-line2, #43414a)';      // drawn before you picked the board up
+// THREE DRAWN EDGES AND ONE OPEN ONE, and every pair has to be tellable on
+// BOTH registers (owner, 2026-09-01: "the color contrast does not work here on
+// light mode"). The old edges were --stg-line2, a 24% wash, against an open
+// edge that is a 10% wash: on the white board that is #c3c5ca beside #e6e6e7,
+// and the position you are handed was unreadable. Drawn edges are INK now, in
+// three weights: the history is the mute (a real line, quieter than a move),
+// the engine's moves are the full ink (crisp, near-black on paper, near-white
+// on the dark board), yours are the category step. The open edge is the
+// register's field ink at 10%, so it stays faint on both grounds.
+const EDGE_OLD = 'var(--stg-mute, #43414a)';        // drawn before you picked the board up
 const EDGE_MINE = `var(--stg-acc, ${COLORS.accent})`; // drawn by you, this game
-const EDGE_FOE = 'var(--stg-ink2, #a8a29e)';      // drawn by the engine, this game
+const EDGE_FOE = 'var(--stg-ink, #a8a29e)';         // drawn by the engine, this game
+const EDGE_OPEN = 'rgba(var(--stg-fieldink, 28,30,36), 0.10)';
 const BOX_MINE_BG = 'var(--stg-b3, #f3e3f7)';
-const BOX_MINE_INK = 'var(--stg-acc, #4a044e)';
+const BOX_MINE_INK = 'var(--stg-ink, #4a044e)';   // a letter is TEXT; the accent as text fails on the pale register
 const BOX_FOE_BG = 'var(--stg-b1, #eceae6)';
 const BOX_FOE_INK = 'var(--stg-mute, #78716c)';
 // A box you took is a lift with an accent edge, which is the shape of an unplayed
@@ -709,7 +719,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           style={{
             ...thick,
             borderRadius: 3,
-            background: col || (isKey ? `var(--stg-acc, ${COLORS.accent})` : hot ? `var(--stg-acc, ${COLORS.accent})` : hinted ? '#c084fc' : 'rgba(28,30,36,0.10)'),
+            background: col || (isKey ? `var(--stg-acc, ${COLORS.accent})` : hot ? `var(--stg-acc, ${COLORS.accent})` : hinted ? '#c084fc' : EDGE_OPEN),
             opacity: col ? 1 : isKey ? 1 : hot ? 0.9 : hinted ? 0.85 : 1,
           }}
         />

@@ -176,7 +176,15 @@ function FloodCount({ to, ms }) {
   return <>{Math.round(v).toLocaleString()}</>;
 }
 
-function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null, bandRef, onDone }) {
+// THE QUICK FLOOD (owner, 2026-09-01: "i still want the full screen animation
+// for 'you lost' but very quick - no stats need time to load. full color screen
+// with words and auto move back to the single color bar"). A loss on the
+// retry games has no figures to wait for, so `quick` empties the queue and
+// shortens the settle: the verdict floods the screen, holds a beat, and
+// collapses onto the band on its own. Same curtain, same collapse, no queue.
+const FLOOD_QUICK_SETTLE = 700;
+
+function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null, bandRef, onDone, quick = false }) {
   const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);    // the floor has passed
@@ -205,7 +213,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
   // and it is a VALUE test rather than a read-completed one, so a figure that
   // genuinely has no answer (no all-time standing yet, no streak) is skipped by
   // the ready branch rather than printed as a blank.
-  const figs = useMemo(() => ([
+  const figs = useMemo(() => (quick ? [] : [
     {
       k: 'iq', lead: true, count: true,
       has: !!(iq && iq.gained != null),
@@ -230,7 +238,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
       value: streak,
       label: 'day streak',
     },
-  ]), [iq, board, gameRank, streak]);
+  ]), [iq, board, gameRank, streak, quick]);
 
   // Fade in, and the two edges of the hold. Both timers are anchored to the
   // MOUNT rather than to `ready`, for the reason LoftFinish's own ceiling is:
@@ -277,7 +285,8 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
     if (!held || goneRef.current) return;
     if (shown < figs.length) return;
     goneRef.current = true;
-    at(FLOOD_SETTLE, () => {
+    const settle = quick ? FLOOD_QUICK_SETTLE : FLOOD_SETTLE;
+    at(settle, () => {
       const el = bandRef && bandRef.current;
       if (!el) { setPhase('shrink'); return; }
       // MEASURED LATE, on purpose: by now the card has settled, so the rectangle
@@ -299,8 +308,8 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
         setPhase('shrink');
       });
     });
-    at(FLOOD_SETTLE + FLOOD_SHRINK + 60, () => setPhase('out'));
-    at(FLOOD_SETTLE + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
+    at(settle + FLOOD_SHRINK + 60, () => setPhase('out'));
+    at(settle + FLOOD_SHRINK + 60 + FLOOD_FADE, finish);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [held, shown, figs]);
 
@@ -469,10 +478,10 @@ export default function StageFinish({
   const bandRef = useRef(null);
   const [flood, setFlood] = useState(false);
   useEffect(() => {
-    // The fast-retry ending stays quiet: it is one control, shown after a loss
-    // on the games where a replay counts, and a player takes it several times in
-    // a row. A full-screen colour every time is a wall, not a moment.
-    if (isRetry) return;
+    // The fast-retry ending floods too, QUICKLY (owner, 2026-09-01; it used to
+    // stay quiet on the reasoning that a player takes it several times in a
+    // row). It has no figures, so the quick flood is the verdict, a beat, and
+    // the collapse: about a second and a half, and any tap skips it.
     if (typeof window === 'undefined') return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     // ?flood=1 plays it on an already-finished board, which is the ONLY way to
@@ -639,7 +648,12 @@ export default function StageFinish({
       <div className={'stf stf-rtwrap' + (outcome ? ' stf-' + outcome : '')}>
         <style>{CSS}</style>
 
-        <div className="stf-curtain">
+        {flood ? (
+          <CurtainFlood title={title} detail={detail} bandRef={bandRef} quick
+            onDone={() => setFlood(false)} />
+        ) : null}
+
+        <div className="stf-curtain" ref={bandRef}>
           <div className="stf-cin">
             <div className="stf-verdict">{title}</div>
             {detail ? <div className="stf-detail">{detail}</div> : null}
