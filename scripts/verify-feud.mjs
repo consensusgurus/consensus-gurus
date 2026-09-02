@@ -68,6 +68,16 @@ const FIXTURES = [
   ['always losing', 'sunglasses', 'Sunglasses'],
   ['always losing', 'chap stick', 'Chapstick'],                  // compound spacing
   ['always losing', 'airpods', 'Earbuds'],
+  // 2026-09-01 player report (Matty P): quality nouns and irregular plurals
+  ['fall activity', 'leaf watch', 'Looking at the leaves'],
+  ['fall activity', 'leaf peeping', 'Looking at the leaves'],
+  ['fall activity', 'the leaves changing', 'Looking at the leaves'],
+  ['fall activity', 'foliage', 'Looking at the leaves'],
+  ['notice first about a house', 'cleanliness', 'How clean it is'],
+  ['notice first about a house', 'cleanness', 'How clean it is'],
+  ['notice first about a house', 'tidiness', 'How clean it is'],
+  ['notice first about a house', 'how messy it is', 'How clean it is'],
+  ['notice first about a house', 'how big it is', 'How big it is'],
   // traps: an accidental substring must NOT be credited to the short bucket
   ['always losing', 'headphones', null],
   ['always losing', 'my dignity', null],

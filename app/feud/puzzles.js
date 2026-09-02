@@ -2456,7 +2456,7 @@ export const PUZZLES = [
           { c: "Apple picking", k: ["apple picking", "orchard"] },
           { c: "The pumpkin patch", k: ["pumpkin patch", "carving pumpkins"] },
           { c: "Football", k: ["football", "tailgating"] },
-          { c: "Looking at the leaves", k: ["leaves", "fall colors"] },
+          { c: "Looking at the leaves", k: ["leaves", "fall colors", "leaf", "foliage", "leaf peeping", "leaf watching"] },
           { c: "Bonfires", k: ["bonfire", "fire pit", "campfire"] },
           { c: "Hayrides and corn mazes", k: ["hayride", "corn maze"] },
           { c: "Sweater weather", k: ["sweater", "cozy clothes", "boots"] },
@@ -2483,7 +2483,7 @@ export const PUZZLES = [
         answers: [
           { c: "The smell", k: ["smell", "how it smells"] },
           { c: "The kitchen", k: ["kitchen", "counters"] },
-          { c: "How clean it is", k: ["clean", "messy", "clutter"] },
+          { c: "How clean it is", k: ["clean", "messy", "clutter", "cleanliness", "tidy", "dirty"] },
           { c: "The yard", k: ["yard", "landscaping", "curb appeal"] },
           { c: "The floors", k: ["floor", "carpet", "hardwood"] },
           { c: "The paint colors", k: ["paint", "wallpaper"] },
