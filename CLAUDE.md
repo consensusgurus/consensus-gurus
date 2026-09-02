@@ -7131,3 +7131,81 @@ is also what guarantees no new same-day answer collision.
 of these the whole time: none of them is a structural fault. Off-subject, rotted and
 self-answering are all judgement, and the only gate for judgement is somebody reading all
 1,025. Do that as part of authoring a bank, not after a player reports one.
+
+## The 2026-09-02 gauntlet sweep, and the four checks every bank is missing
+
+The Atlas precipitation report was not one bad question. Auditing all six other gauntlet banks
+question by question (8,540 in total: atlas 1,025, sport 1,025, biz 975, deep 1,575, streak
+2,440, script 750, quotes 750) turned up the same four defect classes in every one of them, and
+**every bank's verifier passed the whole time**, because all four are semantic and none is
+structural. 92 questions on future days were replaced in one pass.
+
+**What the sweep found, in order of how often it appears:**
+
+1. **DUPLICATE FACT, usually asked from opposite sides.** By far the commonest defect: 23 pairs
+   in Biz, 13 in Sport, 8 in Deep, 8 in Atlas. "Which league do the San Francisco Giants play
+   in?" on one day and "Which National League team plays in San Francisco?" on another. No
+   verifier catches these: the exact-text check needs identical wording, and the shared-answer
+   warning only fires when the two ANSWERS match, which is precisely what a mirrored pair breaks.
+2. **ROTTING FACT.** A present-tense superlative, a live record, a current holder or an ownership
+   claim. Sport and Biz both have a written "every fact is frozen" rule in their own headers and
+   both broke it: "the most in NFL history", "the world's largest container line", "which country
+   has won the most World Cups". The fix is almost always a STEM rewrite that pins the same answer
+   to a completed event, which is also the cheapest kind of fix (see below).
+3. **SELF-ANSWERING.** The answer's distinctive word sits in the stem, or a category word appears
+   in only the correct choice. The existing giveaway checks catch a stem containing the answer
+   whole; they miss a stem sharing ONE proper noun with it, which is the real-world case.
+4. **OFF-SUBJECT.** A question that does not belong to its bank or its lane at all: a weather
+   word in a geography lane, a nuclear accident in a business lane, a hockey question in a
+   soccer-and-everything-else lane, 88 plain-history questions in a bank about quotations.
+
+**Two hard errors in 8,540, both worth knowing.** Deep asked which player holds the World Cup
+goalscoring record and keyed Klose; Messi passed him seven weeks before that day was played, and
+the true answer was not among the four choices, so the question was unanswerable on the day it
+ran. Streak asked for the largest country in the Americas "by land area" and keyed Canada, which
+is the standard gotcha: Canada leads on TOTAL area, the United States on LAND area, and the United
+States was one of the choices. Both are the same shape, a stem whose wording the author did not
+check as carefully as the answer.
+
+### The rules for fixing one
+
+- **THE PAST IS FROZEN.** Every bank's played days are left exactly as they shipped, the reported
+  precipitation question included. Fix from the first unplayed day forward and say so.
+- **KEEP THE `correct` INDEX.** Each bank's verifier checks the day's answer-column balance and a
+  no-three-in-a-row rule, so moving an answer between columns breaks the day. `scripts/` has no
+  helper for this; the one used here asserts it and refuses an edit that moves the index.
+- **PREFER A STEM REWRITE THAT KEEPS THE ANSWER.** It cannot introduce a same-day answer
+  collision, it cannot move the column, and it is the whole fix for every rotting fact and every
+  self-answering question. Reserve a full replacement for off-subject and duplicate questions,
+  where the fact itself has to go.
+- **A NEW QUESTION MUST BE CHECKED AGAINST THE BANK BEFORE IT IS WRITTEN, NOT AFTER.** Six of the
+  eight fresh Atlas questions written in this pass duplicated something already in the bank on
+  the first attempt (Christ the Redeemer, the Silk Road at Bukhara, Lithuania between Poland and
+  Latvia, the capital of Norway, Panama between Costa Rica and Colombia, the yen). These banks are
+  dense: at 1,000 questions the obvious fact about a country is already in there. Grep the
+  distinctive word first.
+- **A REPEATED ANSWER IS FINE; A REPEATED FACT IS NOT.** "France" is the honest answer to five
+  different questions. What is banned is the same nugget twice, and the tell is a shared
+  distinctive word in the two stems rather than a shared answer.
+- **FACT-CHECK THE REPLACEMENTS AS A SEPARATE PASS.** 12 of the 93 questions written in this pass
+  had a problem, found only because they were checked by fresh eyes against sources afterwards:
+  a false stem (the Philippines' official language is Filipino, not Tagalog; the ICC was founded
+  in Atlantic City and only based in Paris; the Sky Tower was the tallest FREESTANDING structure),
+  a second defensible answer (Nepal also lies between India and China), and twice a choice list
+  still containing the city the new stem now named, so the question offered an impossible option.
+  Writing the fix and checking the fix are two different jobs; do not merge them.
+
+### The four checks worth adding
+
+None of these exists in any bank's verifier today, and each would have caught a whole class above:
+
+1. **Cross-day mirrored duplicates.** For every pair of questions, warn when one's ANSWER appears
+   in the other's STEM. That is the mirrored-pair signature and it is a two-line check.
+2. **One-choice-only stem words.** For each word in the stem longer than three characters, warn if
+   it appears in exactly one choice and that choice is the correct one. About 30 hits per 1,500
+   questions, of which a third are real.
+3. **A live-superlative word list.** Warn on a stem carrying "holds the record", "the most", "is
+   the largest / longest / highest", "remains", "currently", "as of", unless a year or a date
+   range also appears in the stem. That alone flags the Klose question before it ships.
+4. **A choice that the stem already names.** Fail when any choice string appears verbatim in its
+   own stem: it is never a real option and it tells the player the setter was padding.
