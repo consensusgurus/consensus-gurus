@@ -48,8 +48,8 @@
 // leaves them as a ladder along the foot, and only then do the words land.
 // The words are chosen by footprint: a reader with a name gets the welcome
 // and the gap-branched figures exactly as before; a reader without one gets
-// the mark, the wordmark and the three lines (Gain IQ points / Elevate your
-// thinking / Keep a sharp mind), which is the one moment the brand explains
+// the mark, the wordmark and the three lines (Gain IQ Points / Keep a Sharp
+// Mind / Elevate Your Thinking), which is the one moment the brand explains
 // itself to someone who has not met it. The ladder keeps looping for as long
 // as the reads take, so the hold is a loading state rather than a freeze, and
 // the collapse onto the cap is unchanged.
@@ -162,9 +162,10 @@ const HELLO = 'Welcome back, ';
 // THE THREE LINES, for a reader with no footprint. They stamp in one at a time
 // like figures, because on this screen they are the figures.
 const LINES = [
-  { k: 'l1', line: true, v: 'Gain IQ points' },
-  { k: 'l2', line: true, v: 'Elevate your thinking' },
-  { k: 'l3', line: true, v: 'Keep a sharp mind' },
+  // Title case, and in THIS order (owner, 2026-09-02).
+  { k: 'l1', line: true, v: 'Gain IQ Points' },
+  { k: 'l2', line: true, v: 'Keep a Sharp Mind' },
+  { k: 'l3', line: true, v: 'Elevate Your Thinking' },
 ];
 // Short names for the bands: the ramp's own order, two words at most.
 const BAND_NAMES = { 'Crowd Psychology': 'Crowd' };
@@ -515,7 +516,13 @@ export default function StageWelcome({ capRef }) {
     goneRef.current = true;
     at(FLOOD_SETTLE, () => {
       const el = capRef && capRef.current;
-      if (!el) { setPhase('out'); at(FLOOD_FADE, finish); return; }
+      // ON A PHONE THE SCREEN FADES WHOLE (owner, 2026-09-02: "a black box
+      // lingers for .25 seconds at the header area"). The collapse onto the
+      // cap's rectangle reads as the colour landing where it belongs on a wide
+      // screen; on a phone the cap is a short dark bar across the top and the
+      // clipped curtain sat on it as a black block until the fade ran out.
+      const phone = window.innerWidth <= 640;
+      if (!el || phone) { setPhase('out'); at(FLOOD_FADE, finish); return; }
       // MEASURED LATE, on purpose: by now the page has settled, so the rectangle
       // the colour lands on is the one it will still be sitting on.
       const r = el.getBoundingClientRect();
@@ -636,9 +643,17 @@ const CSS = `
 .stw-bands{position:absolute;inset:0 0 6px 0;z-index:1;display:flex;}
 .stw-b{position:relative;flex:1;transform:scaleY(0);transform-origin:50% 100%;}
 .stw.up .stw-b{animation:stw-band .5s cubic-bezier(.2,.8,.2,1) forwards;}
-.stw-b i{position:absolute;left:50%;bottom:clamp(14px,4vh,40px);transform:translateX(-50%) rotate(-90deg);
-  transform-origin:left center;white-space:nowrap;font-style:normal;font-weight:800;
-  font-size:clamp(9px,1.1vw,13px);letter-spacing:.1em;text-transform:uppercase;opacity:0;}
+/* VERTICAL TEXT BY WRITING MODE, not by rotating a horizontal box (owner,
+   2026-09-02: on a phone "the categories ... bleed into each other"). A
+   rotated box is still LAID OUT horizontally, so translateX(-50%) centred it by
+   half the WORD's width and the rotation then swung it off its own band into
+   the neighbour's; at ten bands across a 390px screen every label overlapped
+   the next. In vertical-rl the box IS narrow and tall, so centring on left:50%
+   is exact, and the label reads bottom-to-top like a spine. */
+.stw-b i{position:absolute;left:50%;bottom:clamp(14px,4vh,40px);
+  writing-mode:vertical-rl;transform:translateX(-50%) rotate(180deg);
+  white-space:nowrap;font-style:normal;font-weight:900;
+  font-size:clamp(11px,1.2vw,14px);letter-spacing:.12em;text-transform:uppercase;opacity:0;}
 .stw.up .stw-b i{animation:stw-fade .3s .85s both;}
 @keyframes stw-band{to{transform:scaleY(1);}}
 @keyframes stw-fade{to{opacity:1;}}
@@ -721,6 +736,9 @@ const CSS = `
 
 @media (max-width:640px){
   .stw{padding:clamp(56px,13vh,120px) 16px 20px;}
+  /* Larger and heavier on a phone, where the bands are 39px wide and the
+     label is the only thing telling them apart. */
+  .stw-b i{font-size:12px;font-weight:900;letter-spacing:.1em;bottom:12px;}
   .stw-figs{margin-top:20px;gap:12px 26px;}
   .stw-fig i.cl{margin-top:7px;}
 }
