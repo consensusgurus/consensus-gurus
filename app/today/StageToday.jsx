@@ -1299,6 +1299,11 @@ export default function StageToday() {
         </section>
         ) : null}
 
+        {/* THE SLATE'S HEADING (owner, 2026-09-02). One line under the ladder,
+            above the first row of games, saying what the rest of the page is.
+            Static, so it needs no fade and shows on the server render. */}
+        <h2 className="sty-slate">Today&rsquo;s fresh slate of puzzles</h2>
+
         {/* NO CARDS ABOVE MY GAMES (owner, 2026-08-31). The three of them —
                what you are mid-way through, what is most played, who is
                leading — each restated something the page already says further
@@ -2061,6 +2066,7 @@ ${PATCH_CSS}
 .sty-cat{position:relative;padding-left:16px;}
 .sty-cat::before{content:'';position:absolute;left:0;top:2px;bottom:2px;width:4px;
   border-radius:2px;background:var(--cc);}
+.sty-slate{margin:4px 0 14px;font-size:19px;font-weight:800;letter-spacing:-.015em;line-height:1.15;color:var(--stg-ink);}
 .sty-cathead{display:flex;align-items:baseline;gap:11px;margin-bottom:10px;}
 .sty-cathead h2{margin:0;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;}
 .sty-cathead b{font-family:${MONO};font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--stg-ink2);}
