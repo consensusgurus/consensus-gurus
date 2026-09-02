@@ -23,6 +23,9 @@ export const metadata = {
     'A free daily mini sudoku. Fill the 6×6 grid so every row, column, and 2×3 box holds 1–6 with no repeats. One logical solution, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/sixes' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/sixes.png', width: 1200, height: 630, alt: 'Sixes — a daily mini sudoku from Mind Loft' }],
     title: 'Sixes — A Daily Mini Sudoku',
     description:
       'Fill the 6×6 grid so every row, column, and box holds 1–6 once. A two-minute sudoku with one logical solution, from Mind Loft, daily.',
@@ -31,6 +34,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/sixes.png'],
     card: 'summary_large_image',
     title: 'Sixes — A Daily Mini Sudoku',
     description:

@@ -21,6 +21,9 @@ export const metadata = {
     'A free daily deduction game: an entire article about a mystery subject is blacked out, and every word you guess is uncovered wherever it appears. Name the subject to win. A new article every day, harder on Sundays.',
   alternates: { canonical: '/redact' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/redact.png', width: 1200, height: 630, alt: 'Redact — a daily uncover-the-article game from Mind Loft' }],
     title: 'Redact — Uncover the Article',
     description:
       'Every meaningful word of today’s article is hidden behind a black block. Guess words, watch the story surface, and name the subject. From Mind Loft.',
@@ -29,6 +32,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/redact.png'],
     card: 'summary_large_image',
     title: 'Redact — Uncover the Article',
     description: 'An entire article, blacked out. Guess words to reveal it and name the subject. Today’s article is up.',
@@ -48,7 +52,7 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: `${SITE_URL}/redact/opengraph-image`,
+  image: `${SITE_URL}/og/redact.png`,
   publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 

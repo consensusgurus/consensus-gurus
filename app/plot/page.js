@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily rectangle puzzle, also called shikaku or divide by squares. Every number is the size of the plot it belongs to, so divide the whole board into rectangles that each hold one number and cover exactly that many cells. One solution, pure deduction with no guessing, and a bigger 12x12 Edition on Sundays.',
   alternates: { canonical: '/plot' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/plot.png', width: 1200, height: 630, alt: 'Plot — a daily rectangle puzzle from Mind Loft' }],
     title: 'Plot — A Daily Rectangle Puzzle',
     description:
       'Every number is the size of its own plot. Divide the board into rectangles until the whole map is claimed. A new logic puzzle from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/plot.png'],
     card: 'summary_large_image',
     title: 'Plot — A Daily Rectangle Puzzle',
     description: 'Every number is the size of its own plot. Divide the whole board, one solution, no guessing.',

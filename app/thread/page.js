@@ -17,11 +17,14 @@ export const metadata = {
     'A free daily movie puzzle. Nine films are each described in one sentence by someone who missed the point, and all nine share one hidden thread. Name the films, call the thread, and call it early for more points. No app, no signup, a new board every day.',
   alternates: { canonical: '/thread' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/thread.png', width: 1200, height: 630, alt: 'Thread — a daily puzzle from Mind Loft' }],
     title: 'Thread — The Daily Badly Described Movie Puzzle',
     description: 'Nine films described by someone who missed the point. Name them, then call the one thing they all share.',
     url: '/thread', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Thread — The Daily Badly Described Movie Puzzle', description: 'Nine films described badly. Name them, then call the thread.' },
+  twitter: { images: ['/og/thread.png'], card: 'summary_large_image', title: 'Thread — The Daily Badly Described Movie Puzzle', description: 'Nine films described badly. Name them, then call the thread.' },
 };
 
 const gameJsonLd = {

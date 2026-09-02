@@ -32,11 +32,15 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Pricer' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/pricer.png', width: 1200, height: 630, alt: 'Pricer — the daily price bracket from Mind Loft' }],
     title: 'Pricer — The Daily Price Bracket',
     description: 'Sixteen price tags, one question, fifteen picks. Your winners carry forward, so a first-round mistake takes every later line down with it.',
     url: '/pricer', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/pricer.png'],
     card: 'summary_large_image',
     title: 'Pricer — The Daily Price Bracket',
     description: 'Sixteen real price tags, one question, and a bracket that busts exactly like your Final Four.',

@@ -19,11 +19,14 @@ export const metadata = {
     'A free daily geography game. One country is revealed each day; name every country on its land border before three wrong guesses end the run. Monday starts with one border, Sunday hands you a fourteen-neighbor giant. No app, no signup, a new country every day.',
   alternates: { canonical: '/flank' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/flank.png', width: 1200, height: 630, alt: 'Flank — a daily puzzle from Mind Loft' }],
     title: 'Flank — The Daily Borders Game',
     description: 'One country a day. Name every country on its border before three wrong guesses end the run.',
     url: '/flank', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Flank — The Daily Borders Game', description: 'One country a day. Name every country on its border.' },
+  twitter: { images: ['/og/flank.png'], card: 'summary_large_image', title: 'Flank — The Daily Borders Game', description: 'One country a day. Name every country on its border.' },
 };
 
 const gameJsonLd = {

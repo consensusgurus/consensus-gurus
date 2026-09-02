@@ -28,6 +28,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Dating' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/dating.png', width: 1200, height: 630, alt: 'Dating — a daily put-history-in-order puzzle from Mind Loft' }],
     title: 'Dating — A Daily Put-History-In-Order Puzzle',
     description:
       'Five moments a day, shuffled out of sequence. Arrange them oldest to newest in three checks or fewer. A new history puzzle from Mind Loft.',
@@ -36,6 +39,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/dating.png'],
     card: 'summary_large_image',
     title: 'Dating — A Daily Put-History-In-Order Puzzle',
     description:

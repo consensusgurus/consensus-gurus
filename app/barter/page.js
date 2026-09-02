@@ -19,6 +19,9 @@ export const metadata = {
     'A free daily word puzzle. Six words interlock in a lattice, every letter is already on the board, and you trade two tiles at a time. Green locks, yellow belongs in a crossing word, and the budget is the proven minimum number of trades plus five. Solve at par for a perfect game, with a bigger 7x7 Edition on Sundays.',
   alternates: { canonical: '/barter' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/barter.png', width: 1200, height: 630, alt: 'Barter — the daily letter-trade puzzle from Mind Loft' }],
     title: 'Barter — Trade the Letters Home',
     description:
       'Every letter the answer needs is already on the board. Trade two tiles at a time and solve the lattice at par. A new board from Mind Loft, daily.',
@@ -27,6 +30,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/barter.png'],
     card: 'summary_large_image',
     title: 'Barter — Trade the Letters Home',
     description: 'Six interlocking words, scrambled in place. Trade tiles home against a proven par.',

@@ -18,6 +18,9 @@ export const metadata = {
     'Blocks is a free daily falling-shapes puzzle. Everyone gets the same shapes in the same order, so the leaderboard compares decisions and not luck. Play as many runs as you like and your best one takes the board, it never speeds up, and you can pause and come back whenever you like. Nine shapes: the classic seven plus a corner and a plus.',
   alternates: { canonical: '/blocks' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/blocks.png', width: 1200, height: 630, alt: 'Blocks — a daily falling-shapes puzzle from Mind Loft' }],
     title: 'Blocks — A Daily Falling-Shapes Puzzle',
     description: 'Same shapes, same order, for everybody. Unlimited runs, best one counts, and it never speeds up.',
     url: '/blocks',
@@ -25,6 +28,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/blocks.png'],
     card: 'summary_large_image',
     title: 'Blocks — A Daily Falling-Shapes Puzzle',
     description: 'Same shapes, same order, for everybody. Unlimited runs, best one counts, and it never speeds up.',

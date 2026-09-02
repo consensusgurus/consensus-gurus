@@ -37,6 +37,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Jesters' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/jesters.png', width: 1200, height: 630, alt: 'Jesters — the daily court-placement puzzle from Mind Loft' }],
     title: 'Jesters — Seat the Court, Every Day',
     description:
       'One jester per row, per column, per colored court, and no two may touch. Two apiece from Thursday through Sunday. Every board is machine-verified to a single solution reachable by pure deduction. From Mind Loft.',
@@ -45,6 +48,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/jesters.png'],
     card: 'summary_large_image',
     title: 'Jesters — Seat the Court, Every Day',
     description:

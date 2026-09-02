@@ -22,6 +22,9 @@ export const metadata = {
     'A free daily nonogram, also called picross or griddler. The row and column clues give the run lengths of filled squares. Fill the grid by pure logic, never guesswork, and a picture appears. One solution, a new picture every day, 10x10 on weekdays, a 15x15 on Saturday and a 20x20 Edition on Sunday.',
   alternates: { canonical: '/etch' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/etch.png', width: 1200, height: 630, alt: 'Etch — a daily nonogram from Mind Loft' }],
     title: 'Etch — A Daily Nonogram',
     description:
       'Row and column clues, one logical solution, and a picture at the end. A new picture-logic puzzle from Mind Loft, daily.',
@@ -30,6 +33,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/etch.png'],
     card: 'summary_large_image',
     title: 'Etch — A Daily Nonogram',
     description: 'Fill the squares the clues force and a picture appears. One solution, no guessing.',

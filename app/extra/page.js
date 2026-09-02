@@ -31,6 +31,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Extra' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/extra.png', width: 1200, height: 630, alt: 'Extra — the daily front page from Mind Loft' }],
     title: 'Extra — The Daily Front Page',
     description:
       "One historic headline a day, with the giveaway words blacked out. Name the story before the censor strips run out. From Mind Loft.",
@@ -39,6 +42,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/extra.png'],
     card: 'summary_large_image',
     title: 'Extra — The Daily Front Page',
     description:

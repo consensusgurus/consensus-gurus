@@ -19,6 +19,9 @@ export const metadata = {
     'A free daily king-and-pawn endgame. White to move with a proven promotion in a fixed number of moves, exactly one first move that keeps it, and a perfect tablebase defence. Opposition, spare tempi, the square of the pawn: the endgame every chess player is told to learn first, one position a day.',
   alternates: { canonical: '/queen' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/queen.png', width: 1200, height: 630, alt: 'Queen — a daily king-and-pawn endgame from Mind Loft' }],
     title: 'Queen — A Daily Pawn Endgame',
     description:
       'Walk the pawn in against a perfect defence. One move keeps the win and every other throws it away. A new position from Mind Loft, daily.',
@@ -27,6 +30,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/queen.png'],
     card: 'summary_large_image',
     title: 'Queen — A Daily Pawn Endgame',
     description: 'King and pawn against king. One move keeps the win.',

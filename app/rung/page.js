@@ -16,11 +16,14 @@ export const metadata = {
     'A free daily word ladder. Change one letter at a time to climb from one five-letter word to another, every rung a real word. You play against par, the length a clean climb comes in at, and perfect, the proven shortest ladder. No app, no signup, a new climb every day.',
   alternates: { canonical: '/rung' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/rung.png', width: 1200, height: 630, alt: 'Rung — a daily puzzle from Mind Loft' }],
     title: 'Rung — A Daily Word Ladder',
     description: 'One letter at a time, every rung a word. Beat par, chase the perfect ladder. A new climb from Mind Loft, daily.',
     url: '/rung', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Rung — A Daily Word Ladder', description: 'Change one letter at a time. Can you get under par?' },
+  twitter: { images: ['/og/rung.png'], card: 'summary_large_image', title: 'Rung — A Daily Word Ladder', description: 'Change one letter at a time. Can you get under par?' },
 };
 
 const gameJsonLd = {

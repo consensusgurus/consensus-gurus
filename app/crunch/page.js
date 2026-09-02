@@ -16,11 +16,14 @@ export const metadata = {
     'A free daily numbers game. Six numbers, four operations, and a three-digit target to hit exactly. Every round is proved solvable before it ships. No app, no signup, a new round every day.',
   alternates: { canonical: '/crunch' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/crunch.png', width: 1200, height: 630, alt: 'Crunch — a daily puzzle from Mind Loft' }],
     title: 'Crunch — A Daily Numbers Game',
     description: 'Six numbers, four operations, one target. Always reachable, rarely obvious. A new round from Mind Loft, daily.',
     url: '/crunch', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Crunch — A Daily Numbers Game', description: 'Six numbers and a target. Can you get there exactly?' },
+  twitter: { images: ['/og/crunch.png'], card: 'summary_large_image', title: 'Crunch — A Daily Numbers Game', description: 'Six numbers and a target. Can you get there exactly?' },
 };
 
 const gameJsonLd = {

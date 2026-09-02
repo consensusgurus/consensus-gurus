@@ -34,6 +34,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Lode' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/lode.png', width: 1200, height: 630, alt: 'Lode — the daily letter-mining word puzzle from Mind Loft' }],
     title: 'Lode — A Daily Word Puzzle Where Rare Words Pay',
     description:
       'Seven letters, one core letter, four letters minimum. Common words are chip shots; the rare ones are worth three times as much. Strike the vein, then dig for the Mother Lode.',
@@ -42,6 +45,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/lode.png'],
     card: 'summary_large_image',
     title: 'Lode — A Daily Word Puzzle Where Rare Words Pay',
     description:

@@ -19,6 +19,9 @@ export const metadata = {
     'A free daily acrostic with no clues. A passage sits in the grid, one box per letter, and every box also belongs to one answer in the bank, so a letter typed in either half appears in the other. Some answers carry a category you can recite in your head; about half carry none at all. Finish it and the first letters of the answers have spelled out who wrote it. New passage daily, longer one on Sundays.',
   alternates: { canonical: '/anon' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/anon.png', width: 1200, height: 630, alt: 'Anon — a daily acrostic with no clues, from Mind Loft' }],
     title: 'Anon — A Daily Acrostic With No Clues',
     description:
       'An unsigned passage, a bank of answers, and no clues anywhere. Fill it in and it tells you who wrote it.',
@@ -27,6 +30,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/anon.png'],
     card: 'summary_large_image',
     title: 'Anon — A Daily Acrostic With No Clues',
     description: 'An unsigned passage and a bank of answers. Finish it and it names its own author.',

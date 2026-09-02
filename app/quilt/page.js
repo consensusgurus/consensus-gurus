@@ -20,6 +20,9 @@ export const metadata = {
     'A free daily jigsaw sudoku — fill the 9×9 grid so every row, column, and irregular region holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/quilt' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/quilt.png', width: 1200, height: 630, alt: 'Quilt — a daily jigsaw sudoku from Mind Loft' }],
     title: 'Quilt — A Daily Jigsaw Sudoku',
     description:
       'Sudoku with the boxes redrawn. Nine irregular regions, one logical solution, and a clean solve wins. A new board from Mind Loft, daily.',
@@ -28,6 +31,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/quilt.png'],
     card: 'summary_large_image',
     title: 'Quilt — A Daily Jigsaw Sudoku',
     description:

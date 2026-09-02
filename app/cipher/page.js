@@ -30,6 +30,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Cipher' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/cipher.png', width: 1200, height: 630, alt: 'Cipher — the daily cryptarithm from Mind Loft' }],
     title: 'Cipher — The Daily Cryptarithm',
     description:
       'One letter-arithmetic equation a day: every letter is a different digit, and there is exactly one solution. From Mind Loft.',
@@ -38,6 +41,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/cipher.png'],
     card: 'summary_large_image',
     title: 'Cipher — The Daily Cryptarithm',
     description:

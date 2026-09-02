@@ -36,6 +36,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Feud' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/feud.png', width: 1200, height: 630, alt: 'Feud — the daily crowd-survey game from Mind Loft' }],
     title: 'Feud — The Daily Crowd-Survey Game',
     description:
       'The answer key is live: it’s whatever today’s players say. Five prompts, three answers each — match the crowd. From Mind Loft.',
@@ -44,6 +47,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/feud.png'],
     card: 'summary_large_image',
     title: 'Feud — The Daily Crowd-Survey Game',
     description:

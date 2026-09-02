@@ -23,6 +23,9 @@ export const metadata = {
     'A free daily thermo sudoku. An ordinary 9×9 plus thermometers: digits climb from each bulb to its tip. One logical solution, notes and a free hint, a new board every day, and a nine-thermometer Edition on Sundays.',
   alternates: { canonical: '/mercury' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/mercury.png', width: 1200, height: 630, alt: 'Mercury — a daily thermo sudoku from Mind Loft' }],
     title: 'Mercury — A Daily Thermo Sudoku',
     description:
       'Digits climb the thermometers: a 9×9 sudoku with pure visual ordering and one logical solution, from Mind Loft, daily.',
@@ -31,6 +34,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/mercury.png'],
     card: 'summary_large_image',
     title: 'Mercury — A Daily Thermo Sudoku',
     description:

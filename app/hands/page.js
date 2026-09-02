@@ -24,11 +24,15 @@ export const metadata = {
     'A free daily poker puzzle. Twenty five cards are dealt one at a time into a five by five grid, and every row and column scores as a poker hand. Nothing is shuffled mid game and everybody plays the identical deal, so there is no luck in it, only the order you commit to. One muck a day, no undo. Play against par, the score an ordinary round comes home with, and ace, the best our solver managed playing blind. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/hands' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/hands.png', width: 1200, height: 630, alt: 'Hands — a daily puzzle from Mind Loft' }],
     title: 'Hands — A Daily Poker Solitaire Puzzle',
     description: 'Same deal for everybody, so the leaderboard ranks decisions and not luck. Ten hands, one muck, no undo. A new deal from Mind Loft, daily.',
     url: '/hands', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/hands.png'],
     card: 'summary_large_image',
     title: 'Hands — A Daily Poker Solitaire Puzzle',
     description: 'Twenty five cards, ten poker hands, one muck. Beat par if you can.',

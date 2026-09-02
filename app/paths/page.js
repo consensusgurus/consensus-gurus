@@ -20,6 +20,9 @@ export const metadata = {
     'A free daily network puzzle. Link every town back to the depot for as little as you can, where ridge lanes cost double, river crossings cost triple, cliffs cannot be crossed at all and old track is free. Every board carries a proven cheapest network, so a perfect score is real. New board daily, harder as the week goes on, bigger 13x13 Edition on Sundays.',
   alternates: { canonical: '/paths' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/paths.png', width: 1200, height: 630, alt: 'Paths — a daily network puzzle from Mind Loft' }],
     title: 'Paths — A Daily Network Puzzle',
     description:
       'One depot, a scatter of towns, a river in the way. Link them all for as little as you can.',
@@ -28,6 +31,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/paths.png'],
     card: 'summary_large_image',
     title: 'Paths — A Daily Network Puzzle',
     description: 'Link every town to the depot for as little as you can. A new board every day.',

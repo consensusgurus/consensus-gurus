@@ -23,6 +23,9 @@ export const metadata = {
     'A free daily word game you dig out. Every letter belongs to one of the hidden words, all members of a category you are not told. Find a word and the letters above it fall, which is what lets you read the next one. Bigger grid and two threads on Sundays.',
   alternates: { canonical: '/strata' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/strata.png', width: 1200, height: 630, alt: 'Strata — a daily word game with gravity, from Mind Loft' }],
     title: 'Strata — Find a Word, Watch the Board Fall',
     description:
       'Every letter belongs to one of the day’s hidden words. Trace one and it lifts out, the letters above it drop, and the board you were reading is gone. A new grid every day. From Mind Loft.',
@@ -31,6 +34,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/strata.png'],
     card: 'summary_large_image',
     title: 'Strata — Find a Word, Watch the Board Fall',
     description: 'A daily word grid with gravity. Most of today’s words cannot be read until the board collapses.',
@@ -50,7 +54,7 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: `${SITE_URL}/strata/opengraph-image`,
+  image: `${SITE_URL}/og/strata.png`,
   publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 

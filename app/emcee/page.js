@@ -31,6 +31,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Emcee' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/emcee.png', width: 1200, height: 630, alt: 'Emcee — a daily mini crossword from Mind Loft' }],
     title: 'Emcee — A Daily Mini Crossword',
     description:
       'A proper mini crossword, five by five: everyday words, fair clues, and a timer that stops when the grid is right. A new grid from Mind Loft, daily.',
@@ -39,6 +42,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/emcee.png'],
     card: 'summary_large_image',
     title: 'Emcee — A Daily Mini Crossword',
     description:

@@ -23,6 +23,9 @@ export const metadata = {
     'A free daily trivia grid. Fill the 3×3 with answers that fit both their row and column category — countries, states, animals, movies, TV, teams, and musicians, a different universe every day. Rare answers are the flex. New board daily, 4×4 Countries Edition on Sundays.',
   alternates: { canonical: '/niche' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/niche.png', width: 1200, height: 630, alt: 'Niche — the daily trivia grid from Mind Loft' }],
     title: 'Niche — The Daily Trivia Grid',
     description:
       'Fill the grid with answers that fit both their row and column, then see how rare your picks were against today’s players. A different universe every day of the week, from Mind Loft.',
@@ -31,6 +34,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/niche.png'],
     card: 'summary_large_image',
     title: 'Niche — The Daily Trivia Grid',
     description:

@@ -21,6 +21,9 @@ export const metadata = {
     'A free daily sandwich sudoku — the number beside each row and column is the total of the digits sitting between that line\u2019s 1 and its 9, so a 0 means the sandwich is empty and the two are side by side. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/sando' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/sando.png', width: 1200, height: 630, alt: 'Sando — a daily sandwich sudoku from Mind Loft' }],
     title: 'Sando — A Daily Sandwich Sudoku',
     description:
       'Sandwich sudoku: each border clue totals the digits between that line\u2019s 1 and its 9, and a 0 means the sandwich is empty. One logical solution, never a guess. A new board from Mind Loft, daily.',
@@ -29,6 +32,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/sando.png'],
     card: 'summary_large_image',
     title: 'Sando — A Daily Sandwich Sudoku',
     description:

@@ -28,6 +28,9 @@ export const metadata = {
     'A free daily number puzzle. Walk from the first button to the last across a grid of numbers and operators, one touching button at a time, and land on exactly the target. Reads left to right like a calculator. A new board every day, and three targets on Sundays.',
   alternates: { canonical: '/calc' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/calc.png', width: 1200, height: 630, alt: 'Calc — a daily number path puzzle from Mind Loft' }],
     title: 'Calc — Walk the Calculator',
     description:
       'Step across a grid of numbers and operators from the first button to the last, and land on exactly the target. A free daily number puzzle from Mind Loft.',
@@ -36,6 +39,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/calc.png'],
     card: 'summary_large_image',
     title: 'Calc — Walk the Calculator',
     description:

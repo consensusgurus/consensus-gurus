@@ -23,6 +23,9 @@ export const metadata = {
     'A free daily kropki sudoku. No digits printed, only dots: white means neighbours differ by 1, black means one is double the other, no dot means neither. One logical solution, a new deal every day, hardest on Sundays.',
   alternates: { canonical: '/polka' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/polka.png', width: 1200, height: 630, alt: 'Polka — a daily kropki sudoku from Mind Loft' }],
     title: 'Polka — A Daily Kropki Sudoku',
     description:
       'No numbers, only dots. Solve the 9×9 from the dot pattern and its silences: one logical solution, from Mind Loft, daily.',
@@ -31,6 +34,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/polka.png'],
     card: 'summary_large_image',
     title: 'Polka — A Daily Kropki Sudoku',
     description:

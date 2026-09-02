@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily film and television quiz. Twenty-five questions on movies, TV, actors and directors, awards and box office, and behind the scenes climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new twenty-five every day.',
   alternates: { canonical: '/script' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/script.png', width: 1200, height: 630, alt: 'Script, a daily puzzle from Mind Loft' }],
     title: 'Script — The Daily Movie and TV Gauntlet',
     description: 'Twenty-five questions on film and television, one life. How far can you get before one wrong answer ends the run?',
     url: '/script', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Script — The Daily Movie and TV Gauntlet', description: 'Twenty-five questions on film and television, one life. How far can you get?' },
+  twitter: { images: ['/og/script.png'], card: 'summary_large_image', title: 'Script — The Daily Movie and TV Gauntlet', description: 'Twenty-five questions on film and television, one life. How far can you get?' },
 };
 
 const gameJsonLd = {

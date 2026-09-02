@@ -19,11 +19,15 @@ export const metadata = {
     'A free daily sliding-block puzzle. A jammed six by six lot, blocks that each slide on one axis, and a red block that has to reach the one gap in the wall. Every board is solved exactly, so you play against a real par and a perfect line that nobody can beat. No app, no signup, and a new jam every day.',
   alternates: { canonical: '/parker' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/parker.png', width: 1200, height: 630, alt: 'Parker — a daily puzzle from Mind Loft' }],
     title: 'Parker — A Daily Sliding Block Puzzle',
     description: 'You are in the red one. Everybody has blocked you in, and there is one gap in the wall. A new jam from Mind Loft, daily.',
     url: '/parker', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/parker.png'],
     card: 'summary_large_image',
     title: 'Parker — A Daily Sliding Block Puzzle',
     description: 'Blocked in on all four sides, one gap in the wall. Slide your way out.',

@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily logic grid where every row and column holds 1 to 5 once, the open end of each inequality sign points at the larger number, and exactly one of those signs is lying. Solve the grid, then accuse the clue that lied. One provable answer, no guessing, and a bigger 6x6 Edition on Sundays.',
   alternates: { canonical: '/fib' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/fib.png', width: 1200, height: 630, alt: 'Fib — a daily logic puzzle with one lying clue, from Mind Loft' }],
     title: 'Fib — One Clue Is Lying',
     description:
       'A Latin square with inequality clues, except one clue is false. Solve the grid and name the liar. A new logic puzzle from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/fib.png'],
     card: 'summary_large_image',
     title: 'Fib — One Clue Is Lying',
     description: 'The open end of every sign points at the larger number. One of them is lying. Solve the grid, then name the liar.',

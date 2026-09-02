@@ -1297,6 +1297,21 @@ Shipped as one commit, none of it visible to a reader:
   imports or reads anything under scripts/. Re-run that audit before widening further, and
   pull scripts/ back out if a script ever becomes a build input.
 
+**Per-game share cards are static PNGs (2026-09-02).** The 2026-09-01 build log showed 348 pages
+in "Generating static pages" (54s, the largest phase), and 177 of them were `/<game>/opengraph-image`
++ `/<game>/twitter-image`: satori re-rendering the same fixed demo card for every daily on every
+deploy, each also a separate edge bundle carrying `lib/og-brand-card.js`. Those cards are now rendered
+ONCE into `public/og/<game>.png` (1200x630) and referenced from each game's `metadata.openGraph.images`
+/ `metadata.twitter.images` (and the game's JSON-LD `image` where it pointed at the route). The route
+files are deleted. Rules: a NEW daily game ships `public/og/<key>.png` plus the two `images` lines, not
+an `opengraph-image.js`. To regenerate a card, render the `render<Game>Card()` from `og-brand-card.js`
+in node (`next/og` ImageResponse works in plain node; serve the Manrope woffs from
+`npm pack @fontsource/manrope@5.1.0` when the sandbox cannot reach jsdelivr) and overwrite the PNG.
+STILL ON ROUTES, deliberately: `alibi`, `shoe`, `span`, `sweep` (their cards use glyphs satori fetches
+from Google Fonts / twemoji at render time, unreachable from the sandbox, so they could not be
+rendered faithfully offline) and the three hub cards `daily`, `lists`, `quizzes` (they read live
+counts). Converting those four games is a 15-minute follow-up from any environment with network.
+
 Still owed, each needing its own careful pass: convert the pure-data modules (`app/*/puzzles.js`
 at 18 MB total, `descriptions.js`, `hero-images.js`, `rating-data.js`) to JSON or fs reads so
 webpack stops parsing them as code; consolidate the per-route OG image entries (each bundles

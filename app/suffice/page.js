@@ -21,6 +21,9 @@ export const metadata = {
     'A free daily logic game built on the data-sufficiency format: a question you never answer, and two statements. Decide what is enough to settle it. Eight items a day, twelve on Sundays, every answer machine-proved.',
   alternates: { canonical: '/suffice' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/suffice.png', width: 1200, height: 630, alt: 'Suffice — a daily data-sufficiency puzzle from Mind Loft' }],
     title: 'Suffice — Decide What Is Enough',
     description:
       'You are given a question and two statements, and you never answer the question. You say whether the statements settle it. A new set every day. From Mind Loft.',
@@ -29,6 +32,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/suffice.png'],
     card: 'summary_large_image',
     title: 'Suffice — Decide What Is Enough',
     description: 'A question you never answer and two statements. Is that enough? Today’s set is up.',
@@ -48,7 +52,7 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: `${SITE_URL}/suffice/opengraph-image`,
+  image: `${SITE_URL}/og/suffice.png`,
   publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 

@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily trivia dive. One subject a day, fifteen questions on it, and they get harder the deeper you go. One wrong answer ends the run. Twenty seconds a question, everyone plays the same fifteen. No app, no signup, a new topic every day.',
   alternates: { canonical: '/deep' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/deep.png', width: 1200, height: 630, alt: 'Deep — a daily puzzle from Mind Loft' }],
     title: 'Deep — The Daily Single-Topic Trivia Dive',
     description: 'One topic, fifteen questions, one life. How far down a single subject can you get?',
     url: '/deep', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Deep — The Daily Single-Topic Trivia Dive', description: 'One topic, fifteen questions, one life. How deep can you go?' },
+  twitter: { images: ['/og/deep.png'], card: 'summary_large_image', title: 'Deep — The Daily Single-Topic Trivia Dive', description: 'One topic, fifteen questions, one life. How deep can you go?' },
 };
 
 const gameJsonLd = {

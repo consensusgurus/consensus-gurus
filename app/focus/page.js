@@ -19,11 +19,14 @@ export const metadata = {
     'A free daily picture game. One photo a day is shown as a close zoomed-in crop; name it before six frames pull the camera all the way back. Landmarks, animals, paintings, machines, famous faces, the world from above and space, one subject a day. No app, no signup, a new photo every day.',
   alternates: { canonical: '/focus' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/focus.png', width: 1200, height: 630, alt: 'Focus — a daily puzzle from Mind Loft' }],
     title: 'Focus — The Daily Zoomed Photo Game',
     description: 'One photo a day, zoomed all the way in. Name it before the camera pulls all the way back.',
     url: '/focus', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Focus — The Daily Zoomed Photo Game', description: 'One photo a day, zoomed all the way in. Six frames to name it.' },
+  twitter: { images: ['/og/focus.png'], card: 'summary_large_image', title: 'Focus — The Daily Zoomed Photo Game', description: 'One photo a day, zoomed all the way in. Six frames to name it.' },
 };
 
 const gameJsonLd = {

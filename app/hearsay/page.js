@@ -35,6 +35,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Hearsay' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/hearsay.png', width: 1200, height: 630, alt: 'Hearsay — the daily puzzle of what other people do not know' }],
     title: 'Hearsay — Deduce It From What They Don’t Know',
     description:
       'Each of them was told one detail and nothing else. Then they speak. Every admission of ignorance cuts the shortlist, and exactly one card survives. A new daily logic puzzle from Mind Loft.',
@@ -43,6 +46,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/hearsay.png'],
     card: 'summary_large_image',
     title: 'Hearsay — Deduce It From What They Don’t Know',
     description: 'Two people, one detail each, and a conversation that narrows a shortlist to one. Play today’s case.',

@@ -31,6 +31,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Tuck' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/tuck.png', width: 1200, height: 630, alt: 'Tuck — the daily tile-tucking word puzzle from Mind Loft' }],
     title: 'Tuck — The Daily Tile-Tucking Word Puzzle',
     description:
       'Fourteen letters, one empty board, no single answer. Everyone plays the same rack, and the highest score wins the day. From Mind Loft.',
@@ -39,6 +42,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/tuck.png'],
     card: 'summary_large_image',
     title: 'Tuck — The Daily Tile-Tucking Word Puzzle',
     description:

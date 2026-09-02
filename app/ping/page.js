@@ -33,6 +33,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Ping' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/ping.png', width: 1200, height: 630, alt: 'Ping — the daily city hunt from Mind Loft' }],
     title: 'Ping — The Daily City Hunt',
     description:
       'One secret city a day, no clues. Guess a city and get the exact miles to the target. Home in and find it. From Mind Loft.',
@@ -41,6 +44,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/ping.png'],
     card: 'summary_large_image',
     title: 'Ping — The Daily City Hunt',
     description:

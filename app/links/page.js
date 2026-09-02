@@ -28,6 +28,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Links' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/links.png', width: 1200, height: 630, alt: 'Links — a daily word grouping puzzle from Mind Loft' }],
     title: 'Links — A Daily Word Grouping Puzzle',
     description:
       'Sixteen words, four hidden groups, four mistakes to spare. The words that look like they belong together usually don’t. A new word puzzle from Mind Loft.',
@@ -36,6 +39,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/links.png'],
     card: 'summary_large_image',
     title: 'Links — A Daily Word Grouping Puzzle',
     description:

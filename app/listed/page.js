@@ -28,6 +28,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Listed' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/listed.png', width: 1200, height: 630, alt: 'Listed: a daily ranking puzzle from Mind Loft' }],
     title: 'Listed: A Daily Ranking Puzzle',
     description:
       'Eight real things a day, shuffled. Rank them highest to lowest in five submits. Green locks, amber means you are one place off. Trivia, history and geography, rotating daily, from Mind Loft.',
@@ -36,6 +39,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/listed.png'],
     card: 'summary_large_image',
     title: 'Listed: A Daily Ranking Puzzle',
     description:

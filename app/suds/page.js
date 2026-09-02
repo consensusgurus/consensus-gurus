@@ -30,6 +30,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Suds' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/suds.png', width: 1200, height: 630, alt: 'Suds — a daily sudoku from Mind Loft' }],
     title: 'Suds — A Daily Sudoku',
     description:
       'Fill the 9×9 grid so every row, column, and box holds 1–9 once. One solution, clean solve wins. A new sudoku from Mind Loft, daily.',
@@ -38,6 +41,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/suds.png'],
     card: 'summary_large_image',
     title: 'Suds — A Daily Sudoku',
     description:

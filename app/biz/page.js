@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily business quiz. Twenty-five questions on brands, markets, founders, deals and business history climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new twenty-five every day.',
   alternates: { canonical: '/biz' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/biz.png', width: 1200, height: 630, alt: 'Biz, a daily puzzle from Mind Loft' }],
     title: 'Biz — The Daily Business Gauntlet',
     description: 'Twenty-five questions on business, one life. How far can you get before one wrong answer ends the run?',
     url: '/biz', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Biz — The Daily Business Gauntlet', description: 'Twenty-five questions on business, one life. How far can you get?' },
+  twitter: { images: ['/og/biz.png'], card: 'summary_large_image', title: 'Biz — The Daily Business Gauntlet', description: 'Twenty-five questions on business, one life. How far can you get?' },
 };
 
 const gameJsonLd = {

@@ -27,6 +27,9 @@ export const metadata = {
     'A free daily logic game in a familiar but retired section of an important standardized test: one setup, a handful of conditions, and five questions about what those conditions force. Five a day, a bigger two-dimension board on Sundays, every answer machine-proved.',
   alternates: { canonical: '/docket' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/docket.png', width: 1200, height: 630, alt: 'Docket — a daily logic game from Mind Loft' }],
     title: 'Docket — One Setup, Five Deductions',
     description:
       'Read a small formal world and a few conditions, work out what they force, then answer five questions off the same diagram. The reasoning format a well known standardized test retired. A new one every day, from Mind Loft.',
@@ -35,6 +38,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/docket.png'],
     card: 'summary_large_image',
     title: 'Docket — One Setup, Five Deductions',
     description: 'A small world, a few conditions, and five questions about what they force. Today’s docket is up.',
@@ -54,7 +58,7 @@ const gameJsonLd = {
   isAccessibleForFree: true,
   inLanguage: 'en',
   numberOfPlayers: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 1 },
-  image: `${SITE_URL}/docket/opengraph-image`,
+  image: `${SITE_URL}/og/docket.png`,
   publisher: { '@type': 'Organization', name: 'Mind Loft', url: `${SITE_URL}` },
 };
 

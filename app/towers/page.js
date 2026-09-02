@@ -22,6 +22,9 @@ export const metadata = {
     'A free daily skyscrapers puzzle. Every row and column holds each tower height once, and the border clues count the towers you can see, taller ones hiding shorter ones. One logical solution, a new 5×5 board every day, and a 7×7 Edition on Sundays.',
   alternates: { canonical: '/towers' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/towers.png', width: 1200, height: 630, alt: 'Towers — a daily skyscrapers puzzle from Mind Loft' }],
     title: 'Towers — A Daily Skyscrapers Puzzle',
     description:
       'Count the towers in view: border clues, one logical solution, a new board daily from Mind Loft. 5×5 weekdays, 7×7 Sundays.',
@@ -30,6 +33,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/towers.png'],
     card: 'summary_large_image',
     title: 'Towers — A Daily Skyscrapers Puzzle',
     description:

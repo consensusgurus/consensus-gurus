@@ -35,6 +35,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Warmer' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/warmer.png', width: 1200, height: 630, alt: 'Warmer — a daily hot-and-cold word puzzle from Mind Loft' }],
     title: 'Warmer — Hotter or Colder',
     description:
       'One secret word a day. Every guess is scored by meaning, cold to hot, until you land the word. A new one every day from Mind Loft.',
@@ -43,6 +46,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/warmer.png'],
     card: 'summary_large_image',
     title: 'Warmer — Hotter or Colder',
     description: 'One secret word a day. Guess by meaning — hotter or colder — until you land it.',

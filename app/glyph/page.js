@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily codeword, the crossword with no clues. Every letter is replaced by a number from 1 to 26, the same number always meaning the same letter. Crack the whole alphabet from two or three given letters. One solution, a new grid every day, and a bigger 17x17 Edition on Sundays.',
   alternates: { canonical: '/glyph' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/glyph.png', width: 1200, height: 630, alt: 'Glyph — a daily codeword from Mind Loft' }],
     title: 'Glyph — A Daily Codeword',
     description:
       'No clues. Every letter is a number, and the same number always means the same letter. Crack the code, fill the grid.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/glyph.png'],
     card: 'summary_large_image',
     title: 'Glyph — A Daily Codeword',
     description: 'A crossword with no clues. Every letter is a number. Crack all 26.',

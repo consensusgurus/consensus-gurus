@@ -36,6 +36,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Sworn' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/sworn.png', width: 1200, height: 630, alt: 'Sworn — the daily liars puzzle from Mind Loft' }],
     title: 'Sworn — A Fresh Pack of Liars Every Day',
     description:
       'Everyone testified. An exact number of them lied. One is the thief. Follow the contradictions, weigh the lie count, and name the culprit — exactly one story holds together. From Mind Loft.',
@@ -44,6 +47,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/sworn.png'],
     card: 'summary_large_image',
     title: 'Sworn — A Fresh Pack of Liars Every Day',
     description:

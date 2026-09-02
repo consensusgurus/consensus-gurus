@@ -31,6 +31,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Stet' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/stet.png', width: 1200, height: 630, alt: 'Stet — the daily copy-desk puzzle from Mind Loft' }],
     title: 'Stet — The Daily Copy-Desk Puzzle',
     description:
       'One news brief a day, one wrong word per sentence — maybe. Every error is a real word, so spellcheck is no help. Tap it, fix it — or stamp clean copy stet. From Mind Loft.',
@@ -39,6 +42,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/stet.png'],
     card: 'summary_large_image',
     title: 'Stet — The Daily Copy-Desk Puzzle',
     description:

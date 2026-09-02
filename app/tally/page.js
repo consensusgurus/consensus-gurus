@@ -30,6 +30,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Tally' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/tally.png', width: 1200, height: 630, alt: 'Tally — a daily number-ledger puzzle from Mind Loft' }],
     title: 'Tally — A Daily Number-Ledger Puzzle',
     description:
       'Fill the grid from your rack so every row and column adds up to its target. One solution, fewest moves wins. A new number puzzle from Mind Loft, daily.',
@@ -38,6 +41,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/tally.png'],
     card: 'summary_large_image',
     title: 'Tally — A Daily Number-Ledger Puzzle',
     description:

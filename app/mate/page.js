@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily chess puzzle. White to play and force checkmate in two, with exactly one first move that works. Tap a piece and its legal squares light up, so no chess notation is needed. Play the line out against Black’s best defence, keep a streak, and Sundays step up to a mate in three.',
   alternates: { canonical: '/mate' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/mate.png', width: 1200, height: 630, alt: 'Mate — a daily chess puzzle from Mind Loft' }],
     title: 'Mate — A Daily Chess Puzzle',
     description:
       'White to play and mate. One key move works and every other fails. A new position from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/mate.png'],
     card: 'summary_large_image',
     title: 'Mate — A Daily Chess Puzzle',
     description: 'White to play and force checkmate in two. Only one move does it.',

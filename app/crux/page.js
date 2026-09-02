@@ -28,6 +28,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Crux' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/crux.png', width: 1200, height: 630, alt: 'Crux — a daily word puzzle from Mind Loft' }],
     title: 'Crux — A Daily Word Puzzle',
     description:
       'A clueless crossword. Eight interlocking words, four categories to untangle, eighteen shared guesses. A new daily word puzzle from Mind Loft.',
@@ -36,6 +39,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/crux.png'],
     card: 'summary_large_image',
     title: 'Crux — A Daily Word Puzzle',
     description:

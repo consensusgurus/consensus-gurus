@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily trivia gauntlet. Forty questions climb from easy to brutal, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same forty. No app, no signup, a new gauntlet every day.',
   alternates: { canonical: '/streak' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/streak.png', width: 1200, height: 630, alt: 'Streak — a daily puzzle from Mind Loft' }],
     title: 'Streak — The Daily Trivia Gauntlet',
     description: 'Forty questions, one life. How deep can you go before one wrong answer ends the run?',
     url: '/streak', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Streak — The Daily Trivia Gauntlet', description: 'Forty questions, one life. How deep can you go?' },
+  twitter: { images: ['/og/streak.png'], card: 'summary_large_image', title: 'Streak — The Daily Trivia Gauntlet', description: 'Forty questions, one life. How deep can you go?' },
 };
 
 const gameJsonLd = {

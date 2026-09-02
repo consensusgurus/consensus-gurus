@@ -20,11 +20,14 @@ export const metadata = {
     'A free daily mental arithmetic game. Twenty problems climb from two-digit addition to two-digit multiplication, percentages and cubes. Fifteen seconds each, one life, everyone plays the same twenty. No app, no signup, new problems every day.',
   alternates: { canonical: '/blitz' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/blitz.png', width: 1200, height: 630, alt: 'Blitz — a daily puzzle from Mind Loft' }],
     title: 'Blitz — The Daily Mental Math Ladder',
     description: 'Twenty problems, fifteen seconds each, one life. How far up can you get in your head?',
     url: '/blitz', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Blitz — The Daily Mental Math Ladder', description: 'Twenty problems, fifteen seconds each, one life. No calculator, no second chances.' },
+  twitter: { images: ['/og/blitz.png'], card: 'summary_large_image', title: 'Blitz — The Daily Mental Math Ladder', description: 'Twenty problems, fifteen seconds each, one life. No calculator, no second chances.' },
 };
 
 const gameJsonLd = {

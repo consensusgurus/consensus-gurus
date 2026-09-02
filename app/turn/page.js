@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily Othello endgame. Ten squares left, the game is already won for you, and exactly one square keeps it. Play the wrong one and there is no take-back: a solver that reads the position to the last disc plays out the rest, so the win never comes back. Flipping the fewest discs is the right habit, and some days it is the losing move.',
   alternates: { canonical: '/turn' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/turn.png', width: 1200, height: 630, alt: 'Turn — a daily Othello endgame from Mind Loft' }],
     title: 'Turn — A Daily Othello Endgame',
     description:
       'One square still wins it. Flip the whole row or flip one disc: only one of them holds. A new position from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/turn.png'],
     card: 'summary_large_image',
     title: 'Turn — A Daily Othello Endgame',
     description: 'Ten squares left, you are winning, and one square keeps it. No take-backs.',

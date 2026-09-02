@@ -26,6 +26,9 @@ export const metadata = {
     'A free daily anti-knight sudoku. An ordinary 9×9 plus one rule: no digit repeats a chess knight’s move away. Select a square and its knights light up. One logical solution, notes and a free hint, a new board every day, and a thirteen-clue Edition on Sundays.',
   alternates: { canonical: '/knight' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/knight.png', width: 1200, height: 630, alt: 'Knight — a daily anti-knight sudoku from Mind Loft' }],
     title: 'Knight — A Daily Anti-Knight Sudoku',
     description:
       'One rule added to sudoku: no digit repeats a knight’s move away. Far fewer clues, one logical solution, from Mind Loft, daily.',
@@ -34,6 +37,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/knight.png'],
     card: 'summary_large_image',
     title: 'Knight — A Daily Anti-Knight Sudoku',
     description:

@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily quotation quiz. Twenty-five famous lines from presidents, generals, scientists, writers and film characters climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new twenty-five every day.',
   alternates: { canonical: '/quotes' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/quotes.png', width: 1200, height: 630, alt: 'Quotes, a daily puzzle from Mind Loft' }],
     title: 'Quotes — The Daily Who Said It Gauntlet',
     description: 'Twenty-five famous lines, one life. How far can you get before one wrong attribution ends the run?',
     url: '/quotes', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Quotes — The Daily Who Said It Gauntlet', description: 'Twenty-five famous lines, one life. How far can you get?' },
+  twitter: { images: ['/og/quotes.png'], card: 'summary_large_image', title: 'Quotes — The Daily Who Said It Gauntlet', description: 'Twenty-five famous lines, one life. How far can you get?' },
 };
 
 const gameJsonLd = {

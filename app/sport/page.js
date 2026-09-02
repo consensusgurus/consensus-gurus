@@ -18,11 +18,14 @@ export const metadata = {
     'A free daily sports quiz. Twenty-five questions on the NFL, the NBA, MLB, soccer and everything else climb from easy to expert, and one wrong answer ends the run. Twenty seconds a question, one life, everyone plays the same twenty-five. No app, no signup, a new twenty-five every day.',
   alternates: { canonical: '/sport' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/sport.png', width: 1200, height: 630, alt: 'Sport — a daily puzzle from Mind Loft' }],
     title: 'Sport — The Daily Sports Gauntlet',
     description: 'Twenty-five questions on sport, one life. How far can you get before one wrong answer ends the run?',
     url: '/sport', type: 'website', siteName: 'Mind Loft',
   },
-  twitter: { card: 'summary_large_image', title: 'Sport — The Daily Sports Gauntlet', description: 'Twenty-five questions on sport, one life. How far can you get?' },
+  twitter: { images: ['/og/sport.png'], card: 'summary_large_image', title: 'Sport — The Daily Sports Gauntlet', description: 'Twenty-five questions on sport, one life. How far can you get?' },
 };
 
 const gameJsonLd = {

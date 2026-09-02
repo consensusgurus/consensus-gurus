@@ -36,6 +36,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Outrank' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/outrank.png', width: 1200, height: 630, alt: 'Outrank — the daily crowd-ranking puzzle from Mind Loft' }],
     title: 'Outrank — The Daily Crowd-Ranking Puzzle',
     description:
       'Vote your favorite, then call the crowd’s order. The answer key is everyone playing today. From Mind Loft.',
@@ -44,6 +47,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/outrank.png'],
     card: 'summary_large_image',
     title: 'Outrank — The Daily Crowd-Ranking Puzzle',
     description:

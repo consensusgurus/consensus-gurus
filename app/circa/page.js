@@ -31,6 +31,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Circa' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/circa.png', width: 1200, height: 630, alt: 'Circa — the daily year hunt from Mind Loft' }],
     title: 'Circa — The Daily Year Hunt',
     description:
       'One historical moment a day. Six guesses to pin the exact year — every miss tells you earlier or later, hotter or colder. From Mind Loft.',
@@ -39,6 +42,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/circa.png'],
     card: 'summary_large_image',
     title: 'Circa — The Daily Year Hunt',
     description:

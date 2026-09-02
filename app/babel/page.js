@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily word puzzle for endgame players. The bag is empty, so your opponent’s rack is not a secret: it is the bag minus the board minus your own tiles. Race them out or block the lane they need, and beat the solver’s benchmark on spread.',
   alternates: { canonical: '/babel' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/babel.png', width: 1200, height: 630, alt: 'Babel — the daily word tile endgame from Mind Loft' }],
     title: 'Babel — The Daily Word Tile Endgame',
     description:
       'Five tiles, no bag, and one exchange left. Their rack is knowable, so the only question is whether to race or block. From Mind Loft.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/babel.png'],
     card: 'summary_large_image',
     title: 'Babel — The Daily Word Tile Endgame',
     description: 'The bag is empty and their rack is knowable. Go out first, or make them sit on a tile they cannot play.',

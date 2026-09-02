@@ -22,11 +22,15 @@ export const metadata = {
     'A free daily solitaire puzzle. Two suits dealt face up with a free cell or two beside them, sixteen cards early in the week and twenty from Thursday on. No hidden cards and no luck, so every deal is winnable and everybody plays the same one. You play against par, the number a clean line comes home in, and perfect, the proven minimum nobody beats. No app, no signup, and a new deal every day.',
   alternates: { canonical: '/taire' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/taire.png', width: 1200, height: 630, alt: 'Taire — a daily puzzle from Mind Loft' }],
     title: 'Taire — A Daily Solitaire Puzzle',
     description: 'Send all twenty home. Beat par, chase perfect, and there is no undo. A new deal from Mind Loft, daily.',
     url: '/taire', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/taire.png'],
     card: 'summary_large_image',
     title: 'Taire — A Daily Solitaire Puzzle',
     description: 'Two suits, nothing hidden, no luck. Get under par if you can.',

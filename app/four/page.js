@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily Connect Four puzzle. The position is already won for you, in four moves, and exactly one column keeps it. Drop the wrong one and there is no take-back: a perfect engine plays the game out, so the win never comes back. Keep a streak, and Sundays step up to a win in five.',
   alternates: { canonical: '/four' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/four.png', width: 1200, height: 630, alt: 'Four — a daily Connect Four puzzle from Mind Loft' }],
     title: 'Four — A Daily Connect Four Puzzle',
     description:
       'One column wins. Every other drop throws it away, and the engine does not give it back. A new position from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/four.png'],
     card: 'summary_large_image',
     title: 'Four — A Daily Connect Four Puzzle',
     description: 'A forced win in four, and only one column keeps it. No take-backs.',

@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily slitherlink, the loop puzzle also known as fences. Draw one single closed loop so every numbered cell has exactly that many of its four sides on the loop. Only some cells carry a number, and the blank ones are unconstrained by design. One logical solution, a new grid every day, and a bigger 10x10 Edition on Sundays.',
   alternates: { canonical: '/hedge' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/hedge.png', width: 1200, height: 630, alt: 'Hedge — a daily loop puzzle from Mind Loft' }],
     title: 'Hedge — A Daily Loop Puzzle',
     description:
       'One closed loop, every number satisfied. A new slitherlink from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/hedge.png'],
     card: 'summary_large_image',
     title: 'Hedge — A Daily Loop Puzzle',
     description: 'Draw one closed loop so every number has exactly that many sides on it.',

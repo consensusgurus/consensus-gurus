@@ -18,6 +18,9 @@ export const metadata = {
     'A free daily dots-and-boxes endgame. The boxes are counted, you are already winning, and exactly one edge keeps it. Draw the wrong one and there is no take-back: a perfect engine plays the game out, so the win never comes back. The free box is usually a trap, and some days it is not.',
   alternates: { canonical: '/chain' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/chain.png', width: 1200, height: 630, alt: 'Chain — a daily dots and boxes endgame from Mind Loft' }],
     title: 'Chain — A Daily Dots and Boxes Endgame',
     description:
       'One edge still wins it. Take the free box and you may have just lost the board. A new position from Mind Loft, daily.',
@@ -26,6 +29,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/chain.png'],
     card: 'summary_large_image',
     title: 'Chain — A Daily Dots and Boxes Endgame',
     description: 'You are winning, one edge keeps it, and the free box is bait. No take-backs.',

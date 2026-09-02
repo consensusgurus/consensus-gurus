@@ -30,6 +30,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Carve' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/carve.png', width: 1200, height: 630, alt: 'Carve — a daily equal-sum puzzle from Mind Loft' }],
     title: 'Carve — A Daily Equal-Sum Puzzle',
     description:
       'Slice the grid into connected blocks that all add to the same target. Exactly one valid carving. A new board from Mind Loft, daily.',
@@ -38,6 +41,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/carve.png'],
     card: 'summary_large_image',
     title: 'Carve — A Daily Equal-Sum Puzzle',
     description:

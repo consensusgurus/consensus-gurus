@@ -22,6 +22,9 @@ export const metadata = {
     'A free daily killer sudoku — no digits printed, just cages labelled with the total of the digits inside them. Fill the 9×9 grid so every row, column, and 3×3 box holds 1–9 with no repeats. One logical solution and never a guess, notes and a free hint, a new board every day, and a harder Edition on Sundays.',
   alternates: { canonical: '/cages' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/cages.png', width: 1200, height: 630, alt: 'Cages — a daily killer sudoku from Mind Loft' }],
     title: 'Cages — A Daily Killer Sudoku',
     description:
       'Killer sudoku: not one digit is printed, and the cage totals are the whole clue set. One logical solution, never a guess. A new board from Mind Loft, daily.',
@@ -30,6 +33,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/cages.png'],
     card: 'summary_large_image',
     title: 'Cages — A Daily Killer Sudoku',
     description:

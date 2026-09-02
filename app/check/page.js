@@ -24,11 +24,15 @@ export const metadata = {
     'A free daily checkers puzzle. Red to play, with a forced sweep on the board: capture every black piece in three moves, four on Sundays. Exactly one first move does it, and there is no take-back. No app, no signup, and a new board every day.',
   alternates: { canonical: '/check' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/check.png', width: 1200, height: 630, alt: 'Check — a daily puzzle from Mind Loft' }],
     title: 'Check — A Daily Checkers Puzzle',
     description: 'One move sweeps the board, and there is no take-back. A new shot from Mind Loft, daily.',
     url: '/check', type: 'website', siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/check.png'],
     card: 'summary_large_image',
     title: 'Check — A Daily Checkers Puzzle',
     description: 'Take every black piece in three moves. Only one first move does it.',

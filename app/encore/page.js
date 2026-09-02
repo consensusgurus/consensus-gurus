@@ -21,6 +21,9 @@ export const metadata = {
   alternates: { canonical: '/encore' },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Encore' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/encore.png', width: 1200, height: 630, alt: 'Encore — the daily crossword from Mind Loft' }],
     title: 'Encore — A Daily Crossword',
     description:
       'The big grid, every day: nine by nine, around twenty-six answers, everyday words and fair clues. A new crossword from Mind Loft, daily.',
@@ -29,6 +32,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/encore.png'],
     card: 'summary_large_image',
     title: 'Encore — A Daily Crossword',
     description:

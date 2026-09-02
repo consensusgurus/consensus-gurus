@@ -19,6 +19,9 @@ export const metadata = {
   alternates: { canonical: '/shards' },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Shards' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/shards.png', width: 1200, height: 630, alt: 'Shards - a daily jigsaw crossword from Mind Loft' }],
     title: 'Shards - The Daily Jigsaw Crossword',
     description:
       'The grid comes solved, then shattered into lettered pieces. Put it back together so every word reads true. A new daily word puzzle from Mind Loft.',
@@ -27,6 +30,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/shards.png'],
     card: 'summary_large_image',
     title: 'Shards - The Daily Jigsaw Crossword',
     description:

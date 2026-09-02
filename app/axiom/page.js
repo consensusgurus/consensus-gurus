@@ -35,6 +35,9 @@ export const metadata = {
   },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Axiom' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/axiom.png', width: 1200, height: 630, alt: 'Axiom — the daily hidden-rule puzzle from Mind Loft' }],
     title: 'Axiom — Find the Hidden Rule',
     description:
       'Green tiles obey a rule you cannot see. Red ones break it. Five candidates, a handful of tests, and most tiles teach you nothing. A new daily logic puzzle from Mind Loft.',
@@ -43,6 +46,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/axiom.png'],
     card: 'summary_large_image',
     title: 'Axiom — Find the Hidden Rule',
     description: 'One hidden rule, five candidates, and a test budget that punishes guessing. Play today’s board.',

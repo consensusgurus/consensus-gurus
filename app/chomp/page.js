@@ -16,6 +16,9 @@ export const metadata = {
     'Chomp is a free daily route puzzle. A cast of mascots on a small board, eaten in order, and every square you touch stays yours for the rest of the run. There is exactly one route that gets all of them and it uses every square on the board, so your own trail is the only obstacle and one wrong turn ends the run. One board a day, the same for everybody, you do not need them all, and replay is free.',
   alternates: { canonical: '/chomp' },
   openGraph: {
+    // Static share card (2026-09-02): pre-rendered once into public/og/, replacing the per-game
+    // opengraph-image / twitter-image routes that satori re-rendered on every deploy.
+    images: [{ url: '/og/chomp.png', width: 1200, height: 630, alt: 'Chomp — a daily route puzzle from Mind Loft' }],
     title: 'Chomp — A Daily Route Puzzle',
     description: 'Eat them in order. Your own trail is the maze.',
     url: '/chomp',
@@ -23,6 +26,7 @@ export const metadata = {
     siteName: 'Mind Loft',
   },
   twitter: {
+    images: ['/og/chomp.png'],
     card: 'summary_large_image',
     title: 'Chomp — A Daily Route Puzzle',
     description: 'Eat them in order. Your own trail is the maze.',
