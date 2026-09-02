@@ -26,28 +26,28 @@
 //
 // It carries NO stylesheet of its own: a page mounts several, so the CSS is
 // exported once (PATCH_CSS) and the page interpolates it into its own <style>.
-// THE COVER IS THE DOOR ON THE PALE REGISTER AND A CELL ON THE DARK ONE
-// (owner, 2026-09-01: "what about light vs dark populating items"). On the
-// pale home it is the near-black ground the once-a-day arrival draws, at the
-// size of one cell, so a reader who saw the Ramp at breakfast recognises it at
-// lunch. On the dark register that same near-black is the page itself, so the
-// cover vanished and only the rungs showed, a row of dots with no shape around
-// them. There it takes the stage's empty-cell token (--stg-cell, the one
-// surface defined to be seen against the ground) with its hairline, which is
-// what an empty playable square already looks like on every board. The page
-// publishes both through --stg-patch-bg / --stg-patch-line; the fallbacks are
-// the pale register's.
+// THE COVER IS AN EMPTY CELL OF THE PAGE'S OWN REGISTER, NEVER A DARK BOX
+// (owner, 2026-09-01: "i dont want the dark boxes - those look out of place").
+// The first cut painted the arrival's near-black ground over the pale home,
+// and a black block in a white cap is a hole, not a loading state. So the
+// cover is what an empty playable square already looks like on every board:
+// the raised surface with its hairline on the pale register, --stg-cell with
+// --stg-cell-line on the dark one, and the rung loop takes the register's own
+// ramp (the deep twins on white, the pastels on near-black) so the colours
+// carry on either. The page publishes the surface through --stg-patch-bg /
+// --stg-patch-line and passes `light` for the ramp; the fallbacks are the
+// pale register's.
 //
 // Usage: a positioned parent, then <StagePatch on={stillWaiting} />.
 
 import { useEffect, useRef, useState } from 'react';
-import { CATEGORY_RAMP } from '@/lib/category-ramp';
+import { CATEGORY_RAMP, CATEGORY_RAMP_LIGHT } from '@/lib/category-ramp';
 
 const FLOOR = 260;   // the doorway's warm-cache floor
 const MIN = 400;     // the least a shown patch may stay
 const LEAVE = 520;   // the collapse, then unmount
 
-export default function StagePatch({ on, radius = 6 }) {
+export default function StagePatch({ on, light = true, radius = 6 }) {
   // 'wait' -> 'on' -> 'leaving' -> 'gone'. Starts waiting even when `on` is
   // already false, because a cell that answered before the patch mounted has
   // nothing to cover and must render nothing, not a collapse.
@@ -85,7 +85,7 @@ export default function StagePatch({ on, radius = 6 }) {
       style={{ borderRadius: radius }}
       aria-hidden="true"
     >
-      {CATEGORY_RAMP.map((c, i) => (
+      {(light ? CATEGORY_RAMP_LIGHT : CATEGORY_RAMP).map((c, i) => (
         <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />
       ))}
     </span>
@@ -93,17 +93,17 @@ export default function StagePatch({ on, radius = 6 }) {
 }
 
 export const PATCH_CSS = `
-.stg-patch{position:absolute;inset:0;z-index:3;background:var(--stg-patch-bg,#0b0f1a);
-  box-shadow:inset 0 0 0 1px var(--stg-patch-line,transparent);overflow:hidden;
+.stg-patch{position:absolute;inset:0;z-index:3;background:var(--stg-patch-bg,var(--stg-raise,#ffffff));
+  box-shadow:inset 0 0 0 1px var(--stg-patch-line,var(--stg-line,rgba(11,15,26,.14)));overflow:hidden;
   display:flex;align-items:flex-end;gap:2px;pointer-events:none;
   -webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0);}
-.stg-patch i{flex:1;height:4px;opacity:.18;animation:stg-rung 1.2s linear infinite;}
+.stg-patch i{flex:1;height:4px;opacity:.22;animation:stg-rung 1.2s linear infinite;}
 /* THE EXIT IS A CLIP, NOT A FADE: it shrinks to a hairline at the cell's foot, the
    same move the endings make onto the cap, so the figure appears from behind it
    rather than through it. */
 .stg-patch.out{-webkit-clip-path:inset(100% 0 0 0);clip-path:inset(100% 0 0 0);
   transition:clip-path ${LEAVE - 40}ms cubic-bezier(.4,0,.2,1),-webkit-clip-path ${LEAVE - 40}ms cubic-bezier(.4,0,.2,1);}
-@keyframes stg-rung{0%{opacity:.18}12%{opacity:1}45%{opacity:.18}100%{opacity:.18}}
+@keyframes stg-rung{0%{opacity:.22}12%{opacity:1}45%{opacity:.22}100%{opacity:.22}}
 @media (prefers-reduced-motion: reduce){
   .stg-patch i{animation:none;opacity:.5;}
   .stg-patch.out{transition:none;}

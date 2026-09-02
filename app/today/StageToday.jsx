@@ -289,7 +289,14 @@ const circPinId = (k) => (isCircPin(k) ? k.slice(2) : null);
 // line carries the answer instead. No extra row, no extra height, and the one
 // question a home board could not answer — "how did I do at that one" — is now
 // on the card itself rather than only in the table below.
-function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue, res }) {
+// THE LINE UNDER THE NAME IS PATCHED WHILE THE DAY IS OUT (owner, 2026-09-01:
+// "the animation should be more far reaching - as it should capture the
+// loading of the my games too"). That line is the one thing on a card that
+// changes when the reads land (tagline -> result), so while `wait` is true it
+// carries the patch; the card itself, its name and its link are drawn at once,
+// because the games are what the reader came for. The patch collapses off the
+// result, or off the tagline when the day has nothing to say about that game.
+function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue, res, wait, light }) {
   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
   const on = !!(favorites && favorites.includes(g.key));
   // MY GAMES MIXES CATEGORIES, so each card carries its OWN hue rather than
@@ -299,15 +306,18 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue,
     <a className={`sty-g ${state}${res ? ' res' : ''}`} href={`${routeOf(g)}${tq ? '?' + tq.slice(1) : ''}`}
       style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
-      {res ? (
-        <span className="sty-gres sty-rev">
-          <span className="sty-grl">You:</span>
-          <span className="sty-grk">#{res.rank}</span>
-          <span className="sty-grf">of {res.field}</span>
-        </span>
-      ) : (
-        <span className="sty-gt">{g.tag}</span>
-      )}
+      <span className="sty-gsub">
+        {res ? (
+          <span className="sty-gres sty-rev">
+            <span className="sty-grl">You:</span>
+            <span className="sty-grk">#{res.rank}</span>
+            <span className="sty-grf">of {res.field}</span>
+          </span>
+        ) : (
+          <span className="sty-gt">{g.tag}</span>
+        )}
+        {wait != null ? <StagePatch on={wait} light={light} radius={4} /> : null}
+      </span>
       {canPin ? (
         <button
           type="button"
@@ -1056,7 +1066,7 @@ export default function StageToday() {
   return (
     <div className="sty stage-page" data-stage-theme={stageTheme}
       style={light
-        ? { '--stg-patch-bg': '#0b0f1a', '--stg-patch-line': 'transparent' }
+        ? { '--stg-patch-bg': 'var(--stg-raise)', '--stg-patch-line': 'var(--stg-line)' }
         : { '--stg-patch-bg': 'var(--stg-cell)', '--stg-patch-line': 'var(--stg-cell-line)' }}>
       <style>{CSS}</style>
       <StageWelcome capRef={capRef} />
@@ -1127,14 +1137,14 @@ export default function StageToday() {
             <div className={'sty-fc' + (capWait ? ' wait' : '')}>
               {capWait ? null : <b key="v" className="sty-up">+{stats.todayXp.toLocaleString()}</b>}
               {capWait ? null : <i key="l">IQ today</i>}
-              {who ? <StagePatch key="p" on={capWait} /> : null}
+              {who ? <StagePatch key="p" on={capWait} light={light} /> : null}
             </div>
           ) : null}
           {capWait || stats.dayRank ? (
             <div className={'sty-fc' + (capWait ? ' wait' : '')}>
               {capWait ? null : <b key="v">#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>}
               {capWait ? null : <i key="l">rank today</i>}
-              {who ? <StagePatch key="p" on={capWait} /> : null}
+              {who ? <StagePatch key="p" on={capWait} light={light} /> : null}
             </div>
           ) : null}
           {capWait || rank ? (
@@ -1150,7 +1160,7 @@ export default function StageToday() {
                 </b>
               )}
               {capWait ? null : <i key="l">rank</i>}
-              {who ? <StagePatch key="p" on={capWait} /> : null}
+              {who ? <StagePatch key="p" on={capWait} light={light} /> : null}
             </div>
           ) : null}
           {/* AND THE WAY THROUGH TO THE REST. Three figures is what fits on a
@@ -1267,7 +1277,8 @@ export default function StageToday() {
                 {playedLast(pinned, done).map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
-                    hue={hueFor(g.cat)} res={standBy[g.key]} />
+                    hue={hueFor(g.cat)} res={standBy[g.key]}
+                    wait={who ? (!statusIn || !boardIn) : undefined} light={light} />
                 ))}
               </div>
             ) : null}
@@ -1457,7 +1468,7 @@ export default function StageToday() {
                 height, so the page keeps its shape; if the read comes back with
                 no standing the section leaves with its cover. */}
             <div className={'sty-sscroll' + (boardIn ? '' : ' sty-shell')}>
-              <StagePatch on={!boardIn} />
+              <StagePatch on={!boardIn} light={light} />
               <table className="sty-tbl sty-stbl">
                 <tbody>
                   {standing.map((r, i) => (
@@ -1485,7 +1496,7 @@ export default function StageToday() {
           <section id="sty-board" className="sty-rev" ref={lbRef}>
             <div className="sty-eb">Today&rsquo;s board {boardIn ? <em>&middot; {boardCount}</em> : null}</div>
             <div className={'sty-lbody' + (boardIn ? '' : ' sty-shell')}>
-            <StagePatch on={!boardIn} />
+            <StagePatch on={!boardIn} light={light} />
             <table className="sty-tbl">
               <tbody>
                 {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
@@ -1705,6 +1716,7 @@ const CSS = `
 /* A FIGURE CELL is positioned so its patch can cover it; while waiting it holds
    a figure's footprint so the cap does not reflow when the number lands. */
 .sty-fc{position:relative;}
+.sty-gsub{display:block;position:relative;}
 .sty-fc.wait{min-width:54px;min-height:30px;}
 .sty-shell{position:relative;}
 .sty-sscroll.sty-shell{min-height:132px;}
