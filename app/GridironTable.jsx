@@ -89,7 +89,16 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
 .gr-warn{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#fdf3f2;
   border:1px solid #f2d5d1;color:#8d2f24;font-size:12px;line-height:1.55;}
 .gr-scroll{overflow-x:auto;}
-.gr table{border-collapse:separate;border-spacing:0;width:100%;min-width:1030px;font-size:13px;}
+.gr table{border-collapse:separate;border-spacing:0;width:100%;min-width:1260px;font-size:13px;}
+/* Column widths are FIXED so the three sticky columns (rank 46 + team 224 +
+   rating 74 = 344px) never overlap a scrolling column: with v2's fourteen
+   columns the browser was shrinking the team column and the sticky rating box
+   sat on top of the results column. Below the table's min-width the console
+   scrolls sideways; the page container is 1440px on desktop so it fits on a
+   wide screen without scrolling at all. */
+.gr td.tm,.gr th.cTeam{width:224px;min-width:224px;max-width:224px;}
+.gr td.cScore,.gr th.cScore{width:74px;min-width:74px;}
+.gr td.cell,.gr thead .gr-srcs th:not(.cRank):not(.cTeam):not(.cScore){min-width:66px;}
 .gr th,.gr td{padding:0;text-align:center;white-space:nowrap;}
 .gr thead .gr-tiers th{padding:9px 8px 5px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
   text-transform:uppercase;color:var(--slate);border-bottom:1px solid var(--border);background:var(--surface);}
@@ -134,7 +143,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
 .gr-score i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.1em;
   text-transform:uppercase;opacity:.72;margin-top:2px;}
 .gr thead th.cScore{color:var(--accent);}
-.gr td.cell{font-size:13px;font-weight:700;color:var(--muted);padding:9px 8px;border-left:1px solid transparent;}
+.gr td.cell{font-size:13px;font-weight:700;color:var(--muted);padding:9px 6px;border-left:1px solid transparent;}
 .gr td.cell.nr{color:#c3c9d4;font-weight:600;}
 .gr td.cell.rv{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--slate);}
 .gr td.cell.up1{background:#eff5ff!important;color:var(--blue-deep);}

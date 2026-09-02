@@ -76,7 +76,7 @@ export default function CollegeFootballRankingsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PageViewBeacon id="cfb-rankings" />
       <SotHeader active="cfb" />
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '10px 20px 40px' }}>
+      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '10px 20px 40px' }}>
         <div style={{ paddingBottom: 13, marginBottom: 14, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
           <h1 style={{
             fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(25px, 4.6vw, 40px)',
