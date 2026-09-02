@@ -298,6 +298,23 @@ button, input, textarea, select { border-radius: 8px; }
      are the opposite job, and neutralising them deletes the signal. Defined
      only inside .stage-page so every call site keeps a real fallback. */
   --stg-acc-tint: color-mix(in srgb, var(--stg-acc) 18%, transparent);
+  /* THE JOIN FORM WEARS THE CATEGORY (owner, 2026-09-01). JoinLeaderboardForm
+     and SigninHelp ink themselves from --join-*; on a stage page those resolve
+     to the stage's own tokens, so the button is the category step, the fields
+     are cells, and the prose is stage ink. One block for both registers: each
+     value is a reference, so the light register re-resolves it. LoftFinish's
+     white card still overrides these inline, as it always did. */
+  --join-head: var(--stg-ink);
+  --join-body: var(--stg-ink2);
+  --join-soft: var(--stg-mute);
+  --join-loud: var(--stg-ink);
+  --join-ok: var(--stg-good);
+  --join-err: var(--stg-bad);
+  --join-cta: var(--stg-acc);
+  --join-cta-ink: var(--stg-onramp);
+  --join-field-bg: var(--stg-cell);
+  --join-field-ink: var(--stg-ink);
+  --join-field-line: var(--stg-cell-line);
   /* OPACITY IS NOT A DISABLED STATE HERE. Fading an element composites it
      toward the ground, and the two registers go opposite ways: on cream it
      lightens a saturated fill and leaves the label readable, on near-black it

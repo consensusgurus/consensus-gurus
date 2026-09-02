@@ -60,6 +60,7 @@ import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
 import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
+import StageFold from '../StageFold';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
@@ -1113,6 +1114,8 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
         />
         )}
 
+        {/* The desktop fold: the About prose below starts one screen down (app/StageFold.jsx). */}
+        <StageFold />
         <section style={{ display: STAGE ? 'none' : 'block', maxWidth: 620, margin: '26px auto 0', fontSize: 13.5, lineHeight: 1.6, color: FADED }}>
           <h2 style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '0 0 8px' }}>About Chomp</h2>
           <p style={{ margin: '0 0 9px' }}>

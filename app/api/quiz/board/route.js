@@ -95,6 +95,17 @@ export async function GET(request) {
       const who = await resolvePlayerKeys(supabaseAdmin, { anonId, email });
       const st = playerStanding(data, who.keys, { population, filter });
       me = { key: who.primary, axis, placement: st.placement, field: st.field, row: st.row };
+      // WHERE A GUEST WOULD RANK (owner, 2026-09-01). A guest has no placement
+      // on the registered board, and the end card's claim tile has to say what
+      // registering would buy: their own rows dealt in among the registered
+      // ones, and nobody else's guest rows. Same comparator, same filter, so
+      // the number is exactly what the board would print the moment they join.
+      if (st.placement == null && population === 'registered' && who.keys && who.keys.size) {
+        const keyOf = (r) => (r.user_id ? `u:${r.user_id}` : (r.anon_id ? `a:${r.anon_id}` : `r:${r.id}`));
+        const pool = data.filter((r) => r.user_id || who.keys.has(keyOf(r)));
+        const wb = playerStanding(pool, who.keys, { population: 'all', filter });
+        if (wb.placement != null) me.wouldBe = { placement: wb.placement, field: wb.field };
+      }
     } catch (e) {
       me = null; // the boards themselves are still worth returning
     }

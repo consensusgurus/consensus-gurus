@@ -876,7 +876,18 @@ export default function StageToday() {
   // ONE REQUEST PER FINISHED CIRCUIT, asked once and never re-asked (the ref,
   // not state, so the effect cannot chase its own writes), and capped: a reader
   // finishes one or two circuits in a day, not seventeen.
+  //
+  // THE ANSWER IS KEPT WHATEVER THE EFFECT DOES NEXT (owner report, 2026-09-01:
+  // a finished Gauntlet showed 7/7 and no rank while the API returned #4).
+  // `circuits` is rebuilt whenever the live plays tick, so this effect re-ran
+  // every few seconds; its cleanup flipped an `alive` flag that made the
+  // in-flight response DROP on arrival, and the circuit was already in the
+  // asked set, so it was never asked again. The request is keyed by circuit and
+  // the write is keyed by circuit, so a late answer is never a stale one: the
+  // only thing that may discard it is the component unmounting.
   const circAsked = useRef(null);
+  const circLive = useRef(true);
+  useEffect(() => () => { circLive.current = false; }, []);
   const [circStand, setCircStand] = useState({});
   useEffect(() => {
     if (!circAsked.current) circAsked.current = new Set();
@@ -884,21 +895,20 @@ export default function StageToday() {
       .filter((c) => c.games.length && c.n === c.games.length && !circAsked.current.has(c.id))
       .slice(0, 4);
     if (!full.length) return undefined;
-    let alive = true;
     const qs = identityQs();
     for (const c of full) {
       circAsked.current.add(c.id);
       fetch(`/api/quiz/daily-combined?circuit=${encodeURIComponent(c.id)}${qs ? '&' + qs : ''}`)
         .then((r) => r.json())
         .then((d) => {
-          if (!alive || !d) return;
+          if (!circLive.current || !d) return;
           const rank = d.me && d.me.rank != null ? d.me.rank : null;
           const field = d.overallField || (Array.isArray(d.overall) ? d.overall.length : 0);
           setCircStand((m) => ({ ...m, [c.id]: rank ? { rank, field } : null }));
         })
-        .catch(() => { if (alive) setCircStand((m) => ({ ...m, [c.id]: null })); });
+        .catch(() => { if (circLive.current) setCircStand((m) => ({ ...m, [c.id]: null })); });
     }
-    return () => { alive = false; };
+    return undefined;
   }, [circuits]);
   // THE LADDER SHRINKS ON A PHONE and its key comes off entirely (owner,
   // 2026-08-31: "takes up too much space"). The key is nine labelled swatches,

@@ -954,6 +954,12 @@ export default function LoftFinish({
         title={retryVerdict || title} detail={detail} iq={iq} board={board} day={day} streak={streak}
         missLabel={missLabel} gameRank={gameRank} outcome={outcome} options={options} name={name}
         archive={archive}
+        /* THE CLAIM TILE (owner, 2026-09-01). The Loft card's claim band below
+           never rendered once the stage went sitewide, so a guest finished
+           with no offer at all. StageFinish renders its own tile, above Up
+           next, from the same `guest` flag. */
+        guest={claimBandShown}
+        onClaimed={() => { setClaimed(true); try { window.dispatchEvent(new Event('sot:daily-updated')); } catch (e) {} }}
         /* THE CURTAIN HOLDS ON THE VERDICT UNTIL THIS IS TRUE (owner,
            2026-08-31). It is the SAME flag the Calculating block below is keyed
            on, deliberately: one definition of "the card is finished", so the

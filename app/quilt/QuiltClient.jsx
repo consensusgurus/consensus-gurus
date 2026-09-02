@@ -28,6 +28,7 @@ import useDuelContext, { DuelBanner } from '../quiz/[id]/useDuelContext';
 import JoinLeaderboardForm from '../quiz/[id]/JoinLeaderboardForm';
 import DailyGamesGrid from '../DailyGamesGrid';
 import ReportIssue from '../ReportIssue';
+import StageFold from '../StageFold';
 import DailyEndCard from '../DailyEndCard';
 import DailyChrome from '../DailyChrome';
 import DailyBoardPanel from '../quiz/[id]/DailyBoardPanel';
@@ -1199,6 +1200,8 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
+      {/* The desktop fold: the About prose below starts one screen down (app/StageFold.jsx). */}
+      <StageFold />
       {/* About Quilt — crawlable prose for search, server-rendered into the HTML */}
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Quilt</h2>

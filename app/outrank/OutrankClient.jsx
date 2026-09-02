@@ -37,6 +37,7 @@ import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import { isLoft } from '@/lib/loft';
 import ReportIssue from '../ReportIssue';
+import StageFold from '../StageFold';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
@@ -1040,6 +1041,8 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
+      {/* The desktop fold: the About prose below starts one screen down (app/StageFold.jsx). */}
+      <StageFold />
       {/* About Outrank — crawlable prose for search, server-rendered into the HTML */}
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Outrank</h2>

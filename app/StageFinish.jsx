@@ -47,6 +47,7 @@ import { useStageTheme } from '@/lib/stage-theme';
 // the game they just played.
 import { gameStats } from '@/lib/daily-row-stats';
 import GameGlyph from './GameGlyph';
+import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 
 // ── THE FLOOD ──────────────────────────────────────────────────────────────
 // THE CURTAIN ARRIVES AT FULL SIZE (owner, 2026-08-31). The band was already
@@ -396,6 +397,14 @@ export default function StageFinish({
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
   archive = null,
   retry = null,
+  // CLAIM YOUR RANK (owner, 2026-09-01). `guest` is LoftFinish's own
+  // claimBandShown: a finish with no display name saved, on the full card.
+  // `board.guest` carries where that finish WOULD rank among the registered
+  // players (the board route deals the guest's rows in), which is the one
+  // figure that makes the offer concrete. onClaimed is LoftFinish's, so the
+  // rest of the page learns about the new name the same way it always did.
+  guest = false,
+  onClaimed = null,
 }) {
   // THE RETRY ENDING. On the nine games where a replay genuinely counts, an
   // unsolved finish is not a page of furniture, it is one control (see the
@@ -503,6 +512,8 @@ export default function StageFinish({
   // only the rendered row can say.
   const catsRef = useRef(null);
   const [over, setOver] = useState(false);
+  const [claimOpen, setClaimOpen] = useState(false);
+  const [claimed, setClaimed] = useState(false);
   useEffect(() => {
     const el = catsRef.current;
     if (!el) return undefined;
@@ -760,6 +771,38 @@ export default function StageFinish({
           </section>
         ) : null}
 
+        {/* CLAIM YOUR RANK: full width, above the hand-forward, guests only.
+            The figure is the guest's would-be placement on the registered
+            board; without one (the row has not landed yet) the tile still
+            makes the offer, just without a number. */}
+        {guest && !claimed && !isRetry ? (
+          <section className="stf-claim">
+            <div className="stf-eb">Claim your rank</div>
+            <div className="stf-clhd">
+              <div>
+                <div className="stf-fwdn">
+                  {board && board.guest ? (
+                    <>You would be <em>#{board.guest.placement}</em>{board.guest.field ? ` of ${board.guest.field}` : ''} on today&rsquo;s board</>
+                  ) : 'Your finish is not on the board yet'}
+                </div>
+                <div className="stf-fwdt">Ranks and points count for registered names only. A display name is enough, no password, and the games you already finished come with you.</div>
+              </div>
+              {!claimOpen ? (
+                <button type="button" className="stf-go stf-clgo" onClick={() => setClaimOpen(true)}>Claim my rank</button>
+              ) : null}
+            </div>
+            {claimOpen ? (
+              <div className="stf-clform">
+                <JoinLeaderboardForm heading="Claim your rank" hideIcon
+                  onJoined={() => { setClaimed(true); if (onClaimed) onClaimed(); }} />
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+        {claimed ? (
+          <div className="stf-claimed">You&rsquo;re on the board. Every finish counts under your name now.</div>
+        ) : null}
+
         {/* THE HAND-FORWARD, for LoftFinish's own reason: it used to sit
             below the verdict, the IQ bar, four tiles and the whole board, so a
             finisher passed two exits before reaching the one that carries on. */}
@@ -985,6 +1028,22 @@ const CSS = `
 .stf-go{margin-left:auto;flex:none;font-size:13px;font-weight:800;
   background:var(--stg-acc);color:var(--stg-onramp,#08222e);
   border-radius:8px;padding:8px 16px;}
+/* ── claim your rank ──────────────────────────────────────────────────── */
+.stf-claim{background:var(--stg-surf);border:1px solid var(--stg-line);
+  border-left:4px solid var(--stg-acc);border-radius:10px;padding:14px 16px;color:var(--stg-ink);}
+.stf-claim .stf-eb{margin-bottom:6px;}
+.stf-clhd{display:flex;align-items:center;gap:16px;}
+.stf-clhd > div:first-child{flex:1 1 auto;min-width:0;}
+.stf-claim .stf-fwdn em{font-style:normal;}
+.stf-claim .stf-fwdt{margin-top:5px;}
+.stf-clgo{font:inherit;font-size:13px;font-weight:800;border:0;cursor:pointer;}
+.stf-clform{margin-top:14px;padding-top:14px;border-top:1px solid var(--stg-line);}
+.stf-clform h2{font-size:20px!important;}
+.stf-claimed{background:var(--stg-surf);border:1px solid var(--stg-line);
+  border-left:4px solid var(--stg-good);border-radius:10px;padding:12px 16px;
+  font-weight:800;font-size:13.5px;color:var(--stg-ink);}
+@media(max-width:560px){.stf-clhd{flex-direction:column;align-items:stretch;}
+  .stf-clgo{margin-left:0;text-align:center;}}
 /* The retry control is the hand-forward as a BUTTON: same shape, same accent
    rule, same chip. .stf-fwd is written for an <a>, so a button needs the four
    properties a form control does not inherit. */

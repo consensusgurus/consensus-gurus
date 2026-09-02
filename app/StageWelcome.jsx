@@ -106,12 +106,27 @@ const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
 // this the queue short-circuits, the flood leaves with what it has, and the cap
 // fills in the rest when it lands.
 const FLOOD_MAX = 4000 + RAMP_WORDS;
+// ...BUT THE BACKSTOP CAPS THE WAIT, NOT A QUEUE THAT IS ALREADY PLAYING
+// (owner, 2026-09-01: on a phone the arrival "seems to end prematurely"). A
+// phone's cold read lands at three to four seconds, so its figures started
+// walking with a second or two left on the 5.6s clock and the collapse cut
+// them off mid-stamp: the reader saw two figures land and the screen leave.
+// Past FLOOD_MAX a screen still WAITING leaves with what it has, as before; a
+// screen whose figures have started finishes them. FLOOD_HARD is the ceiling
+// on that: past it the screen goes whatever is left, so a long queue on a
+// very slow read can never hold the home hostage.
+const FLOOD_HARD = FLOOD_MAX + 4500;
 // THE WARM-CACHE FLOOR, and the whole answer to the pop-up objection. If the
 // read answers this fast the page was never waiting, so there is nothing to
 // fill and nothing runs.
 // A home rendered this long after the document loaded is a client-side
 // navigation back to it, not an arrival. Same test FLOOD_FRESH makes.
-const FRESH = 2500;
+// 8s rather than 2.5s (2026-09-01): performance.now() counts from navigation
+// start, download and hydration included, and a phone on a mobile connection
+// routinely reaches this effect past 2.5s, which read as "no arrival at all".
+// A lingering document that routes back to the home is tens of seconds old,
+// so the test still separates the two.
+const FRESH = 8000;
 
 const ease = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -228,6 +243,7 @@ export default function StageWelcome({ capRef }) {
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);
   const [expired, setExpired] = useState(false);
+  const [hard, setHard] = useState(false);
   const [shown, setShown] = useState(0);
   const doneRef = useRef(false);
   const goneRef = useRef(false);
@@ -459,6 +475,7 @@ export default function StageWelcome({ capRef }) {
     at(20, () => setPhase('up'));
     at(FLOOD_MIN, () => setHeld(true));
     at(FLOOD_MAX, () => setExpired(true));
+    at(FLOOD_HARD, () => setHard(true));
     at(RECAP_WAIT, () => setRecapDone(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on]);
@@ -488,9 +505,13 @@ export default function StageWelcome({ capRef }) {
   useEffect(() => {
     if (!on || !held || goneRef.current) return;
     const ran = shown >= view.figs.length;
+    // The figures are on screen and walking: let them finish (FLOOD_HARD is
+    // the only thing that cuts a started queue). Only a screen still WAITING
+    // for its reads leaves at FLOOD_MAX.
+    const walking = settled && recapDone && view.figs.length > 0;
     // A settled read with no figures at all is not an arrival worth holding.
-    if (!ran && !expired) return;
-    if ((!settled || !recapDone) && !expired) return;
+    if (!ran && !hard && (!expired || walking)) return;
+    if ((!settled || !recapDone) && !expired && !hard) return;
     goneRef.current = true;
     at(FLOOD_SETTLE, () => {
       const el = capRef && capRef.current;
@@ -505,7 +526,7 @@ export default function StageWelcome({ capRef }) {
       at(FLOOD_SHRINK + 40 + FLOOD_FADE, finish);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, held, shown, view, settled, recapDone, expired]);
+  }, [on, held, shown, view, settled, recapDone, expired, hard]);
 
   // Any key skips, exactly as any tap does.
   useEffect(() => {

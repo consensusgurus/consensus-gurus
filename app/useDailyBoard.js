@@ -88,6 +88,9 @@ export default function useDailyBoard({ quizId = null, active = false }) {
           const rows = [lb['registered:first'], d.leaderboard].find((a) => Array.isArray(a)) || [];
           // The server's answer when it gave one, the ten visible rows otherwise.
           const me = d.me && d.me.placement != null ? d.me : null;
+          // A guest's would-be placement (the board route deals their rows in
+          // among the registered ones). Read for the claim tile only.
+          const guest = !me && d.me && d.me.wouldBe && d.me.wouldBe.placement != null ? d.me.wouldBe : null;
           // Keep asking only while the player is not on the board yet. A found
           // placement settles it whatever rank it is; without one, fall back to
           // looking for them among the ten.
@@ -106,6 +109,7 @@ export default function useDailyBoard({ quizId = null, active = false }) {
             myRank: me ? me.placement : null,
             field: me ? me.field : null,
             myRow: me ? me.row : null,
+            guest,
             settled: !!onIt || last || !mine,
           });
           if (!onIt) schedule();

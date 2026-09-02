@@ -41,6 +41,7 @@ import { withRef } from '@/lib/referrals';
 import { notifyShareCredit } from '../ShareCreditPop';
 import DailyMasthead from '../DailyMasthead';
 import ReportIssue from '../ReportIssue';
+import StageFold from '../StageFold';
 import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
@@ -86,14 +87,23 @@ const BOARD_BLUE_DARK = 'var(--stg-surf, #152a63)';
 // way to draw a hole. It needs the stronger rule around it, not the hairline:
 // at --stg-line the ring all but vanished on the light register's white board.
 const HOLE = 'var(--stg-ground, #f1f3f7)';
-// You are the category accent; the engine is the ground, lifted.
+// You are the category accent; the engine is SLATE, the register's second ink
+// (owner, 2026-09-01: the engine's disc was a board LIFT, --stg-b4, which on
+// the light register is a 20% grey over a white board and simply vanished, and
+// End Game's gold sat on that same white at under 2:1). A disc is a piece, not
+// a surface, so it takes ink rather than a lift: #aab5c7 on the dark board,
+// #3f4757 on the white one, tellable from the gold and from the holes in both.
 const RED = 'var(--stg-acc, #d62828)';
 const RED_DARK = 'var(--stg-acc, #a11d1d)';
-const YELLOW = 'var(--stg-b4, #f4c02c)';
-const YELLOW_DARK = 'var(--stg-b3, #c08f0e)';
+const YELLOW = 'var(--stg-ink2, #f4c02c)';
+const YELLOW_DARK = 'var(--stg-mute2, #c08f0e)';
 // Rims as inset shadows, transparent off-stage so the Loft disc is untouched.
-const DISC_RIM_YOU = 'var(--stg-onramp, transparent)';
-const DISC_RIM_FOE = 'var(--stg-line3, transparent)';
+// Both discs take the register's INK as their rim: near-white on the dark
+// board, near-black on the white one, so a gold disc on a white board has an
+// edge the board cannot swallow. The rim is what carries the piece on the
+// light register; the fill alone did not.
+const DISC_RIM_YOU = 'var(--stg-ink, transparent)';
+const DISC_RIM_FOE = 'var(--stg-ink, transparent)';
 
 // The arm-then-confirm controls do not move when armed, so the second tap of
 // an accidental double-tap used to land on the armed state long before the
@@ -747,12 +757,20 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
           .fr-col{display:flex;flex-direction:column;gap:0;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:0;}
           .fr-col.dead{cursor:default;}
           .fr-cell{position:relative;aspect-ratio:1 / 1;display:flex;align-items:center;justify-content:center;min-width:0;}
-          .fr-hole{width:82%;height:82%;border-radius:50%;background:${HOLE};box-shadow:inset 0 3px 5px rgba(0,0,0,0.28), inset 0 0 0 1px var(--stg-line2, transparent);}
+          .fr-hole{width:82%;height:82%;border-radius:50%;background:${HOLE};box-shadow:inset 0 3px 5px rgba(0,0,0,0.28), inset 0 0 0 1px var(--stg-cell-line, transparent);}
           .fr-disc{width:82%;height:82%;border-radius:50%;box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), inset 0 3px 4px rgba(255,255,255,0.35), inset 0 0 0 1.5px var(--fr-rim, transparent);}
           .fr-disc.fresh{animation:frdrop .34s cubic-bezier(.35,.05,.55,1);}
           @keyframes frdrop{0%{transform:translateY(-420%);}70%{transform:translateY(0);}82%{transform:translateY(-9%);}100%{transform:translateY(0);}}
-          .fr-disc.lit{animation:frlit 1.15s ease-in-out infinite;}
-          @keyframes frlit{0%,100%{box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), 0 0 0 3px var(--white), 0 0 0 6px rgba(255,255,255,0.55);}50%{box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), 0 0 0 3px var(--white), 0 0 0 10px rgba(255,255,255,0.15);}}
+          /* THE WINNING FOUR (owner, 2026-09-01). The ring was var(--white): on the
+             light register that is a white ring on a white board, so the line
+             that decided the game was lit and nobody could see it. It is INK
+             now, which is the one colour guaranteed to read on the board in
+             either register, and the rest of the discs step back while the
+             four pulse, so the line is the only thing left on the board. */
+          .fr-disc.lit{animation:frlit 1.15s ease-in-out infinite;position:relative;z-index:1;}
+          .fr-board.won .fr-disc:not(.lit){opacity:.38;}
+          .fr-board.won .fr-hole{opacity:.55;}
+          @keyframes frlit{0%,100%{transform:scale(1);box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), 0 0 0 3px var(--stg-ink, var(--white)), 0 0 0 6px color-mix(in srgb, var(--stg-ink, #fff) 55%, transparent);}50%{transform:scale(1.08);box-shadow:inset 0 -3px 6px rgba(0,0,0,0.32), 0 0 0 3px var(--stg-ink, var(--white)), 0 0 0 11px color-mix(in srgb, var(--stg-ink, #fff) 18%, transparent);}}
           .fr-ghost{position:absolute;width:82%;height:82%;border-radius:50%;border:2px dashed rgba(255,255,255,0.72);}
           .fr-board.shake{animation:frshake .34s ease;}
           @keyframes frshake{0%,100%{transform:translateX(0);}22%{transform:translateX(-6px);}55%{transform:translateX(6px);}80%{transform:translateX(-3px);}}
@@ -833,7 +851,7 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
             </div>
             <div
               key={shake}
-              className={`fr-board${shake ? ' shake' : ''}`}
+              className={`fr-board${shake ? ' shake' : ''}${winLine ? ' won' : ''}`}
               style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, background: `linear-gradient(180deg, ${BOARD_BLUE}, ${BOARD_BLUE_DARK})`, border: `2px solid var(--stg-line, ${COLORS.ink})`, borderRadius: 10, padding: 6, touchAction: 'manipulation' }}
             >
               {Array.from({ length: COLS }).map((_, c) => {
@@ -1137,6 +1155,8 @@ export default function FourClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
+      {/* The desktop fold: the About prose below starts one screen down (app/StageFold.jsx). */}
+      <StageFold />
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Four</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>

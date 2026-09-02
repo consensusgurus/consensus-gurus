@@ -27,8 +27,11 @@ const C = { ember: T.accent, ink: T.ink, faded: T.muted, forest: T.success };
 // .loft-page. Unset everywhere else (the /quiz boards, the claim-your-name
 // modals, ShareCreditPop) the fallbacks apply and nothing changes.
 //
-// The INPUT FIELDS are deliberately not in here: they carry their own white
-// ground, so they keep their dark ink on a navy page too.
+// The INPUT FIELDS and the BUTTON read tokens too (owner, 2026-09-01: on a
+// daily page the form has to wear that game's colours, and it wore the site's
+// CTA blue and a white field on every one of the ten categories). .stage-page
+// publishes --join-cta / --join-cta-ink / --join-field-* off its own category
+// step in app/globals.css; everywhere else the fallbacks keep the old look.
 const INK = {
   head: `var(--join-head, ${T.ink})`,
   body: 'var(--join-body, #4a4339)',
@@ -39,7 +42,7 @@ const INK = {
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const labelStyle = { display: 'block', fontFamily: FONT, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: INK.soft, marginBottom: 6 };
-const fieldStyle = { width: '100%', fontFamily: FONT, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid ${C.ink}`, background: T.white, color: C.ink, boxSizing: 'border-box' };
+const fieldStyle = { width: '100%', fontFamily: FONT, fontSize: 16, padding: '12px 14px', borderRadius: 10, border: `1.5px solid var(--join-field-line, ${C.ink})`, background: `var(--join-field-bg, ${T.white})`, color: `var(--join-field-ink, ${C.ink})`, boxSizing: 'border-box' };
 
 function getAnonId() {
   if (typeof window === 'undefined') return null;
@@ -173,7 +176,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
         autoFocus={recover}
         style={recover ? { ...fieldStyle, borderColor: C.ember } : fieldStyle}
       />
-      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', background: T.cta, color: T.ctaInk, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
+      <button onClick={submit} disabled={busy} style={{ marginTop: 22, width: '100%', fontFamily: FONT, fontSize: 13, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, lineHeight: '48px', border: 'none', borderRadius: 10, background: `var(--join-cta, ${T.cta})`, color: `var(--join-cta-ink, ${T.ctaInk})`, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1 }}>
         {busy ? 'Joining…' : identity ? 'Update my name' : 'Join the leaderboard'}
       </button>
       {msg && (<p style={{ fontFamily: FONT, fontSize: 12, marginTop: 14, color: err ? INK.err : INK.ok }}>{msg}</p>)}
