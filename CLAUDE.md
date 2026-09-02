@@ -6862,3 +6862,50 @@ surfaces draw the glyph.
 
 **Not in a circuit** (Gauntlet is at its cap and Thread is not a question bank), not in
 the Daily Five bank. Share text carries one logline and never a title or the thread.
+
+## The home's arrival: the Ramp once a day, the Patch on every other wait (owner, 2026-09-01)
+
+Three things shipped together (`32a923301`, `19f8cfb7b`); the design study with looping
+mockups is https://claude.ai/code/artifact/8d963ed1-c694-46e9-ad92-a70cd4e773f9.
+
+- **`app/StageWelcome.jsx` opens with THE RAMP.** The ten category bands rise in ramp
+  order (`CATEGORY_RAMP`, each naming itself in `RAMP_INK`), the ground wipes across at
+  ~1.15s, the bands survive as a 6px ladder along the foot that keeps looping for as long
+  as the reads take (the hold), the words land at `RAMP_WORDS` (1600ms), then the queue
+  and the collapse onto the cap exactly as before. A reader with a name gets the welcome
+  and the gap-branched figures; a reader with none gets the mark, the wordmark and the
+  three lines (Gain IQ points / Elevate your thinking / Keep a sharp mind). **It is once
+  per ET day (`sot_welcome_day`, unchanged) and it now ALWAYS plays on that visit**: the
+  warm-cache floor is gone, because the opening is the brand moment. `?welcome=1`
+  previews, `?welcome=0` kills. **THE CURTAIN IS DARK IN BOTH REGISTERS** and every
+  colour in it is a literal, not a stage token: painted in the page's own pale ground it
+  read as a blank sheet with a sentence on it (owner, same day). On the light register the
+  collapse lands on the cap and cross-fades for 200ms instead of colour onto colour.
+- **`app/StagePatch.jsx` is THE PATCH, mounted in `app/today/StageToday.jsx`.** A
+  per-cell loading cover for a figure that is waiting on its own read: dark ground
+  (`#0b0f1a` in both registers, the Ramp's door at the size of one cell) with the ten-rung
+  loop along its foot, leaving by the endings' clip collapse so the figure appears from
+  behind it. Rules: nothing mounts unless the cell is still waiting 260ms after the patch
+  does (a warm read covers nothing), a shown patch stays at least 400ms, and it never waits
+  on a rAF (CSS loop, timer exit). Covered today: the cap's three figures (keyed on
+  `stats.ready && mineIn`, only for a reader with a name), Your standing and Today's board
+  (keyed on `boardIn`; the sections are drawn as shells before the read answers so the page
+  keeps its shape). `mineIn` / `boardIn` are "the read has ANSWERED, success or failure";
+  keying a cover on the VALUE (`mine === null`) is a cover that never leaves for a guest.
+  The cap cells are rendered with KEYED children so the StagePatch instance survives the
+  placeholder-to-figure swap; that is what lets the collapse play over the number. It
+  carries no `<style>`: interpolate `PATCH_CSS` into the page's own stylesheet.
+- **`--stg-brand`: the mark's blue follows the register.** The mark and the word "Loft"
+  used to take `--stg-acc` (a category step on a game page: mint on Numbers, orange on
+  Trivia; `#0369a1` on the light home) while the app icon carries `#2563eb`. Measured:
+  `#2563eb` is 3.70:1 on the dark ground, sky is 1.54:1 on paper, `#60a5fa` fails paper at
+  2.35, so no single blue holds. `--stg-brand` is `#7dd3fc` on `.stage-page` and `#2563eb`
+  under `[data-stage-theme='light']`; StageChrome, StageFooter, CircuitFrame, StageToday
+  read it for both the brain and the `em`, and QuizCommandHeader's navy bar takes sky
+  literally. Never hand the brand mark a category colour again.
+
+Verifying: `/?welcome=1&theme=light` and `/?welcome=1` for the Ramp; the patches show on
+any load where a read outlasts 260ms (a cold `daily-combined` is 3-4s, so the board's
+patch is the one you will usually see). Chrome MCP screenshots time out mid-animation; a
+screenshot at 0.6s catches the patches under the fading-in curtain and one at ~2.5s the
+words on the dark ground.
