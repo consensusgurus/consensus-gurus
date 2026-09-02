@@ -966,8 +966,12 @@ export default function StageToday() {
       for (let i = 0; !r && i < localStorage.length; i += 1) {
         const k = localStorage.key(i) || '';
         if (!k.startsWith('sot_')) continue;
-        if (/^sot_.+_day$/.test(k)) r = true;
-        else if (/^sot_(?!quiz_|vid_)[a-z]+_\d/.test(k)) r = true;
+        // Only a GAME's breadcrumb counts. sot_welcome_day (the arrival curtain's
+        // once-a-day stamp), sot_hub_* and sot_theme* are written on a first
+        // visit and would make every reader look like a returning one, which is
+        // exactly what happened on the first deploy of this (2026-09-02).
+        if (/^sot_(?!welcome_|hub_|theme|quiz_|vid_)[a-z]+_day$/.test(k)) r = true;
+        else if (/^sot_(?!welcome_|hub_|theme|quiz_|vid_)[a-z]+_\d/.test(k)) r = true;
       }
     } catch (e) { r = true; }
     setReturning(r);
