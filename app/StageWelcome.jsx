@@ -262,11 +262,14 @@ export default function StageWelcome({ capRef }) {
       // A page that has been open a while is a navigation back to the home, not
       // an arrival, and there is no fetch in flight to cover.
       if (typeof performance !== 'undefined' && performance.now() > FRESH) return;
-      // THE FIRST-LOAD THEME INTRO OWNS ITS VISIT. It runs dark to light to dark
-      // from 850ms to 2350ms and is once per browser; this is every visit, so
-      // the intro takes that one and this stands down. Two full-screen events
-      // cannot share a page load.
-      try { if (!localStorage.getItem('sot_theme_intro2')) return; } catch (e) { return; }
+      // A FIRST VISIT GETS THE DOOR TOO (owner, 2026-09-01: "new users first
+      // visit to site should get the loading animation too"). This used to
+      // stand down whenever `sot_theme_intro2` was unset, deferring to the
+      // first-load theme flip; that flip is RETIRED (lib/stage-theme.js,
+      // INTRO_RETIRED) and no longer stamps its key, so the check had quietly
+      // become "never, for any new browser". The theme pop-up that replaced
+      // the flip polls the DOM for this screen and waits its turn, so nothing
+      // else owns the arrival now.
     }
     const who = readName();
     const day = etToday();

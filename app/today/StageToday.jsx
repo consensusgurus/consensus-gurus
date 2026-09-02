@@ -289,14 +289,7 @@ const circPinId = (k) => (isCircPin(k) ? k.slice(2) : null);
 // line carries the answer instead. No extra row, no extra height, and the one
 // question a home board could not answer — "how did I do at that one" — is now
 // on the card itself rather than only in the table below.
-// THE LINE UNDER THE NAME IS PATCHED WHILE THE DAY IS OUT (owner, 2026-09-01:
-// "the animation should be more far reaching - as it should capture the
-// loading of the my games too"). That line is the one thing on a card that
-// changes when the reads land (tagline -> result), so while `wait` is true it
-// carries the patch; the card itself, its name and its link are drawn at once,
-// because the games are what the reader came for. The patch collapses off the
-// result, or off the tagline when the day has nothing to say about that game.
-function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue, res, wait, light }) {
+function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue, res }) {
   const state = done.has(g.key) ? 'done' : inprog.has(g.key) ? 'open' : '';
   const on = !!(favorites && favorites.includes(g.key));
   // MY GAMES MIXES CATEGORIES, so each card carries its OWN hue rather than
@@ -306,18 +299,15 @@ function GameCard({ g, done, inprog, tq, canPin, favorites, toggleFavorite, hue,
     <a className={`sty-g ${state}${res ? ' res' : ''}`} href={`${routeOf(g)}${tq ? '?' + tq.slice(1) : ''}`}
       style={hue ? { '--cc': hue } : undefined}>
       <span className="sty-gn"><Glyph k={g.key} size={17} />{g.name}</span>
-      <span className="sty-gsub">
-        {res ? (
-          <span className="sty-gres sty-rev">
-            <span className="sty-grl">You:</span>
-            <span className="sty-grk">#{res.rank}</span>
-            <span className="sty-grf">of {res.field}</span>
-          </span>
-        ) : (
-          <span className="sty-gt">{g.tag}</span>
-        )}
-        {wait != null ? <StagePatch on={wait} light={light} radius={4} /> : null}
-      </span>
+      {res ? (
+        <span className="sty-gres sty-rev">
+          <span className="sty-grl">You:</span>
+          <span className="sty-grk">#{res.rank}</span>
+          <span className="sty-grf">of {res.field}</span>
+        </span>
+      ) : (
+        <span className="sty-gt">{g.tag}</span>
+      )}
       {canPin ? (
         <button
           type="button"
@@ -557,7 +547,7 @@ export default function StageToday() {
   // guest with no account or a failed one, and a cover that waits on a value
   // that is never coming is a cover that never leaves.
   const [mineIn, setMineIn] = useState(false);
-  const [boardIn, setBoardIn] = useState(false);
+
   useEffect(() => {
     let alive = true;
     const qs = identityQs();
@@ -575,8 +565,7 @@ export default function StageToday() {
     fetch('/api/quiz/daily-combined' + (qs ? `?${qs}` : ''))
       .then((r) => r.json())
       .then((d) => { if (alive && d && Array.isArray(d.overall)) setBoard(d); })
-      .catch(() => {})
-      .finally(() => { if (alive) setBoardIn(true); });
+      .catch(() => {});
     return () => { alive = false; };
   }, []);
 
@@ -1064,10 +1053,7 @@ export default function StageToday() {
   }, [done, inprog]);
 
   return (
-    <div className="sty stage-page" data-stage-theme={stageTheme}
-      style={light
-        ? { '--stg-patch-bg': 'var(--stg-raise)', '--stg-patch-line': 'var(--stg-line)' }
-        : { '--stg-patch-bg': 'var(--stg-cell)', '--stg-patch-line': 'var(--stg-cell-line)' }}>
+    <div className="sty stage-page" data-stage-theme={stageTheme}>
       <style>{CSS}</style>
       <StageWelcome capRef={capRef} />
       {/* NEW-GAME PREMIERES: once per launch, returning players who have not
@@ -1124,9 +1110,11 @@ export default function StageToday() {
               only when there IS movement: no arrow means no change, which is
               the honest way to say it. */}
           {/* THE PATCH (owner, 2026-09-01): while the reads are out, each cell
-              is drawn at its size with a small ground-colour cover carrying the
-              ten-rung loop, and the cover collapses off the figure when its own
-              read lands. Only a reader with a name has cells to cover; a guest
+              is drawn at its size with the ten-rung loop standing where the
+              figure will, no box around it, and the loop collapses off the
+              figure when its own read lands. These three cells are the ONLY
+              place it goes (owner): everything else that waits on a read sits
+              below the fold on arrival. Only a reader with a name has cells to cover; a guest
               has the sign-up link above, which waits on nothing. The children
               are KEYED so the StagePatch instance survives the swap from the
               placeholder to the real figure, which is what lets the collapse
@@ -1277,8 +1265,7 @@ export default function StageToday() {
                 {playedLast(pinned, done).map((g) => (
                   <GameCard key={g.key} g={g} done={done} inprog={inprog} tq={tq}
                     canPin={canPin} favorites={favorites} toggleFavorite={toggleFavorite}
-                    hue={hueFor(g.cat)} res={standBy[g.key]}
-                    wait={who ? (!statusIn || !boardIn) : undefined} light={light} />
+                    hue={hueFor(g.cat)} res={standBy[g.key]} />
                 ))}
               </div>
             ) : null}
@@ -1450,25 +1437,16 @@ export default function StageToday() {
             points table, and what this one is for is the RUN: what you scored,
             what it cost you and how long it took. The rank still carries how it
             placed, which is the only part of the ladder this table needs. */}
-        {standing.length || (who && !boardIn) ? (
+        {standing.length ? (
           <section id="sty-standing" className="sty-rev">
             <div className="sty-eb">
               Your standing
               <em>
-                {standing.length ? (
-                  <>
-                    {' · '}{standing.length} played
-                    {myRow && myRow.rank ? ` · #${myRow.rank} overall` : ''}
-                  </>
-                ) : null}
+                {' · '}{standing.length} played
+                {myRow && myRow.rank ? ` · #${myRow.rank} overall` : ''}
               </em>
             </div>
-            {/* THE PATCH over the rows while the board is out. This section is
-                drawn for a named reader before the read answers, at a row's
-                height, so the page keeps its shape; if the read comes back with
-                no standing the section leaves with its cover. */}
-            <div className={'sty-sscroll' + (boardIn ? '' : ' sty-shell')}>
-              <StagePatch on={!boardIn} light={light} />
+            <div className="sty-sscroll">
               <table className="sty-tbl sty-stbl">
                 <tbody>
                   {standing.map((r, i) => (
@@ -1492,11 +1470,9 @@ export default function StageToday() {
             need to be at the top of the page). The top of a home is for what you
             can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
-        {top.length || !boardIn ? (
+        {top.length ? (
           <section id="sty-board" className="sty-rev" ref={lbRef}>
-            <div className="sty-eb">Today&rsquo;s board {boardIn ? <em>&middot; {boardCount}</em> : null}</div>
-            <div className={'sty-lbody' + (boardIn ? '' : ' sty-shell')}>
-            <StagePatch on={!boardIn} light={light} />
+            <div className="sty-eb">Today&rsquo;s board <em>&middot; {boardCount}</em></div>
             <table className="sty-tbl">
               <tbody>
                 {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
@@ -1510,7 +1486,6 @@ export default function StageToday() {
                 ))}
               </tbody>
             </table>
-            </div>
           </section>
         ) : null}
 
@@ -1716,12 +1691,7 @@ const CSS = `
 /* A FIGURE CELL is positioned so its patch can cover it; while waiting it holds
    a figure's footprint so the cap does not reflow when the number lands. */
 .sty-fc{position:relative;}
-.sty-gsub{display:block;position:relative;}
 .sty-fc.wait{min-width:54px;min-height:30px;}
-.sty-shell{position:relative;}
-.sty-sscroll.sty-shell{min-height:132px;}
-.sty-lbody{position:relative;}
-.sty-lbody.sty-shell{min-height:230px;}
 ${PATCH_CSS}
 .sty-figs b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
 .sty-figs b i{font-style:normal;font-weight:600;color:var(--stg-mute);font-size:12px;}
