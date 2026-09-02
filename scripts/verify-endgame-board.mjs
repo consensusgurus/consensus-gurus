@@ -192,26 +192,44 @@ const { attemptsMode, attemptsModeForQuizId, attemptsPlan, attemptsRanker, daily
   await import('../lib/daily-games.js');
 const { guestGameResult } = await import('../lib/daily-combined.js');
 
-const GRADED = ['barter', 'chomp', 'park', 'rung', 'taire'];
+const GRADED = ['chomp', 'park', 'rung', 'taire'];
+// TRADES (owner, 2026-09-02): Barter left the graded roster for the attempts-first
+// one. Its score IS its trades (10 - 2 x trades over par, floored at 1), so score
+// and trades are one quantity and trades is the finer of the two; score therefore
+// drops out as a term instead of leading. Unlike 'graded' this is UNGATED and
+// applies to all history, which was the owner's explicit call that day.
+const TRADES = ['barter'];
+const ATTEMPTS = [...GRADED, ...TRADES];
 
 console.log('\ngraded roster');
 for (const k of EG) if (attemptsMode(k) !== 'binary') fail(`${k} is not binary`);
 ok('every End Game title reports mode binary');
 for (const k of GRADED) if (attemptsMode(k) !== 'graded') fail(`${k} is not graded`);
-ok('the five graded games report mode graded');
+ok('the four graded games report mode graded');
+for (const k of TRADES) if (attemptsMode(k) !== 'trades') fail(`${k} is not trades`);
+ok('barter reports mode trades');
 for (const k of ['crux', 'suds', 'lode', 'blocks', 'babel']) if (attemptsMode(k)) fail(`${k} ranks on attempts`);
 ok('no other game ranks on attempts (babel and the arcade pair included)');
-for (const k of GRADED) if (!wantsFastRetry(k)) fail(`${k} does not offer the fast retry`);
-ok('a graded game offers the fast-retry panel, because a replay there counts');
-for (const k of GRADED) if (dailyAttemptRule(k).chip !== 'Replays count') fail(`${k} copy still says ${dailyAttemptRule(k).chip}`);
-ok('the replay control on a graded game says replays count');
+for (const k of ATTEMPTS) if (!wantsFastRetry(k)) fail(`${k} does not offer the fast retry`);
+ok('an attempts game offers the fast-retry panel, because a replay there counts');
+for (const k of ATTEMPTS) if (dailyAttemptRule(k).chip !== 'Replays count') fail(`${k} copy still says ${dailyAttemptRule(k).chip}`);
+ok('the replay control on an attempts game says replays count');
+// The board copy must state the rule the board actually runs, not the graded one.
+if (!/how few runs/.test(dailyAttemptRule('barter').board)) fail('barter board copy still states the graded rule');
+else ok('barter copy states the attempts-first rule, not the graded one');
 
 console.log('\nthe date gate');
-if (attemptsModeForQuizId('barter-8-26-26') !== 'graded') fail('barter on the cutover is not graded');
+if (attemptsModeForQuizId('chomp-8-26-26') !== 'graded') fail('chomp on the cutover is not graded');
 else ok('a graded day on the cutover uses the new rule');
-if (attemptsModeForQuizId('barter-9-2-26') !== 'graded') fail('barter after the cutover is not graded');
-if (attemptsModeForQuizId('barter-8-25-26') !== null) fail('a pre-cutover barter day was re-ranked');
+if (attemptsModeForQuizId('chomp-9-2-26') !== 'graded') fail('chomp after the cutover is not graded');
+if (attemptsModeForQuizId('chomp-8-25-26') !== null) fail('a pre-cutover chomp day was re-ranked');
 else ok('a graded day BEFORE the cutover keeps its first-attempt order and its crown');
+// TRADES IS UNGATED BY CONSTRUCTION (owner, 2026-09-02): the cutover test reads
+// `mode === 'graded'`, so every archived Barter day re-ranks on its next read and
+// crowns move with it. That was the owner's call, not an oversight.
+for (const id of ['barter-8-26-26', 'barter-9-2-26', 'barter-8-25-26', 'barter-6-1-26'])
+  if (attemptsModeForQuizId(id) !== 'trades') fail(`${id} is not trades`);
+ok('every barter day reads as trades, back through the whole archive');
 if (attemptsModeForQuizId('rung-7-1-26') !== null) fail('a pre-cutover rung day was re-ranked');
 if (attemptsModeForQuizId('mate-1-2-26') !== 'binary') fail('End Game was gated by the graded cutover');
 else ok('End Game is NOT gated: its rule went live 2026-08-12 and every day since ran under it');
@@ -228,7 +246,7 @@ const grow = (quiz, user, score, { t = 30, g = 0, ab = false } = {}) =>
 
 console.log('\ngraded ordering');
 {
-  const Q = 'barter-8-26-26';
+  const Q = 'rung-8-26-26';
   const rows = [
     grow(Q, 'A', 10, { t: 300 }),                            // perfect, try 1, slow
     grow(Q, 'B', 6, { t: 20 }), grow(Q, 'B', 10, { t: 20 }), // perfect, try 2, fast
@@ -278,6 +296,88 @@ console.log('\ngraded ordering');
   else ok('score beats attempts: a better run on try 2 outranks a worse one on try 1');
 }
 
+// ---- trades ordering ---------------------------------------------------------
+// ATTEMPTS FIRST. Finished-or-not, then runs, then trades, then the clock.
+console.log('\ntrades ordering');
+{
+  const Q = 'barter-9-2-26';
+  const rows = [
+    grow(Q, 'A', 1, { t: 300, g: 9 }),                        // solved try 1, at the floor, slowest
+    grow(Q, 'B', 0, { t: 20, g: 40 }), grow(Q, 'B', 10, { t: 5, g: 0 }), // perfect, but on try 2
+    grow(Q, 'C', 10, { t: 10, g: 0 }),                        // perfect try 1, fast
+  ];
+  const order = orderOf(rows);
+  if (order.join() !== 'PC,PA,PB') fail(`trades order came out ${order.join()}`);
+  else ok('a first-try solve beats every replay, whatever it scored');
+  if (orderOfScore(rows).join() !== order.join()) fail('the two mirrors disagree on a trades board');
+  else ok('scoreGame and buildLeaderboard agree on the trades order');
+}
+{
+  // Two first-try solvers separate on TRADES, which is the finer quantity: both
+  // can be pinned to the score floor of 1 and still differ.
+  const Q = 'barter-9-2-26';
+  const rows = [grow(Q, 'A', 1, { t: 10, g: 9 }), grow(Q, 'B', 1, { t: 90, g: 4 })];
+  if (orderOf(rows)[0] !== 'PB') fail('two floored first-try solvers did not separate on trades');
+  else ok('trades break the tie among equal-attempt solvers, below the score floor');
+}
+{
+  // A player who never solved sits BELOW every solver and is never ranked on
+  // attempts: fewest-first there would put a one-and-quit above a five-run fight.
+  const Q = 'barter-9-2-26';
+  const quit = [grow(Q, 'Q', 0, { t: 8, g: 40 })];
+  const fought = [1, 2, 3, 4, 5].map(() => grow(Q, 'F', 0, { t: 60, g: 12 }));
+  const solver = [grow(Q, 'S', 1, { t: 999, g: 60 }), grow(Q, 'S', 1, { t: 999, g: 60 }),
+                  grow(Q, 'S', 1, { t: 999, g: 60 }), grow(Q, 'S', 1, { t: 999, g: 60 })];
+  const order = orderOf([...quit, ...fought, ...solver]);
+  if (order[0] !== 'PS') fail(`an unsolved run outranked a four-try solver: ${order.join()}`);
+  else ok('every solver sits above every non-solver, however many runs it took');
+  if (order[1] !== 'PF') fail(`a one-run quitter (${order.join()}) outranked a five-run fighter`);
+  else ok('the unsolved cohort ranks on depth, never on how few times they tried');
+}
+{
+  // The EARLIEST finished run represents the player: attempts lead, so no later
+  // run can improve their standing, even a perfect one.
+  const Q = 'barter-9-2-26';
+  const rows = [grow(Q, 'A', 4, { t: 40, g: 3 }), grow(Q, 'A', 10, { t: 5, g: 0 })];
+  const plan = attemptsPlan(rows, 'trades');
+  const chosen = rows.filter((r) => plan.chosen.has(r));
+  if (chosen.length !== 1) fail(`chosen ${chosen.length} rows for one player`);
+  else if (chosen[0] !== rows[0]) fail('a later, better-scoring run displaced the first solve');
+  else ok('the earliest finished run represents the player, because attempts lead');
+  for (const r of rows) if (plan.info.get(r).trades !== true) fail('a trades row is not flagged trades');
+  ok('every trades verdict carries the flag the guest path branches on');
+  // The graded flag stays TRUE on a trades board on purpose, so every other
+  // reader that keys off .graded keeps working; only the ORDER of the two
+  // branches keeps them apart.
+  for (const r of rows) if (plan.info.get(r).graded !== true) fail('a trades row lost the graded flag');
+  ok('a trades row still carries graded, so no other reader of the flag moves');
+  // A player who never finished is represented by the run that got FURTHEST.
+  const un = [grow(Q, 'U', 0, { t: 5, g: 2 }), grow(Q, 'U', 0, { t: 60, g: 20 })];
+  un[0].progress = 1; un[1].progress = 4;
+  const p2 = attemptsPlan(un, 'trades');
+  if (!p2.chosen.has(un[1])) fail('a non-solver was not represented by their deepest run');
+  else ok('a non-solver is represented by the run that got furthest, as tier 2 is');
+}
+{
+  // The guest path holds a hand copy of the comparator and has to mirror it.
+  const Q = 'barter-9-2-26';
+  const regs = [
+    { username: 'P1', total: 10, score: 10, timeElapsed: 50, guessesUsed: 0, progress: null, egTier: 0, tries: 1 },
+    { username: 'P2', total: 10, score: 1, timeElapsed: 20, guessesUsed: 9, progress: null, egTier: 0, tries: 2 },
+    { username: 'P3', total: 10, score: 0, timeElapsed: 10, guessesUsed: 30, progress: null, egTier: 2, tries: 1 },
+  ];
+  const game = { quizId: Q, field: regs.length, players: new Map(regs.map((p, i) => [i, p])) };
+  const at = (score, tries, g = 0) => guestGameResult(
+    { score, total: 10, time_elapsed: 30, guesses_used: g, progress: null },
+    game, { tier: score > 0 ? 0 : 2, tries, graded: true, trades: true }).rank;
+  if (at(1, 1, 9) !== 2) fail(`a floored first-try solve was placed #${at(1, 1, 9)}, expected #2`);
+  else ok('a trades guest is placed by attempts first, not by score');
+  if (at(10, 3, 0) !== 3) fail(`a perfect third run was placed #${at(10, 3, 0)}, expected #3`);
+  else ok('a trades guest never jumps a first-try solver by scoring better');
+  if (at(0, 1, 0) !== 4) fail(`a non-solver was placed #${at(0, 1, 0)}, expected #4`);
+  else ok('a non-solver guest sits below every solver on a trades board');
+}
+
 // ---- the binary rule did not move -------------------------------------------
 console.log('\nbinary is unchanged');
 {
@@ -312,7 +412,7 @@ console.log('\nthe guest path');
 {
   // guestGameResult holds a hand-rolled copy of the comparator (it sees one row,
   // not a field), so it has to be checked against the board it is quoting.
-  const Q = 'barter-8-26-26';
+  const Q = 'rung-8-26-26';
   const regs = [
     { username: 'P1', total: 10, score: 10, timeElapsed: 50, guessesUsed: 0, progress: null, egTier: 0, tries: 1 },
     { username: 'P2', total: 10, score: 10, timeElapsed: 20, guessesUsed: 0, progress: null, egTier: 0, tries: 3 },
@@ -330,5 +430,5 @@ console.log('\nthe guest path');
   else ok('a first-try perfect tops the graded field');
 }
 
-console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAttempts boards verified (binary + graded).');
+console.log(BAD ? `\n${BAD} FAILURE(S)` : '\nAttempts boards verified (binary + graded + trades).');
 process.exit(BAD ? 1 : 0);

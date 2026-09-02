@@ -775,13 +775,29 @@ export default function HedgeClient({ puzzles = [], forceNum = null }) {
               {PUZZLE.clues.map((row, i) => row.map((c, j) => {
                 if (c === null || c === undefined) return null;
                 const k = cellCount[i][j];
+                // MET is said STRUCTURALLY, not by a lighter grey (owner,
+                // 2026-09-02): mute and ink are two steps of one ramp, so the
+                // met/unmet distinction was a lightness step that reads as one
+                // colour at 17px in BOTH registers. The digit is struck through
+                // instead, which reads the same light or dark and matches the
+                // meaning: this clue is finished, cross it off. Note the token
+                // is --stg-mute2; there is no --stg-mute in StageChrome, so the
+                // old value silently fell back to the hardcoded grey and never
+                // flipped with the register at all.
+                const met = k === c;
                 const col = k > c ? `var(--stg-bad, ${COLORS.rust})`
-                  : k === c ? 'var(--stg-mute, #c3c8d4)'
+                  : met ? 'var(--stg-mute2, #c3c8d4)'
                   : `var(--stg-ink, ${COLORS.ink})`;
+                const cx = X(j) + CELL / 2, cy = Y(i) + CELL / 2;
                 return (
-                  <text key={`c${i}-${j}`} x={X(j) + CELL / 2} y={Y(i) + CELL / 2} fill="currentColor"
-                    fontFamily={MONO} fontSize={17} fontWeight="500" textAnchor="middle" dominantBaseline="central"
-                    style={{ color: col, pointerEvents: 'none', userSelect: 'none' }}>{c}</text>
+                  <g key={`c${i}-${j}`} style={{ color: col, pointerEvents: 'none', userSelect: 'none' }}>
+                    <text x={cx} y={cy} fill="currentColor"
+                      fontFamily={MONO} fontSize={17} fontWeight="500" textAnchor="middle" dominantBaseline="central">{c}</text>
+                    {met && (
+                      <line x1={cx - 6.5} x2={cx + 6.5} y1={cy} y2={cy}
+                        stroke="currentColor" strokeWidth={2} strokeLinecap="round" />
+                    )}
+                  </g>
                 );
               }))}
               {/* crosses */}
