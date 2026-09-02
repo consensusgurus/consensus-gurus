@@ -724,7 +724,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-btn{font-family:${SANS};font-weight:800;font-size:13px;letter-spacing:0.02em;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.28));border-radius:9px;padding:9px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sc-btn:hover{background:var(--stg-surf2, ${COLORS.paper});}
           .sc-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
-          .sc-btn.primary:hover{background:#0f3d21;}
+          .sc-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, #0f3d21) 86%, var(--stg-ink, var(--white)));}
           .sc-btn:disabled{opacity:0.42;cursor:default;}
           .sc-grid{display:grid;grid-template-columns:repeat(${SIZE},1fr);gap:2px;background:var(--stg-cell-line, #0d3b20);border:2px solid var(--stg-cell-line, ${COLORS.ink});border-radius:10px;padding:5px;max-width:460px;width:100%;box-shadow:5px 5px 0 rgba(28,30,36,0.16);}
           .sc-cell{position:relative;aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:clamp(13px,3.5vw,20px);color:${INK};cursor:pointer;user-select:none;background:${STAGE ? 'var(--stg-cell)' : '#dfe7e0'};}

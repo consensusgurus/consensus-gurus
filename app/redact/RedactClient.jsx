@@ -481,7 +481,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
           .rd-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : COLORS.accentDeep};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .rd-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .rd-btn.primary{background:var(--stg-acc, ${COLORS.accentDeep});border-color:var(--stg-acc, ${COLORS.accentDeep});color:var(--stg-onramp, var(--white));}
-          .rd-btn.primary:hover{background:#000;}
+          .rd-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, #000) 86%, var(--stg-ink, var(--white)));}
           .rd-slab{display:inline-block;background:var(--stg-acc, ${COLORS.accentDeep});border-radius:3px;color:#e4e4e7;font-family:${MONO};font-size:11px;line-height:1.5;text-align:center;cursor:pointer;vertical-align:baseline;user-select:none;}
           .rd-slab:hover{background:#3f3f46;}
           .rd-article{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:12px;padding:20px 22px;font-size:15.5px;line-height:2.05;color:${INK};}

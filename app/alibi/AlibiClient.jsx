@@ -667,7 +667,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           .al-btn:disabled:hover{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .al-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
-          .al-btn.primary:hover{background:#761a26;}
+          .al-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, #761a26) 86%, var(--stg-ink, var(--white)));}
           .al-clue{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${INK};}
           .al-clue b{color:var(--stg-acc, ${COLORS.accent});}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
