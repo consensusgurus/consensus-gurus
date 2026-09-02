@@ -41,12 +41,38 @@
 // NOTHING IS INVENTED. Every figure comes off the daily-status payload the page
 // already fetches; a figure with no value is skipped rather than guessed, and a
 // case with no figures at all does not show.
+//
+// THE RAMP IS ITS FRONT HALF (owner, 2026-09-01). The arrival now OPENS with
+// the Broadcast's paint at the scale of the whole roster: the ten category
+// bands rise in ramp order and name themselves, the ground wipes across and
+// leaves them as a ladder along the foot, and only then do the words land.
+// The words are chosen by footprint: a reader with a name gets the welcome
+// and the gap-branched figures exactly as before; a reader without one gets
+// the mark, the wordmark and the three lines (Gain IQ points / Elevate your
+// thinking / Keep a sharp mind), which is the one moment the brand explains
+// itself to someone who has not met it. The ladder keeps looping for as long
+// as the reads take, so the hold is a loading state rather than a freeze, and
+// the collapse onto the cap is unchanged.
+//
+// It is ONCE PER ET DAY and it now ALWAYS PLAYS on that first visit: the
+// warm-cache floor that used to let it stand down is gone, because the opening
+// is the brand moment and a return from a daily is not this screen's problem
+// any more. Every OTHER uncached load gets the per-cell Patch on the home
+// (app/StagePatch.jsx), which covers exactly the figures that are waiting and
+// nothing else. So a reader sees this door once a day, and never a full screen
+// on the way back from a game.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
+import { RAMP_ORDER, CATEGORY_RAMP, CATEGORY_RAMP_LIGHT, RAMP_INK, RAMP_INK_LIGHT } from '@/lib/category-ramp';
+import { useStageTheme } from '@/lib/stage-theme';
+import MindLoftMark from './MindLoftMark';
 import { fetchDayStatus, etToday } from './useDayStats';
 
 // ── the ending's constants, not a new set ──────────────────────────────────
-const FLOOD_MIN = 600;      // the name alone, before any figure
+// THE OPENING: bands up by ~1.05s, the wipe from 1.15s, the words at 1.6s.
+// Fixed, so it reads the same on a warm cache as on a cold one.
+const RAMP_WORDS = 1600;
+const FLOOD_MIN = RAMP_WORDS + 600;   // the words alone, before any figure
 const FLOOD_COUNT = 820;    // the lead's climb, which is also its dwell
 // LONGER THAN THE ENDING'S, DELIBERATELY (owner, live, 2026-08-31: "the stats
 // flash too quickly to read"). The ending can stamp at 380 and settle at 420
@@ -72,7 +98,7 @@ const FLOOD_ROW = 420;
 // for two and a half seconds, which is the same complaint as the stats going by
 // too fast, from the other end. Past this the arrival proceeds with the figures
 // it has and the recap simply does not appear.
-const RECAP_WAIT = 2400;
+const RECAP_WAIT = 2400 + RAMP_WORDS;
 const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
@@ -80,11 +106,10 @@ const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
 // twelve seconds because they just finished something. An arrival cannot: past
 // this the queue short-circuits, the flood leaves with what it has, and the cap
 // fills in the rest when it lands.
-const FLOOD_MAX = 4000;
+const FLOOD_MAX = 4000 + RAMP_WORDS;
 // THE WARM-CACHE FLOOR, and the whole answer to the pop-up objection. If the
 // read answers this fast the page was never waiting, so there is nothing to
 // fill and nothing runs.
-const FLOOR = 260;
 // A home rendered this long after the document loaded is a client-side
 // navigation back to it, not an arrival. Same test FLOOD_FRESH makes.
 const FRESH = 2500;
@@ -120,6 +145,15 @@ function Count({ to, ms }) {
 // produced "Back, Gator85" on a resumption and read as a clipped fragment. The
 // figures are what differ between arrivals; the greeting is just a greeting.
 const HELLO = 'Welcome back, ';
+// THE THREE LINES, for a reader with no footprint. They stamp in one at a time
+// like figures, because on this screen they are the figures.
+const LINES = [
+  { k: 'l1', line: true, v: 'Gain IQ points' },
+  { k: 'l2', line: true, v: 'Elevate your thinking' },
+  { k: 'l3', line: true, v: 'Keep a sharp mind' },
+];
+// Short names for the bands: the ramp's own order, two words at most.
+const BAND_NAMES = { 'Crowd Psychology': 'Crowd' };
 
 // A recap row is a place and a game, and it carries the field the same way the
 // cap does (#3/91), so the two surfaces state a standing identically.
@@ -183,6 +217,9 @@ export default function StageWelcome({ capRef }) {
   const [recap, setRecap] = useState(null);
   const [recapDone, setRecapDone] = useState(false);
   const [name, setName] = useState('');
+  const [cold, setCold] = useState(false);  // no name: the mark and the three lines
+  const theme = useStageTheme();
+  const light = theme === 'light';
   const today = useMemo(() => {
     try {
       const [Y, M, D] = etToday().split('-').map(Number);
@@ -235,7 +272,6 @@ export default function StageWelcome({ capRef }) {
       try { if (!localStorage.getItem('sot_theme_intro2')) return; } catch (e) { return; }
     }
     const who = readName();
-    if (!who && !force) return;   // no name, no gap, nothing to welcome
     const day = etToday();
     if (!force) {
       try {
@@ -243,26 +279,21 @@ export default function StageWelcome({ capRef }) {
         localStorage.setItem(DAY, day);
       } catch (e) { return; }
     }
-    setName(who || 'you');
+    setName(who || '');
+    setCold(!who);
 
-    // THE FLOOR. fetchDayStatus is memoised and the page fetches it anyway, so
-    // this costs no request. If it answers inside FLOOR the page was never
-    // waiting and nothing runs.
-    // THE PREVIEW MUST NOT BE DEFEATED BY THE FLOOR. ?welcome=1 always plays,
-    // including when the read answers instantly, because otherwise the one way
-    // to look at this is to be unlucky with the cache.
-    if (force) setOn(true);
-    let fast = false;
-    const floor = force ? null : setTimeout(() => { if (alive && !fast) setOn(true); }, FLOOR);
+    // NO FLOOR ANY MORE: the day's first visit always gets the door. The
+    // read is still the page's own memoised fetchDayStatus, so this costs no
+    // request; it decides what the figures say, not whether the screen runs.
+    // A read that answers empty is a settled answer (a guest has no figures,
+    // and that is a fact rather than a wait).
+    setOn(true);
     fetchDayStatus().then((d) => {
       if (!alive) return;
-      if (!d) { if (!force) { fast = true; if (floor) clearTimeout(floor); } return; }
-      setData(d);
+      if (d) setData(d);
       setSettled(true);
-      // Stamp the place we are about to show, so the NEXT arrival can say what
-      // moved. Read before the write happens below, in the figure builder.
-    });
-    return () => { alive = false; if (floor) clearTimeout(floor); };
+    }).catch(() => { if (alive) setSettled(true); });
+    return () => { alive = false; };
   }, []);
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); timers.current = []; }, []);
@@ -285,7 +316,9 @@ export default function StageWelcome({ capRef }) {
   // minority who see a recap. The lead figure lands off daily-status while this
   // is in flight, so the chain costs the sequence nothing.
   useEffect(() => {
-    if (!on || !data) return;
+    if (!on) return;
+    // A read that settled empty has no last day to ask about.
+    if (!data) { if (settled) setRecapDone(true); return; }
     const last = data.lastPlayed;
     const gap = daysBetween(last, etToday());
     if (data.playedToday || gap == null || gap < 1) { setRecapDone(true); return; }
@@ -332,11 +365,12 @@ export default function StageWelcome({ capRef }) {
       .catch(() => { if (alive) setRecapDone(true); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, data]);
+  }, [on, data, settled]);
 
   // ── the case, and its figures ────────────────────────────────────────────
   const view = useMemo(() => {
     const today = etToday();
+    if (cold) return { figs: LINES };
     if (!data) return { figs: [] };
     const gap = daysBetween(data.lastPlayed, today);
     const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
@@ -417,7 +451,7 @@ export default function StageWelcome({ capRef }) {
     }
 
     return { figs: [] };
-  }, [data, recap]);
+  }, [data, recap, cold]);
 
   // ── the two edges of the hold, anchored to mount ─────────────────────────
   useEffect(() => {
@@ -494,12 +528,40 @@ export default function StageWelcome({ capRef }) {
       style={clip ? { clipPath: clip, WebkitClipPath: clip } : undefined}
     >
       <style>{CSS}</style>
+      {/* THE RAMP. Ten bands in ramp order, the register's own set (pastels on
+          the dark ground, their deep twins on the pale one), each naming its
+          category in that step's own ink. The wipe is the ground itself
+          scaling across, so what it leaves behind is exactly the page. */}
+      <div className="stw-bands" aria-hidden="true">
+        {RAMP_ORDER.map((cat, i) => (
+          <span key={cat} className="stw-b"
+            style={{ background: (light ? CATEGORY_RAMP_LIGHT : CATEGORY_RAMP)[i], animationDelay: `${0.05 + i * 0.075}s` }}>
+            <i style={{ color: light ? RAMP_INK_LIGHT[i] : RAMP_INK }}>{BAND_NAMES[cat] || cat}</i>
+          </span>
+        ))}
+      </div>
+      <div className="stw-wipe" aria-hidden="true" />
+      {/* THE LADDER along the foot is the hold: it keeps lighting rung by rung
+          for as long as the reads take, so a slow read never looks like a
+          frozen screen. Same ten colours, same order, as the Patch's loop. */}
+      <div className="stw-lad" aria-hidden="true">
+        {CATEGORY_RAMP.map((c, i) => <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />)}
+      </div>
       <div className="stw-in">
-        {/* THE DATE, not a per-case label: it is local, so it paints with the
-            name rather than waiting on the read, and it is the same line the
-            cap carries two rows down. */}
-        <span className="stw-eye">{today}</span>
-        <div className="stw-nm"><span className="stw-hand">{HELLO}</span>{name}</div>
+        {cold ? (
+          <>
+            <div className="stw-mark"><MindLoftMark size={72} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-brand,#7dd3fc)" /></div>
+            <div className="stw-nm stw-wm">Mind <em>Loft</em></div>
+          </>
+        ) : (
+          <>
+            {/* THE DATE, not a per-case label: it is local, so it paints with the
+                name rather than waiting on the read, and it is the same line the
+                cap carries two rows down. */}
+            <span className="stw-eye">{today}</span>
+            <div className="stw-nm"><span className="stw-hand">{HELLO}</span>{name}</div>
+          </>
+        )}
         {/* Each figure mounts when the queue reaches it, so the stamp is an
             animation on mount rather than a class anyone has to toggle. */}
         <div className="stw-figs">
@@ -508,14 +570,14 @@ export default function StageWelcome({ capRef }) {
           {view.caption && shown > 0 && view.figs.some((f, i) => f.row && i < shown)
             ? <div className="stw-cap">{view.caption}</div> : null}
           {view.figs.map((f, i) => (i < shown ? (
-            <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.row ? ' row' : '') + (f.good ? ' good' : '')}>
+            <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.row ? ' row' : '') + (f.good ? ' good' : '') + (f.line ? ' line' : '')}>
               <b>
                 {f.count != null
                   ? <>{f.pre || ''}<Count to={f.count} ms={FLOOD_COUNT} /></>
                   : f.v}
                 {f.sub ? <i className={f.bad ? 'dn' : 'up'}>{f.sub}</i> : null}
               </b>
-              <i className="cl">{f.lab}</i>
+              {f.lab ? <i className="cl">{f.lab}</i> : null}
             </div>
           ) : null))}
         </div>
@@ -538,6 +600,40 @@ const CSS = `
 .stw::after{content:'';position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120% 78% at 50% 38%,rgba(var(--stg-lift,255,255,255),.055),transparent 72%);}
 .stw.up,.stw.shrink{opacity:1;}
+
+/* THE BANDS rise from the foot, staggered in ramp order; each names itself once
+   it is up. They are BEHIND the wipe and the words (z 1), so the wipe reads as
+   the page reclaiming the screen. */
+.stw-bands{position:absolute;inset:0 0 6px 0;z-index:1;display:flex;}
+.stw-b{position:relative;flex:1;transform:scaleY(0);transform-origin:50% 100%;}
+.stw.up .stw-b{animation:stw-band .5s cubic-bezier(.2,.8,.2,1) forwards;}
+.stw-b i{position:absolute;left:50%;bottom:clamp(14px,4vh,40px);transform:translateX(-50%) rotate(-90deg);
+  transform-origin:left center;white-space:nowrap;font-style:normal;font-weight:800;
+  font-size:clamp(9px,1.1vw,13px);letter-spacing:.1em;text-transform:uppercase;opacity:0;}
+.stw.up .stw-b i{animation:stw-fade .3s .85s both;}
+@keyframes stw-band{to{transform:scaleY(1);}}
+@keyframes stw-fade{to{opacity:1;}}
+/* THE WIPE: the ground itself, scaling in from the left, stops short of the
+   ladder strip so the bands survive there as the foot. */
+.stw-wipe{position:absolute;inset:0 0 6px 0;z-index:1;background:var(--stg-ground,#0b0f1a);
+  transform:scaleX(0);transform-origin:0 50%;}
+.stw.up .stw-wipe{animation:stw-wipe .55s ${RAMP_WORDS - 450}ms cubic-bezier(.6,0,.2,1) forwards;}
+@keyframes stw-wipe{to{transform:scaleX(1);}}
+/* THE LADDER, the hold. Lit rung by rung, looping, until the collapse. */
+.stw-lad{position:absolute;left:0;right:0;bottom:0;height:6px;z-index:1;display:flex;gap:2px;}
+.stw-lad i{flex:1;opacity:.28;}
+.stw.up .stw-lad i{animation:stw-rung 1.2s ${RAMP_WORDS}ms linear infinite;}
+@keyframes stw-rung{0%{opacity:.28}12%{opacity:1}45%{opacity:.28}100%{opacity:.28}}
+/* THE WORDS wait for the wipe. */
+.stw.up .stw-in{transition-delay:${RAMP_WORDS}ms;}
+.stw.shrink .stw-in{transition-delay:0ms;}
+.stw-mark{margin-bottom:14px;animation:stw-stamp 420ms cubic-bezier(.2,.9,.3,1.3) both;}
+.stw-nm.stw-wm em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
+/* A LINE is a figure-sized sentence: it takes the stamp and a dot in the brand
+   blue, and no caption under it. */
+.stw-fig.line b{font-size:clamp(17px,2.4vw,26px);font-weight:700;letter-spacing:-.01em;}
+.stw-fig.line b::before{content:'';display:inline-block;width:.42em;height:.42em;border-radius:50%;
+  background:var(--stg-brand,#7dd3fc);margin-right:.5em;vertical-align:middle;}
 /* The clip has landed by now, so the colour is exactly the cap: fading it out
    is colour onto colour and what appears through it is the cap's own words. */
 .stw.out{opacity:0;transition:opacity ${FLOOD_FADE}ms ease;}
@@ -600,6 +696,7 @@ const CSS = `
   .stw-fig i.cl{margin-top:7px;}
 }
 @media (prefers-reduced-motion: reduce){
-  .stw,.stw-in,.stw-fig{transition:none !important;animation:none !important;}
+  .stw,.stw-in,.stw-fig,.stw-b,.stw-b i,.stw-wipe,.stw-lad i,.stw-mark{transition:none !important;animation:none !important;}
+  .stw-b{transform:none;} .stw-wipe{transform:none;} .stw-b i{opacity:1;}
 }
 `;

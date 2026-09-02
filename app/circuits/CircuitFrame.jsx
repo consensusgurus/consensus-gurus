@@ -72,7 +72,7 @@ export default function CircuitFrame({ cat = null, label = 'Circuits', progress 
       <div className="cfr-cap">
         <div className="cfr-id">
           <a className="cfr-brand" href={withTq('/')}>
-            <MindLoftMark size={20} ink="var(--stg-ink)" accent="var(--stg-acc)" />
+            <MindLoftMark size={20} ink="var(--stg-ink)" accent="var(--stg-brand,#7dd3fc)" />
             <b>Mind <em>Loft</em></b>
           </a>
           <span className="cfr-lab">{label}</span>
@@ -135,7 +135,7 @@ const CSS = `
 .cfr-brand{display:flex;align-items:center;gap:8px;min-width:0;text-decoration:none;
   color:var(--stg-ink);}
 .cfr-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;}
-.cfr-id b em{font-style:normal;color:var(--stg-acc);}
+.cfr-id b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
 .cfr-lab{font-family:${MONO};font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
   color:var(--stg-mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cfr-cx{flex:none;font-family:${MONO};font-size:10px;letter-spacing:.11em;text-transform:uppercase;

@@ -225,7 +225,7 @@ export default function StageChrome({
             identity, and the whole cap now reads left to right as where you
             are: the site, then the category and date, then the game. */}
         <a className="stg-brand" href={homeTo} aria-label="Mind Loft home" title="Mind Loft">
-          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-acc)" />
+          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-brand,#7dd3fc)" />
           <b>Mind <em>Loft</em></b>
         </a>
 
@@ -404,7 +404,7 @@ const CSS = `
 .stg-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;
   color:var(--stg-ink,#e9edf4);padding-right:15px;border-right:1px solid var(--stg-line);}
 .stg-brand b{font-size:13px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
-.stg-brand b em{font-style:normal;color:var(--stg-acc);}
+.stg-brand b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
 .stg-brand:hover{opacity:.82;}
 .stg-brand:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
 .stg-ds{display:none;}

@@ -68,7 +68,7 @@ export default function StageFooter({ visitors: given }) {
       <div className="stgf-in">
         <div className="stgf-brandcol">
           <span className="stgf-brand">
-            <MindLoftMark size={19} ink="var(--stg-ink)" accent="var(--stg-acc)" />
+            <MindLoftMark size={19} ink="var(--stg-ink)" accent="var(--stg-brand,#7dd3fc)" />
             <b>Mind <em>Loft</em></b>
           </span>
           <p>Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.</p>
@@ -118,7 +118,7 @@ const CSS = `
 .stgf-brandcol{flex:1 1 250px;max-width:320px;min-width:0;}
 .stgf-brandcol .stgf-brand b{font-size:15px;font-weight:800;letter-spacing:-0.01em;
   color:var(--stg-ink);}
-.stgf-brandcol .stgf-brand b em{font-style:normal;color:var(--stg-acc);}
+.stgf-brandcol .stgf-brand b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
 .stgf-brandcol p{margin:9px 0 0;font-size:12.5px;line-height:1.55;color:var(--stg-mute);}
 .stgf-about{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:800;
   color:var(--stg-ink);text-decoration:none;}

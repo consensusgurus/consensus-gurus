@@ -56,6 +56,7 @@ import StageLadder from '../StageLadder';
 import StageWelcome from '../StageWelcome';
 import PremierePop from '../PremierePop';
 import MindLoftMark from '../MindLoftMark';
+import StagePatch, { PATCH_CSS } from '../StagePatch';
 // THE FOOTER IS SHARED (2026-08-31). It used to be drawn here, because this
 // was the only stage surface that needed one; the circuit pages needed the
 // same object, and two drawings of one footer is exactly the drift this file
@@ -541,14 +542,21 @@ export default function StageToday() {
   // does not return it, and adding a second source for one number is how two
   // surfaces end up disagreeing about a player's rank.
   const [mine, setMine] = useState(null);
+  // WHETHER EACH READ HAS ANSWERED, success or failure, which is what the
+  // patches below key on. `mine === null` cannot tell a pending read from a
+  // guest with no account or a failed one, and a cover that waits on a value
+  // that is never coming is a cover that never leaves.
+  const [mineIn, setMineIn] = useState(false);
+  const [boardIn, setBoardIn] = useState(false);
   useEffect(() => {
     let alive = true;
     const qs = identityQs();
-    if (!qs) return undefined;
+    if (!qs) { setMineIn(true); return undefined; }
     fetch('/api/quiz/me?light=1&' + qs)
       .then((r) => r.json())
       .then((d) => { if (alive && d && d.found !== false) setMine(d); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (alive) setMineIn(true); });
     return () => { alive = false; };
   }, []);
   useEffect(() => {
@@ -557,7 +565,8 @@ export default function StageToday() {
     fetch('/api/quiz/daily-combined' + (qs ? `?${qs}` : ''))
       .then((r) => r.json())
       .then((d) => { if (alive && d && Array.isArray(d.overall)) setBoard(d); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (alive) setBoardIn(true); });
     return () => { alive = false; };
   }, []);
 
@@ -1023,6 +1032,10 @@ export default function StageToday() {
   // light=1 returns the flat `rank`; full mode nests it under ranks.xp. Both are
   // the IQ board's position, so read either.
   const rank = mine ? ((mine.ranks && mine.ranks.xp) || mine.rank || null) : null;
+  // The cap's three figures come off two reads (daily-status via useDayStats,
+  // /api/quiz/me for the all-time rank); the cells wait until BOTH are in, so
+  // the row lands once rather than one figure at a time.
+  const capWait = !!who && (!stats.ready || !mineIn);
 
   // THE DAY, as one ladder. Blocks flex by their game count, so a block's width
   // says how big its category is, which is true and useful rather than decorative.
@@ -1055,11 +1068,12 @@ export default function StageToday() {
             a game page carries the mark beside the words, and the home was
             still setting the words alone, so the two surfaces disagreed about
             what the site's own logo is. MindLoftMark is the one component; the
-            accent here is the default sky rather than a category step, because
-            the home belongs to all nine of them. */}
+            accent is --stg-brand (sky on the dark register, the brand blue on
+            the pale one), never a category step, on this and every stage cap
+            (owner, 2026-09-01). */}
         <div className="sty-id">
           <span className="sty-brand">
-            <MindLoftMark size={20} ink="var(--stg-ink)" accent="var(--stg-acc)" />
+            <MindLoftMark size={20} ink="var(--stg-ink)" accent="var(--stg-brand,#7dd3fc)" />
             <b>Mind <em>Loft</em></b>
           </span>
           <span className="sty-date">{fmtDate(day)}</span>
@@ -1096,26 +1110,44 @@ export default function StageToday() {
               Each is drawn only when it is real, and the movement chip appears
               only when there IS movement: no arrow means no change, which is
               the honest way to say it. */}
-          {stats.todayXp ? (
-            <div><b className="sty-up">+{stats.todayXp.toLocaleString()}</b><i>IQ today</i></div>
-          ) : null}
-          {stats.dayRank ? (
-            <div>
-              <b>#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>
-              <i>rank today</i>
+          {/* THE PATCH (owner, 2026-09-01): while the reads are out, each cell
+              is drawn at its size with a small ground-colour cover carrying the
+              ten-rung loop, and the cover collapses off the figure when its own
+              read lands. Only a reader with a name has cells to cover; a guest
+              has the sign-up link above, which waits on nothing. The children
+              are KEYED so the StagePatch instance survives the swap from the
+              placeholder to the real figure, which is what lets the collapse
+              play over the number rather than the cover simply vanishing. A
+              cell whose value turns out to be absent (no play yet today) leaves
+              with its cover, which is honest: there was nothing to reveal. */}
+          {capWait || stats.todayXp ? (
+            <div className={'sty-fc' + (capWait ? ' wait' : '')}>
+              {capWait ? null : <b key="v" className="sty-up">+{stats.todayXp.toLocaleString()}</b>}
+              {capWait ? null : <i key="l">IQ today</i>}
+              {who ? <StagePatch key="p" on={capWait} /> : null}
             </div>
           ) : null}
-          {rank ? (
-            <div>
-              <b>
-                #{rank.toLocaleString()}
-                {stats.rankChange ? (
-                  <i className={stats.rankChange > 0 ? 'sty-up' : 'sty-dn'}>
-                    {' '}{stats.rankChange > 0 ? '\u25b2' : '\u25bc'}{Math.abs(stats.rankChange)}
-                  </i>
-                ) : null}
-              </b>
-              <i>rank</i>
+          {capWait || stats.dayRank ? (
+            <div className={'sty-fc' + (capWait ? ' wait' : '')}>
+              {capWait ? null : <b key="v">#{stats.dayRank}{stats.dayField ? <i>/{stats.dayField}</i> : null}</b>}
+              {capWait ? null : <i key="l">rank today</i>}
+              {who ? <StagePatch key="p" on={capWait} /> : null}
+            </div>
+          ) : null}
+          {capWait || rank ? (
+            <div className={'sty-fc' + (capWait ? ' wait' : '')}>
+              {capWait ? null : (
+                <b key="v">
+                  #{rank.toLocaleString()}
+                  {stats.rankChange ? (
+                    <i className={stats.rankChange > 0 ? 'sty-up' : 'sty-dn'}>
+                      {' '}{stats.rankChange > 0 ? '\u25b2' : '\u25bc'}{Math.abs(stats.rankChange)}
+                    </i>
+                  ) : null}
+                </b>
+              )}
+              {capWait ? null : <i key="l">rank</i>}
+              {who ? <StagePatch key="p" on={capWait} /> : null}
             </div>
           ) : null}
           {/* AND THE WAY THROUGH TO THE REST. Three figures is what fits on a
@@ -1404,16 +1436,25 @@ export default function StageToday() {
             points table, and what this one is for is the RUN: what you scored,
             what it cost you and how long it took. The rank still carries how it
             placed, which is the only part of the ladder this table needs. */}
-        {standing.length ? (
+        {standing.length || (who && !boardIn) ? (
           <section id="sty-standing" className="sty-rev">
             <div className="sty-eb">
               Your standing
               <em>
-                {' · '}{standing.length} played
-                {myRow && myRow.rank ? ` · #${myRow.rank} overall` : ''}
+                {standing.length ? (
+                  <>
+                    {' · '}{standing.length} played
+                    {myRow && myRow.rank ? ` · #${myRow.rank} overall` : ''}
+                  </>
+                ) : null}
               </em>
             </div>
-            <div className="sty-sscroll">
+            {/* THE PATCH over the rows while the board is out. This section is
+                drawn for a named reader before the read answers, at a row's
+                height, so the page keeps its shape; if the read comes back with
+                no standing the section leaves with its cover. */}
+            <div className={'sty-sscroll' + (boardIn ? '' : ' sty-shell')}>
+              <StagePatch on={!boardIn} />
               <table className="sty-tbl sty-stbl">
                 <tbody>
                   {standing.map((r, i) => (
@@ -1437,9 +1478,11 @@ export default function StageToday() {
             need to be at the top of the page). The top of a home is for what you
             can play; where everyone finished is what you read once you have
             played it, so it sits under the games rather than above them. */}
-        {top.length ? (
+        {top.length || !boardIn ? (
           <section id="sty-board" className="sty-rev" ref={lbRef}>
-            <div className="sty-eb">Today&rsquo;s board <em>&middot; {boardCount}</em></div>
+            <div className="sty-eb">Today&rsquo;s board {boardIn ? <em>&middot; {boardCount}</em> : null}</div>
+            <div className={'sty-lbody' + (boardIn ? '' : ' sty-shell')}>
+            <StagePatch on={!boardIn} />
             <table className="sty-tbl">
               <tbody>
                 {[...top, ...(myOut ? [myOut] : [])].map((r, i) => (
@@ -1453,6 +1496,7 @@ export default function StageToday() {
                 ))}
               </tbody>
             </table>
+            </div>
           </section>
         ) : null}
 
@@ -1649,12 +1693,21 @@ const CSS = `
    alignment for. */
 .sty-brand{display:flex;align-items:center;gap:8px;min-width:0;}
 .sty-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;}
-.sty-id b em{font-style:normal;color:var(--stg-acc);}
+.sty-id b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
 .sty-date{font-family:${MONO};font-size:10.5px;letter-spacing:.11em;
   text-transform:uppercase;color:var(--stg-mute);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;}
 .sty-figs{display:flex;gap:20px;margin-left:auto;}
 .sty-figs>div{text-align:right;}
+/* A FIGURE CELL is positioned so its patch can cover it; while waiting it holds
+   a figure's footprint so the cap does not reflow when the number lands. */
+.sty-fc{position:relative;}
+.sty-fc.wait{min-width:54px;min-height:30px;}
+.sty-shell{position:relative;}
+.sty-sscroll.sty-shell{min-height:132px;}
+.sty-lbody{position:relative;}
+.sty-lbody.sty-shell{min-height:230px;}
+${PATCH_CSS}
 .sty-figs b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
 .sty-figs b i{font-style:normal;font-weight:600;color:var(--stg-mute);font-size:12px;}
 .sty-figs>div>i{font-style:normal;font-family:${MONO};font-size:9px;letter-spacing:.12em;
