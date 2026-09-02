@@ -19,10 +19,12 @@
 // board. After submitting you can keep tinkering — sandbox only.
 //
 // The dictionary is fetched once as a static asset, never bundled, and comes
-// in two files: public/tuck-dict.txt (2-8 letters, also the corpus the bank
-// verifiers reason over, so frozen) plus public/tuck-dict-long.txt (9-15). A
-// 14-tile rack can spell a 9+ letter run and the base list alone called every
-// one of them invalid until 2026-08-09. See lib/rack-dict.js.
+// in three files: public/tuck-dict.txt (2-8 letters, also the corpus the bank
+// verifiers reason over, so frozen), public/tuck-dict-long.txt (9-15), and
+// public/tuck-dict-extra.txt (ordinary short words the base list's rude-word
+// screen removed, KNOB and PAWN among them). A 14-tile rack can spell a 9+
+// letter run and the base list alone called every one of them invalid until
+// 2026-08-09. See lib/rack-dict.js.
 //
 // The BENCHMARK solver in scripts/verify-tuck.mjs still searches 2-8 letter
 // words only, deliberately: every banked benchmark was scored over that list
