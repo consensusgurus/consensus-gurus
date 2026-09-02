@@ -132,10 +132,15 @@ ratings: in week 1 nearly every home team is a favourite, and a free H fit at 12
    solution, which keeps the system determined (16 NFL lines cannot fix 32 unknowns), fills a bye,
    and stops one odd line swinging a team six points. Lines are capped like margins, and home field
    is never fit from lines (one to three lines per team is always too few); `hf` is subtracted.
-   **First fitted week:** no previous week to tether to, so the ridge is `tau0 = 0.05`, and until
-   THREE weeks of lines exist the ratings are rescaled so their spread is `sd(line) / sqrt 2` (a
-   spread is the difference of two ratings). One line per team fixes a pair's difference and
-   nothing else, so early on the fit's order is real and its scale is not.
+   **First fitted week: tethered to the FUTURES-implied rating, not to zero** (fixed 2026-09-01,
+   the Florida State case: a -30.5 line over New Mexico State floated FSU to +22 and 3rd on the
+   lines column, because one line per team fixes a pair's difference and nothing else, so the
+   pair's LEVEL was arbitrary and the market's actual opinion of FSU, 33rd on the futures board,
+   never entered). The fit runs twice when lines are thin: once from zero to get a distribution
+   the futures can be placed on, then again with that futures rating as the prior, so a single
+   line only nudges a team from where the futures already put it. Until THREE weeks of lines
+   exist the ratings are also rescaled so their spread is `sd(line) / sqrt 2` (a spread is the
+   difference of two ratings), because a barely connected graph identifies order, not scale.
 2. **Futures and the other market boards** (`tier: 'market'` sources, the ordinal boards): each
    team's rank is placed on the spread-implied distribution by POSITION (the 7th-ranked team takes
    the 7th-highest spread-implied value), then averaged across boards. The gaps come from the
