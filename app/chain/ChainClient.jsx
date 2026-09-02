@@ -77,7 +77,12 @@ const DOT = 'var(--stg-line3, #1c1e24)';
 // on the dark board), yours are the category step. The open edge is the
 // register's field ink at 10%, so it stays faint on both grounds.
 const EDGE_OLD = 'var(--stg-mute, #43414a)';        // drawn before you picked the board up
-const EDGE_MINE = `var(--stg-acc, ${COLORS.accent})`; // drawn by you, this game
+// A DRAWN EDGE IS A MARK ON THE BOARD, so it takes the accent's TEXT value
+// rather than its fill value: on the light register three category steps are
+// pastels chosen to carry dark ink, and gold measured 1.68:1 against the pale
+// board, so the edges a player had drawn were close to invisible. The legend
+// swatch reads this same constant, which is what surfaced it.
+const EDGE_MINE = `var(--stg-acc-ink, ${COLORS.accent})`; // drawn by you, this game
 const EDGE_FOE = 'var(--stg-ink, #a8a29e)';         // drawn by the engine, this game
 const EDGE_OPEN = 'rgba(var(--stg-fieldink, 28,30,36), 0.10)';
 const BOX_MINE_BG = 'var(--stg-b3, #f3e3f7)';
@@ -725,7 +730,7 @@ export default function ChainClient({ puzzles = [], forceNum = null }) {
           style={{
             ...thick,
             borderRadius: 3,
-            background: col || (isKey ? `var(--stg-acc, ${COLORS.accent})` : hot ? `var(--stg-acc, ${COLORS.accent})` : hinted ? '#c084fc' : EDGE_OPEN),
+            background: col || (isKey ? `var(--stg-acc-ink, ${COLORS.accent})` : hot ? `var(--stg-acc-ink, ${COLORS.accent})` : hinted ? '#c084fc' : EDGE_OPEN),
             opacity: col ? 1 : isKey ? 1 : hot ? 0.9 : hinted ? 0.85 : 1,
           }}
         />

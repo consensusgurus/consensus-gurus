@@ -21,6 +21,19 @@
 //   card mounts). Re-measured on resize and whenever the page resizes.
 // - PHONES ARE LEFT ALONE. Below 761px the board already fills the screen and a
 //   blank band under a short board would read as the page having ended.
+// - EXCEPT IN A HELD STATE, WHERE A WHOLE EXTRA SCREEN IS ADDED, at every width
+//   (owner, 2026-09-02: "we need to move all of our game overview sections down
+//   farther below so that they don't show on end game screen, end game
+//   animation, or short version of how to screen"). The rule above puts the
+//   prose one scroll from the top of the page, which is right while a reader is
+//   playing and wrong the moment the page turns into a surface they are meant
+//   to read: the finish curtain, its flood, or the start tile. On the finished
+//   Four board the card ended at 966px and the prose began at 900, so it was
+//   sitting directly under the verdict; on a collapsed retry panel it was
+//   eleven pixels past the fold. In those three states the page has ENDED as
+//   far as the reader is concerned, which is exactly why the phone exemption
+//   above does not apply to them: the blank band reads as intended there rather
+//   than as the page having stopped.
 // - NOT a display:none and not a visibility trick: the prose stays in the DOM,
 //   painted, crawlable, exactly as the SEO fix needs it.
 // - lib/stage-fit.js stops counting page children at this element, so the
@@ -43,13 +56,16 @@ export default function StageFold() {
     let raf = 0;
     const measure = () => {
       let h = 0;
-      if (window.innerWidth > PHONE) {
-        // Measure with the spacer collapsed, so its own height never feeds
-        // back into where the section would otherwise start.
-        el.style.height = '0px';
-        const top = el.getBoundingClientRect().top + window.scrollY;
-        h = Math.max(0, Math.round(window.innerHeight - top + 1));
-      }
+      // Measure with the spacer collapsed, so its own height never feeds
+      // back into where the section would otherwise start.
+      el.style.height = '0px';
+      const top = el.getBoundingClientRect().top + window.scrollY;
+      if (window.innerWidth > PHONE) h = Math.max(0, Math.round(window.innerHeight - top + 1));
+      // The finish card, its flood, and the start tile. One extra viewport, so
+      // the prose sits a full screen clear of the surface rather than directly
+      // under it. It converges: the next measure collapses the spacer again and
+      // reads the same top, so the ResizeObserver settles on one value.
+      if (page.querySelector('.stf, .stf-flood, .stg-gate')) h += window.innerHeight;
       el.style.height = `${h}px`;
     };
     const kick = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(measure); };
