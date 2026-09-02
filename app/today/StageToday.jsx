@@ -1204,7 +1204,7 @@ export default function StageToday() {
             paint, so SSR and hydration agree on "absent". */}
         {(done.size > 0 || inprog.size > 0) ? (
         <section className="sty-day sty-rev">
-          <div className="sty-eb">The day&rsquo;s progress</div>
+          <div className="sty-eb">The day&rsquo;s progress <span className="sty-ebn">{playedCount} of {total}</span></div>
           <StageLadder height={ladH} blocks={blocks} light={light} />
         </section>
         ) : null}
@@ -1706,6 +1706,7 @@ const CSS = `
   display:flex;flex-direction:column;gap:26px;}
 .sty-eb{font-family:${MONO};font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--stg-mute);margin-bottom:9px;}
+.sty-ebn{color:var(--stg-ink);margin-left:6px;}
 
 /* ── the day ───────────────────────────────────────────────────────────── */
 /* THE LADDER IS THE WHOLE SECTION now: its legend went with the counters, and
