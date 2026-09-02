@@ -190,10 +190,24 @@ function freshState() {
   };
 }
 
-// Nine soft tints, one per region index. They are pale on purpose: the digits
-// have to stay the loudest thing in the cell, and the heavy border along each
-// region edge is what actually carries the shape. Selection and match
-// highlighting still paint over the tint, exactly as in Suds.
+// Nine region colours, one per region index. THE REGISTER DECIDES HOW MUCH OF
+// THE HUE LANDS, not this file: on the stage a cell is its hue mixed into
+// --stg-cell by --stg-tint-mix, which is 26% on the dark register and 7% on the
+// light one, so the quilt is a set of dark tinted cells on a dark page and a
+// set of pale ones on a pale page. The digits stay the loudest thing in the
+// cell either way, and the heavy rule along each region edge is what actually
+// carries the shape.
+//
+// WHY THIS IS NOT ONE PALE LIST ANY MORE (owner report, 2026-09-02: "in dark
+// mode, the lines showing the regions aren't visible, and the colours don't
+// really work on the dark background"). The tints used to be pale in BOTH
+// registers, with the digits pinned dark to suit them. That left the region
+// rules -- white on the dark register, since they read --stg-line3 -- being
+// drawn white on near-white, so every region boundary vanished and a
+// near-white slab sat on a near-black page. A surface and its ink move
+// TOGETHER; half a conversion is worse than none.
+const REGION_HUE = ['#ec4899', '#3b82f6', '#10b981', '#eab308', '#a855f7', '#06b6d4', '#f4643c', '#64748b', '#84cc16'];
+// The Loft page (?stage=0) keeps its own pale literals, byte for byte.
 const REGION_TINT = ['#fdf2f8', '#eff6ff', '#f0fdf4', '#fefce8', '#faf5ff', '#ecfeff', '#fff7ed', '#f1f5f9', '#f7fee7'];
 
 // Light haptics on supported devices (no-op on desktop / unsupported browsers).
@@ -740,30 +754,56 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   const selC = sel >= 0 ? sel % 9 : -1;
   const selB = sel >= 0 ? REG[sel] : -1;
 
+  // THE REGION RULE HAS TO BE THE STRONGEST LINE ON THE GRID or nine irregular
+  // shapes stop reading as nine shapes. It used to be --stg-line3, which is
+  // white on the dark register and was therefore drawn white on the pale tints;
+  // --stg-fieldink is ink AS AN ALPHA CHANNEL (white on dark, near-black on
+  // light), so the rule follows the page instead of arguing with it, and it
+  // pulls the light register's walls clear of its hairlines at the same time
+  // (--stg-line3 is 0.45 there and --stg-cell-line 0.44, so those two were
+  // telling each other apart by thickness alone). The hairline BETWEEN two
+  // cells of the same region stays --stg-cell-line, which each register
+  // already tunes for exactly that job.
+  const WALL = `rgba(var(--stg-fieldink, 28,30,36), ${STAGE ? '0.75' : '0.85'})`;
+  const HAIR = 'var(--stg-cell-line, rgba(28,30,36,0.18))';
+  const regionTint = (b) => (STAGE
+    ? `color-mix(in srgb, ${REGION_HUE[b] || REGION_HUE[0]} var(--stg-tint-mix, 26%), var(--stg-cell, #ffffff))`
+    : (REGION_TINT[b] || T.white));
+
   function cellStyle(idx) {
     const r = Math.floor(idx / 9), c = idx % 9, b = REG[idx];
     const isSel = idx === sel;
     const peer = sel >= 0 && !isSel && (r === selR || c === selC || b === selB);
     const val = givenFlat[idx] || cells[idx];
     const sameVal = hlVal && val === hlVal && !isSel;
-    // The region tint is the resting state; selection and match highlighting
-    // paint over it, and the heavy border keeps the shape readable either way.
-    let bg = REGION_TINT[b] || T.white;
-    if (peer) bg = '#e9edf3';
-    if (sameVal) bg = '#fbe3f7';
-    if (isSel) bg = '#f6cdef';
+    // The region tint is the resting state, and on the stage the three
+    // highlights are mixed INTO it rather than painted over it, so a
+    // highlighted cell still says which region it belongs to. Peer is a
+    // neutral lift; the two that carry the accent are the ones that MEAN
+    // something (your digit elsewhere, and where you are), exactly as in Suds.
+    const tint = regionTint(b);
+    let bg = tint;
+    if (peer) bg = STAGE ? `color-mix(in srgb, var(--stg-ink) 12%, ${tint})` : '#e9edf3';
+    if (sameVal) bg = STAGE ? `color-mix(in srgb, var(--stg-acc) 24%, ${tint})` : '#fbe3f7';
+    if (isSel) bg = STAGE ? `color-mix(in srgb, var(--stg-acc) 40%, ${tint})` : '#f6cdef';
     // A wall goes wherever the neighbour is in a different region. The last row
     // and column are the grid's own outer border, so they are left alone.
     const wallR = c !== 8 && REG[idx + 1] !== b;
     const wallB = r !== 8 && REG[idx + 9] !== b;
     return {
       background: bg,
-      // The quilt is pale in both registers, so its digits are dark in both.
-      color: '#0b0d12',
+      // Digit ink comes from .ql-given and .ql-user, both of which the register
+      // already moves. An inline colour here outranks a stylesheet, so the flat
+      // dark pin this used to carry was not merely wrong on a dark cell, it was
+      // silently flattening the printed clue and the digit you entered into one
+      // colour. The one cell that still needs pinning is the SELECTED one,
+      // whose fill carries enough of the accent that the accent cannot also be
+      // read on top of it.
+      color: isSel ? `var(--stg-ink, ${COLORS.ink})` : undefined,
       boxShadow: isSel ? `inset 0 0 0 2.5px var(--stg-acc, ${COLORS.accent})` : undefined,
       zIndex: isSel ? 1 : undefined,
-      borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
-      borderBottom: `${wallB ? 2.5 : 1}px solid ${wallB ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
+      borderRight: `${wallR ? 2.5 : 1}px solid ${wallR ? WALL : HAIR}`,
+      borderBottom: `${wallB ? 2.5 : 1}px solid ${wallB ? WALL : HAIR}`,
       borderLeft: c === 0 ? 'none' : undefined,
       borderTop: r === 0 ? 'none' : undefined,
     };
@@ -836,13 +876,14 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
           .ql-given{font-weight:700;color:${INK};}
           .ql-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
           .ql-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
-          .ql-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
+          .ql-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:var(--stg-ink2, #8a93a3);}
           .ql-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
           .ql-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
-          .ql-pad.done{color:#c3c8cf;box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
+          .ql-pad.done{color:var(--stg-mute2, #c3c8cf);box-shadow:none;background:${STAGE ? 'var(--stg-surf2)' : '#f4f5f7'};cursor:default;}
+          .ql-pad.done span{text-decoration:line-through;}
           .ql-pad.armed{background:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));border-color:var(--stg-acc, ${COLORS.accent});box-shadow:0 2px 0 rgba(112,26,117,0.55);}
           .ql-pad.armed .ql-pad-n{color:${STAGE ? 'color-mix(in srgb, var(--stg-onramp, #08222e) 68%, transparent)' : '#f6d9f4'};}
-          .ql-pad .ql-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
+          .ql-pad .ql-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:var(--stg-mute2, #aab0bb);font-weight:500;}
           .ql-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .ql-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
@@ -911,7 +952,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
 
           {/* 9×9 grid with heavy rules along the region borders */}
           <div style={{ maxWidth: 468, margin: '0 auto' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gridTemplateRows: 'repeat(9, minmax(0, 1fr))', aspectRatio: '1', border: `2.5px solid rgba(28,30,36,0.85)`, borderRadius: 4, overflow: 'hidden' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(0, 1fr))', gridTemplateRows: 'repeat(9, minmax(0, 1fr))', aspectRatio: '1', border: `2.5px solid ${WALL}`, borderRadius: 4, overflow: 'hidden' }}>
               {Array.from({ length: 81 }).map((_, idx) => {
                 const given = givenFlat[idx];
                 const val = given || cells[idx];
@@ -986,7 +1027,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
             stage a bare row of faded text has nothing to sit on and is close to
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--stg-line, rgba(28,30,36,0.10))', flexWrap: 'wrap' }}>
             <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`

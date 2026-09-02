@@ -236,6 +236,20 @@ button, input, textarea, select { border-radius: 8px; }
   --stg-cell: #1a1d28;
   --stg-cell-line: rgba(255, 255, 255, 0.36);
 
+  /* HOW MUCH OF A HUE LANDS WHEN A BOARD TINTS A CELL BY GROUP. A grid that
+     colours its cells to show which group they belong to (Quilt's nine jigsaw
+     regions) cannot use one fixed percentage: the wash that reads as a soft
+     tint on the light register's white cell is invisible on the dark
+     register's near-black one. Quilt shipped nine near-white pastels onto a
+     near-black page, with the region rules drawn on top of them in WHITE by
+     --stg-line3, so every region boundary disappeared and the board was a pale
+     slab with no shape in it (owner report, 2026-09-02: "in dark mode, the
+     lines showing the regions aren't visible, and the colours don't really
+     work on the dark background"). The HUES stay one list in the client; this
+     is the register saying how much of them to use, so a surface and its ink
+     move together. */
+  --stg-tint-mix: 26%;
+
   --stg-ink: #e9edf4;
   --stg-ink2: #aab5c7;
   --stg-mute: #8b95a8;
@@ -506,6 +520,9 @@ html:not([data-stage-boot='dark']) .stage-page[data-stage-theme='light'] {
   /* 3.18:1 on this register's own ground. See the dark block for the rule. */
   --stg-cell: #ffffff;
   --stg-cell-line: rgba(11, 15, 26, 0.44);
+  /* 7% of a hue in white lands within a hair of the pale tints this board
+     carried before the token existed, so the light register is unchanged. */
+  --stg-tint-mix: 7%;
 
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;
