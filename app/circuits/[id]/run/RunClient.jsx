@@ -236,7 +236,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   const boardQ = useCircuitBoard(circuitId, done);
   // The same board, read once on the gate, for the headline. It stops when the
   // run starts and the call above takes over at the finish.
-  const boardGate = useCircuitBoard(circuitId, hydrated && !done && r.phase === 'idle');
+  // HELD OPEN THROUGH THE RUN (2026-09-02). This used to go inactive the
+  // moment the first question came up, and useCircuitBoard's cleanup drops an
+  // in-flight response, so a player who pressed Start briskly ran the whole way
+  // with no board at all. The hook does not refetch while `active` stays true,
+  // so this is the same single request it always was.
+  const boardGate = useCircuitBoard(circuitId, hydrated && !done);
 
   // ── hydration ────────────────────────────────────────────────────────────
   // Restores a run in progress, and on a fresh one marks every game already
@@ -645,6 +650,38 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // casing by key.
   const lineFor = (s) => s.topic || s.subject || s.cat || s.tag;
 
+  // WHERE YOU STAND, WHILE YOU PLAY (owner, 2026-09-02). The footer counted
+  // the questions you had right and stopped there, so the one thing a player
+  // wants mid-run, whether the run is going anywhere, was only answerable at
+  // the end.
+  //
+  // IT IS A PROJECTION AND SAYS SO. Every row on the board is a FINISHED total
+  // and the player's own climbs with each answer, so the position below is a
+  // FLOOR: it is where they would sit if they stopped on this question, and it
+  // can only improve. Ties take the competition rank (everyone strictly above,
+  // plus one), which is what the board itself does. Totals come back sorted
+  // best first, so the nearest score above the player is simply the last one
+  // that beats them.
+  const liveStand = useMemo(() => {
+    if (!boardRows.length) return null;
+    const totals = boardRows
+      .map((x) => Math.round(Number(x.total) || 0))
+      .filter((t) => Number.isFinite(t));
+    if (!totals.length) return null;
+    const mine = answeredSoFar;
+    const ahead = totals.filter((t) => t > mine).length;
+    const nextUp = ahead ? totals[ahead - 1] : null;
+    const lead = totals[0];
+    return {
+      pos: ahead + 1,
+      field: (boardNow && boardNow.overallField) || totals.length,
+      // What it takes to PASS, not to tie, which is the number a player can
+      // act on. Null when nobody is above them.
+      toNext: nextUp != null ? Math.max(1, nextUp - mine + 1) : null,
+      toLead: lead > mine ? lead - mine + 1 : 0,
+    };
+  }, [boardRows, boardNow, answeredSoFar]);
+
   const lastSec = last ? sections.find((s) => s.key === last.key) : null;
   const lastAvg = last && field && field.avg[last.key] != null ? field.avg[last.key] : null;
   const lastBeaten = last && field ? field.beaten(last.key, last.score) : null;
@@ -1029,7 +1066,19 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               <div className="rn-play" style={{ '--acc': sec.accent }}>
                 <div className="rn-meta">
                   <span className="rn-game">{sec.name}</span>
-                  {question.cat ? <span className="rn-chip">{question.cat}</span> : null}
+                  {/* THE CARD NAMES WHAT THE QUIZ IS ABOUT (owner,
+                      2026-09-02: Deep's topic "is not shown anywhere i can
+                      see"). Most banks tag every question with its own
+                      subject and that chip has always been drawn. Deep does
+                      not, because on Deep the subject is the DAY: fifteen
+                      questions, all on one topic, named once on the game's own
+                      start gate and nowhere in the run. So a Gauntlet player
+                      answered fifteen questions about Japan without being told
+                      they were about Japan. The section's topic stands in
+                      wherever the question carries no category of its own,
+                      which is Deep and nothing else today. */}
+                  {question.cat || sec.topic
+                    ? <span className="rn-chip">{question.cat || sec.topic}</span> : null}
                   {tierName ? <span className="rn-chip tier">{tierName}</span> : null}
                   <span className="rn-count">{r.i + 1} of {sec.questions.length}</span>
                 </div>
@@ -1057,7 +1106,24 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                       {Math.round((field.curves[sec.key][r.i] || 0) * (field.plays[sec.key] || 0))} of {field.plays[sec.key]} still alive here
                     </span>
                   ) : null}
-                  <span className="rn-tally">{answeredSoFar} right in the run · {fmtTime(Date.now() - r.t0)}</span>
+                  {liveStand ? (
+                    <span className="rn-stand">
+                      <s>If you stopped here</s>
+                      <b>#{liveStand.pos}</b>
+                      <i>of {liveStand.field}</i>
+                      {liveStand.toLead === 0 ? (
+                        <em className="lead">you lead</em>
+                      ) : (
+                        <>
+                          {liveStand.toNext != null && liveStand.pos > 2 ? (
+                            <em>+{liveStand.toNext} passes {ord(liveStand.pos - 1)}</em>
+                          ) : null}
+                          <em>+{liveStand.toLead} takes the lead</em>
+                        </>
+                      )}
+                    </span>
+                  ) : null}
+                  <span className="rn-tally"><b>{answeredSoFar}</b> right in the run · {fmtTime(Date.now() - r.t0)}</span>
                 </div>
               </div>
             ) : null}
@@ -1577,6 +1643,23 @@ body:has(.rn)::before{background:${T.ground};}
   box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 22%,transparent);}
 .rn-tally{margin-left:auto;font-family:${MONO};font-size:11.5px;color:#66748f;
   font-variant-numeric:tabular-nums;}
+.rn-tally b{font-weight:600;font-size:13.5px;color:#dbe6ff;}
+/* THE LIVE STANDING. A projection, so it says so on its face rather than in a
+   tooltip nobody opens on a phone. */
+.rn-stand{display:inline-flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  padding:8px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.03);font-family:${MONO};font-size:11px;
+  color:#9aa8c4;font-variant-numeric:tabular-nums;}
+.rn-stand s{text-decoration:none;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#66748f;}
+.rn-stand b{font-family:${SANS};font-size:15px;font-weight:800;color:#fff;}
+.rn-stand i{font-style:normal;color:#66748f;}
+.rn-stand em{font-style:normal;color:${T.blue200};}
+.rn-stand em.lead{color:${T.gold};}
+@media (max-width:640px){
+  .rn-stand{width:100%;gap:6px;}
+  .rn-stand s{width:100%;}
+}
 
 /* THE HANDOVER. The outgoing quiz's colour leaves on the left, the incoming
    one arrives on the right, and the name is the thing you read. */

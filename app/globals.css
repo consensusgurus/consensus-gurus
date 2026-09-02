@@ -470,8 +470,11 @@ body:has(.stage-page) { background: #0b0f1a !important; }
 .stage-page .stg-fold { height: 0; }
 @media (min-width: 761px) { .stage-page .stg-fold { height: 100vh; } }
 
-html:has(.stage-page[data-stage-theme='light']),
-body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
+/* Guarded by the boot stamp, like the token block below it: through the frame
+   before React resolves, the div's attribute is a guess and <html> holds the
+   answer. See app/layout.js. */
+html:not([data-stage-boot='dark']):has(.stage-page[data-stage-theme='light']),
+html:not([data-stage-boot='dark']) body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 
 /* THE OLD MASTHEAD DOES NOT APPEAR ABOVE A STAGE PAGE (owner, 2026-08-31). The
    stage draws its own cap and the site header above it was a second, louder
@@ -481,7 +484,15 @@ body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important
 body:has(.stage-page) .qchm,
 body:has(.stage-page) .qch-bar { display: none !important; }
 
-.stage-page[data-stage-theme='light'] {
+/* THE LIGHT BLOCK IS SUPPRESSED WHILE THE BOOT STAMP SAYS DARK. A stage
+   page's data-stage-theme is server-rendered as the DEFAULT and corrected in an
+   effect, so for one frame it claims light on a reader who chose dark. The
+   inline script in app/layout.js has already stamped the real register on
+   <html> by then, and this :not() is what makes that stamp win the argument.
+   Dark needs no mirror of this: dark IS .stage-page's own set of values, so
+   suppressing light is the whole of it, and there is no second copy of fifty
+   declarations to drift. */
+html:not([data-stage-boot='dark']) .stage-page[data-stage-theme='light'] {
   --stg-brand: #2563eb;
   --stg-ground: #eef1f6;
   --stg-raise: #ffffff;

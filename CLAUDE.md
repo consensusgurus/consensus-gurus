@@ -7009,3 +7009,125 @@ its name, its words reordered, and its last word half typed, plus the reported c
 verbatim. Confirmed to FAIL (37 failures, naming "Starry Starry Night") against the old
 substring-only rule, which is the point: a check that has never been shown to fail has not
 been tested.
+
+## THE REGISTER IS DECIDED BEFORE FIRST PAINT, and every light rule carries the guard (owner, 2026-09-02)
+
+Reported as "why does a daily puzzle, when in dark mode, flash in light mode for a second
+upon load?" It was not a fluke. `lib/stage-theme.js` had it written down as an accepted
+cost: a stage page carries `data-stage-theme` on its own root DIV, the server cannot read
+localStorage, so that attribute is server-rendered as the DEFAULT and corrected in an
+effect after hydration. Light became the default on 2026-09-01, so from that day every
+reader who had chosen dark paid one light frame on **every single load, on all eighty
+dailies**. The trade was described in the file as symmetric with what light readers used to
+pay; it is not, because it is now paid by the people who made a choice.
+
+**The fix is one blocking inline script and one `:not()`.** `app/layout.js` stamps the
+resolved register on `<html>` as `data-stage-boot` before the body exists, reading the same
+order `readStageTheme` does (`?theme=` review override, then the stored key, then the
+default), so the two can never disagree. `app/globals.css` then suppresses the light token
+block while that stamp reads dark:
+
+```css
+html:not([data-stage-boot='dark']) .stage-page[data-stage-theme='light'] { ... }
+```
+
+Four things about that shape, and they are why it was chosen over the obvious alternatives:
+
+- **DARK NEEDS NO MIRROR.** Dark IS `.stage-page`'s own set of values, with no attribute
+  selector of its own, so suppressing light is the whole of the fix. Re-declaring the fifty
+  dark tokens under a boot selector would have been a second copy to drift, which is what
+  this file warns about everywhere else.
+- **NOTHING IS WRITTEN AND NO PREFERENCE CHANGES.** The script only reads.
+- **THE STAMP HAS TO FOLLOW THE STORE.** `writeStageTheme` and `useStageTheme`'s effect both
+  call `stampBoot`, or a reader who switches TO light is held in dark by a stamp taken at
+  load. That is the one way to break this, so it is tested first when the switch misbehaves.
+- **IT IS BLOCKING AND INLINE ON PURPOSE.** Deferred, moduled or hydrated is a frame too
+  late, and a frame too late is the entire bug.
+
+**THE STANDING RULE: any new selector that keys off `[data-stage-theme='light']` on a stage
+page carries `html:not([data-stage-boot='dark'])` in front of it.** Without it that rule
+fires for one frame on a dark reader and the page comes apart in halves, which is worse than
+the flash it replaced. The `[data-stage-theme='light']` rules on the circuit and category
+LANDING pages (`app/circuits/page.js`, `app/circuits/[id]/CircuitLanding.jsx`,
+`app/puzzle-category/CategoryLanding.jsx`) are deliberately NOT guarded: they set a category
+hue and three tier chips, nothing structural, and those are not the surface anybody reported.
+Guard them the same way if they ever carry a ground.
+
+**Verify by loading, not by reading the CSS.** Set `sot_theme2` to `dark`, hard reload a
+daily, and watch the first frame; then toggle to light and reload again. Both directions,
+because the toggle path is the one the guard can break.
+
+## A QUIZ NAMES ITS SUBJECT ON THE QUESTION, not only on the gate (owner, 2026-09-02)
+
+Reported as "the 'deep' category on our trivia gauntlet does not display the category of
+depth... today it is Japan but that is not shown anywhere i can see."
+
+Deep is one topic a day, fifteen questions deep. Its own page prints the topic on the start
+gate and again on every question card. THE RUN did neither: `app/circuits/[id]/run/RunClient.jsx`
+drew a chip from `question.cat`, which four of the seven runnable banks set and Deep does
+not, because on Deep the subject is the DAY rather than the question. So a Gauntlet player
+answered fifteen questions about Japan without ever being told they were about Japan, and
+the one thing that makes those questions answerable was the thing missing.
+
+The chip now falls through to the section's `topic`, which the run page already carried and
+only the roster and the hand-off card were using (`lineFor`). No special casing by key: a
+game whose day has no topic is unaffected, and a future one-topic bank gets this free.
+
+**The general rule: whatever a reader needs in order to answer belongs ON the question, not
+on a screen they passed three minutes ago.** A start gate is read once, and in a run it is
+read once for the whole sitting.
+
+## THE RUN SHOWS WHERE YOU STAND WHILE YOU PLAY, and says it is a projection (owner, 2026-09-02)
+
+The run's footer counted the questions you had right and stopped there, so the only question
+a player actually has mid-run, whether this run is going anywhere, could not be answered
+until it was over. The footer now carries the count set large plus a standing:
+**`IF YOU STOPPED HERE · #4 of 37 · +2 passes 3rd · +9 takes the lead`.**
+
+- **It is a FLOOR, and the label is part of the readout rather than a tooltip.** Every row on
+  the board is a FINISHED total and the player's own climbs with each answer, so the position
+  can only improve. A number that can only be beaten is honest; the same number presented as
+  a rank would not be.
+- **It costs no request.** `useCircuitBoard` was already read at the gate. What changed is
+  that it is now held open through the run (`hydrated && !done`): it used to go inactive the
+  moment the first question came up, and the hook's cleanup DROPS an in-flight response, so a
+  player who pressed Start briskly ran the whole way with no board at all. The hook does not
+  refetch while `active` stays true, so it is the same single call it always was.
+- **Ties take the competition rank** (everyone strictly above, plus one), which is what the
+  board itself does, and "+N passes" is what it takes to PASS rather than to tie, because
+  that is the number a player can act on.
+
+## Atlas: a geography question needs a PLACE in it (owner, 2026-09-02)
+
+Reported as "why was there a question about precipitation in Atlas today?" Day 9 served
+*"Rain, snow, sleet and hail are all forms of what?"* in the Physical World lane. It is
+meteorology vocabulary: no place, no map, no landform, nothing a geography player knows that
+a general-knowledge player does not. It was not a one-off. An audit of all 1,025 questions
+found the same shape four more times (ocean tides, plate movement, epicentre, divergent
+boundary), all in the same lane and all at tier 1 or 2.
+
+**The test, for this bank and any future one: does answering it require knowing something
+about a PLACE, a MAP, a LANDFORM, a COUNTRY, or the shape of the Earth's surface?** Genuine
+physical-geography vocabulary passes and is what the lane is for (isthmus, fjord, delta,
+atoll, tundra, savanna, glacier, peninsula, equator, prime meridian). A weather word, a
+physical cause or a seismology term with no place attached does not. Note the contrast the
+bank already gets right: `d18q17` (the Nazca Plate subducting under South America) and
+`d19q17` (the Pacific Plate and the Ring of Fire) are the same subject done properly,
+because they name a place and are map facts.
+
+**Days 1 to 9 are played and FROZEN, the reported question included.** Eleven questions on
+day 10 onward were replaced in the same pass: the three remaining off-subject ones, one whose
+answer has rotted (Malabo, with Equatorial Guinea's seat of government moving inland to
+Ciudad de la Paz, so the question is at best contested and picking a side of it is not ours
+to do), four that gave themselves away (`the leone` → Sierra Leone, `Namibia` → Namib,
+`Transjordan` → Jordan, `carved out of Sudan` → South Sudan), and three phrased as live
+rankings (busiest port in Europe, busiest port in Germany, largest city in Central Asia).
+Every replacement keeps its slot's cat, tier and **correct index**, because `verify-atlas`
+checks each day's column balance and its no-three-in-a-row rule and moving an answer between
+columns breaks both; where the fault was only in the wording the choices were kept too, which
+is also what guarantees no new same-day answer collision.
+
+**What the machine cannot check, and what this cost.** `verify-atlas.mjs` passed on every one
+of these the whole time: none of them is a structural fault. Off-subject, rotted and
+self-answering are all judgement, and the only gate for judgement is somebody reading all
+1,025. Do that as part of authoring a bank, not after a player reports one.

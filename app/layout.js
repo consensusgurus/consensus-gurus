@@ -83,6 +83,27 @@ export default function RootLayout({ children }) {
             these would disappear nearly everywhere. */}
         <meta name="twitter:site" content="@mindloftdaily" />
         <meta name="twitter:creator" content="@mindloftdaily" />
+        {/* THE REGISTER IS STAMPED BEFORE FIRST PAINT (owner, 2026-09-02: a
+            daily "flashes in light mode for a second upon load"). A stage page
+            carries data-stage-theme on its own root DIV, and the server cannot
+            know what is in localStorage, so that attribute is rendered as the
+            DEFAULT and corrected in an effect after hydration. Light is the
+            default, so a reader who chose dark paints one light frame on every
+            single load. lib/stage-theme.js documented that as the price of the
+            default moving; this is what it cost, and it is not worth paying.
+
+            This runs before the body exists, stamps the resolved register on
+            <html> as data-stage-boot, and globals.css suppresses the light
+            token block while that reads 'dark'. So the flash window renders in
+            the register the reader actually chose, and the moment React
+            resolves, the div's own attribute takes over exactly as before.
+            NOTHING is written back to storage and no preference is changed.
+            Blocking and inline on purpose: deferred or hydrated is a frame too
+            late, which is the whole bug. It reads the same order readStageTheme
+            does, so the two can never disagree about what was asked for, and
+            writeStageTheme keeps the attribute in step from here on, or a
+            reader who switches TO light would stay suppressed in dark. */}
+        <script dangerouslySetInnerHTML={{ __html: "(function(){try{var d=document.documentElement,q=null;try{q=new URLSearchParams(window.location.search).get('theme')}catch(e){}var t=(q==='light'||q==='dark')?q:window.localStorage.getItem('sot_theme2');if(t!=='light'&&t!=='dark')t='light';d.setAttribute('data-stage-boot',t)}catch(e){}})();" }} />
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6094189268309966"
