@@ -1011,11 +1011,11 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           The universe changes with the day of the week: Countries on Sunday, US States on Monday, Animals on Tuesday, Movies on Wednesday, TV Shows on Thursday, Pro Sports Teams on Friday, and Musicians on Saturday. The score is cells filled, but the real flex is rarity: after every correct pick you see what share of today&apos;s players chose the same answer, and a pick almost nobody found is the one worth sharing.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and Sundays step up to a 4x4 Edition on the Countries universe. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. For more trivia, try <a href="/deep" style={{ color: INK, fontWeight: 800 }}>Deep</a>, one subject and fifteen questions, <a href="/listed" style={{ color: INK, fontWeight: 800 }}>Listed</a>, rank eight real things, or <a href="/redact" style={{ color: INK, fontWeight: 800 }}>Redact</a>, uncover the story.
+          A new grid drops every day at midnight Eastern, and Sundays step up to a 4x4 Edition on the Countries universe. No app, no signup, play free in your browser, keep a streak, and race the leaderboard. For more trivia, try <a href="/deep" style={{ color: INK, fontWeight: 800 }}>Deep</a>, one subject and fifteen questions, <a href="/listed" style={{ color: INK, fontWeight: 800 }}>Listed</a>, rank eight real things, or <a href="/redact" style={{ color: INK, fontWeight: 800 }}>Redact</a>, uncover the story.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

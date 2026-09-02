@@ -785,14 +785,14 @@ export default function WarmerClient({ active, puzzles = [], forceNum = null }) 
           Warmer is a free daily word puzzle from Mind Loft. There is one secret word each day, and your only clue is how close your guesses are to it in meaning. Every guess lands on a cold-to-hot color spectrum with an exact proximity rank, so you can feel your way from freezing to scorching and, finally, to the word itself.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer &mdash; the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.
+          Closeness is semantic, not alphabetical: for the answer &ldquo;sea,&rdquo; words like ocean, waves, and coast run hot, while unrelated words stay cold. Guesses are unlimited, so you can always reach the answer, the challenge is getting there in as few guesses as you can. Solvers are ranked by fewest guesses, and even if you give up you&rsquo;re ranked by the closest word you found.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new word drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the crowd-ranking puzzle, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, four hidden threads.
+          A new word drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily board. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the crowd-ranking puzzle, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, four hidden threads.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

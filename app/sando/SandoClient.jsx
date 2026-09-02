@@ -1322,17 +1322,17 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Sando</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: every row and column holds one 1 and one 9, and the number printed outside it is the total of the digits sitting between those two. Put them side by side and the sandwich is empty, which is a 0; put them at the two ends and everything else is inside, which is 35. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution &mdash; no guessing required.
+          Sando is a free daily sandwich sudoku from Mind Loft. Sandwich sudoku adds one rule to the ordinary game: every row and column holds one 1 and one 9, and the number printed outside it is the total of the digits sitting between those two. Put them side by side and the sandwich is empty, which is a 0; put them at the two ends and everything else is inside, which is 35. Fill the grid so that every row, every column, and every 3×3 box holds the digits 1 through 9 exactly once, and every sandwich adds up. There is always a single, logical solution, no guessing required.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Play it your way: tap a square and a number, pencil in candidates with Notes when a square could go two ways, and lean on the arrow keys and number row on a desktop keyboard. Wrong entries are never flagged, so spotting your own slips is part of the puzzle, and a clean solve earns a perfect score.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new puzzle drops every day at midnight Eastern, and Sundays step up to a harder Edition printing just six digits. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. The other three sudokus: <a href="/sando" style={{ color: INK, fontWeight: 800 }}>Sando</a>, the classic 9×9, <a href="/quilt" style={{ color: INK, fontWeight: 800 }}>Quilt</a>, the jigsaw one, and <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer.
+          A new puzzle drops every day at midnight Eastern, and Sundays step up to a harder Edition printing just six digits. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. The other three sudokus: <a href="/sando" style={{ color: INK, fontWeight: 800 }}>Sando</a>, the classic 9×9, <a href="/quilt" style={{ color: INK, fontWeight: 800 }}>Quilt</a>, the jigsaw one, and <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

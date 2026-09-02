@@ -1084,17 +1084,17 @@ export default function DatingClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Dating</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Dating is a free daily history puzzle from Mind Loft. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks &mdash; every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
+          Dating is a free daily history puzzle from Mind Loft. Each day deals five moments from history, shuffled out of sequence; your job is to arrange them in chronological order. You get three checks, every event you place correctly locks in with its year revealed, and a perfect first check scores a flawless 10.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The fun is in the near-misses: history is full of events that happened far earlier, or far later, than they feel like they should have. Oxford was teaching students before the Aztecs had a capital; London had a subway before anyone had a car. Every puzzle ends with the full dated timeline, a one-line story for each moment, and one fact worth keeping.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
+          Five new moments drop every day at midnight Eastern, and the Sunday Edition adds a sixth. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

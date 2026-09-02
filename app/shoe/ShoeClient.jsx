@@ -869,11 +869,11 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           Par is what basic strategy, the book line, banks on the day&apos;s shoe playing blind, and matching it scores 8 out of 10. The ace line, a blind player&apos;s best day, scores 10. Beating the book means counting: the shoe holds 36 cards off one standard deck, so every card on the table changes what is left, and the player who notices stands where the book hits.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new shoe is dealt every day at midnight Eastern, and Sundays step up to seven hands off the entire 52-card deck, where a perfect counter knows exactly what remains. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. For more cards, try <a href="/taire" style={{ color: INK, fontWeight: 800 }}>Taire</a>, the daily solitaire, or <a href="/hands" style={{ color: INK, fontWeight: 800 }}>Hands</a>, the daily poker solitaire.
+          A new shoe is dealt every day at midnight Eastern, and Sundays step up to seven hands off the entire 52-card deck, where a perfect counter knows exactly what remains. No app, no signup, play free in your browser, keep a streak, and race the leaderboard. For more cards, try <a href="/taire" style={{ color: INK, fontWeight: 800 }}>Taire</a>, the daily solitaire, or <a href="/hands" style={{ color: INK, fontWeight: 800 }}>Hands</a>, the daily poker solitaire.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

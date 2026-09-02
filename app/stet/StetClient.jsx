@@ -1023,17 +1023,17 @@ export default function StetClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Stet</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Stet is a free daily word puzzle from Mind Loft &mdash; the copy-desk puzzle. Each day serves up a short news brief where almost every sentence hides one wrong word: an eggcorn, a swapped homophone, a malaprop, or a grammar slip like &ldquo;should of&rdquo; or &ldquo;had ran&rdquo;. The catch is that every error is a real English word, so a spellchecker would wave the whole brief through. Only a sharp eye catches &ldquo;free reign&rdquo;, &ldquo;baited breath&rdquo;, or a report that &ldquo;peaked&rdquo; someone&rsquo;s interest.
+          Stet is a free daily word puzzle from Mind Loft, the copy-desk puzzle. Each day serves up a short news brief where almost every sentence hides one wrong word: an eggcorn, a swapped homophone, a malaprop, or a grammar slip like &ldquo;should of&rdquo; or &ldquo;had ran&rdquo;. The catch is that every error is a real English word, so a spellchecker would wave the whole brief through. Only a sharp eye catches &ldquo;free reign&rdquo;, &ldquo;baited breath&rdquo;, or a report that &ldquo;peaked&rdquo; someone&rsquo;s interest.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Tap the word that doesn&rsquo;t belong, type the correction, and lock it in &mdash; a point for finding each error and a point for fixing it. But stay honest: some sentences are perfectly clean, and the only way to score them is to stamp them <i>stet</i> &mdash; the proofreader&rsquo;s mark, Latin for &ldquo;let it stand.&rdquo; Miss a call either way and the desk shows you what you should have caught, with a one-line note on why.
+          Tap the word that doesn&rsquo;t belong, type the correction, and lock it in, a point for finding each error and a point for fixing it. But stay honest: some sentences are perfectly clean, and the only way to score them is to stamp them <i>stet</i>, the proofreader&rsquo;s mark, Latin for &ldquo;let it stand.&rdquo; Miss a call either way and the desk shows you what you should have caught, with a one-line note on why.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new brief lands every day at midnight Eastern, with a seven-sentence Sunday edition where a single sentence can hide two errors. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/extra" style={{ color: INK, fontWeight: 800 }}>Extra</a>, our front-page history puzzle.
+          A new brief lands every day at midnight Eastern, with a seven-sentence Sunday edition where a single sentence can hide two errors. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/extra" style={{ color: INK, fontWeight: 800 }}>Extra</a>, our front-page history puzzle.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

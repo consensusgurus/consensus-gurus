@@ -1471,17 +1471,17 @@ export default function TallyClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Tally</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Tally is a free daily number puzzle from Mind Loft &mdash; a logic puzzle in the sudoku family with a ledger twist. Each day gives you a grid and a rack of number tiles. Place every tile so that each row and each column adds up to the target printed at its end.
+          Tally is a free daily number puzzle from Mind Loft, a logic puzzle in the sudoku family with a ledger twist. Each day gives you a grid and a rack of number tiles. Place every tile so that each row and each column adds up to the target printed at its end.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          What sets it apart from kakuro or a magic square is the supply. You have exactly the tiles you need &mdash; no more, no fewer &mdash; so when the arithmetic alone leaves two ways to finish a line, counting what is left on the rack settles it. Every board has a single solution, and solving it with no wasted moves scores a perfect ten.
+          What sets it apart from kakuro or a magic square is the supply. You have exactly the tiles you need, no more, no fewer, so when the arithmetic alone leaves two ways to finish a line, counting what is left on the rack settles it. Every board has a single solution, and solving it with no wasted moves scores a perfect ten.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new ledger drops every day at midnight Eastern, and Sundays step up to a bigger 6&times;6 board. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle, and <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history puzzle.
+          A new ledger drops every day at midnight Eastern, and Sundays step up to a bigger 6&times;6 board. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle, and <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history puzzle.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

@@ -1099,17 +1099,17 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Tuck</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Tuck is a free daily word puzzle from Mind Loft &mdash; the tile-tucking puzzle. Every player in the world gets the same rack of 14 standard-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
+          Tuck is a free daily word puzzle from Mind Loft, the tile-tucking puzzle. Every player in the world gets the same rack of 14 standard-weighted letters (15 in the Sunday Edition) and an empty 9&times;9 board. There is no answer to find: you design your own interlocking grid, and the score-chasing is the puzzle. Long words, tight crossings, and premium letters at intersections all push the number up.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a benchmark set from how players actually score on that rack &mdash; beat it and the day counts as a win. Roughly a third of finished grids do. Only your first submitted grid ranks on the daily leaderboard, so make it count.
+          Every run of two or more letters must be a dictionary word, across and down, and the whole build must connect into one grid. Letters at intersections score in both words, and placing every tile in the rack earns a 10-point bonus. Each day ships with a benchmark set from how players actually score on that rack, beat it and the day counts as a win. Roughly a third of finished grids do. Only your first submitted grid ranks on the daily leaderboard, so make it count.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A fresh rack lands every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: INK, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.
+          A fresh rack lands every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our unscrambling puzzle, and <a href="/stet" style={{ color: INK, fontWeight: 800 }}>Stet</a>, our copy-desk puzzle.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

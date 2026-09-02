@@ -1069,17 +1069,17 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Carve</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Carve is a free daily number puzzle from Mind Loft. Each day gives you a fresh grid of digits and a handful of colored anchor squares. Slice the whole board into connected blocks, one grown from each anchor, so that every block adds up to the same target. There is always exactly one valid carving &mdash; the anchors pin it down.
+          Carve is a free daily number puzzle from Mind Loft. Each day gives you a fresh grid of digits and a handful of colored anchor squares. Slice the whole board into connected blocks, one grown from each anchor, so that every block adds up to the same target. There is always exactly one valid carving, the anchors pin it down.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          It plays like a knife-and-ledger cousin of sudoku: part arithmetic, part territory. Watch the running totals, spot the squares only one block can reach, and let each locked block squeeze the next. A wrong cut shakes red and costs an error &mdash; carve the whole board clean for a perfect score.
+          It plays like a knife-and-ledger cousin of sudoku: part arithmetic, part territory. Watch the running totals, spot the squares only one block can reach, and let each locked block squeeze the next. A wrong cut shakes red and costs an error, carve the whole board clean for a perfect score.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new board drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 grid in nine blocks. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number ledger, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new board drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 grid in nine blocks. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number ledger, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

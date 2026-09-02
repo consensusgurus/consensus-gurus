@@ -86,7 +86,7 @@ const CSS = `
 .dr-head b{font-size:12.5px;font-weight:800;color:var(--dr-ink);}
 .dr-head a{font-size:12px;font-weight:700;color:var(--dr-mute);text-decoration:none;}
 .dr-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;}
-.dr-cat{flex:0 0 118px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dr-soft);}
+.dr-cat{flex:0 0 140px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dr-soft);}
 .dr-links{flex:1 1 300px;min-width:0;display:flex;flex-wrap:wrap;gap:0 12px;}
 .dr-links a{color:var(--dr-mute);text-decoration:none;font-weight:600;white-space:nowrap;}
 .dr-links a:hover,.dr-head a:hover{color:var(--dr-ink);}

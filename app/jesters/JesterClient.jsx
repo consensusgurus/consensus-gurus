@@ -1189,17 +1189,17 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Jesters</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Jesters is a free daily logic puzzle from Mind Loft &mdash; a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Wednesday, two apiece on the bigger boards from Thursday through Sunday. No two jesters may ever touch, not even at the corners.
+          Jesters is a free daily logic puzzle from Mind Loft, a placement puzzle in the classic Star Battle family. The royal court is divided into colored regions, and your job is to seat the jesters so that every row, every column and every court holds its quota: one apiece from Monday to Wednesday, two apiece on the bigger boards from Thursday through Sunday. No two jesters may ever touch, not even at the corners.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction &mdash; rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
+          Every board is generated with a constraint solver and machine-verified twice over: once to guarantee exactly one legal seating, and once to confirm the whole board falls to pure step-by-step deduction, rule out cells, corner the possibilities, and the jesters seat themselves. No guessing, no trial and error, no app required.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           A new court convenes every day at midnight Eastern, each one graded so the week climbs from a gentle Monday, with two jesters per row, column and court from Thursday on and the hardest court of all on Sunday. Play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/sworn" style={{ color: INK, fontWeight: 800 }}>Sworn</a>, our daily liars puzzle, <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

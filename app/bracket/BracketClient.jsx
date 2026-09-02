@@ -703,7 +703,7 @@ export default function BracketClient({ puzzles = [], forceNum = null }) {
           Every value is verified against public records and shown on the reveal, so the end screen teaches rather than just grades. A new field is seeded daily at midnight Eastern, with 32 contenders on Sundays. More dailies: <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, <a href="/extra" style={{ color: INK, fontWeight: 800 }}>Extra</a>, and <a href="/form" style={{ color: INK, fontWeight: 800 }}>Form</a>.
         </p>
       </section>
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

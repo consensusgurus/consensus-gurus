@@ -772,7 +772,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
           A new season opens every day at midnight Eastern, with a sixth club on Sundays. More dailies: <a href="/venn" style={{ color: INK, fontWeight: 800 }}>Venn</a>, our three-circle sorting puzzle, <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, and <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number ledger.
         </p>
       </section>
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

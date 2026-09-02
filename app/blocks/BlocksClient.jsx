@@ -1288,7 +1288,7 @@ export default function BlocksClient({ puzzles = [], forceNum = null }) {
         }
       `}</style>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

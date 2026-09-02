@@ -910,17 +910,17 @@ export default function LinksClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 560, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Links</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Links is a free daily word grouping puzzle from Mind Loft. Sixteen words hide four threads of four &mdash; find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
+          Links is a free daily word grouping puzzle from Mind Loft. Sixteen words hide four threads of four, find each thread and bank it in its color, from the easy yellow group to the devious red one. Four mistakes and the board wins.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The trick is the overlap: every puzzle plants words that look like they belong to one thread but pay off in another. Count carefully, eliminate boldly, and save the coin-flips for last. A &ldquo;one away&rdquo; nudge is the only mercy.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new Links arrives every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and compare your grid on the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
+          A new Links arrives every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and compare your grid on the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our border-hopping geography puzzle.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

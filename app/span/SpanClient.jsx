@@ -1161,14 +1161,14 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
           Span is a free daily geography puzzle from Mind Loft. Each day hands you two countries; your job is to connect them with the shortest chain of land borders you can find. Match the shortest path on the map and you&apos;ve spanned the day.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count &mdash; which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.
+          The map plays by strict rules: mainland land borders only, so overseas territories, bridges, and tunnels don&apos;t count, which is why Scandinavia&apos;s only way out is through Russia, and why the Sinai is the single land door between Africa and Asia. Contiguous exclaves do count: Kaliningrad, Nakhchivan, and Cabinda are all in play.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new route drops every day at midnight Eastern, and every puzzle ends with your road drawn on the world map. On Sundays the Sunday Edition adds a twist: a country your road must pass through, or one whose borders are closed for the day. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle.
+          A new route drops every day at midnight Eastern, and every puzzle ends with your road drawn on the world map. On Sundays the Sunday Edition adds a twist: a country your road must pass through, or one whose borders are closed for the day. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our word scramble, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word grouping puzzle.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

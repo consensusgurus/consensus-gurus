@@ -732,7 +732,7 @@ export default function VennClient({ puzzles = [], forceNum = null }) {
           A new sheet lands every day at midnight Eastern, and Sundays withhold two of the counts. More dailies: <a href="/axiom" style={{ color: INK, fontWeight: 800 }}>Axiom</a>, our hidden-rule puzzle, <a href="/bracket" style={{ color: INK, fontWeight: 800 }}>Bracket</a>, our results-table reconstruction, and <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our four hidden threads.
         </p>
       </section>
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

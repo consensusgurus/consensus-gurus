@@ -1077,17 +1077,17 @@ export default function OutwitClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Outwit</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Outwit is a free daily puzzle from Mind Loft where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, find the number nobody else takes, and finish by undercutting the crowd&rsquo;s average &mdash; by a fraction that shifts from day to day, so the equilibrium is never the same twice.
+          Outwit is a free daily puzzle from Mind Loft where the puzzle is other people. Every day, five quick prompts pit you against the entire field of players: pick the option the fewest will touch, guess where the herd&rsquo;s median lands, meet the crowd at its favorite answer, find the number nobody else takes, and finish by undercutting the crowd&rsquo;s average, by a fraction that shifts from day to day, so the equilibrium is never the same twice.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          There are no trivia answers to know — the classic game-theory twist is that everyone is reasoning about everyone else. And the score is alive: every time a new player locks in, the entire field is re-scored, so your points and your place on the board keep moving through the day. You are always measured against the whole crowd as it stands right now — a run that trails a small early field can lead once thousands more have played, and a morning sweep can slip as the day goes on. A pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people, and the standings never stop shifting.
+          There are no trivia answers to know, the classic game-theory twist is that everyone is reasoning about everyone else. And the score is alive: every time a new player locks in, the entire field is re-scored, so your points and your place on the board keep moving through the day. You are always measured against the whole crowd as it stands right now, a run that trails a small early field can lead once thousands more have played, and a morning sweep can slip as the day goes on. A pre-written house field seeds the small hours, then retires once ten real players are in, so by breakfast you're playing purely against people, and the standings never stop shifting.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new crowd forms every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle.
+          A new crowd forms every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our row-and-column logic puzzle, <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

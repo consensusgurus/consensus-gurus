@@ -1195,11 +1195,11 @@ export default function KnightClient({ puzzles = [], forceNum = null }) {
           There is no arithmetic and nothing extra drawn on the grid: the whole twist is a shape you already know from chess, and selecting a square lights up the eight squares its knights reach so you never have to picture the L. Every board has a single solution you can always reach by logic, with no guessing, and on every board the knight rule is load-bearing rather than decorative: read as an ordinary sudoku, the same clues would fit more than one grid. Wrong entries are never flagged, so spotting your own slips is part of the puzzle, and a clean solve scores a perfect 10 with the daily leaderboard decided on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new board drops every day at midnight Eastern; weekdays print fewer digits as the week goes on, from 28 on Monday down to 16 on Saturday, and the Sunday Edition prints thirteen. No app, no signup &mdash; play free in your browser. Want the rest of the family? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9, <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku, <a href="/mercury" style={{ color: INK, fontWeight: 800 }}>Mercury</a>, the thermo, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki with no numbers at all.
+          A new board drops every day at midnight Eastern; weekdays print fewer digits as the week goes on, from 28 on Monday down to 16 on Saturday, and the Sunday Edition prints thirteen. No app, no signup, play free in your browser. Want the rest of the family? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9, <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku, <a href="/mercury" style={{ color: INK, fontWeight: 800 }}>Mercury</a>, the thermo, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki with no numbers at all.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

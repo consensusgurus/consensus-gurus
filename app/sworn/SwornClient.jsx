@@ -914,17 +914,17 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Sworn</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Sworn is a free daily logic puzzle from Mind Loft &mdash; a classic liars puzzle in the Knights-and-Knaves tradition, dressed as a village inquest. Something has been stolen, a handful of locals are put under oath, and every one of them gives a single statement. The catch: an exact number of them are lying, liars&rsquo; statements are always false, and one of the sworn is the thief.
+          Sworn is a free daily logic puzzle from Mind Loft, a classic liars puzzle in the Knights-and-Knaves tradition, dressed as a village inquest. Something has been stolen, a handful of locals are put under oath, and every one of them gives a single statement. The catch: an exact number of them are lying, liars&rsquo; statements are always false, and one of the sworn is the thief.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          The reasoning is pure case-work: suppose a suspect is the thief, follow what each statement would make of its speaker, and check the lie count. Wrong theories collapse under their own contradictions; the truth is the one story that holds together. Every case is generated with a constraint solver and machine-verified to have exactly one consistent world &mdash; and to be crackable by clean deduction, never guesswork.
+          The reasoning is pure case-work: suppose a suspect is the thief, follow what each statement would make of its speaker, and check the lie count. Wrong theories collapse under their own contradictions; the truth is the one story that holds together. Every case is generated with a constraint solver and machine-verified to have exactly one consistent world, and to be crackable by clean deduction, never guesswork.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new inquest is sworn every day at midnight Eastern, with six suspects at Sunday&rsquo;s Grand Inquest. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, <a href="/jesters" style={{ color: INK, fontWeight: 800 }}>Jesters</a>, our court-placement puzzle, and <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm.
+          A new inquest is sworn every day at midnight Eastern, with six suspects at Sunday&rsquo;s Grand Inquest. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our nightly whodunit, <a href="/jesters" style={{ color: INK, fontWeight: 800 }}>Jesters</a>, our court-placement puzzle, and <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

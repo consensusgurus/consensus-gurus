@@ -1109,17 +1109,17 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Ping</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Ping is a free daily geography puzzle from Mind Loft &mdash; the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with one number: the great-circle distance to the target, in miles or kilometers, whichever you prefer.
+          Ping is a free daily geography puzzle from Mind Loft, the daily city hunt. Each day there&rsquo;s one secret city somewhere in the world and not a single clue to start. Name any well-known city and Ping answers with one number: the great-circle distance to the target, in miles or kilometers, whichever you prefer.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          From there it&rsquo;s pure triangulation: watch the distance fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end &mdash; the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint, on your first ever play, reveals the continent.
+          From there it&rsquo;s pure triangulation: watch the distance fall and close in on the answer. There&rsquo;s no limit on guesses, so everyone gets there in the end, the goal is to do it in as few guesses as you can. Give up any time and you&rsquo;re still scored on how close you got. One free hint, on your first ever play, reveals the continent.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          A new city drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle, <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, the daily crowd-ranking puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

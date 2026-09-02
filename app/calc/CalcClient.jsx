@@ -1105,11 +1105,11 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
           Three rules do the work. No button can be used twice inside one route. A division that would not come out whole is not a legal step, so nothing is ever a fraction. And the route has to finish on the bottom-right button, which is what makes the last operator before it the one worth thinking about. Arriving on the wrong total costs a try and nothing else, so you can back up and take another line as often as you like.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Boards run six across early in the week and seven from Thursday, and every one is checked before it ships, so a route to the target always exists. Sundays are a harder Edition with three targets on the one board. A new board drops every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. More number puzzles: <a href="/crunch" style={{ color: INK, fontWeight: 800 }}>Crunch</a>, six numbers into one target, and <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, where every letter is a digit.
+          Boards run six across early in the week and seven from Thursday, and every one is checked before it ships, so a route to the target always exists. Sundays are a harder Edition with three targets on the one board. A new board drops every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the leaderboard. More number puzzles: <a href="/crunch" style={{ color: INK, fontWeight: 800 }}>Crunch</a>, six numbers into one target, and <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, where every letter is a digit.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

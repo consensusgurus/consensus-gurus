@@ -957,17 +957,17 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Circa</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Circa is a free daily history puzzle from Mind Loft &mdash; the daily year hunt. Each day serves up one famous moment from the last thousand years: a battle, a disaster, a discovery, a first. Your job is to pin down the exact year it happened, in six guesses or fewer.
+          Circa is a free daily history puzzle from Mind Loft, the daily year hunt. Each day serves up one famous moment from the last thousand years: a battle, a disaster, a discovery, a first. Your job is to pin down the exact year it happened, in six guesses or fewer.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Every guess plays hot and cold: an arrow tells you whether the true year is earlier or later, and a heat band tells you how close you are. Get within three years and the moment is placed &mdash; that&rsquo;s circa, and it counts as a win. Know it cold and name the exact year on your first try for a perfect score.
+          Every guess plays hot and cold: an arrow tells you whether the true year is earlier or later, and a heat band tells you how close you are. Get within three years and the moment is placed, that&rsquo;s circa, and it counts as a win. Know it cold and name the exact year on your first try for a perfect score.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle.
+          A new moment drops every day at midnight Eastern, with a trickier one on Sundays. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, and <a href="/span" style={{ color: INK, fontWeight: 800 }}>Span</a>, our geography puzzle.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

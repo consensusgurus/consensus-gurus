@@ -1112,17 +1112,17 @@ export default function EmceeClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Emcee</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Emcee is a free daily mini crossword from Mind Loft. Say the name fast and you&rsquo;ll hear the initials &mdash; M.C. &mdash; because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
+          Emcee is a free daily mini crossword from Mind Loft. Say the name fast and you&rsquo;ll hear the initials, M.C., because that&rsquo;s all it is: a proper mini crossword, five squares by five, with numbered Across and Down clues and a timer that only stops when the grid is right.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          The words are everyday words and the clues play fair, so most grids fall in a minute or two &mdash; the puzzle is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
+          The words are everyday words and the clues play fair, so most grids fall in a minute or two, the puzzle is speed and cleanliness. The grid checks itself when the last square lands: wrong squares flash red and each failed check counts against you on the leaderboard, where ties break on fewest checks and then fastest time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 pinwheel. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More word puzzles: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word-grouping puzzle, and <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily unscramble.
+          A new grid drops every day at midnight Eastern, and Sundays go bigger with a 7&times;7 pinwheel. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More word puzzles: <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our word-grouping puzzle, and <a href="/garble" style={{ color: INK, fontWeight: 800 }}>Garble</a>, our daily unscramble.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

@@ -1206,11 +1206,11 @@ export default function TowersClient({ puzzles = [], forceNum = null }) {
           There is no arithmetic, only lines of sight. A 1 pins the tallest tower right at its edge; a clue equal to the grid size forces the whole line to ascend toward you. Every board has a single solution you can always reach by logic, with no guessing, and a clean solve scores a perfect 10 with the daily leaderboard decided on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new board drops every day at midnight Eastern: 5×5 on weekdays with fewer clues as the week goes on, and a 7×7 Sunday Edition. No app, no signup &mdash; play free in your browser. It runs with the sudoku family: try <a href="/towers" style={{ color: INK, fontWeight: 800 }}>Towers</a>, the skyscrapers puzzle, <a href="/sando" style={{ color: INK, fontWeight: 800 }}>Sando</a>, the sandwich sudoku with border clues of its own, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki.
+          A new board drops every day at midnight Eastern: 5×5 on weekdays with fewer clues as the week goes on, and a 7×7 Sunday Edition. No app, no signup, play free in your browser. It runs with the sudoku family: try <a href="/towers" style={{ color: INK, fontWeight: 800 }}>Towers</a>, the skyscrapers puzzle, <a href="/sando" style={{ color: INK, fontWeight: 800 }}>Sando</a>, the sandwich sudoku with border clues of its own, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

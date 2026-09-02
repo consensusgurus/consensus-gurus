@@ -1057,17 +1057,17 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Alibi</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Alibi is a free daily logic puzzle from Mind Loft &mdash; an Einstein-style deduction puzzle dressed as a nightly whodunit. Something has vanished from the manor, and four guests (five in the Sunday Edition) were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
+          Alibi is a free daily logic puzzle from Mind Loft, an Einstein-style deduction puzzle dressed as a nightly whodunit. Something has vanished from the manor, and four guests (five in the Sunday Edition) were each alone in a different room, each left at a different hour, and each carried one curious item. The witness statements are all true; the detective work is yours.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Fill the three deduction boards the way a pencil-and-paper logician would: cross off what a statement rules out, confirm what elimination forces, and let the ✗s corner the ●s. Every case is generated with a constraint solver and machine-verified to have exactly one solution, so a careful chain of inference always closes the case &mdash; no guessing, no leaps.
+          Fill the three deduction boards the way a pencil-and-paper logician would: cross off what a statement rules out, confirm what elimination forces, and let the ✗s corner the ●s. Every case is generated with a constraint solver and machine-verified to have exactly one solution, so a careful chain of inference always closes the case, no guessing, no leaps.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new case opens every day at midnight Eastern. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our hidden-threads puzzle, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku.
+          A new case opens every day at midnight Eastern. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/cipher" style={{ color: INK, fontWeight: 800 }}>Cipher</a>, our daily cryptarithm, <a href="/links" style={{ color: INK, fontWeight: 800 }}>Links</a>, our hidden-threads puzzle, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 

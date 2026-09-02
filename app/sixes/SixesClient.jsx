@@ -1159,11 +1159,11 @@ export default function SixesClient({ puzzles = [], forceNum = null }) {
           It is the short one. Where a full 9×9 is something you sit down with, a mini is a couple of minutes, so nothing is counted against you and the daily leaderboard is a straight race on the clock. Every board has a single solution you can always reach by logic, with no guessing anywhere. Wrong entries are never flagged, so spotting your own slips is part of the puzzle.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new grid drops every day at midnight Eastern, and Sundays step up to a harder Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the leaderboard. Want the full size? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our classic 9×9, <a href="/quilt" style={{ color: INK, fontWeight: 800 }}>Quilt</a>, the jigsaw version, and <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku.
+          A new grid drops every day at midnight Eastern, and Sundays step up to a harder Edition. No app, no signup, play free in your browser, keep a streak, and race the leaderboard. Want the full size? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our classic 9×9, <a href="/quilt" style={{ color: INK, fontWeight: 800 }}>Quilt</a>, the jigsaw version, and <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

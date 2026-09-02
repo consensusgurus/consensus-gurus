@@ -1183,17 +1183,17 @@ export default function PolkaClient({ puzzles = [], forceNum = null }) {
       <section style={{ position: 'relative', display: (focusMode && !STAGE) ? 'none' : 'block', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Polka</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Polka is a free daily kropki sudoku from Mind Loft. The 9×9 grid opens completely empty: not one digit is printed. Instead, every pair of neighbouring squares carries a clue &mdash; a white dot when the two digits differ by exactly 1, a black dot when one is double the other, and no dot at all when neither is true. The empty edges are clues too, and they do half the solving.
+          Polka is a free daily kropki sudoku from Mind Loft. The 9×9 grid opens completely empty: not one digit is printed. Instead, every pair of neighbouring squares carries a clue, a white dot when the two digits differ by exactly 1, a black dot when one is double the other, and no dot at all when neither is true. The empty edges are clues too, and they do half the solving.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           Ordinary sudoku rules still run underneath: every row, column, and 3×3 box holds 1 through 9 exactly once. Each deal has a single solution you can always reach by logic, with no guessing. Wrong entries are never flagged, so spotting your own slips is part of the puzzle, and a clean solve scores a perfect 10 with the daily leaderboard decided on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new deal drops every day at midnight Eastern, harder as the week goes on, and the Sunday Edition is drawn from the top of the difficulty distribution. No app, no signup &mdash; play free in your browser. Want the rest of the family? Try <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku that also opens empty, <a href="/mercury" style={{ color: INK, fontWeight: 800 }}>Mercury</a>, the thermo sudoku, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9.
+          A new deal drops every day at midnight Eastern, harder as the week goes on, and the Sunday Edition is drawn from the top of the difficulty distribution. No app, no signup, play free in your browser. Want the rest of the family? Try <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku that also opens empty, <a href="/mercury" style={{ color: INK, fontWeight: 800 }}>Mercury</a>, the thermo sudoku, and <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

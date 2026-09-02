@@ -687,7 +687,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
         </div>
       )}
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

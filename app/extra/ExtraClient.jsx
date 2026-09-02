@@ -964,10 +964,10 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 620, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Extra</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Extra is a free daily history puzzle from Mind Loft &mdash; the daily front page. Each day resurrects one of history&rsquo;s great headlines with the giveaway words blacked out, newsroom-censor style. Your job: name the story.
+          Extra is a free daily history puzzle from Mind Loft, the daily front page. Each day resurrects one of history&rsquo;s great headlines with the giveaway words blacked out, newsroom-censor style. Your job: name the story.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Guess wrong, or press the tear button, and one more word rips free &mdash; six tears and the page is bare. Name the story straight off the fully redacted page and that&rsquo;s a cold read, the perfect score. A free hint reveals the dateline if you need a foothold in time.
+          Guess wrong, or press the tear button, and one more word rips free, six tears and the page is bare. Name the story straight off the fully redacted page and that&rsquo;s a cold read, the perfect score. A free hint reveals the dateline if you need a foothold in time.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           {gameRetired ? (
@@ -976,11 +976,11 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           ) : (
             <>A new front page drops every day at midnight Eastern, with a trickier story on Sundays.</>
           )}{' '}
-          No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle, <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
+          No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/outrank" style={{ color: INK, fontWeight: 800 }}>Outrank</a>, our crowd-ranking puzzle, <a href="/dating" style={{ color: INK, fontWeight: 800 }}>Dating</a>, our history-ordering puzzle, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }

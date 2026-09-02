@@ -80,16 +80,55 @@ for (const { dir } of rows) {
   if (hits === 1) { wr(file, out.join('\n')); touched.push(file); }
 }
 
+// ── 2b: the Loft footer is UNMOUNTED on the stage, not hidden ──────────────
+// Each client kept its <Footer /> under display:none once the stage shipped.
+// StageTail now draws the stage footer, so the hidden one is a second copy of
+// every footer link (and of the roster) that no reader sees. Mount it only
+// off the stage, where it is the footer the Loft page still uses.
+for (const { dir } of rows) {
+  const d = fs.readdirSync(path.join(ROOT, 'app', dir)).find((f) => /Client\.jsx$/.test(f));
+  const file = `app/${dir}/${d}`;
+  let s = rd(file);
+  const re = /^( *)<div style=\{\{([^}]*)display: \(focusMode \|\| STAGE\) \? 'none' : 'block'([^}]*)\}\}><Footer \/><\/div>$/m;
+  const m = s.match(re);
+  if (!m) continue;
+  if (count(s, m[0]) !== 1) throw new Error(`${file}: footer line matched twice`);
+  s = s.replace(m[0], () => `${m[1]}{!STAGE && <div style={{${m[2]}display: focusMode ? 'none' : 'block'${m[3]}}}><Footer /></div>}`);
+  wr(file, s); touched.push(file);
+}
+
+// ── 2c: no em dash in the About prose, now that a reader sees it ───────────
+// The copy rule (CLAUDE.md, Writing Style) bans the em dash in site copy. The
+// hidden sections had 32 of them. A comma is the rule's own substitute for a
+// trailing modifier, which is what nearly all of these are.
+for (const { dir } of rows) {
+  const d = fs.readdirSync(path.join(ROOT, 'app', dir)).find((f) => /Client\.jsx$/.test(f));
+  const file = `app/${dir}/${d}`;
+  const s = rd(file);
+  const lines = s.split('\n');
+  const start = lines.findIndex((l) => /<section\b/.test(l) && l.includes("(focusMode && !STAGE) ? 'none' : 'block'"));
+  if (start < 0) continue;
+  let end = start; while (end < lines.length && !lines[end].includes('</section>')) end++;
+  let changed = false;
+  for (let i = start; i <= end; i++) {
+    const before = lines[i];
+    lines[i] = lines[i].replace(/ (?:&mdash;|—) /g, ', ').replace(/(?:&mdash;|—)/g, ',');
+    if (lines[i] !== before) changed = true;
+  }
+  if (changed) { wr(file, lines.join('\n')); touched.push(file); }
+}
+
 // ── 4: h1 in the cap ───────────────────────────────────────────────────────
 {
   const file = 'app/StageChrome.jsx';
   let s = rd(file);
-  s = once(file, s, '          <b>\n            {name}\n            {sunday ? <u>{sunday}</u> : null}\n          </b>\n',
+  if (s.includes('.stg-id h1{')) s = null;
+  if (s) s = once(file, s, '          <b>\n            {name}\n            {sunday ? <u>{sunday}</u> : null}\n          </b>\n',
     '          <h1>\n            {name}\n            {sunday ? <u>{sunday}</u> : null}\n          </h1>\n');
-  s = once(file, s, '.stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}\n.stg-id b u{',
+  if (s) s = once(file, s, '.stg-id b{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}\n.stg-id b u{',
     '.stg-id h1{margin:0;font:inherit;font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}\n.stg-id h1 u{');
-  s = once(file, s, '  .stg-id b{font-size:15px;}', '  .stg-id h1{font-size:15px;}');
-  wr(file, s); touched.push(file);
+  if (s) s = once(file, s, '  .stg-id b{font-size:15px;}', '  .stg-id h1{font-size:15px;}');
+  if (s) { wr(file, s); touched.push(file); }
 }
 
 // ── 5: clean home links ────────────────────────────────────────────────────
@@ -97,26 +136,32 @@ for (const { dir } of rows) {
   const file = 'app/today/StageToday.jsx';
   let s = rd(file);
   const n = count(s, '?stage=1${tq}');
-  if (n !== 3) throw new Error(`${file}: expected 3 ?stage=1 links, found ${n}`);
-  s = s.split('?stage=1${tq}').join("${tq ? '?' + tq.slice(1) : ''}");
-  wr(file, s); touched.push(file);
+  if (n !== 3 && n !== 0) throw new Error(`${file}: expected 3 ?stage=1 links, found ${n}`);
+  if (n === 3) {
+    s = s.split('?stage=1${tq}').join("${tq ? '?' + tq.slice(1) : ''}");
+    wr(file, s); touched.push(file);
+  }
 }
 
 // ── 6: both footers ────────────────────────────────────────────────────────
 {
   const file = 'app/StageFooter.jsx';
   let s = rd(file);
+  if (!s.includes('DailyRoster')) {
   s = once(file, s, "import { FOOTER_COLS } from './Footer';\n", "import { FOOTER_COLS } from './Footer';\nimport DailyRoster from './DailyRoster';\n");
   s = once(file, s, '      <div className="stgf-base">', '      <DailyRoster variant="stage" />\n      <div className="stgf-base">');
   wr(file, s); touched.push(file);
+  }
 }
 {
   const file = 'app/Footer.jsx';
   let s = rd(file);
+  if (!s.includes('DailyRoster')) {
   s = once(file, s, "import { T } from '@/lib/theme';\n", "import { T } from '@/lib/theme';\nimport DailyRoster from './DailyRoster';\n");
   s = once(file, s, "      <div\n        style={{\n          maxWidth: 1040,\n          margin: '16px auto 0',",
     "      <div style={{ maxWidth: 1040, margin: '0 auto' }}><DailyRoster variant=\"light\" /></div>\n      <div\n        style={{\n          maxWidth: 1040,\n          margin: '16px auto 0',");
   wr(file, s); touched.push(file);
+  }
 }
 {
   const file = 'lib/stage.js';

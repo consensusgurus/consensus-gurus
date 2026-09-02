@@ -1176,11 +1176,11 @@ export default function MercuryClient({ puzzles = [], forceNum = null }) {
           There is no arithmetic anywhere: the thermometers are pure ordering, which makes this the most visual sudoku on the slate. Every board has a single solution you can always reach by logic, with no guessing. Wrong entries are never flagged, so spotting your own slips is part of the puzzle, and a clean solve scores a perfect 10 with the daily leaderboard decided on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new board drops every day at midnight Eastern; weekdays print fewer digits as the week goes on, and the Sunday Edition prints just eight and lets nine thermometers do the work. No app, no signup &mdash; play free in your browser. Want the rest of the family? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9, <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki with no numbers at all.
+          A new board drops every day at midnight Eastern; weekdays print fewer digits as the week goes on, and the Sunday Edition prints just eight and lets nine thermometers do the work. No app, no signup, play free in your browser. Want the rest of the family? Try <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, the classic 9×9, <a href="/cages" style={{ color: INK, fontWeight: 800 }}>Cages</a>, the killer sudoku, and <a href="/polka" style={{ color: INK, fontWeight: 800 }}>Polka</a>, the kropki with no numbers at all.
         </p>
       </section>
 
-      <div style={{ position: 'relative', zIndex: 2, display: (focusMode || STAGE) ? 'none' : 'block' }}><Footer /></div>
+      {!STAGE && <div style={{ position: 'relative', zIndex: 2, display: focusMode ? 'none' : 'block' }}><Footer /></div>}
     </div>
   );
 }

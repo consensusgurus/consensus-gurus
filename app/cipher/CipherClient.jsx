@@ -1397,17 +1397,17 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
       <section style={{ display: (focusMode && !STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2, maxWidth: 640, margin: '0 auto', padding: '10px 24px 42px', fontFamily: SANS }}>
         <h2 style={{ margin: '0 0 8px', fontSize: 15, fontWeight: 800, letterSpacing: '-0.01em', color: INK }}>About Cipher</h2>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation &mdash; the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
+          Cipher is a free daily cryptarithm puzzle from Mind Loft. Each day serves one alphametic equation, the classic puzzle form where SEND + MORE = MONEY and every letter hides a digit. Assign a different digit to each letter so the arithmetic works, and know that the puzzle is machine-verified to have exactly one solution: if your logic is sound, you never have to guess.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           The craft is in the columns, and Cipher hands you the tools instead of asking you to reach for paper. The digit pad dims a digit the moment another letter takes it and tells you whose it is, the carry row above the equation fills itself in as far as your digits reach, and each column carries its own &#10003; or &#10007; the moment it is decided. The leftmost letter of the answer is usually forced by a carry; from there each column narrows the field until the whole equation clicks open. There is no Check button and nothing to submit: because the board works the columns out with you, it simply ends the day the moment your assignment is right. A solve is a perfect 10, so the daily leaderboard is a straight race on the clock.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup &mdash; play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
+          A new equation drops every day at midnight Eastern, and the week ramps: two addends Monday through Wednesday, three Thursday through Saturday, and four in the Sunday Edition. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, <a href="/tally" style={{ color: INK, fontWeight: 800 }}>Tally</a>, our number-balancing puzzle, and <a href="/alibi" style={{ color: INK, fontWeight: 800 }}>Alibi</a>, our whodunit logic puzzle.
         </p>
       </section>
 
-      <div style={{ display: (focusMode || STAGE) ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>
+      {!STAGE && <div style={{ display: focusMode ? 'none' : 'block', position: 'relative', zIndex: 2 }}><Footer /></div>}
     </div>
   );
 }
