@@ -63,8 +63,7 @@
 // on the way back from a game.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
-import { RAMP_ORDER, CATEGORY_RAMP, CATEGORY_RAMP_LIGHT, RAMP_INK, RAMP_INK_LIGHT } from '@/lib/category-ramp';
-import { useStageTheme } from '@/lib/stage-theme';
+import { RAMP_ORDER, CATEGORY_RAMP, RAMP_INK } from '@/lib/category-ramp';
 import MindLoftMark from './MindLoftMark';
 import { fetchDayStatus, etToday } from './useDayStats';
 
@@ -243,17 +242,6 @@ export default function StageWelcome({ capRef }) {
   const [phase, setPhase] = useState('');  // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);
-  // THE DOOR IS IN THE PAGE'S OWN REGISTER (owner, 2026-09-01: "the
-  // colorization on the welcome screen only matches the dark mode that is not
-  // default anymore ... instead just use an animation that shows the
-  // categories"). It was a near-black curtain in both registers, which read as
-  // a dark-mode object dropped onto the pale home. Now it is the categories
-  // rising on whichever ground the page is on: the pastel ramp on the dark
-  // ground, the deep twins on the pale one, and the ground, ink and mark all
-  // follow. The same store the page reads, so the two cannot disagree.
-  const [stageTheme] = useStageTheme();
-  const light = stageTheme === 'light';
-  const ramp = light ? CATEGORY_RAMP_LIGHT : CATEGORY_RAMP;
   const [expired, setExpired] = useState(false);
   const [hard, setHard] = useState(false);
   const [shown, setShown] = useState(0);
@@ -555,22 +543,29 @@ export default function StageWelcome({ capRef }) {
     // aria-hidden because every word on it is read again, in place, on the cap
     // underneath, and there is nothing focusable inside it to strand.
     <div
-      className={'stw' + (light ? ' lt' : '') + (phase ? ' ' + phase : '')}
+      className={'stw' + (phase ? ' ' + phase : '')}
       aria-hidden="true"
       onClick={finish}
       style={clip ? { clipPath: clip, WebkitClipPath: clip } : undefined}
     >
       <style>{CSS}</style>
-      {/* THE RAMP. Ten bands in ramp order, each naming its category in that
-          step's own ink. The door is in the PAGE'S register (owner, 2026-09-01):
-          the pastel ramp rising on the near-black ground, the deep twins rising
-          on the pale one. It was a dark curtain in both registers, which suited
-          the dark mode and only the dark mode, and light is the default now. */}
+      {/* THE RAMP. Ten bands in ramp order, each naming its category in the
+          ramp's ink. THE CURTAIN IS DARK IN BOTH REGISTERS, and the bands are
+          the DARK register's pastels in both (owner, 2026-09-01, settled after a
+          register-aware cut and a greyscale cut were both turned down: "just
+          make it dark mode color strip even if light mode"). Earlier ruling:
+          "suits the dark mode but not the light mode"): on the pale register the
+          first cut painted the page's own ground, and a pale full screen with
+          ten deep bands and a ladder of pastels on white read as a blank sheet
+          with a sentence on it. The door is one object, the near-black ground
+          with the pastel ramp on it, whichever register the page behind it is
+          in; the collapse then lands on the cap and fades, which on the pale
+          register is a 200ms cross-fade rather than colour onto colour. */}
       <div className="stw-bands" aria-hidden="true">
         {RAMP_ORDER.map((cat, i) => (
           <span key={cat} className="stw-b"
-            style={{ background: ramp[i], animationDelay: `${0.05 + i * 0.075}s` }}>
-            <i style={{ color: light ? RAMP_INK_LIGHT[i] : RAMP_INK }}>{BAND_NAMES[cat] || cat}</i>
+            style={{ background: CATEGORY_RAMP[i], animationDelay: `${0.05 + i * 0.075}s` }}>
+            <i style={{ color: RAMP_INK }}>{BAND_NAMES[cat] || cat}</i>
           </span>
         ))}
       </div>
@@ -579,12 +574,12 @@ export default function StageWelcome({ capRef }) {
           for as long as the reads take, so a slow read never looks like a
           frozen screen. Same ten colours, same order, as the Patch's loop. */}
       <div className="stw-lad" aria-hidden="true">
-        {ramp.map((c, i) => <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />)}
+        {CATEGORY_RAMP.map((c, i) => <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />)}
       </div>
       <div className="stw-in">
         {cold ? (
           <>
-            <div className="stw-mark"><MindLoftMark size={72} ink={light ? '#0b0d12' : '#e9edf4'} accent={light ? '#2563eb' : '#7dd3fc'} /></div>
+            <div className="stw-mark"><MindLoftMark size={72} ink="#e9edf4" accent="#7dd3fc" /></div>
             <div className="stw-nm stw-wm">Mind <em>Loft</em></div>
           </>
         ) : (
@@ -626,17 +621,9 @@ const CSS = `
 .stw{position:fixed;inset:0;z-index:9000;cursor:pointer;display:grid;place-items:center;
   padding:clamp(48px,12vh,120px) 20px 24px;
   background:#0b0f1a;color:#e9edf4;
-  --stw-brand:#7dd3fc;--stw-up:#6ee7b7;--stw-dn:#fb7185;--stw-hand:#aab5c7;
   opacity:0;-webkit-clip-path:inset(0 0 0 0);clip-path:inset(0 0 0 0);
   transition:opacity 180ms ease,clip-path ${FLOOD_SHRINK}ms cubic-bezier(.2,.8,.25,1),
     -webkit-clip-path ${FLOOD_SHRINK}ms cubic-bezier(.2,.8,.25,1);}
-/* THE PALE REGISTER: the page's own paper, its own ink, the brand blue that
-   holds on paper (#7dd3fc is 1.54:1 there), and the light twins of the two
-   verdict colours. The wipe is the ground, so it must follow too. */
-.stw.lt{background:#eef1f6;color:#0b0d12;
-  --stw-brand:#2563eb;--stw-up:#047857;--stw-dn:#be123c;--stw-hand:#3f4757;}
-.stw.lt .stw-wipe{background:#eef1f6;}
-.stw.lt::after{background:radial-gradient(120% 78% at 50% 38%,rgba(11,15,26,.04),transparent 72%);}
 /* The ground does not change colour to greet anyone: the only lift is a wash
    under the name, so the one thing spending colour is the figures. */
 .stw::after{content:'';position:absolute;inset:0;pointer-events:none;
@@ -670,12 +657,12 @@ const CSS = `
 .stw.up .stw-in{transition-delay:${RAMP_WORDS}ms;}
 .stw.shrink .stw-in{transition-delay:0ms;}
 .stw-mark{margin-bottom:14px;animation:stw-stamp 420ms cubic-bezier(.2,.9,.3,1.3) both;}
-.stw-nm.stw-wm em{font-style:normal;color:var(--stw-brand);}
+.stw-nm.stw-wm em{font-style:normal;color:#7dd3fc;}
 /* A LINE is a figure-sized sentence: it takes the stamp and a dot in the brand
    blue, and no caption under it. */
 .stw-fig.line b{font-size:clamp(17px,2.4vw,26px);font-weight:700;letter-spacing:-.01em;}
 .stw-fig.line b::before{content:'';display:inline-block;width:.42em;height:.42em;border-radius:50%;
-  background:var(--stw-brand);margin-right:.5em;vertical-align:middle;}
+  background:#7dd3fc;margin-right:.5em;vertical-align:middle;}
 /* The clip has landed by now, so the colour is exactly the cap: fading it out
    is colour onto colour and what appears through it is the cap's own words. */
 .stw.out{opacity:0;transition:opacity ${FLOOD_FADE}ms ease;}
@@ -694,7 +681,7 @@ const CSS = `
 /* It is quieter than the name and still has to READ (owner, live, 2026-08-31:
    "is the text too dark and blends in?"). .45 on this ground put it near the
    floor, so it takes the ink token one step down instead of an opacity. */
-.stw-hand{color:var(--stw-hand);font-weight:600;}
+.stw-hand{color:#aab5c7;font-weight:600;}
 
 .stw-figs{margin-top:26px;display:flex;flex-wrap:wrap;justify-content:center;
   align-items:flex-end;gap:16px 42px;max-width:1000px;}
@@ -705,12 +692,12 @@ const CSS = `
 .stw-fig b{display:block;font-size:clamp(24px,4.2vw,44px);font-weight:800;line-height:.92;
   letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
 .stw-fig b i{font-style:normal;font-weight:700;font-size:.52em;margin-left:5px;opacity:.9;}
-.stw-fig b i.up{color:var(--stw-up);}
-.stw-fig b i.dn{color:var(--stw-dn);}
+.stw-fig b i.up{color:#6ee7b7;}
+.stw-fig b i.dn{color:#fb7185;}
 .stw-fig i.cl{display:block;font-style:normal;font-family:${MONO};
   font-size:clamp(9px,1.15vw,11px);letter-spacing:.16em;text-transform:uppercase;
   opacity:.72;margin-top:9px;}
-.stw-fig.good b{color:var(--stw-up);}
+.stw-fig.good b{color:#6ee7b7;}
 /* A RECAP ROW IS SMALLER THAN A FIGURE, because there can be ten of them and
    they are a list rather than a headline. The value keeps tabular numerals so
    the places line up as they wrap. */

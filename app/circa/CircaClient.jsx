@@ -678,7 +678,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
                 <div style={{ height: 18, borderRadius: 5, background: 'rgba(28,30,36,0.12)', width: '94%' }} />
                 <div style={{ height: 18, borderRadius: 5, background: 'rgba(28,30,36,0.12)', width: '56%' }} />
               </div>
-              <button className="cc-go" onClick={startGame} style={{ width: '100%', marginTop: 16 }}>Start</button>
+              <button className="cc-go" onClick={startGame} style={{ borderColor: STAGE ? STAGE_C : undefined, width: '100%', marginTop: 16 }}>Start</button>
               <div style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED, marginTop: 9, textAlign: 'center' }}>
                 Today&rsquo;s moment appears when you start.
               </div>

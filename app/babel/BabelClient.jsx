@@ -787,7 +787,7 @@ export default function BabelClient({ puzzles, forceNum }) {
               </div>
             )}
             <div style={{ marginTop: 18, display: 'flex', flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>
+              <button className="sc-btn" onClick={startGame} disabled={!ready} style={{ borderColor: STAGE ? STAGE_C : undefined, background: STAGE ? STAGE_C : T.cta, color: STAGE ? 'var(--stg-onramp, #08222e)' : T.white, fontSize: 15, padding: '11px 22px' }}>
                 {ready ? 'Start' : dictErr ? 'Dictionary failed to load' : 'Loading the dictionary…'}
               </button>
               <div>

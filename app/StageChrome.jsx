@@ -224,12 +224,14 @@ export default function StageChrome({
             saying WHOSE. So the words are back, they sit to the LEFT of the
             identity, and the whole cap now reads left to right as where you
             are: the site, then the category and date, then the game. */}
-        {/* THE MARK WEARS THE CATEGORY (owner, 2026-09-01: "our recolor is
-            supposed to hit the logo top left - it did at one point"). The brain's
-            blue is the category step on a game page, the same hue the cap band
-            and the board take. The WORD stays the brand blue: it is 13px text,
-            and the three warm steps (gold, orange, amber) do not hold as text on
-            paper, while the mark is a filled glyph and reads at any step. */}
+        {/* THE LOGO WEARS THE CATEGORY, mark AND word (owner, 2026-09-01: "our
+            recolor is supposed to hit the logo top left", then "'Loft' is still
+            blue, not the category color"). Both take the category step on a game
+            page, the same hue the cap band and the board take. Known cost, the
+            owner's call: the three warm steps (gold, orange, amber) run under
+            4.5:1 as 13px text on paper; the word is a brand mark beside a filled
+            glyph and the same word in ink sits in front of it, so it is never
+            the only thing carrying "Mind Loft". */}
         <a className="stg-brand" href={homeTo} aria-label="Mind Loft home" title="Mind Loft">
           <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-acc, var(--stg-brand,#7dd3fc))" />
           <b>Mind <em>Loft</em></b>
@@ -410,7 +412,7 @@ const CSS = `
 .stg-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;
   color:var(--stg-ink,#e9edf4);padding-right:15px;border-right:1px solid var(--stg-line);}
 .stg-brand b{font-size:13px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
-.stg-brand b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
+.stg-brand b em{font-style:normal;color:var(--stg-acc,var(--stg-brand,#7dd3fc));}
 .stg-brand:hover{opacity:.82;}
 .stg-brand:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
 .stg-ds{display:none;}
