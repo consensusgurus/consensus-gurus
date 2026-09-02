@@ -463,6 +463,13 @@ body:has(.stage-page) { background: #0b0f1a !important; }
   }
 }
 
+/* THE FOLD SPACER (app/StageFold.jsx) starts a full viewport tall on a desktop
+   so the About prose under it is below the fold on the server render, before
+   any script has measured anything; the component then trims it inline. On a
+   phone it is nothing. */
+.stage-page .stg-fold { height: 0; }
+@media (min-width: 761px) { .stage-page .stg-fold { height: 100vh; } }
+
 html:has(.stage-page[data-stage-theme='light']),
 body:has(.stage-page[data-stage-theme='light']) { background: #eef1f6 !important; }
 

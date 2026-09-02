@@ -64,5 +64,11 @@ export default function StageFold() {
       window.removeEventListener('resize', kick); ro.disconnect();
     };
   }, []);
-  return <div ref={ref} className="stg-fold" aria-hidden="true" style={{ height: 0 }} />;
+  // NO INLINE HEIGHT ON THE SERVER RENDER. app/globals.css gives .stg-fold a
+  // full viewport of height above 760px, so the prose is below the fold from
+  // the FIRST PAINT (owner, 2026-09-01: the About section "displays at top for
+  // a half second" while the page hydrated and the spacer measured). The
+  // measure above then writes the exact height inline, which wins over the
+  // stylesheet; a spacer that only shrinks moves nothing a reader can see.
+  return <div ref={ref} className="stg-fold" aria-hidden="true" />;
 }
