@@ -32,6 +32,7 @@
 // day its registry row lands, and a retired one drops out on its date.
 
 import { DAILY_GAMES, liveDailyKeys } from '@/lib/daily-games';
+import { categoryHref } from '@/lib/puzzle-categories';
 
 // Category order matches the home's shelf order (CAT_ORDER in
 // app/today/TodayClient.jsx); anything not named there trails, in roster order.
@@ -49,7 +50,10 @@ export function dailyRosterGroups() {
     const ia = CAT_ORDER.indexOf(a); const ib = CAT_ORDER.indexOf(b);
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
   });
-  return cats.map((cat) => ({ cat, games: by.get(cat) }));
+  // A category with a landing page (lib/puzzle-categories.js) links its label
+  // there; that link and the one in the game cap are what keep those pages
+  // from being orphans.
+  return cats.map((cat) => ({ cat, href: categoryHref(cat), games: by.get(cat) }));
 }
 
 // variant: 'stage' paints with the stage tokens (--stg-*), 'light' with the
@@ -67,7 +71,7 @@ export default function DailyRoster({ variant = 'light' }) {
       </div>
       {groups.map((g) => (
         <div key={g.cat} className="dr-row">
-          <span className="dr-cat">{g.cat}</span>
+          {g.href ? <a className="dr-cat" href={g.href}>{g.cat}</a> : <span className="dr-cat">{g.cat}</span>}
           <span className="dr-links">
             {g.games.map((x) => <a key={x.href} href={x.href}>{x.name}</a>)}
           </span>
@@ -86,7 +90,8 @@ const CSS = `
 .dr-head b{font-size:12.5px;font-weight:800;color:var(--dr-ink);}
 .dr-head a{font-size:12px;font-weight:700;color:var(--dr-mute);text-decoration:none;}
 .dr-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;}
-.dr-cat{flex:0 0 140px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dr-soft);}
+.dr-cat{flex:0 0 140px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dr-soft);text-decoration:none;}
+a.dr-cat:hover{color:var(--dr-ink);}
 .dr-links{flex:1 1 300px;min-width:0;display:flex;flex-wrap:wrap;gap:0 12px;}
 .dr-links a{color:var(--dr-mute);text-decoration:none;font-weight:600;white-space:nowrap;}
 .dr-links a:hover,.dr-head a:hover{color:var(--dr-ink);}

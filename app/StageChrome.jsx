@@ -44,6 +44,7 @@ import DailyBoardPanel from './quiz/[id]/DailyBoardPanel';
 import { dailyMeIdentity } from './dailyMeClient';
 import { gameColor, gameCategory, RAMP_INK, STAGE_GROUND } from '@/lib/category-ramp';
 import { gameStatsShort } from '@/lib/daily-row-stats';
+import { categoryHrefForGame } from '@/lib/puzzle-categories';
 
 // THE DATE COMES DOWN TO SIZE ON A PHONE (owner, 2026-08-31). "August 31, 2026"
 // is 130px of a 390px line, and the year is the least of what it says: the
@@ -208,6 +209,7 @@ export default function StageChrome({
   // A leader is the one thing the strip cannot be drawn without. No leader, no
   // strip: see the suppression rule at the top.
   const leader = board && board.leader;
+  const catHref = gameKey ? categoryHrefForGame(gameKey) : null;
   const showStrip = !!(stripOn && leader);
   const pct = Math.max(0, Math.min(100, Math.round((Number(progress) || 0) * 100)));
 
@@ -229,7 +231,7 @@ export default function StageChrome({
 
         <div className="stg-id">
           <i>
-            {category ? <span>{category}</span> : null}
+            {category ? (catHref ? <a className="stg-cat" href={catHref}>{category}</a> : <span>{category}</span>) : null}
             {category && dateLabel ? <span>{' · '}</span> : null}
             {dateLabel && dateShort ? (
               <>
@@ -378,6 +380,8 @@ const CSS = `
 .stg-id i{font-family:${MONO};font-style:normal;font-size:9.5px;letter-spacing:.15em;
   text-transform:uppercase;color:var(--stg-mute2,#66748f);display:block;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap;}
+.stg-cat{color:inherit;text-decoration:none;}
+.stg-cat:hover{text-decoration:underline;text-underline-offset:2px;}
 .stg-id h1{margin:0;font:inherit;font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px;}
 .stg-id h1 u{text-decoration:none;font-family:${MONO};font-size:9px;letter-spacing:.11em;
   text-transform:uppercase;font-weight:500;color:var(--stg-onramp,#08222e);background:var(--stg-acc);
