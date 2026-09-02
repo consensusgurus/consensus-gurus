@@ -2,6 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Build-time only, no effect on the emitted app (2026-09-01, build-time pass).
+  // ESLint used to run over the whole tree inside `next build` on every
+  // deploy; the no-undef sweep and verify-all are the pre-push gate instead.
+  eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    // Run the server, client and edge webpack compilations in separate
+    // workers instead of serially. Output is identical; only wall time moves.
+    webpackBuildWorker: true,
+  },
   images: {
     // Hero photos are referenced by remote URL (lib/hero-images.js) and
     // optimized/cached by the built-in image optimizer at request time.

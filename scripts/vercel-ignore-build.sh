@@ -18,8 +18,8 @@
 # A commit that only edits documentation cannot change the built output, so it
 # should pay neither cost.
 #
-# DELIBERATELY NARROW: markdown only. Nothing under app/, lib/, public/,
-# scripts/, and no config file is ever skipped. Verified 2026-08-08 that no .md
+# DELIBERATELY NARROW: markdown and scripts/ only (scripts/ added 2026-09-01,
+# see below). Nothing under app/, lib/, public/, and no config file is ever skipped. Verified 2026-08-08 that no .md
 # is imported or read by app/ or lib/ at build time (the repo has 5 .md files
 # and all of them are notes: CLAUDE.md, CLAUDE-QUIZZES.md, README.md,
 # scripts/gen-shards/README.md, sushi-tokyo-research-notes.md).
@@ -41,13 +41,20 @@ git rev-parse --verify HEAD^2 >/dev/null 2>&1 && build "merge commit"
 changed=$(git diff --name-only HEAD^ HEAD) || build "git diff failed"
 [ -z "$changed" ] && build "empty diff"
 
-# Build the moment ANY changed path is not markdown.
-if printf '%s\n' "$changed" | grep -qvE '\.md$'; then
+# Build the moment ANY changed path is not markdown or under scripts/.
+#
+# scripts/ widened 2026-09-01: re-ran the audit that day. Nothing in app/, lib/,
+# middleware.js or next.config.js imports, requires or reads a file under
+# scripts/ (every mention is a comment naming a verifier). The scripts are
+# generators and checkers run by hand in the sandbox, so a scripts-only commit
+# cannot change the built output. If a script ever becomes a build input
+# (imported by a route, read by next.config.js), remove it from this pattern.
+if printf '%s\n' "$changed" | grep -qvE '(\.md$|^scripts/)'; then
   echo "IGNORE-STEP: building, code changed:"
   printf '%s\n' "$changed" | head -30
   exit 1
 fi
 
-echo "IGNORE-STEP: documentation only, skipping build:"
+echo "IGNORE-STEP: documentation/scripts only, skipping build:"
 printf '%s\n' "$changed"
 exit 0

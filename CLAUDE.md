@@ -1284,6 +1284,25 @@ file included) and nothing else, on purpose: the script exits 1 (build) for merg
 commits, shallow clones, and any changed path that is not `*.md`. It is a backstop,
 not a substitute for batching.
 
+### Build-time pass (2026-09-01): what is on, and what is still owed
+
+Shipped as one commit, none of it visible to a reader:
+
+- `eslint.ignoreDuringBuilds: true` in `next.config.js`. `next build` no longer lints the tree;
+  the `no-undef` sweep and `scripts/verify-all.mjs` are the pre-push gate, so run them.
+- `experimental.webpackBuildWorker: true` (Next 14.2.35). Server, client and edge compilations
+  run in parallel workers. Output is identical.
+- `scripts/vercel-ignore-build.sh` now also skips a commit whose changed paths are ALL markdown
+  or under `scripts/`. Audited that day: no file in app/, lib/, middleware.js or next.config.js
+  imports or reads anything under scripts/. Re-run that audit before widening further, and
+  pull scripts/ back out if a script ever becomes a build input.
+
+Still owed, each needing its own careful pass: convert the pure-data modules (`app/*/puzzles.js`
+at 18 MB total, `descriptions.js`, `hero-images.js`, `rating-data.js`) to JSON or fs reads so
+webpack stops parsing them as code; consolidate the per-route OG image entries (each bundles
+`lib/og-brand-card.js`); check the build summary for pages prerendered at build that should be
+dynamic. Measure each against the phase timings in a Vercel build log first.
+
 ### Session-start preflight (run this first, every new chat)
 
 1. Confirm the connected folder is `C:\dev\source-of-truths` — the repo that actually contains `.git` and
