@@ -1006,7 +1006,7 @@ const CSS = `
 /* Played today reads as done without leaving the list: the tile keeps its
    colour on the rule and gives up only its fill. */
 .stf-tile.done{background:none;color:var(--stg-mute);}
-.stf-o.on{border-color:var(--stg-acc);color:var(--stg-acc);}
+.stf-o.on{border-color:var(--stg-acc);color:var(--stg-acc-ink);}
 
 .stf-curtain{background:var(--stg-acc);color:var(--stg-onramp,#08222e);
   margin:0 calc(50% - 50vw);padding:30px calc(50vw - 50% + 4px) 26px;}
@@ -1097,10 +1097,10 @@ const CSS = `
 .stf-archr:hover{border-color:var(--stg-line2);}
 .stf-archr .d{font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .stf-archr .d i{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--stg-acc);margin-left:7px;}
+  text-transform:uppercase;color:var(--stg-acc-ink);margin-left:7px;}
 .stf-archr .n{font-family:${MONO};font-size:11px;color:var(--stg-mute);}
 .stf-archr .v{margin-left:auto;flex:none;display:flex;align-items:center;gap:7px;
-  font-size:12.5px;font-weight:800;color:var(--stg-acc);}
+  font-size:12.5px;font-weight:800;color:var(--stg-acc-ink);}
 .stf-archr .v em{font-style:normal;font-family:${MONO};font-size:8.5px;letter-spacing:.1em;
   text-transform:uppercase;font-weight:700;color:var(--stg-mute);}
 .stf-archr .v b{font-variant-numeric:tabular-nums;color:var(--stg-ink);}

@@ -38,7 +38,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -270,7 +270,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
   // every call site below themes itself and none of them had to be found.
   // The literals are published on the root element instead.
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('suds');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('suds'), '--stg-acc-lt': gameColorLight('suds'), '--stg-onramp-lt': gameOnrampLight('suds') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('suds'), '--stg-acc-lt': gameColorLight('suds'), '--stg-onramp-lt': gameOnrampLight('suds'), '--stg-acc-ink-lt': gameAccentInkLight('suds') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -822,13 +822,14 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
           .sd-given{font-weight:700;color:${INK};}
           .sd-user{font-weight:500;color:${STAGE ? STAGE_C : COLORS.accent};}
           .sd-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
-          .sd-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
+          .sd-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:var(--stg-ink2, #8a93a3);}
           .sd-pad{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.5)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(28,30,36,0.4)'};}
           .sd-pad:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(28,30,36,0.4);}
           .sd-pad.done{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#c3c8cf'};box-shadow:none;background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : '#f4f5f7'};cursor:default;}
+          .sd-pad.done span{text-decoration:line-through;}
           .sd-pad.armed{background:var(--stg-acc, ${STAGE ? STAGE_C : COLORS.accent});color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:var(--stg-acc, ${STAGE ? STAGE_C : COLORS.accent});box-shadow:${STAGE ? 'none' : '0 2px 0 rgba(154,61,12,0.55)'};}
           .sd-pad.armed .sd-pad-n{color:${STAGE ? 'color-mix(in srgb, var(--stg-onramp, #08222e) 68%, transparent)' : '#ffe0cc'};}
-          .sd-pad .sd-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:#aab0bb;font-weight:500;}
+          .sd-pad .sd-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:var(--stg-mute2, #aab0bb);font-weight:500;}
           .sd-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2,rgba(255,255,255,0.08))' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .sd-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
@@ -975,7 +976,7 @@ export default function SudsClient({ puzzles = [], forceNum = null }) {
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : FADED }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc-ink, ${COLORS.accent})` : FADED }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0

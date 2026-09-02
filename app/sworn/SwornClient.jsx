@@ -46,7 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -267,7 +267,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('sworn', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('sworn');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('sworn'), '--stg-acc-lt': gameColorLight('sworn'), '--stg-onramp-lt': gameOnrampLight('sworn') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('sworn'), '--stg-acc-lt': gameColorLight('sworn'), '--stg-onramp-lt': gameOnrampLight('sworn'), '--stg-acc-ink-lt': gameAccentInkLight('sworn') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -275,6 +275,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;   // not begun: show the start tile where the board goes
@@ -588,7 +589,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           .sw-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .sw-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 86%, var(--stg-ink, var(--white)));}
           .sw-card{display:flex;align-items:center;gap:12px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:9px;padding:10px 12px;margin-bottom:8px;}
-          .sw-card b{color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};}
+          .sw-card b{color:${STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep};}
           .sw-mark{color:${INK};flex:0 0 auto;width:38px;height:38px;border-radius:8px;border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.25));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:17px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;}
           .sw-mark.truth{background:#dcfce7;border-color:var(--success-deep);color:var(--success-deep);}
           .sw-mark.lie{background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};border-color:#b91c1c;color:#b91c1c;}
@@ -711,7 +712,7 @@ export default function SwornClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '10px 0 6px' }}>
             <button type="button" className="sw-btn" onClick={clearMarks}><Eraser size={14} /> Clear marks</button>
             {hintOk && !g.hintUsed && (
-              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,24,93,0.5)', color: ACC_DEEP }}>
+              <button type="button" className="sw-btn" onClick={useHint} title="Verify one witness (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,24,93,0.5)', color: ACC_DEEP_INK }}>
                 <Lightbulb size={14} /> Hint: verify a witness
               </button>
             )}

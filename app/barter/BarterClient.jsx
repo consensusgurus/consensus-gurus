@@ -40,7 +40,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK, FEED_SOFT, FEED_SOFT_INK } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, FEED_STRONG, FEED_STRONG_INK, FEED_SOFT, FEED_SOFT_INK, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -283,13 +283,19 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('barter', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('barter');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('barter'), '--stg-acc-lt': gameColorLight('barter'), '--stg-onramp-lt': gameOnrampLight('barter') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('barter'), '--stg-acc-lt': gameColorLight('barter'), '--stg-onramp-lt': gameOnrampLight('barter'), '--stg-acc-ink-lt': gameAccentInkLight('barter') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -743,7 +749,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
           {playing && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="bt-tool" onClick={useHint} title="One correct trade at no cost (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,18,60,0.5)', color: ACC }}>
+                <button className="bt-tool" onClick={useHint} title="One correct trade at no cost (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(190,18,60,0.5)', color: ACC_INK }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -755,7 +761,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
             meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: sel !== null ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: sel !== null ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {sel !== null
                 ? 'Now tap the tile to trade it with. Tap it again to put it back.'
                 : 'Tap two tiles to trade them. Solid blue tiles are locked.'}
@@ -770,7 +776,7 @@ export default function BarterClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                The words: <span style={{ color: ACC }}>{WORDS.map((w) => w.toUpperCase()).join(', ')}</span>.
+                The words: <span style={{ color: ACC_INK }}>{WORDS.map((w) => w.toUpperCase()).join(', ')}</span>.
               </div>
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger 7&times;7 lattice.</div>

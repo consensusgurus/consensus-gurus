@@ -51,7 +51,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -267,13 +267,19 @@ export default function BabelClient({ puzzles, forceNum }) {
   const STAGE = isStage('babel', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('babel');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('babel'), '--stg-acc-lt': gameColorLight('babel'), '--stg-onramp-lt': gameOnrampLight('babel') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('babel'), '--stg-acc-lt': gameColorLight('babel'), '--stg-onramp-lt': gameOnrampLight('babel'), '--stg-acc-ink-lt': gameAccentInkLight('babel') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -739,7 +745,7 @@ export default function BabelClient({ puzzles, forceNum }) {
           .sc-cell.foeplay{background:${STAGE ? 'var(--stg-surf2)' : '#f3cdb2'};border-color:rgba(124,45,18,0.6);box-shadow:inset 0 -3px 0 rgba(124,45,18,0.42);}
           .sc-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
           .sc-cell .pts{position:absolute;right:1px;bottom:0;font-size:clamp(5px,1.5vw,8px);font-weight:800;opacity:0.8;}
-          .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:var(--stg-acc, ${COLORS.accent});}
+          .sc-cell .dirmark{position:absolute;right:1px;top:0;font-size:8px;color:var(--stg-acc-ink, ${COLORS.accent});}
           .sc-rack{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 6px;}
           .sc-tile{position:relative;width:42px;height:46px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(120,80,20,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(120,80,20,0.28);}
           .sc-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;opacity:0.7;}
@@ -803,7 +809,7 @@ export default function BabelClient({ puzzles, forceNum }) {
         <>
         <div style={{ display: 'flex', gap: 16, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span style={{ fontSize: 12 }}>spread <b style={{ color: spread >= BENCH ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500, fontSize: 20 }}>{signed(spread)}</b></span>
-          <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{signed(BENCH)}</b></span>
+          <span>benchmark <b style={{ color: ACC_INK, fontWeight: 500 }}>{signed(BENCH)}</b></span>
           <span>you <b style={{ color: INK, fontWeight: 500 }}>{g.my}</b></span>
           <span>them <b style={{ color: `var(--stg-ink, ${COLORS.foe})`, fontWeight: 500 }}>{g.foeScore}</b></span>
           <span style={{ marginLeft: 'auto' }}>{elapsed}</span>

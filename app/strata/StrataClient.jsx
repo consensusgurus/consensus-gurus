@@ -47,7 +47,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -175,7 +175,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   // Resolved in an effect: the server cannot know what is stored.
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('strata');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('strata'), '--stg-acc-lt': gameColorLight('strata'), '--stg-onramp-lt': gameOnrampLight('strata') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('strata'), '--stg-acc-lt': gameColorLight('strata'), '--stg-onramp-lt': gameOnrampLight('strata'), '--stg-acc-ink-lt': gameAccentInkLight('strata') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -183,6 +183,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
@@ -636,7 +637,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               </h2>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Every letter belongs to one of them, and they are all members of{' '}
-                {PUZZLE.sunday ? <b style={{ color: ACC_DEEP }}>two categories you are not told</b> : <b style={{ color: ACC_DEEP }}>one category you are not told</b>}.
+                {PUZZLE.sunday ? <b style={{ color: ACC_DEEP_INK }}>two categories you are not told</b> : <b style={{ color: ACC_DEEP_INK }}>one category you are not told</b>}.
                 Trace a word and it lifts out. Then the letters above it fall, and the board you were reading is gone.
               </p>
               {gateRules && (
@@ -666,7 +667,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
                 <div style={{ fontFamily: MONO, fontSize: 12.5, fontWeight: 700, color: FADED }}>
                   {foundWords.length}/{TOTAL} &middot; {elapsed}{g.hints ? ` · ${g.hints} hint${g.hints > 1 ? 's' : ''}` : ''}
                 </div>
-                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 700, color: g.thread ? `var(--stg-acc, ${COLORS.accentDeep})` : 'transparent', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                <div style={{ marginLeft: 'auto', fontFamily: MONO, fontSize: 11.5, fontWeight: 700, color: g.thread ? `var(--stg-acc-ink, ${COLORS.accentDeep})` : 'transparent', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   {g.thread ? threadLabel : '.'}
                 </div>
               </div>
@@ -700,7 +701,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
               {/* What you have spelled so far. Tapping has no finger on the
                   board to look at, so the trace needs to be readable as text. */}
               <div style={{ minHeight: 26, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontFamily: MONO, fontSize: 16, letterSpacing: '0.22em', fontWeight: 700, color: bad ? '#b91c1c' : `var(--stg-acc, ${COLORS.accentDeep})` }}>
+                <span style={{ fontFamily: MONO, fontSize: 16, letterSpacing: '0.22em', fontWeight: 700, color: bad ? '#b91c1c' : `var(--stg-acc-ink, ${COLORS.accentDeep})` }}>
                   {trace.map((id) => cells[id].ch).join('')}
                 </span>
                 {trace.length > 0 && (
@@ -719,7 +720,7 @@ export default function StrataClient({ puzzles = [], forceNum = null }) {
 
               {stuck && (
                 <div style={{ border: `1.5px solid var(--stg-line, ${COLORS.accentDeep})`, borderRadius: 10, padding: '12px 14px', marginBottom: 14, background: `var(--stg-surf, ${COLORS.accentSoft})` }}>
-                  <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: ACC_DEEP, marginBottom: 4 }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 800, fontSize: 14, color: ACC_DEEP_INK, marginBottom: 4 }}>
                     Nothing left to read. That is our fault, not yours.
                   </div>
                   <div style={{ fontFamily: SANS, fontSize: 13, color: FADED, fontWeight: 600, marginBottom: 10 }}>

@@ -45,7 +45,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -252,7 +252,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
   const STAGE = isStage('pricer', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('pricer');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('pricer'), '--stg-acc-lt': gameColorLight('pricer'), '--stg-onramp-lt': gameOnrampLight('pricer') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('pricer'), '--stg-acc-lt': gameColorLight('pricer'), '--stg-onramp-lt': gameOnrampLight('pricer'), '--stg-acc-ink-lt': gameAccentInkLight('pricer') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -260,6 +260,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;
@@ -869,7 +870,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
           .pr-guess-label{font-family:${MONO};font-size:10px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:${COLORS.accentDeep};margin:0 0 6px;}
           .pr-guess-sub{font-family:${SANS};font-size:14px;font-weight:700;line-height:1.45;color:${INK};margin:0 0 14px;}
           .pr-guess-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
-          .pr-guess-dollar{font-family:${MONO};font-size:18px;font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
+          .pr-guess-dollar{font-family:${MONO};font-size:18px;font-weight:500;color:var(--stg-acc-ink, ${COLORS.accent});}
           .pr-guess-input{font-family:${MONO};font-size:18px;font-weight:500;border:1.5px solid ${COLORS.accent};border-radius:6px;
                           padding:8px 10px;width:170px;max-width:100%;outline:none;color:${INK};background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .pr-guess-input:focus{border-color:${COLORS.accentDeep};box-shadow:0 0 0 3px rgba(21,128,61,.2);}
@@ -911,7 +912,7 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
 
         {preStart && (
           <div className={STAGE ? 'stg-gate' : (LOFT ? 'loft-card' : undefined)} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px 22px', minHeight: 320, display: 'flex', flexDirection: 'column', maxWidth: 760 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: ACC_DEEP, fontWeight: 500, marginBottom: 5 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: ACC_DEEP_INK, fontWeight: 500, marginBottom: 5 }}>
               Today&rsquo;s field &middot; {PUZZLE.category}
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, color: INK, marginBottom: 10 }}>{gateRules ? 'How to play' : 'The field is sealed'}</div>
@@ -935,11 +936,11 @@ export default function PricerClient({ puzzles = [], forceNum = null, preview = 
             {/* The category is the whole frame for the day's question: "which
                 costs more" is meaningless until you know it is sixteen sneakers
                 rather than sixteen sports cars. It leads, above the metric. */}
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: ACC_DEEP, fontWeight: 500, marginBottom: 6 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', color: ACC_DEEP_INK, fontWeight: 500, marginBottom: 6 }}>
               {PUZZLE.category} &middot; {N} priced
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
-              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP, background: COLORS.accentSoft, border: `1.5px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: ACC_DEEP_INK, background: COLORS.accentSoft, border: `1.5px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 8, padding: '7px 12px' }}>{PUZZLE.metric}</span>
               <span style={{ fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
                 picked <b style={{ color: INK, fontWeight: 500 }}>{filled}</b> of {MATCHES}
                 {!playing && <> &nbsp;&middot;&nbsp; scored <b style={{ color: INK, fontWeight: 500 }}>{score}</b>/{TOTAL}</>}

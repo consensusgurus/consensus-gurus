@@ -27,7 +27,7 @@
 // stylesheet, so a root setting --stg-acc directly could never be re-themed.
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
 import ThemePop from '../ThemePop';
-import { categoryColor, categoryColorLight, categoryOnrampLight } from '@/lib/category-ramp';
+import { categoryColor, categoryColorLight, categoryOnrampLight, categoryAccentInkLight } from '@/lib/category-ramp';
 import MindLoftMark from '../MindLoftMark';
 import StageFooter from '../StageFooter';
 
@@ -48,6 +48,7 @@ export default function CircuitFrame({ cat = null, label = 'Circuits', progress 
     '--stg-acc-dk': categoryColor(cat),
     '--stg-acc-lt': categoryColorLight(cat),
     '--stg-onramp-lt': categoryOnrampLight(cat),
+    '--stg-acc-ink-lt': categoryAccentInkLight(cat),
   } : null;
 
   return (
@@ -149,7 +150,7 @@ const CSS = `
    frame carries everything it needs. */
 .cfr-tg{position:relative;display:inline-flex;align-items:center;justify-content:center;
   padding:6px 9px;background:none;cursor:pointer;font:inherit;}
-.cfr-tg.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
+.cfr-tg.hint{border-color:var(--stg-acc);color:var(--stg-acc-ink);animation:stg-hintring 1.9s ease-out 3;}
 /* THE FIRST-VISIT POINTER at the light switch, the same ring both caps draw.
    The keyframes are per stylesheet because each cap ships its own sheet; the
    name is shared, so a browser that has already seen it on another surface

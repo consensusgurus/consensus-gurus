@@ -122,7 +122,7 @@ const CSS = `
 .stgf-brandcol p{margin:9px 0 0;font-size:12.5px;line-height:1.55;color:var(--stg-mute);}
 .stgf-about{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:800;
   color:var(--stg-ink);text-decoration:none;}
-.stgf-about:hover{color:var(--stg-acc);}
+.stgf-about:hover{color:var(--stg-acc-ink);}
 /* The visitor count is a FIGURE, drawn the way every other figure on the stage
    is, rather than a sentence of small grey prose. */
 .stgf-vis{margin-top:14px;font-family:${MONO};font-size:13px;font-weight:700;

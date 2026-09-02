@@ -42,7 +42,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -291,13 +291,19 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('outrank', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('outrank');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('outrank'), '--stg-acc-lt': gameColorLight('outrank'), '--stg-onramp-lt': gameOnrampLight('outrank') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('outrank'), '--stg-acc-lt': gameColorLight('outrank'), '--stg-onramp-lt': gameOnrampLight('outrank'), '--stg-acc-ink-lt': gameAccentInkLight('outrank') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -626,7 +632,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
     return (
       <div style={{ background: STAGE ? SURF : T.white, border: STAGE ? `1px solid ${SURF_B}` : '1.5px solid rgba(28,30,36,0.18)', borderRadius: 10, padding: '13px 15px', maxWidth: 472, margin: '0 auto 12px' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 9 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACC }}>The crowd&rsquo;s order</span>
+          <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.1em', color: ACC_INK }}>The crowd&rsquo;s order</span>
           <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: FADED, marginLeft: 'auto' }}>{fmtBig(result.poolSize)} votes in</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -786,7 +792,7 @@ export default function OutrankClient({ puzzles = [], forceNum = null }) {
           </div>
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 10, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 12, marginBottom: 12 }}>
             <span aria-hidden style={{ flex: '0 0 auto', width: 5, background: `var(--stg-acc, ${COLORS.accent})`, borderRadius: 3 }} />
-            <span style={{ fontFamily: SANS, fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.12, color: ACC, textTransform: 'uppercase' }}>{PUZZLE.theme}</span>
+            <span style={{ fontFamily: SANS, fontSize: 23, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.12, color: ACC_INK, textTransform: 'uppercase' }}>{PUZZLE.theme}</span>
           </div>
           <div style={{ fontFamily: SANS, fontSize: 13, fontWeight: 700, color: FADED, marginBottom: 12, lineHeight: 1.5 }}><b style={{ color: INK }}>{PUZZLE.theme}:</b> {PUZZLE.flavor}</div>
 

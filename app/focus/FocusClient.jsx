@@ -46,7 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -243,13 +243,19 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
   const STAGE = isStage('focus', searchParams);
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('focus');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('focus'), '--stg-acc-lt': gameColorLight('focus'), '--stg-onramp-lt': gameOnrampLight('focus') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('focus'), '--stg-acc-lt': gameColorLight('focus'), '--stg-onramp-lt': gameOnrampLight('focus'), '--stg-acc-ink-lt': gameAccentInkLight('focus') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const frame = g.frame;
   const misses = g.wrong.length;
   const score = won ? pointsFor(frame) : 0;
@@ -613,7 +619,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Aperture size={13} style={{ color: ACC }} />
+              <Aperture size={13} style={{ color: ACC_INK }} />
               <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{frame}/{FRAMES}</b>
               <span>frame</span>
             </span>
@@ -623,7 +629,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
           )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10, marginBottom: 10, fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500 }}>
-            <span style={{ color: ACC }}>{SUBJECT.label}</span>
+            <span style={{ color: ACC_INK }}>{SUBJECT.label}</span>
             <span style={{ color: FADED }}>{playing ? (frame === FRAMES ? 'Last frame · the whole photo' : frame === 1 ? 'Every miss pulls back' : `${FRAMES - frame} more pull${FRAMES - frame === 1 ? '' : 's'} left`) : (won ? `Solved at frame ${frame}` : 'Out of frames')}</span>
           </div>
 
@@ -647,7 +653,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
             {imgOk === null && (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: FADED }}>Developing…</div>
             )}
-            <span className="fc-tag" style={{ left: 10 }}>Frame <b style={{ color: `var(--stg-acc, ${COLORS.accent})`, fontWeight: 500 }}>{viewFrame}</b> of {FRAMES}</span>
+            <span className="fc-tag" style={{ left: 10 }}>Frame <b style={{ color: `var(--stg-acc-ink, ${COLORS.accent})`, fontWeight: 500 }}>{viewFrame}</b> of {FRAMES}</span>
             <span className="fc-tag" style={{ right: 10 }}>{ZOOM[viewFrame - 1]}×</span>
           </div>
           <div className="fc-ladder" aria-label={`frame ${frame} of ${FRAMES}`}>
@@ -721,7 +727,7 @@ export default function FocusClient({ puzzles = [], dayByNum = {}, forceNum = nu
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                {won ? <>Frame <span style={{ color: ACC }}>{frame} of {FRAMES}</span>, {misses} wrong.</> : <>The camera pulled all the way back.</>}
+                {won ? <>Frame <span style={{ color: ACC_INK }}>{frame} of {FRAMES}</span>, {misses} wrong.</> : <>The camera pulled all the way back.</>}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {won

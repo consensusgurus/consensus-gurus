@@ -59,7 +59,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -257,13 +257,19 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('tuck', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('tuck');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('tuck'), '--stg-acc-lt': gameColorLight('tuck'), '--stg-onramp-lt': gameOnrampLight('tuck') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('tuck'), '--stg-acc-lt': gameColorLight('tuck'), '--stg-onramp-lt': gameOnrampLight('tuck'), '--stg-acc-ink-lt': gameAccentInkLight('tuck') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -746,10 +752,10 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
           .tk-cell.filled{background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, var(--stg-cell))' : COLORS.tile};border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 35%, transparent);box-shadow:inset 0 -2px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 18%, transparent);}
           .tk-cell.badword{background:${STAGE ? 'var(--stg-surf2)' : '#fbe3e0'};border-color:rgba(192,57,43,0.5);color:${COLORS.rust};}
           .tk-cell.sel{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:-1px;z-index:1;}
-          .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});}
+          .tk-dir{position:absolute;right:2px;bottom:1px;font-size:9px;color:var(--stg-acc-ink, ${COLORS.accent});}
           .tk-tray{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:14px 0 4px;}
           .tk-tile{position:relative;width:40px;height:44px;background:${STAGE ? 'var(--stg-surf2)' : COLORS.tile};border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(146,64,14,0.45)'};border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:${INK};cursor:pointer;user-select:none;box-shadow:0 2px 0 color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 25%, transparent);}
-          .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});}
+          .tk-tile .pts{position:absolute;right:3px;bottom:1px;font-size:9px;font-weight:800;color:var(--stg-acc-ink, ${COLORS.accent});}
           .tk-tile.used{opacity:0.28;box-shadow:none;}
           .tk-tile.armed{outline:2.5px solid var(--stg-acc, ${COLORS.accent});outline-offset:1px;}
           .tk-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
@@ -813,7 +819,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
         {!preStart && (
         <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 10, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
           <span style={{ fontSize: 12 }}>score <b style={{ color: liveScore >= BENCH && liveScore > 0 ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500, fontSize: 20 }}>{playing ? liveScore : finalScore}</b></span>
-          <span>benchmark <b style={{ color: ACC, fontWeight: 500 }}>{BENCH}</b></span>
+          <span>benchmark <b style={{ color: ACC_INK, fontWeight: 500 }}>{BENCH}</b></span>
           <span>tiles <b style={{ color: INK, fontWeight: 500 }}>{placedCount}</b>/{RACK}</span>
           {!playing && <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})` }}>score submitted — sandbox mode</span>}
         </div>
@@ -899,7 +905,7 @@ export default function TuckClient({ puzzles = [], forceNum = null }) {
               {runs.length ? runs.map((x, i) => (
                 <span key={i} className={`tk-wtag${dict && !dict.has(x.word.toLowerCase()) ? ' invalid' : ''}`}>
                   {x.word.toLowerCase()}{dict && !dict.has(x.word.toLowerCase()) ? ' ?' : ''}
-                  <span style={{ marginLeft: 5, color: ACC, fontWeight: 800, fontSize: 10 }}>{[...x.word].reduce((s, ch) => s + PTS[ch], 0)}</span>
+                  <span style={{ marginLeft: 5, color: ACC_INK, fontWeight: 800, fontSize: 10 }}>{[...x.word].reduce((s, ch) => s + PTS[ch], 0)}</span>
                 </span>
               )) : <span style={{ fontSize: 12, fontWeight: 600, color: FADED }}>No words yet.</span>}
             </div>

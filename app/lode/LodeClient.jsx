@@ -58,7 +58,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -279,13 +279,19 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('lode', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('lode');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('lode'), '--stg-acc-lt': gameColorLight('lode'), '--stg-onramp-lt': gameOnrampLight('lode') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('lode'), '--stg-acc-lt': gameColorLight('lode'), '--stg-onramp-lt': gameOnrampLight('lode'), '--stg-acc-ink-lt': gameAccentInkLight('lode') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -648,7 +654,7 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
           .ld-pip{position:absolute;top:-4px;width:2px;height:18px;background:rgba(28,30,36,0.28);}
           .ld-wtag{display:inline-flex;align-items:center;font-family:${MONO};font-size:11.5px;font-weight:500;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:6px;padding:2px 7px;margin:0 5px 5px 0;color:${INK};}
           .ld-wtag.t3{border-color:rgba(192,57,43,0.45);color:${COLORS.rust};}
-          .ld-wtag.t2{border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 50%, transparent);color:var(--stg-acc, ${COLORS.accent});}
+          .ld-wtag.t2{border-color:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 50%, transparent);color:var(--stg-acc-ink, ${COLORS.accent});}
           .ld-wtag.pan{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);border-color:var(--stg-acc, ${COLORS.accent});font-weight:700;}
           .ld-wtag.new{outline:2px solid var(--stg-acc, ${COLORS.accent});outline-offset:1px;}
           /* Tailings: real, unscored. Deliberately the quietest tag on the
@@ -711,16 +717,16 @@ export default function LodeClient({ puzzles = [], forceNum = null }) {
             {/* score bar */}
             <div style={{ display: 'flex', gap: 18, alignItems: 'baseline', flexWrap: 'wrap', marginBottom: 8, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.08em', textTransform: 'uppercase', color: FADED }}>
               <span style={{ fontSize: 12 }}>score <b style={{ color: struck ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500, fontSize: 20 }}>{score}</b></span>
-              <span>vein <b style={{ color: ACC, fontWeight: 500 }}>{VEIN}</b></span>
+              <span>vein <b style={{ color: ACC_INK, fontWeight: 500 }}>{VEIN}</b></span>
               <span>words <b style={{ color: INK, fontWeight: 500 }}>{g.found.length}</b></span>
-              {pangramsFound > 0 && <span style={{ color: ACC }}>pangram &times;{pangramsFound}</span>}
+              {pangramsFound > 0 && <span style={{ color: ACC_INK }}>pangram &times;{pangramsFound}</span>}
               {!playing && <span style={{ marginLeft: 'auto', color: `var(--stg-ink, ${COLORS.green})` }}>score posted &mdash; sandbox mode</span>}
             </div>
 
             {/* rank ladder */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
-                <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : `var(--stg-acc, ${COLORS.accent})` }}>{rank.n}</span>
+                <span style={{ fontFamily: SANS, fontWeight: 900, fontSize: 17, color: struck ? COLORS.green : `var(--stg-acc-ink, ${COLORS.accent})` }}>{rank.n}</span>
                 {nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: FADED }}>{nextRank.at - score} to {nextRank.n}</span>}
                 {!nextRank && <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: `var(--stg-ink, ${COLORS.green})` }}>every word on the board</span>}
               </div>

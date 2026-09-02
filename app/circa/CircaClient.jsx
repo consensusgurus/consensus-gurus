@@ -38,7 +38,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -96,7 +96,7 @@ const bandOf = (diff) => BANDS.find((b) => diff <= b.max);
 const STAGE_HUE = { hot: 'var(--stg-bad)', warm: 'var(--stg-warn)', cool: 'var(--stg-cool)', cold: 'var(--stg-mute)' };
 function bandSkin(b, stage) {
   if (!stage) return { bg: b.bg, border: b.border, color: b.color };
-  const h = STAGE_HUE[b.key] || 'var(--stg-acc)';
+  const h = STAGE_HUE[b.key] || 'var(--stg-acc-ink)';
   return {
     bg: `color-mix(in srgb, ${h} 13%, var(--stg-raise))`,
     border: `color-mix(in srgb, ${h} 48%, transparent)`,
@@ -268,7 +268,7 @@ export default function CircaClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('circa', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('circa');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('circa'), '--stg-acc-lt': gameColorLight('circa'), '--stg-onramp-lt': gameOnrampLight('circa') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('circa'), '--stg-acc-lt': gameColorLight('circa'), '--stg-onramp-lt': gameOnrampLight('circa'), '--stg-acc-ink-lt': gameAccentInkLight('circa') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;

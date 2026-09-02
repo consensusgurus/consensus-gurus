@@ -45,7 +45,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -295,13 +295,19 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('fib', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('fib');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('fib'), '--stg-acc-lt': gameColorLight('fib'), '--stg-onramp-lt': gameOnrampLight('fib') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('fib'), '--stg-acc-lt': gameColorLight('fib'), '--stg-onramp-lt': gameOnrampLight('fib'), '--stg-acc-ink-lt': gameAccentInkLight('fib') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -700,7 +706,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           }}
         >
           {v ? (
-            <span style={{ fontFamily: MONO, fontSize: cellFs, lineHeight: 1, fontWeight: 500, color: isDup ? `var(--stg-bad, ${COLORS.rust})` : isGiven ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-acc, ${COLORS.accent})` }}>{v}</span>
+            <span style={{ fontFamily: MONO, fontSize: cellFs, lineHeight: 1, fontWeight: 500, color: isDup ? `var(--stg-bad, ${COLORS.rust})` : isGiven ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-acc-ink, ${COLORS.accent})` }}>{v}</span>
           ) : noteMask ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', width: '86%', height: '86%', alignItems: 'center', justifyItems: 'center' }}>
               {Array.from({ length: n }).map((_, k) => (
@@ -789,7 +795,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
           .fb-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
           .fb-key{font-family:${MONO};font-weight:500;font-size:20px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};border-radius:8px;height:46px;min-width:46px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
           .fb-key:hover{background:var(--stg-surf2, ${COLORS.paper});}
-          .fb-key.note{color:var(--stg-acc, ${COLORS.accent});}
+          .fb-key.note{color:var(--stg-acc-ink, ${COLORS.accent});}
         `}</style>
 
         <div style={{ maxWidth: 660, margin: '0 auto' }}>
@@ -873,7 +879,7 @@ export default function FibClient({ puzzles = [], forceNum = null }) {
                   <RotateCcw size={14} /> Undo
                 </button>
                 {hintOk && !g.hintUsed && (
-                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(76,29,149,0.45)', color: ACC }}>
+                  <button className="fb-tool" onClick={useHint} title="Fill one correct square (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(76,29,149,0.45)', color: ACC_INK }}>
                     <Lightbulb size={14} /> Hint
                   </button>
                 )}

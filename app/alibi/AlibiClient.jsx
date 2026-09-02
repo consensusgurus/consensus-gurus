@@ -48,7 +48,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -305,7 +305,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('alibi', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('alibi');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('alibi'), '--stg-acc-lt': gameColorLight('alibi'), '--stg-onramp-lt': gameOnrampLight('alibi') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('alibi'), '--stg-acc-lt': gameColorLight('alibi'), '--stg-onramp-lt': gameOnrampLight('alibi'), '--stg-acc-ink-lt': gameAccentInkLight('alibi') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -670,7 +670,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-btn.primary{background:var(--stg-acc, ${COLORS.accent});border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-onramp, var(--white));}
           .al-btn.primary:hover{background:color-mix(in srgb, var(--stg-acc, #761a26) 86%, var(--stg-ink, var(--white)));}
           .al-clue{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:8px;padding:8px 11px;margin-bottom:6px;font-size:13.5px;font-weight:600;line-height:1.45;cursor:pointer;user-select:none;color:${INK};}
-          .al-clue b{color:var(--stg-acc, ${COLORS.accent});}
+          .al-clue b{color:var(--stg-acc-ink, ${COLORS.accent});}
           .al-clue.done{opacity:0.42;text-decoration:line-through;}
           .al-tbl{border-collapse:collapse;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);margin:0 auto;width:100%;max-width:520px;table-layout:fixed;}
           .al-tbl caption{font-family:${MONO};font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:0.1em;color:${FADED};text-align:left;padding:0 0 6px 2px;caption-side:top;}
@@ -682,7 +682,7 @@ export default function AlibiClient({ puzzles = [], forceNum = null }) {
           .al-td{height:34px;border: 1px solid var(--stg-line, rgba(28,30,36,0.12));text-align:center;font-size:16px;cursor:pointer;user-select:none;font-weight:800;padding:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .al-td:hover{background:${STAGE ? 'var(--stg-surf2)' : '#faf6ee'};}
           .al-td.x{color:#b9b2a6;}
-          .al-td.dot{color:var(--stg-acc, ${COLORS.accent});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
+          .al-td.dot{color:var(--stg-acc-ink, ${COLORS.accent});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);}
           .al-grids{display:grid;grid-template-columns:1fr;gap:0;}
           .al-cols{max-width:620px;margin:0 auto;}
           /* DESKTOP: statements and board sit SIDE BY SIDE (owner, 2026-08-08).

@@ -65,7 +65,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
 import useDailyBoard from '../useDailyBoard';
@@ -362,13 +362,19 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('chomp', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('chomp');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('chomp'), '--stg-acc-lt': gameColorLight('chomp'), '--stg-onramp-lt': gameOnrampLight('chomp') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('chomp'), '--stg-acc-lt': gameColorLight('chomp'), '--stg-onramp-lt': gameOnrampLight('chomp'), '--stg-acc-ink-lt': gameAccentInkLight('chomp') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -852,11 +858,11 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
     />
   );
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC_INK, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
   const dockBtn = { width: 46, height: 44, borderRadius: 9, border: STAGE ? `1px solid ${SURF_B}` : `1px solid ${COLORS.line}`, background: STAGE ? SURF : '#fff', color: FADED, fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'none', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' };
   const stat = (label, value, tone) => (
     <div style={{ flex: 1, minWidth: 0 }}>
-      <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#94a3b8' }}>{label}</div>
+      <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--stg-ink2, #94a3b8)' }}>{label}</div>
       <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.02em', color: tone || INK, lineHeight: 1.2 }}>{value}</div>
     </div>
   );
@@ -949,7 +955,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                     // dark (owner, 2026-08-31). The NEXT chip keeps the accent,
                     // which is the one thing the row has to say.
                     background: next ? `var(--stg-chip, ${COLORS.accentSoft})` : done ? 'transparent' : 'var(--stg-surf2, #f4f6f8)',
-                    color: next ? `var(--stg-acc, ${COLORS.accent})` : 'var(--stg-ink2, #94a3b8)',
+                    color: next ? `var(--stg-acc-ink, ${COLORS.accent})` : 'var(--stg-ink2, #94a3b8)',
                     opacity: done ? 0.4 : 1,
                   }}>
                     <img src={`/games/chomp/${m}.png`} alt="" width={18} height={18} style={{ display: 'block' }} />
@@ -1006,7 +1012,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                       <button
                         onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; setArmRestart(false); restartRun(); } else { setArmGive(false); setArmRestart(Date.now()); } }}
                         title={armRestart ? 'Records this run as it stands, then deals the board again' : 'Record this run as it stands and start the board over'}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})`, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <RotateCcw size={13} style={{ flexShrink: 0 }} /> {armRestart ? 'Press again' : 'Restart'}
                       </button>
@@ -1022,7 +1028,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                       <button
                         onClick={tryAgain}
                         title="Play this board again. Your recorded result stands."
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: ACC, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: ACC_INK, textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-start', gap: 5, minWidth: 104, padding: 0 }}
                       >
                         <RotateCcw size={13} style={{ flexShrink: 0 }} /> Try again
                       </button>
@@ -1030,7 +1036,7 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
                   </span>
                 </div>
                 {(armGive || armRestart) && (
-                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: armGive ? COLORS.block : `var(--stg-acc, ${COLORS.accent})`, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
+                  <div style={{ fontFamily: SANS, fontSize: 11.5, fontWeight: 700, color: armGive ? COLORS.block : `var(--stg-acc-ink, ${COLORS.accent})`, marginTop: 6, textAlign: 'right', lineHeight: 1.4 }}>
                     {armGive
                       ? 'Ends the run and records it as it stands.'
                       : 'Records this run as it stands, then deals the board again.'}
@@ -1134,9 +1140,9 @@ export default function ChompClient({ puzzles = [], forceNum = null }) {
             to eight on Saturday; the Sunday Edition moves up to a bigger 8x8 board and puts the whole cast on it.
           </p>
           <p style={{ margin: 0 }}>
-            More daily puzzles: <a href="/parker" style={{ color: ACC }}>Parker</a>,{' '}
-            <a href="/etch" style={{ color: ACC }}>Etch</a>,{' '}
-            <a href="/hedge" style={{ color: ACC }}>Hedge</a>.
+            More daily puzzles: <a href="/parker" style={{ color: ACC_INK }}>Parker</a>,{' '}
+            <a href="/etch" style={{ color: ACC_INK }}>Etch</a>,{' '}
+            <a href="/hedge" style={{ color: ACC_INK }}>Hedge</a>.
           </p>
         </section>
       </div>

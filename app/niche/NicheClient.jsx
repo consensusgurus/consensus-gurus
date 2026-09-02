@@ -44,7 +44,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -255,7 +255,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('niche', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('niche');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('niche'), '--stg-acc-lt': gameColorLight('niche'), '--stg-onramp-lt': gameOnrampLight('niche') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('niche'), '--stg-acc-lt': gameColorLight('niche'), '--stg-onramp-lt': gameOnrampLight('niche'), '--stg-acc-ink-lt': gameAccentInkLight('niche') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -645,7 +645,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-ans{font-weight:800;font-size:12.5px;line-height:1.15;text-align:center;color:${INK};overflow-wrap:anywhere;}
           .nc-rar{font-family:${MONO};font-size:9.5px;color:${FADED};}
           .nc-rar.gold{color:#8a6415;font-weight:500;}
-          .nc-plus{font-size:19px;font-weight:600;color:#c3c8d1;}
+          .nc-plus{font-size:19px;font-weight:600;color:var(--stg-mute2, #c3c8d1);}
           .nc-ex{font-size:10.5px;line-height:1.25;color:#9aa0ab;font-style:italic;text-align:center;}
           .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:transparent;}
           .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}

@@ -53,7 +53,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -301,7 +301,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('calc', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('calc');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('calc'), '--stg-acc-lt': gameColorLight('calc'), '--stg-onramp-lt': gameOnrampLight('calc') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('calc'), '--stg-acc-lt': gameColorLight('calc'), '--stg-onramp-lt': gameOnrampLight('calc'), '--stg-acc-ink-lt': gameAccentInkLight('calc') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -309,6 +309,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const [revealed, setRevealed] = useState(false);
@@ -880,7 +881,7 @@ export default function CalcClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Back to start
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: `var(--stg-surf2, ${COLORS.accentTint})`, color: ACC_DEEP }}>
+                <button className="cl-tool" onClick={useHint} title="Walk the opening of a route (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: `var(--stg-surf2, ${COLORS.accentTint})`, color: ACC_DEEP_INK }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}

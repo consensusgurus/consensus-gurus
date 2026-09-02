@@ -39,7 +39,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -280,7 +280,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('hearsay', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('hearsay');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('hearsay'), '--stg-acc-lt': gameColorLight('hearsay'), '--stg-onramp-lt': gameOnrampLight('hearsay') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('hearsay'), '--stg-acc-lt': gameColorLight('hearsay'), '--stg-onramp-lt': gameOnrampLight('hearsay'), '--stg-acc-ink-lt': gameAccentInkLight('hearsay') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -288,6 +288,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;
@@ -686,7 +687,7 @@ export default function HearsayClient({ puzzles = [], forceNum = null }) {
               type="button"
               className="hs-btn"
               onClick={() => setG((cur) => ({ ...cur, naming: !cur.naming }))}
-              style={g.naming ? { background: `var(--stg-acc, ${COLORS.accent})`, borderColor: COLORS.accent, color: `var(--stg-onramp, ${T.white})` } : { background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,45,146,0.5)', color: ACC_DEEP }}
+              style={g.naming ? { background: `var(--stg-acc, ${COLORS.accent})`, borderColor: COLORS.accent, color: `var(--stg-onramp, ${T.white})` } : { background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,45,146,0.5)', color: ACC_DEEP_INK }}
             >
               <Ear size={14} /> {g.naming ? `Pick the ${PUZZLE.noun}…` : `Name the ${PUZZLE.noun}`}
             </button>

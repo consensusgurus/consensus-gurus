@@ -46,7 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -293,13 +293,19 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('paths', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('paths');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('paths'), '--stg-acc-lt': gameColorLight('paths'), '--stg-onramp-lt': gameOnrampLight('paths') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('paths'), '--stg-acc-lt': gameColorLight('paths'), '--stg-onramp-lt': gameOnrampLight('paths'), '--stg-acc-ink-lt': gameAccentInkLight('paths') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -984,7 +990,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
                 <Trash2 size={14} /> Clear
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="pt-tool" onClick={useHint} title="Lay one lane of a cheapest network (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(6,95,70,0.5)', color: ACC }}>
+                <button className="pt-tool" onClick={useHint} title="Lay one lane of a cheapest network (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(6,95,70,0.5)', color: ACC_INK }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -1001,7 +1007,7 @@ export default function PathsClient({ puzzles = [], forceNum = null }) {
             meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: allLinked ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: allLinked ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {allLinked
                 ? `Every town is linked for ${cost}. ${over === 0 ? 'That is perfect.' : `Perfect is ${perfect}, so there are ${over} to trim if you can find them.`}`
                 : 'Drag along a lane to lay track, drag back over it to lift it. Every town has to reach the depot.'}

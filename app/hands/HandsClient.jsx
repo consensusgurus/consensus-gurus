@@ -53,7 +53,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -223,9 +223,15 @@ const CHIP = 26;
 function ScoreChip({ value, complete, total }) {
   const premium = complete && value >= 10;
   const made = complete && value > 0;
-  const bg = total ? 'rgba(255,255,255,0.9)' : premium ? '#f7e2b0' : made ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.14)';
-  const bd = total ? 'rgba(255,255,255,0.9)' : premium ? '#c99a2e' : made ? 'rgba(20,22,28,0.18)' : 'rgba(255,255,255,0.22)';
-  const fg = total ? COLORS.accent : premium ? '#7a5305' : made ? COLORS.ink : 'rgba(255,255,255,0.62)';
+  // A MADE HAND'S CHIP IS A LITTLE CARD and stays pale in both registers, so
+  // its ink is the same near-black as a card's pips. A line that has not
+  // finished is a RECESS in the felt, and that one has to follow the register:
+  // it used to be white at 14% with white ink at 62%, which is a recess on the
+  // dark felt and, on the pale one, invisible ink on an invisible box (measured
+  // 1.11:1, the worst thing on the site).
+  const bg = total || made ? 'var(--stg-sq-l, rgba(255,255,255,0.92))' : premium ? '#f7e2b0' : 'rgba(var(--stg-fieldink, 255,255,255), 0.14)';
+  const bd = premium ? '#c99a2e' : made || total ? 'rgba(20,22,28,0.18)' : 'rgba(var(--stg-fieldink, 255,255,255), 0.30)';
+  const fg = total ? COLORS.accent : premium ? '#7a5305' : made ? COLORS.ink : 'var(--stg-mute2, rgba(255,255,255,0.62))';
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -300,13 +306,19 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
   // Resolved in an effect: the server cannot know what is stored.
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('hands');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('hands'), '--stg-acc-lt': gameColorLight('hands'), '--stg-onramp-lt': gameOnrampLight('hands') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('hands'), '--stg-acc-lt': gameColorLight('hands'), '--stg-onramp-lt': gameOnrampLight('hands'), '--stg-acc-ink-lt': gameAccentInkLight('hands') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -526,10 +538,15 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
     />
   );
 
+  // AN EMPTY SQUARE IS A SLOT CUT IN THE FELT. --stg-cell is the token for
+  // exactly that and it is opaque and tuned per register, so the slot is darker
+  // than the felt on the dark register and lighter on the pale one, which is
+  // what a slot looks like either way. The dashed edge is ink as an alpha
+  // channel for the same reason: white on white was no edge at all.
   const cellStyle = (filled, live) => ({
     aspectRatio: '0.78', borderRadius: 6,
-    border: filled ? 'none' : `1.5px dashed ${live ? 'rgba(255,255,255,0.62)' : 'rgba(255,255,255,0.24)'}`,
-    background: filled ? 'transparent' : live ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)',
+    border: filled ? 'none' : `1.5px dashed rgba(var(--stg-fieldink, 255,255,255), ${live ? '0.62' : '0.24'})`,
+    background: filled ? 'transparent' : `var(--stg-cell, ${live ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)'})`,
     cursor: live ? 'pointer' : 'default',
     padding: 0, WebkitTapHighlightColor: 'transparent',
   });
@@ -635,7 +652,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>points <b style={{ color: total >= par ? COLORS.green : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{total}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC, fontWeight: 500 }}>{par}</b> &middot; ace <b style={{ color: INK, fontWeight: 500 }}>{ace}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC_INK, fontWeight: 500 }}>{par}</b> &middot; ace <b style={{ color: INK, fontWeight: 500 }}>{ace}</b></span>
           </div>
           )}
 
@@ -644,15 +661,15 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
               {/* the card on offer, and the muck */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 13 }}>
                 <div>
-                  <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5 }}>on offer</div>
+                  <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--stg-ink2, rgba(255,255,255,0.72))', marginBottom: 5 }}>on offer</div>
                   <div key={consumed} className="hd-offer" style={{ width: 58, height: 76 }}>
                     {current != null ? <CardFace card={current} size="lg" /> : (
-                      <div style={{ width: '100%', height: '100%', borderRadius: 8, border: '1.5px dashed rgba(255,255,255,0.34)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontFamily: MONO, fontSize: 11 }}>done</div>
+                      <div style={{ width: '100%', height: '100%', borderRadius: 8, border: '1.5px dashed rgba(var(--stg-fieldink, 255,255,255), 0.34)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--stg-mute2, rgba(255,255,255,0.6))', fontFamily: MONO, fontSize: 11 }}>done</div>
                     )}
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: 'rgba(255,255,255,0.86)', lineHeight: 1.45 }}>
+                  <div style={{ fontFamily: SANS, fontSize: 12.5, fontWeight: 700, color: 'var(--stg-ink, rgba(255,255,255,0.86))', lineHeight: 1.45 }}>
                     {done ? 'Board full. That is the round.'
                       : current != null ? `${cardName(current)}. Tap a square.`
                       : ''}
@@ -662,7 +679,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
                     style={{ marginTop: 8, background: muckLeft && playing ? `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)` : 'var(--stg-surf2, rgba(255,255,255,0.55))', borderColor: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 50%, transparent)`, color: `var(--stg-ink, #6d1a1a)` }}>
                     <Undo2 size={14} /> {muckLeft ? 'Muck (1 left)' : 'Muck used'}
                   </button>
-                  <div style={{ fontFamily: MONO, fontSize: 10, color: 'rgba(255,255,255,0.6)', marginTop: 6 }}>
+                  <div style={{ fontFamily: MONO, fontSize: 10, color: 'var(--stg-ink2, rgba(255,255,255,0.6))', marginTop: 6 }}>
                     {25 - g.placed.length} square{25 - g.placed.length === 1 ? '' : 's'} left
                   </div>
                 </div>
@@ -703,7 +720,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
               </button>
               {showBest && (
                 <div style={{ marginTop: 10, maxWidth: 430, margin: '10px auto 0' }}>
-                  <div className="hd-felt" style={{ borderColor: '#3d3d46', background: '#4a4a55' }}>
+                  <div className="hd-felt" style={{ borderColor: 'var(--stg-line2, #3d3d46)', background: 'var(--stg-panel, #4a4a55)' }}>
                     <div className="hd-board">
                       {Array.from({ length: 5 }).map((_, r) => (
                         <React.Fragment key={`br${r}`}>
@@ -734,7 +751,7 @@ export default function HandsClient({ puzzles = [], forceNum = null }) {
           {done && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                You scored <span style={{ color: ACC }}>{total} points</span>. Par was {par}, ace was {ace}.
+                You scored <span style={{ color: ACC_INK }}>{total} points</span>. Par was {par}, ace was {ace}.
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>
                 {total >= ace ? 'You matched or beat the best round our solver found playing blind on this deal. That is as good as it gets without seeing the cards coming.'

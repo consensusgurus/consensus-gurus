@@ -40,7 +40,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -246,7 +246,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('extra', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('extra');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('extra'), '--stg-acc-lt': gameColorLight('extra'), '--stg-onramp-lt': gameOnrampLight('extra') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('extra'), '--stg-acc-lt': gameColorLight('extra'), '--stg-onramp-lt': gameOnrampLight('extra'), '--stg-acc-ink-lt': gameAccentInkLight('extra') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -678,7 +678,7 @@ export default function ExtraClient({ puzzles = [], forceNum = null }) {
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>name the story</span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>tears <b style={{ color: tears > 0 ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{tears}</b>/{MAX_TEARS}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>tears <b style={{ color: tears > 0 ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{tears}</b>/{MAX_TEARS}</span>
           </div>
           )}
           {/* The PROMPT stays here. It is a question (and for Ping a

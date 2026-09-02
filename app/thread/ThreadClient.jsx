@@ -47,7 +47,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -252,13 +252,19 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
   const STAGE = isStage('thread', searchParams);
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('thread');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('thread'), '--stg-acc-lt': gameColorLight('thread'), '--stg-onramp-lt': gameOnrampLight('thread') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('thread'), '--stg-acc-lt': gameColorLight('thread'), '--stg-onramp-lt': gameOnrampLight('thread'), '--stg-acc-ink-lt': gameAccentInkLight('thread') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
 
   const solvedSet = useMemo(() => new Set(g.solved), [g.solved]);
   const calledSet = useMemo(() => new Set(g.called), [g.called]);
@@ -690,7 +696,7 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
                 aria-label="Type a film title"
                 disabled={g.solved.length === N}
               />
-              <span style={{ fontFamily: MONO, fontSize: 11, color: notice && notice.kind === 'hit' ? `var(--stg-acc, ${COLORS.accent})` : FADED, whiteSpace: 'nowrap', minWidth: 90, textAlign: 'right' }}>
+              <span style={{ fontFamily: MONO, fontSize: 11, color: notice && notice.kind === 'hit' ? `var(--stg-acc-ink, ${COLORS.accent})` : FADED, whiteSpace: 'nowrap', minWidth: 90, textAlign: 'right' }}>
                 {notice ? notice.msg : `${openCount} open`}
               </span>
             </div>
@@ -750,7 +756,7 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
                 <div><div style={{ fontFamily: MONO, fontSize: 22, color: INK }}>{g.solved.length}</div><div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.12em', textTransform: 'uppercase', color: FADED }}>films</div></div>
                 <div><div style={{ fontFamily: MONO, fontSize: 22, color: INK }}>+{threadBonus}</div><div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.12em', textTransform: 'uppercase', color: FADED }}>thread</div></div>
-                <div><div style={{ fontFamily: MONO, fontSize: 22, color: ACC }}>{score}<span style={{ fontSize: 13, color: FADED }}>/{TOTAL}</span></div><div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.12em', textTransform: 'uppercase', color: FADED }}>total</div></div>
+                <div><div style={{ fontFamily: MONO, fontSize: 22, color: ACC_INK }}>{score}<span style={{ fontSize: 13, color: FADED }}>/{TOTAL}</span></div><div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.12em', textTransform: 'uppercase', color: FADED }}>total</div></div>
               </div>
               {playing && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
@@ -771,7 +777,7 @@ export default function ThreadClient({ puzzles = [], dayByNum = {}, forceNum = n
           {!playing && (
             <div style={{ maxWidth: 560, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                {won ? <>The thread was <span style={{ color: ACC }}>{THREADS.map((t) => t.t).join(' and ')}</span>.</> : <>The thread was {THREADS.map((t) => t.t).join(' and ')}.</>}
+                {won ? <>The thread was <span style={{ color: ACC_INK }}>{THREADS.map((t) => t.t).join(' and ')}</span>.</> : <>The thread was {THREADS.map((t) => t.t).join(' and ')}.</>}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {DECOYS.length ? `Planted to read as ${DECOYS.map((d) => `${d.n.toLowerCase()} (${d.cover.length})`).join(', ')}.` : ''}

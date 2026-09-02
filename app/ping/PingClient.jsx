@@ -41,7 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -98,7 +98,7 @@ const bandOf = (mi) => BANDS.find((b) => mi <= b.max);
 const STAGE_HUE = { hot: 'var(--stg-bad)', warm: 'var(--stg-warn)', cool: 'var(--stg-cool)', cold: 'var(--stg-mute)' };
 function bandSkin(b, stage) {
   if (!stage) return { bg: b.bg, border: b.border, color: b.color };
-  const h = STAGE_HUE[b.key] || 'var(--stg-acc)';
+  const h = STAGE_HUE[b.key] || 'var(--stg-acc-ink)';
   return {
     bg: `color-mix(in srgb, ${h} 13%, var(--stg-raise))`,
     border: `color-mix(in srgb, ${h} 48%, transparent)`,
@@ -297,7 +297,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('ping', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('ping');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('ping'), '--stg-acc-lt': gameColorLight('ping'), '--stg-onramp-lt': gameOnrampLight('ping') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('ping'), '--stg-acc-lt': gameColorLight('ping'), '--stg-onramp-lt': gameOnrampLight('ping'), '--stg-acc-ink-lt': gameAccentInkLight('ping') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -305,6 +305,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const won = g.status === 'won';
@@ -823,7 +824,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
             One city, no clues. Guess any world city and I&rsquo;ll tell you exactly how far away it is. Close in from there.
           </div>
           {g.hintUsed && playing && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: ACC_DEEP, background: `var(--stg-surf, ${COLORS.accentSoft})`, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: SANS, fontSize: 12.5, fontWeight: 800, color: ACC_DEEP_INK, background: `var(--stg-surf, ${COLORS.accentSoft})`, border: '1.5px solid rgba(2,132,199,0.4)', borderRadius: 7, padding: '4px 10px', marginTop: 8 }}>
               <Lightbulb size={13} /> It&rsquo;s in {continent}.
             </div>
           )}
@@ -890,7 +891,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
           {started && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 13, flexWrap: 'wrap' }}>
               {hintOk && !g.hintUsed && (
-                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(2,132,199,0.5)', color: ACC_DEEP }}>
+                <button className="pg-tool" onClick={useHint} title="Reveal the continent (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(2,132,199,0.5)', color: ACC_DEEP_INK }}>
                   <Lightbulb size={14} /> Hint: the continent
                 </button>
               )}
@@ -922,7 +923,7 @@ export default function PingClient({ puzzles = [], forceNum = null }) {
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition: a trickier city to find.</div>
                 )}
                 {!won && closest && (
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: ACC_DEEP, margin: '8px 0 0' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: ACC_DEEP_INK, margin: '8px 0 0' }}>
                     Your closest: {closest.name}, {fmtDist(closest.mi)} away &middot; scored {finalScore}/{TOTAL}.
                   </div>
                 )}

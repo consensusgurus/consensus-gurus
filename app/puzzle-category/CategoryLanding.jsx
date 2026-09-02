@@ -121,7 +121,7 @@ const CSS = `
 .pcl-go{background:var(--stg-acc);color:var(--stg-onramp,#08222e);border:1.5px solid transparent;}
 .pcl-go:hover{filter:brightness(1.07);}
 .pcl-sh{background:none;color:var(--stg-ink);border:1.5px solid var(--stg-line2);}
-.pcl-sh:hover{border-color:var(--stg-acc);color:var(--stg-acc);}
+.pcl-sh:hover{border-color:var(--stg-acc);color:var(--stg-acc-ink);}
 .pcl-go:focus-visible,.pcl-sh:focus-visible,.pcl-c:focus-visible,.pcl-more a:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;}
 .pcl-figs{display:flex;gap:26px;margin-top:20px;flex-wrap:wrap;}
 .pcl-figs b{display:block;font-size:22px;font-weight:800;letter-spacing:-0.02em;line-height:1;color:var(--stg-ink);font-variant-numeric:tabular-nums;}
@@ -156,6 +156,6 @@ const CSS = `
 .pcl-faq p{max-width:66ch;}
 .pcl-more{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;font-weight:600;color:var(--stg-mute);padding-top:18px;border-top:1px solid var(--stg-line);}
 .pcl-more a{color:var(--stg-ink);font-weight:700;text-decoration:none;}
-.pcl-more a:hover{color:var(--stg-acc);}
+.pcl-more a:hover{color:var(--stg-acc-ink);}
 @media (max-width:720px){.pcl-two{grid-template-columns:1fr;}.pcl-cards{grid-template-columns:1fr;}}
 `;

@@ -46,7 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -204,7 +204,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('suffice', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('suffice');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('suffice'), '--stg-acc-lt': gameColorLight('suffice'), '--stg-onramp-lt': gameOnrampLight('suffice') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('suffice'), '--stg-acc-lt': gameColorLight('suffice'), '--stg-onramp-lt': gameOnrampLight('suffice'), '--stg-acc-ink-lt': gameAccentInkLight('suffice') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -212,6 +212,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
@@ -417,7 +418,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
           .sf-choice.wrong{border-color:#b91c1c;background:${STAGE ? 'var(--stg-surf2)' : '#fee2e2'};}
           .sf-choice.wrong .k{background:#b91c1c;color:var(--white);}
           .sf-stmt{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-left:3px solid var(--stg-acc, ${COLORS.accent});border-radius:9px;padding:10px 13px;margin-bottom:7px;font-size:14.5px;line-height:1.5;color:${INK};display:flex;gap:10px;}
-          .sf-stmt .n{font-family:${MONO};font-weight:700;color:${STAGE ? 'var(--stg-acc)' : COLORS.accentDeep};flex:0 0 auto;}
+          .sf-stmt .n{font-family:${MONO};font-weight:700;color:${STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep};flex:0 0 auto;}
           .sf-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .sf-pip.on{background:var(--stg-acc, ${COLORS.accent});}
           .sf-pip.miss{background:#b91c1c;}
@@ -456,7 +457,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
               </h2>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Each item gives you a question and two statements. You are not asked what the answer is,
-                only whether the statements are <b style={{ color: ACC_DEEP }}>enough to settle it</b>.
+                only whether the statements are <b style={{ color: ACC_DEEP_INK }}>enough to settle it</b>.
                 Working out the actual value is wasted time.
               </p>
               {gateRules && (
@@ -528,7 +529,7 @@ export default function SufficeClient({ puzzles = [], forceNum = null }) {
                       counterexample that proves the ones that were not */}
                   {revealed && ex && (
                     <div style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP_INK, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite — the answer is ${answerKey}.`}
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.6, color: INK }}>

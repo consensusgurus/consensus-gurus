@@ -412,12 +412,12 @@ const CSS = `
 .stg-brand{display:flex;align-items:center;gap:8px;flex:none;text-decoration:none;
   color:var(--stg-ink,#e9edf4);padding-right:15px;border-right:1px solid var(--stg-line);}
 .stg-brand b{font-size:13px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;}
-.stg-brand b em{font-style:normal;color:var(--stg-acc,var(--stg-brand,#7dd3fc));}
+.stg-brand b em{font-style:normal;color:var(--stg-acc-ink,var(--stg-brand,#7dd3fc));}
 .stg-brand:hover{opacity:.82;}
 .stg-brand:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
 .stg-ds{display:none;}
 .stg-theme{padding:5px 8px;}
-.stg-theme.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
+.stg-theme.hint{border-color:var(--stg-acc);color:var(--stg-acc-ink);animation:stg-hintring 1.9s ease-out 3;}
 /* THE FIRST-VISIT POINTER at the light switch: a ring pulsing out of the glyph,
    three times, then gone for good. Deliberately a ring rather than a colour
    change, so it draws the eye without the control ever looking like it is in a
@@ -446,7 +446,7 @@ const CSS = `
 .stg-sn{font-weight:800;}
 .stg-sf{font-family:${MONO};font-size:11.5px;color:var(--stg-ink2,#aab5c7);}
 .stg-sd{color:var(--stg-mute2,#66748f);font-size:11.5px;}
-.stg-sy{margin-left:auto;flex:none;color:var(--stg-acc);font-family:${MONO};font-size:10px;
+.stg-sy{margin-left:auto;flex:none;color:var(--stg-acc-ink);font-family:${MONO};font-size:10px;
   letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
 
 .stg-panel{border-bottom:1px solid var(--stg-line);background:var(--stg-panel,#0d1220);}

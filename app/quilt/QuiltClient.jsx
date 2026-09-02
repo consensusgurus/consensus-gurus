@@ -41,7 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -292,7 +292,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('quilt', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('quilt');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('quilt'), '--stg-acc-lt': gameColorLight('quilt'), '--stg-onramp-lt': gameOnrampLight('quilt') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('quilt'), '--stg-acc-lt': gameColorLight('quilt'), '--stg-onramp-lt': gameOnrampLight('quilt'), '--stg-acc-ink-lt': gameAccentInkLight('quilt') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -874,7 +874,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
           @media(max-width:560px){.ql-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ql-ttl h1{font-size:21px;letter-spacing:0.02em;}.ql-ttl .ql-ttl-dt{font-size:15px;}.ql-ttl-dot{display:none;}}
           .ql-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .ql-given{font-weight:700;color:${INK};}
-          .ql-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
+          .ql-user{font-weight:500;color:var(--stg-acc-ink, ${COLORS.accent});}
           .ql-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .ql-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:var(--stg-ink2, #8a93a3);}
           .ql-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
@@ -1028,7 +1028,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--stg-line, rgba(28,30,36,0.10))', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0

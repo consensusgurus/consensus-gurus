@@ -40,7 +40,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -245,13 +245,19 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('turn', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('turn');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('turn'), '--stg-acc-lt': gameColorLight('turn'), '--stg-onramp-lt': gameOnrampLight('turn') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('turn'), '--stg-acc-lt': gameColorLight('turn'), '--stg-onramp-lt': gameOnrampLight('turn'), '--stg-acc-ink-lt': gameAccentInkLight('turn') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -923,7 +929,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                 {won ? (
                   <>
                     <div style={{ fontSize: 14.5, fontWeight: 800, color: INK, marginBottom: 6 }}>
-                      The key: <span style={{ color: ACC }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
+                      The key: <span style={{ color: ACC_INK }}>{SQ_NAME(PUZZLE.key)}</span>, ringed on the board.
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: FADED, lineHeight: 1.55 }}>{PUZZLE.motif}</div>
                   </>
@@ -940,11 +946,11 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
                 )}
                 <p style={{ fontSize: 12.5, fontWeight: 600, color: FADED, marginTop: 12, lineHeight: 1.6 }}>
                   {isTodays ? (
-                    <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: ACC, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
+                    <>Next Turn in <b style={{ fontVariantNumeric: 'tabular-nums' }}>{countdown}</b>. {PUZZLE.num > 1 && (<a href={`/turn?p=${PUZZLE.num - 1}`} style={{ color: ACC_INK, fontWeight: 800 }}>Play yesterday&rsquo;s Turn &rarr;</a>)}</>
                   ) : (
-                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: ACC, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
+                    <>You&rsquo;re playing the {PUZZLE.dateLabel} archive. <a href="/turn" style={{ color: ACC_INK, fontWeight: 800 }}>Back to today&rsquo;s Turn &rarr;</a></>
                   )}
-                  {' '}<a href="/daily" style={{ color: ACC, fontWeight: 800 }}>All daily puzzles</a>
+                  {' '}<a href="/daily" style={{ color: ACC_INK, fontWeight: 800 }}>All daily puzzles</a>
                 </p>
               </div>
             )}
@@ -1096,7 +1102,7 @@ export default function TurnClient({ puzzles = [], forceNum = null }) {
           The disc count in the middle of a game means almost nothing, because any disc can flip back. What matters is squares: how many you can still play into, and how few you leave the other side. That is why flipping the fewest discs is usually right, and it is also why a bank that rewarded it every day would be teaching a habit rather than testing a read. About a third of these boards are days where the greedy square, the one that turns the whole row, is the only move that wins.
         </p>
         <p style={{ fontSize: 13.5, fontWeight: 600, color: FADED, lineHeight: 1.6, margin: 0 }}>
-          Every board is a real position reached by a real game, solved to the last disc and checked so that exactly one square still wins it. More dailies: <a href="/chain" style={{ color: ACC, fontWeight: 800 }}>Chain</a>, <a href="/four" style={{ color: ACC, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: ACC, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: ACC, fontWeight: 800 }}>Check</a>.
+          Every board is a real position reached by a real game, solved to the last disc and checked so that exactly one square still wins it. More dailies: <a href="/chain" style={{ color: ACC_INK, fontWeight: 800 }}>Chain</a>, <a href="/four" style={{ color: ACC_INK, fontWeight: 800 }}>Four</a>, <a href="/mate" style={{ color: ACC_INK, fontWeight: 800 }}>Mate</a>, <a href="/check" style={{ color: ACC_INK, fontWeight: 800 }}>Check</a>.
         </p>
       </section>
 

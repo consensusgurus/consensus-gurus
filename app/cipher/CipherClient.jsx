@@ -73,7 +73,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -393,13 +393,19 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('cipher', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('cipher');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('cipher'), '--stg-acc-lt': gameColorLight('cipher'), '--stg-onramp-lt': gameOnrampLight('cipher') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('cipher'), '--stg-acc-lt': gameColorLight('cipher'), '--stg-onramp-lt': gameOnrampLight('cipher'), '--stg-acc-ink-lt': gameAccentInkLight('cipher') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -965,13 +971,13 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-cell:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
           .cf-cell.on{border-color:var(--stg-acc, ${COLORS.accent});background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);box-shadow:0 0 0 2px color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 25%, transparent);}
           .cf-cell .cf-ch{font-size:21px;font-weight:800;color:${INK};line-height:1.1;}
-          .cf-cell .cf-dg{font-size:14px;font-weight:800;color:var(--stg-acc, ${COLORS.accent});height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
+          .cf-cell .cf-dg{font-size:14px;font-weight:800;color:var(--stg-acc-ink, ${COLORS.accent});height:17px;line-height:1.2;font-variant-numeric:tabular-nums;}
           .cf-cell.bad .cf-dg{color:${COLORS.rust};}
           .cf-rule{border-top:3px solid ${COLORS.ink};margin:7px 0 6px;}
           .cf-carrow,.cf-mkrow{margin:0;}
           .cf-carry{width:46px;height:20px;flex:0 0 auto;border-radius:5px;border:1px dashed rgba(28,30,36,0.22);background:transparent;font-family:${MONO};font-size:12px;font-weight:500;color:${FADED};cursor:pointer;padding:0;line-height:1;}
           .cf-carry:hover:not(:disabled){background:var(--stg-surf2, ${COLORS.accentSoft});border-color:var(--stg-acc, ${COLORS.accent});}
-          .cf-carry.fixed{border:1px solid transparent;color:var(--stg-acc, ${COLORS.accent});font-weight:700;cursor:default;}
+          .cf-carry.fixed{border:1px solid transparent;color:var(--stg-acc-ink, ${COLORS.accent});font-weight:700;cursor:default;}
           .cf-carry.off{border-color:transparent;cursor:default;}
           .cf-mk{width:46px;height:18px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;line-height:1;color:transparent;}
           .cf-mk.good{color:${COLORS.green};}
@@ -983,7 +989,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-pad{display:grid;grid-template-columns:repeat(5,54px);gap:7px;justify-content:center;}
           .cf-pk{position:relative;height:50px;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-size:19px;font-weight:800;cursor:pointer;font-family:${SANS};color:${INK};}
           .cf-pk:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
-          .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:var(--stg-acc, ${COLORS.accent});font-weight:800;letter-spacing:0.02em;}
+          .cf-pk .who{position:absolute;top:2px;right:5px;font-size:9px;color:var(--stg-acc-ink, ${COLORS.accent});font-weight:800;letter-spacing:0.02em;}
           .cf-pk.foot{height:38px;font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;color:${FADED};display:inline-flex;align-items:center;justify-content:center;gap:6px;}
           .cf-pk.note{grid-column:span 2;}
           .cf-pk.foot:not(.note){grid-column:span 3;}
@@ -1024,7 +1030,7 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
           .cf-strip{display:grid;gap:3px;}
           .cf-sc{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:8px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:0;cursor:pointer;font-family:${SANS};min-width:0;}
           .cf-sc .l{font-size:14px;font-weight:800;color:${INK};line-height:1;}
-          .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:var(--stg-acc, ${COLORS.accent});line-height:1;font-variant-numeric:tabular-nums;}
+          .cf-sc .d{font-family:${MONO};font-size:14px;font-weight:500;color:var(--stg-acc-ink, ${COLORS.accent});line-height:1;font-variant-numeric:tabular-nums;}
           /* An unassigned letter shows a DOT, never a number. The count of
              digits still open used to render here as a pill and still read as
              the letter's value to enough people that the whole candidate
@@ -1128,10 +1134,10 @@ export default function CipherClient({ puzzles = [], forceNum = null }) {
             {playing
               ? (noteMode
                   ? (selected !== null
-                      ? <>Notes on: crossing candidates off <b style={{ color: ACC }}>{selected}</b></>
+                      ? <>Notes on: crossing candidates off <b style={{ color: ACC_INK }}>{selected}</b></>
                       : 'Notes on: pick a letter, then tap digits to cross them off.')
                   : (selected !== null
-                      ? <>Assigning a digit to <b style={{ color: ACC }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</>
+                      ? <>Assigning a digit to <b style={{ color: ACC_INK }}>{selected}</b>{g.assign[selected] !== undefined ? <> · tap {selected} again to clear</> : null}</>
                       : 'Tap a letter, then a digit — or just type.'))
               : null}
           </div>

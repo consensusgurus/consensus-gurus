@@ -54,7 +54,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -321,13 +321,19 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('defend', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('defend');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('defend'), '--stg-acc-lt': gameColorLight('defend'), '--stg-onramp-lt': gameOnrampLight('defend') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('defend'), '--stg-acc-lt': gameColorLight('defend'), '--stg-onramp-lt': gameOnrampLight('defend'), '--stg-acc-ink-lt': gameAccentInkLight('defend') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -911,7 +917,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
             {!playing && <span style={{ whiteSpace: 'nowrap' }}>misses <b style={{ color: errors > 0 ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{errors}</b></span>}
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
             <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>
-              {playing ? <>hold for <b style={{ color: ACC, fontWeight: 500 }}>{Math.max(1, holdLeft)}</b></> : <>hold for <b style={{ color: INK, fontWeight: 500 }}>{HOLD}</b></>}
+              {playing ? <>hold for <b style={{ color: ACC_INK, fontWeight: 500 }}>{Math.max(1, holdLeft)}</b></> : <>hold for <b style={{ color: INK, fontWeight: 500 }}>{HOLD}</b></>}
             </span>
           </div>
           )}
@@ -966,7 +972,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: endHold.held ? 15 : 13, fontWeight: 800, color: playing ? `var(--stg-acc, ${COLORS.accent})` : (endHold.held ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-mute, ${COLORS.faded})`) }}>
+            <span style={{ fontFamily: SANS, fontSize: endHold.held ? 15 : 13, fontWeight: 800, color: playing ? `var(--stg-acc-ink, ${COLORS.accent})` : (endHold.held ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-mute, ${COLORS.faded})`) }}>
               {!playing
                 ? (won ? 'You held.' : g.status === 'lost' ? 'Mated. The save is still there.' : 'You ended it there. The save is still there.')
                 : awaitingReply
@@ -1035,7 +1041,7 @@ export default function DefendClient({ puzzles = [], forceNum = null }) {
               {won ? (
                 <>
                   <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                    The save: <span style={{ color: ACC }}>{PUZZLE.keySan}</span>.
+                    The save: <span style={{ color: ACC_INK }}>{PUZZLE.keySan}</span>.
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>{PUZZLE.motif}</div>
                   <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>

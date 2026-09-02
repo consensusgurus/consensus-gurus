@@ -49,7 +49,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -260,7 +260,7 @@ function freshState(n) {
 }
 
 // A little motley-hat mark, drawn inline so it is crisp at any cell size.
-function JesterMark({ size = 22, color = `var(--stg-acc, ${COLORS.accentDeep})`, conflict = false }) {
+function JesterMark({ size = 22, color = `var(--stg-acc-ink, ${COLORS.accentDeep})`, conflict = false }) {
   const fill = conflict ? `var(--stg-bad, #b91c1c)` : color;
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ display: 'block', color: fill }}>
@@ -346,7 +346,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('jester', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('jester');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('jester'), '--stg-acc-lt': gameColorLight('jester'), '--stg-onramp-lt': gameOnrampLight('jester') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('jester'), '--stg-acc-lt': gameColorLight('jester'), '--stg-onramp-lt': gameOnrampLight('jester'), '--stg-acc-ink-lt': gameAccentInkLight('jester') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -354,6 +354,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;
@@ -970,7 +971,7 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
               <span style={{ fontWeight: 900, fontSize: 14, lineHeight: 1 }}>✗</span> Mark
             </button>
             <button type="button" className={`je-tool${tool === 'jester' ? ' on' : ''}`} onClick={() => setTool('jester')} title="Seat a jester" aria-pressed={tool === 'jester'}>
-              <JesterMark size={14} color={tool === 'jester' ? `var(--stg-onramp, ${T.white})` : `var(--stg-acc, ${COLORS.accentDeep})`} /> Jester
+              <JesterMark size={14} color={tool === 'jester' ? `var(--stg-onramp, ${T.white})` : `var(--stg-acc-ink, ${COLORS.accentDeep})`} /> Jester
             </button>
           </div>
         )}
@@ -986,9 +987,9 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
         {started && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center', margin: '12px 0 6px' }}>
             <button type="button" className="je-btn" onClick={clearBoard}><Eraser size={14} /> Clear board</button>
-            <button type="button" className="je-btn" onClick={undo} disabled={!canUndo} aria-label="Undo last move" style={canUndo ? undefined : { borderColor: '#c3c8cf', color: '#c3c8cf', cursor: 'default' }}><Undo2 size={14} /> Undo</button>
+            <button type="button" className="je-btn" onClick={undo} disabled={!canUndo} aria-label="Undo last move" style={canUndo ? undefined : { borderColor: 'var(--stg-line2, #c3c8cf)', color: 'var(--stg-mute2, #c3c8cf)', cursor: 'default' }}><Undo2 size={14} /> Undo</button>
             {hintOk && !g.hintUsed && (
-              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,58,237,0.5)', color: ACC_DEEP }}>
+              <button type="button" className="je-btn" onClick={useHint} title="Seat one correct jester (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(124,58,237,0.5)', color: ACC_DEEP_INK }}>
                 <Lightbulb size={14} /> Hint: seat one jester
               </button>
             )}

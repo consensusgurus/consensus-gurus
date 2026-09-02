@@ -46,7 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -325,7 +325,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('cages', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('cages');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('cages'), '--stg-acc-lt': gameColorLight('cages'), '--stg-onramp-lt': gameOnrampLight('cages') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('cages'), '--stg-acc-lt': gameColorLight('cages'), '--stg-onramp-lt': gameOnrampLight('cages'), '--stg-acc-ink-lt': gameAccentInkLight('cages') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -902,7 +902,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
           @media(max-width:520px){.cg-htp-f{display:none;}.cg-htp-s{display:inline;}}
           @media(max-width:560px){.cg-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.cg-ttl h1{font-size:21px;letter-spacing:0.02em;}.cg-ttl .cg-ttl-dt{font-size:15px;}.cg-ttl-dot{display:none;}}
           .cg-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
-          .cg-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
+          .cg-user{font-weight:500;color:var(--stg-acc-ink, ${COLORS.accent});}
           .cg-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .cg-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
           /* the cage outline sits INSIDE the cell, inset from the solid sudoku
@@ -1083,7 +1083,7 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0

@@ -34,7 +34,8 @@ register('./alias-loader.mjs', import.meta.url);
 const {
   RAMP_ORDER, CATEGORY_RAMP, RAMP_INK, STAGE_GROUND,
   CATEGORY_RAMP_LIGHT, RAMP_INK_LIGHT, STAGE_GROUND_LIGHT,
-  rampIndexFor, gameColor, gameColorLight,
+  CATEGORY_RAMP_INK_LIGHT,
+  rampIndexFor, gameColor, gameColorLight, gameAccentInkLight,
 } = await import('../lib/category-ramp.js');
 const { DAILY_GAMES } = await import('../lib/daily-games.js');
 
@@ -174,6 +175,36 @@ CATEGORY_RAMP_LIGHT.forEach((hex, i) => {
 const badL = DAILY_GAMES.filter((g) => !CATEGORY_RAMP_LIGHT.includes(gameColorLight(g.key)));
 if (badL.length) fail(`${badL.length} games resolve outside the light ramp`);
 else ok(`all ${DAILY_GAMES.length} games resolve to a light step`);
+
+// ── 5b. THE ACCENT AS TEXT MUST BE READABLE ON PAPER ────────────────────────
+//
+// CATEGORY_RAMP_LIGHT is measured above as a GROUND carrying RAMP_INK_LIGHT,
+// which is a different question from whether it can be ink on the light
+// register's own surfaces. Three of its steps are pastels and could not: gold
+// measured 1.68:1 on the ground, orange 2.00 and amber 1.47, and that is what
+// the reader hit as "does not work on Light mode". CATEGORY_RAMP_INK_LIGHT is
+// the answer, and this holds it to the same 4.5:1 the ink table is held to, on
+// all three light surfaces a page actually paints: the ground, a card, and the
+// recessed --stg-surf2. It also holds each step within 25 degrees of the FILL
+// it deepens, for the same reason the light ramp is held to its dark twin: an
+// ink that drifts in hue is a second colour system wearing the first one's name.
+{
+  const LIGHT_SURFACES = [['ground', STAGE_GROUND_LIGHT], ['card', '#ffffff'], ['surf2', '#e4e9f1']];
+  if (CATEGORY_RAMP_INK_LIGHT.length !== RAMP_ORDER.length) fail('the text ramp has a different length from RAMP_ORDER');
+  RAMP_ORDER.forEach((cat, i) => {
+    const hex = CATEGORY_RAMP_INK_LIGHT[i];
+    const fill = CATEGORY_RAMP_LIGHT[i];
+    const worst = Math.min(...LIGHT_SURFACES.map(([, s]) => contrast(hex, s)));
+    let d = Math.abs(hue(hex) - hue(fill));
+    if (d > 180) d = 360 - d;
+    if (worst < INK_MIN) fail(`light TEXT ${cat} ${hex} is ${worst.toFixed(2)}:1 on a light surface`);
+    else if (d > 25) fail(`light TEXT ${cat} is ${Math.round(d)} degrees from the fill it deepens`);
+    else ok(`light TEXT ${cat.padEnd(17)} ${hex}  worst surface ${worst.toFixed(2)}:1  ${Math.round(d)} deg from its fill`);
+  });
+  const badT = DAILY_GAMES.filter((g) => !CATEGORY_RAMP_INK_LIGHT.includes(gameAccentInkLight(g.key)));
+  if (badT.length) fail(`${badT.length} games resolve outside the light text ramp`);
+  else ok(`all ${DAILY_GAMES.length} games resolve to a light text step`);
+}
 
 // ── 6. NO STAGE CLIENT MAY DISAGREE WITH THE REGISTRY ABOUT ITS OWN CATEGORY ─
 //

@@ -44,7 +44,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -254,7 +254,7 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('shoe', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('shoe');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('shoe'), '--stg-acc-lt': gameColorLight('shoe'), '--stg-onramp-lt': gameOnrampLight('shoe') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('shoe'), '--stg-acc-lt': gameColorLight('shoe'), '--stg-onramp-lt': gameOnrampLight('shoe'), '--stg-acc-ink-lt': gameAccentInkLight('shoe') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -558,8 +558,8 @@ export default function ShoeClient({ puzzles = [], forceNum = null }) {
           .sh-act{font-family:${SANS};font-weight:800;font-size:15px;letter-spacing:0.02em;border:2px solid var(--stg-cell-line, rgba(255,255,255,0.9));background:var(--stg-cell, rgba(255,255,255,0.94));color:var(--stg-ink, ${COLORS.ink});border-radius:9px;padding:12px 0;flex:1 1 0;cursor:pointer;}
           .sh-act:active{transform:translateY(1px);}
           .sh-act:disabled{opacity:0.35;cursor:default;}
-          .sh-act.gold{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, #e8b43a);color:var(--stg-acc, #5b4104);}
-          .sh-act.deal{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, rgba(255,255,255,0.9));color:var(--stg-acc, ${COLORS.accent});}
+          .sh-act.gold{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, #e8b43a);color:var(--stg-acc-ink, #5b4104);}
+          .sh-act.deal{background:color-mix(in srgb, var(--stg-acc, ${ACCENT}) 16%, transparent);border-color:var(--stg-acc, rgba(255,255,255,0.9));color:var(--stg-acc-ink, ${COLORS.accent});}
           .sh-note{font-family:${SANS};font-weight:800;font-size:14px;color:var(--stg-ink, var(--white));}
           .sh-strip{display:flex;align-items:center;gap:12px;font-family:${MONO};font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--stg-mute, rgba(255,255,255,0.72));margin-top:11px;flex-wrap:wrap;}
           .sh-strip b{color:var(--stg-ink, var(--white));font-weight:500;font-variant-numeric:tabular-nums;}

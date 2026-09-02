@@ -52,7 +52,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -381,7 +381,7 @@ export default function SpanClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('span', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('span');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('span'), '--stg-acc-lt': gameColorLight('span'), '--stg-onramp-lt': gameOnrampLight('span') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('span'), '--stg-acc-lt': gameColorLight('span'), '--stg-onramp-lt': gameOnrampLight('span'), '--stg-acc-ink-lt': gameAccentInkLight('span') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;

@@ -41,7 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -260,13 +260,19 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('plot', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('plot');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('plot'), '--stg-acc-lt': gameColorLight('plot'), '--stg-onramp-lt': gameOnrampLight('plot') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('plot'), '--stg-acc-lt': gameColorLight('plot'), '--stg-onramp-lt': gameOnrampLight('plot'), '--stg-acc-ink-lt': gameAccentInkLight('plot') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -866,7 +872,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
                 <RotateCcw size={14} /> Undo
               </button>
               {hintOk && !g.hintUsed && (
-                <button className="pl-tool" onClick={useHint} title="Survey one plot for you (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(120,53,15,0.5)', color: ACC }}>
+                <button className="pl-tool" onClick={useHint} title="Survey one plot for you (one hint, first play only)" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, borderColor: 'rgba(120,53,15,0.5)', color: ACC_INK }}>
                   <Lightbulb size={14} /> Hint
                 </button>
               )}
@@ -894,7 +900,7 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                {won ? <>Every plot surveyed, {CLUES.length} of them.</> : <>The map: <span style={{ color: ACC }}>{CLUES.length} plots</span>, shown above.</>}
+                {won ? <>Every plot surveyed, {CLUES.length} of them.</> : <>The map: <span style={{ color: ACC_INK }}>{CLUES.length} plots</span>, shown above.</>}
               </div>
               {PUZZLE.sunday && (
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: FADED, fontStyle: 'italic', margin: '8px 0 0' }}>The Sunday Edition &mdash; a bigger 12&times;12 board.</div>

@@ -41,7 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -246,7 +246,7 @@ export default function GlyphClient({ puzzles, forceNum }) {
   const STAGE = isStage('glyph', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('glyph');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('glyph'), '--stg-acc-lt': gameColorLight('glyph'), '--stg-onramp-lt': gameOnrampLight('glyph') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('glyph'), '--stg-acc-lt': gameColorLight('glyph'), '--stg-onramp-lt': gameOnrampLight('glyph'), '--stg-acc-ink-lt': gameAccentInkLight('glyph') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -599,10 +599,10 @@ export default function GlyphClient({ puzzles, forceNum }) {
           .gl-cell.bad{background:${STAGE ? 'var(--stg-surf2)' : '#fdecea'};box-shadow:inset 0 0 0 2px ${COLORS.rust};}
           .gl-num{position:absolute;top:1.5px;left:2.5px;font-family:${MONO};font-size:9px;line-height:1;color:${STAGE ? 'var(--stg-mute)' : '#2f3644'};font-weight:700;}
           .gl-ltr{position:absolute;left:0;right:0;bottom:0;top:38%;display:flex;align-items:center;justify-content:center;font-family:${SANS};font-weight:800;color:${INK};line-height:1;}
-          .gl-ltr.given{color:var(--stg-acc, ${COLORS.accent});}
+          .gl-ltr.given{color:var(--stg-acc-ink, ${COLORS.accent});}
           .gl-key{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px;}
           .gl-keycap{border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.28));border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:3px 0 2px;text-align:center;cursor:pointer;font-family:${SANS};font-weight:800;font-size:14px;color:${INK};}
-          .gl-keycap.used{background:var(--stg-surf, ${COLORS.paper});color:#a4abb8;text-decoration:line-through;}
+          .gl-keycap.used{background:var(--stg-surf, ${COLORS.paper});color:var(--stg-mute2, #a4abb8);text-decoration:line-through;}
           .gl-keycap:disabled{cursor:default;}
           .gl-chip{border: 1.5px solid var(--stg-line2, rgba(28,30,36,0.22));border-radius:6px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};padding:2px 0;text-align:center;font-family:${MONO};font-size:9.5px;color:${FADED};cursor:pointer;}
           .gl-chip.on{border-color:var(--stg-acc, ${COLORS.accent});background:${STAGE ? 'color-mix(in srgb, var(--stg-acc) 22%, var(--stg-raise))' : '#dbeafe'};}

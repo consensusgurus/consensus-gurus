@@ -23,7 +23,7 @@
 // be on the Loft page.
 
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import StageFooter from './StageFooter';
 
 export default function StageTail({ self, stage = true }) {
@@ -33,6 +33,7 @@ export default function StageTail({ self, stage = true }) {
     '--stg-acc-dk': gameColor(self),
     '--stg-acc-lt': gameColorLight(self),
     '--stg-onramp-lt': gameOnrampLight(self),
+    '--stg-acc-ink-lt': gameAccentInkLight(self),
   };
   return (
     <div className="stage-page stage-tail" data-stage-theme={theme}

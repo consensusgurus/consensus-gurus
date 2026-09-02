@@ -55,7 +55,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
 import { CONTEST, contestIsLive } from '@/lib/contest';
@@ -308,7 +308,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('sando', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('sando');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('sando'), '--stg-acc-lt': gameColorLight('sando'), '--stg-onramp-lt': gameOnrampLight('sando') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('sando'), '--stg-acc-lt': gameColorLight('sando'), '--stg-onramp-lt': gameOnrampLight('sando'), '--stg-acc-ink-lt': gameAccentInkLight('sando') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -927,11 +927,11 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
           .sn-mark{font-family:${MONO};font-weight:700;font-size:clamp(9px,2.1vw,12px);line-height:1;letter-spacing:0;white-space:nowrap;}
           .sn-mark.ok{color:var(--stg-good, ${COLORS.green});}
           .sn-mark.off{color:var(--stg-bad, ${COLORS.rust});}
-          .sn-sum.on{color:var(--stg-acc, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-radius:4px;}
+          .sn-sum.on{color:var(--stg-acc-ink, ${COLORS.accent});font-weight:700;background:color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent);border-radius:4px;}
           .sn-sum.done{color:var(--stg-mute, #c3c8cf);}
           .sn-cell{display:flex;align-items:center;justify-content:center;font-family:${MONO};box-sizing:border-box;cursor:pointer;position:relative;user-select:none;-webkit-tap-highlight-color:transparent;min-width:0;min-height:0;overflow:hidden;}
           .sn-given{font-weight:700;color:${INK};}
-          .sn-user{font-weight:500;color:var(--stg-acc, ${COLORS.accent});}
+          .sn-user{font-weight:500;color:var(--stg-acc-ink, ${COLORS.accent});}
           .sn-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .sn-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:9px;line-height:1;color:#8a93a3;}
           .sn-pad{width:100%;aspect-ratio:1;border-radius:9px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.5));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};font-family:${MONO};font-weight:500;color:${INK};cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;box-shadow:0 2px 0 rgba(28,30,36,0.4);}
@@ -1106,7 +1106,7 @@ export default function SandoClient({ puzzles = [], forceNum = null }) {
             unreadable, and the card is meant to hold the whole game. */}
         {started && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 10, borderTop: '1px solid rgba(28,30,36,0.10)', flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 12, fontWeight: 700, color: armed ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {armed
                 ? `Placing ${armed}: tap squares to fill, long-press to pencil. Tap ${armed} again to put it down.`
                 : sel >= 0

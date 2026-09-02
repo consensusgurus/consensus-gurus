@@ -37,7 +37,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -221,7 +221,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('stands', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('stands');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('stands'), '--stg-acc-lt': gameColorLight('stands'), '--stg-onramp-lt': gameOnrampLight('stands') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('stands'), '--stg-acc-lt': gameColorLight('stands'), '--stg-onramp-lt': gameOnrampLight('stands'), '--stg-acc-ink-lt': gameAccentInkLight('stands') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -229,6 +229,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const preStart = playing && !g.t0;
@@ -615,7 +616,7 @@ export default function StandsClient({ puzzles = [], forceNum = null }) {
             <button type="button" className="bk-btn" onClick={submit} disabled={filled !== PAIRS.length} style={filled === PAIRS.length ? { background: `var(--stg-acc, ${COLORS.accent})`, borderColor: COLORS.accent, color: THEME.white } : { opacity: 0.45, cursor: 'not-allowed' }}>
               <Table2 size={14} /> Hand in the sheet
             </button>
-            <button type="button" className="bk-btn" onClick={hint} style={{ background: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)`, borderColor: 'color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent)', color: ACC_DEEP }}><Lightbulb size={14} /> Nudge (−2)</button>
+            <button type="button" className="bk-btn" onClick={hint} style={{ background: `color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 16%, transparent)`, borderColor: 'color-mix(in srgb, var(--stg-acc, ${COLORS.accent}) 45%, transparent)', color: ACC_DEEP_INK }}><Lightbulb size={14} /> Nudge (−2)</button>
             {filled > 0 && <button type="button" className="bk-btn" onClick={clearAll}><Eraser size={14} /> Clear</button>}
             {g.rejected >= 2 && <button type="button" className="bk-btn" style={{ borderColor: '#c3c8cf', color: FADED }} onClick={reveal}>Reveal (ends the day)</button>}
           </div>

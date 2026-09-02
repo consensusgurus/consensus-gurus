@@ -1753,7 +1753,7 @@ ${PATCH_CSS}
    accent, so it reads as the continuation of the row rather than a control
    competing with the three at the right edge. */
 .sty-all{display:inline-flex;align-items:center;align-self:center;gap:6px;flex:none;
-  text-decoration:none;color:var(--stg-acc);font-family:${MONO};font-size:9.5px;
+  text-decoration:none;color:var(--stg-acc-ink);font-family:${MONO};font-size:9.5px;
   letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;}
 .sty-all:hover{opacity:.78;}
 .sty-all:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
@@ -1768,7 +1768,7 @@ ${PATCH_CSS}
 .sty-figs b i.sty-dn{color:var(--stg-dn);}
 .sty-tg{display:inline-flex;align-items:center;justify-content:center;padding:6px 9px;
   background:none;cursor:pointer;font:inherit;}
-.sty-tg.hint{border-color:var(--stg-acc);color:var(--stg-acc);animation:stg-hintring 1.9s ease-out 3;}
+.sty-tg.hint{border-color:var(--stg-acc);color:var(--stg-acc-ink);animation:stg-hintring 1.9s ease-out 3;}
 /* THE FIRST-VISIT POINTER at the light switch: a ring pulsing out of the glyph,
    three times, then gone for good. A ring rather than a colour change, so it
    draws the eye without the control ever looking like it is in a state it is
@@ -1873,7 +1873,7 @@ ${PATCH_CSS}
 .sty-ord{display:flex;gap:7px;}
 .sty-ordb{width:auto;margin-top:0;padding:7px 13px;}
 /* The active view reads as chosen rather than merely available. */
-.sty-ordb.on{border-color:var(--stg-acc);color:var(--stg-acc);}
+.sty-ordb.on{border-color:var(--stg-acc);color:var(--stg-acc-ink);}
 .sty-move{display:inline-flex;gap:4px;margin-left:10px;}
 .sty-move button{width:24px;height:24px;border:1px solid var(--stg-line);border-radius:6px;
   background:none;color:var(--stg-ink2);cursor:pointer;font-size:12px;line-height:1;}
@@ -2192,7 +2192,7 @@ ${PATCH_CSS}
 .sty-ql{display:block;min-width:0;font-size:13.5px;font-weight:600;line-height:1.45;
   color:var(--stg-ink2);text-decoration:none;padding:5px 0;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.sty-ql:hover{color:var(--stg-acc);}
+.sty-ql:hover{color:var(--stg-acc-ink);}
 .sty-ql:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;border-radius:4px;}
 .sty-tfoot{display:flex;gap:7px;margin-top:9px;}
 .sty-tmore{width:auto;margin-top:0;flex:1 1 auto;text-align:center;text-decoration:none;

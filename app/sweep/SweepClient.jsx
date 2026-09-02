@@ -38,7 +38,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -208,13 +208,19 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('sweep', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('sweep');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('sweep'), '--stg-acc-lt': gameColorLight('sweep'), '--stg-onramp-lt': gameOnrampLight('sweep') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('sweep'), '--stg-acc-lt': gameColorLight('sweep'), '--stg-onramp-lt': gameOnrampLight('sweep'), '--stg-acc-ink-lt': gameAccentInkLight('sweep') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -624,7 +630,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
     }
   }
 
-  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
+  const btn = { fontFamily: SANS, fontWeight: 800, fontSize: 14, border: `2px solid var(--stg-line, ${COLORS.accent})`, background: STAGE ? SURF : '#fff', color: ACC_INK, borderRadius: 8, padding: '9px 16px', cursor: 'pointer' };
 
   return (
     <div className={STAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
@@ -735,7 +741,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                   <div key="gap" aria-hidden="true" style={{ textAlign: 'center', color: '#c3cad6', fontSize: 11, fontWeight: 800, letterSpacing: '0.22em', lineHeight: '11px', padding: '4px 0 2px' }}>&middot;&middot;&middot;</div>
                 ) : (
                   <div key={`${r.rank}-${r.name}`} style={{ display: 'flex', gap: 6, padding: '3px 0', color: r.me ? `var(--stg-ink, ${COLORS.ink})` : `var(--stg-mute, ${COLORS.faded})`, fontWeight: r.me ? 800 : 600 }}>
-                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1' }}>#{r.rank}</span>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, width: 30, flex: 'none', color: r.me ? `var(--stg-acc-ink, ${COLORS.accent})` : '#9aa2b1' }}>#{r.rank}</span>
                     <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     <span style={{ fontWeight: 800 }}>{r.score}</span>
                   </div>
@@ -748,7 +754,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             </div>
 
             <div className="sw-strip" style={{ display: 'none', marginTop: 10, paddingTop: 9, borderTop: `1px solid ${COLORS.line}`, alignItems: 'center', gap: 10, fontSize: 11.5, color: FADED }}>
-              <span style={{ fontWeight: 800, color: ACC }}>You #{ladder.rank}</span>
+              <span style={{ fontWeight: 800, color: ACC_INK }}>You #{ladder.rank}</span>
               <span>par {nf(PAR)} cells</span>
               <span style={{ marginLeft: 'auto', fontSize: 15, fontWeight: 800, color: INK }}>{nf(g.score)}<em style={{ fontStyle: 'normal', fontSize: 10, color: '#94a3b8' }}> cell{g.score === 1 ? '' : 's'}</em></span>
             </div>
@@ -797,7 +803,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
                 <button
                   type="button"
                   onClick={() => { if (armRestart) { if (Date.now() - armRestart < ARM_MIN_MS) return; replayRun(); } else setArmRestart(Date.now()); }}
-                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: SANS, fontWeight: 700, fontSize: 12, color: armRestart ? `var(--stg-acc-ink, ${COLORS.accent})` : '#9aa2b1', textDecoration: 'underline', textUnderlineOffset: 3, display: 'inline-flex', alignItems: 'center', gap: 5 }}
                 >
                   <RotateCcw size={13} /> {armRestart ? 'Press again to start over' : 'Restart run'}
                 </button>
@@ -902,9 +908,9 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             carries more mines.
           </p>
           <p style={{ margin: 0 }}>
-            More daily puzzles: <a href="/blocks" style={{ color: ACC }}>Blocks</a>,{' '}
-            <a href="/crux" style={{ color: ACC }}>Crux</a>,{' '}
-            <a href="/tally" style={{ color: ACC }}>Tally</a>.
+            More daily puzzles: <a href="/blocks" style={{ color: ACC_INK }}>Blocks</a>,{' '}
+            <a href="/crux" style={{ color: ACC_INK }}>Crux</a>,{' '}
+            <a href="/tally" style={{ color: ACC_INK }}>Tally</a>.
           </p>
         </section>
       </div>

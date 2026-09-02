@@ -53,7 +53,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -181,14 +181,21 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('docket', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('docket');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('docket'), '--stg-acc-lt': gameColorLight('docket'), '--stg-onramp-lt': gameOnrampLight('docket') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('docket'), '--stg-acc-lt': gameColorLight('docket'), '--stg-onramp-lt': gameOnrampLight('docket'), '--stg-acc-ink-lt': gameAccentInkLight('docket') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
@@ -418,7 +425,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-choice.off .t{text-decoration:line-through;}
           .dk-choice.off:hover:not(:disabled){border-color:rgba(28,30,36,0.16);background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};}
           .dk-x{flex:0 0 auto;width:36px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.16));border-radius:10px;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${FADED};cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0.5;padding:0;}
-          .dk-x:hover:not(:disabled){opacity:1;border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-acc, ${COLORS.accent});}
+          .dk-x:hover:not(:disabled){opacity:1;border-color:var(--stg-acc, ${COLORS.accent});color:var(--stg-acc-ink, ${COLORS.accent});}
           .dk-x.on{opacity:1;background:var(--stg-acc, ${COLORS.accentDeep});border-color:var(--stg-acc, ${COLORS.accentDeep});color:var(--stg-onramp, var(--white));}
           .dk-x:disabled{cursor:default;}
           .dk-x:disabled:not(.on){opacity:0.16;}
@@ -428,13 +435,13 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           .dk-notes::placeholder{color:${FADED};opacity:0.7;}
           .dk-nlead{font-size:12.5px;font-weight:700;color:${FADED};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
           .dk-cond{display:flex;gap:9px;font-size:13.5px;line-height:1.5;color:${INK};padding:4px 0;}
-          .dk-cond .n{font-family:${MONO};font-weight:700;color:var(--stg-acc, ${COLORS.accent});flex:0 0 auto;}
+          .dk-cond .n{font-family:${MONO};font-weight:700;color:var(--stg-acc-ink, ${COLORS.accent});flex:0 0 auto;}
           .dk-pip{width:100%;height:5px;border-radius:3px;background:rgba(28,30,36,0.13);}
           .dk-pip.on{background:var(--stg-acc, ${COLORS.accent});}
           .dk-pip.miss{background:#b91c1c;}
           .dk-panel{background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1px solid var(--stg-line, rgba(28,30,36,0.14));border-radius:11px;padding:12px 14px;margin-bottom:10px;}
           .dk-setup{font-size:14px;line-height:1.6;color:${FADED};font-weight:600;}
-          .dk-fold{background:none;border:none;padding:0;cursor:pointer;font-family:${MONO};font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;font-weight:700;color:var(--stg-acc, ${COLORS.accent});display:inline-flex;align-items:center;gap:4px;}
+          .dk-fold{background:none;border:none;padding:0;cursor:pointer;font-family:${MONO};font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;font-weight:700;color:var(--stg-acc-ink, ${COLORS.accent});display:inline-flex;align-items:center;gap:4px;}
         `}</style>
 
         <div style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -469,9 +476,9 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                 One small world, {TOTAL} questions about it.
               </h2>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
-                Today it is <b style={{ color: ACC_DEEP }}>{PUZZLE.title}</b>. Read the setup and the
+                Today it is <b style={{ color: ACC_DEEP_INK }}>{PUZZLE.title}</b>. Read the setup and the
                 conditions, work out what they force, then answer. The conditions stay on screen the whole
-                time, because <b style={{ color: ACC_DEEP }}>the deductions are meant to be reused</b>.
+                time, because <b style={{ color: ACC_DEEP_INK }}>the deductions are meant to be reused</b>.
                 There is a scratchpad for the diagram, and you can cross off a choice you have ruled out.
                 If the format feels familiar, it is: this is the reasoning section a well known standardized
                 test used to run, and quietly retired.
@@ -504,7 +511,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
           <div className="dk-panel">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: setupOpen ? 7 : 0 }}>
               <Scale size={15} color={COLORS.accent} />
-              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC }}>
+              <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC_INK }}>
                 {PUZZLE.title}
               </span>
               <button className="dk-fold" style={{ marginLeft: 'auto' }} onClick={() => setSetupOpen((v) => !v)}>
@@ -526,7 +533,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
             <div className="dk-panel" style={{ padding: g.notesOpen ? '12px 14px' : '9px 14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <Pencil size={14} color={COLORS.accent} style={{ flex: '0 0 auto' }} />
-                <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC, flex: '0 0 auto' }}>
+                <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 700, color: ACC_INK, flex: '0 0 auto' }}>
                   Scratchpad
                 </span>
                 {!g.notesOpen && !!(g.notes || '').trim() && (
@@ -611,7 +618,7 @@ export default function DocketClient({ puzzles = [], forceNum = null }) {
                   {/* the reveal, which is where the format actually teaches */}
                   {revealed && (
                     <div style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, border: `1px solid var(--stg-line, ${COLORS.accent})`, borderRadius: 10, padding: '12px 14px', marginTop: 10 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP, marginBottom: 7 }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: ACC_DEEP_INK, marginBottom: 7 }}>
                         {picked === answerKey ? 'Correct.' : `Not quite. The answer is ${CHOICE_KEYS[answerKey]}.`}
                       </div>
                       <div style={{ fontSize: 13.5, lineHeight: 1.6, color: INK }}>{q.note}</div>

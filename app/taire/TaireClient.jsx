@@ -49,7 +49,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -223,8 +223,8 @@ function Slot({ children, onClick, live, label }) {
   return (
     <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={-1} aria-label={label}
       style={{
-        width: CARD_W, height: CARD_H, borderRadius: 7, border: `1.5px dashed ${live ? T.white : 'rgba(255,255,255,0.34)'}`,
-        background: live ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)',
+        width: CARD_W, height: CARD_H, borderRadius: 7, border: `1.5px dashed rgba(var(--stg-fieldink, 255,255,255), ${live ? '0.9' : '0.34'})`,
+        background: `var(--stg-cell, ${live ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.10)'})`,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: onClick ? 'pointer' : 'default',
       }}>{children}</div>
@@ -292,13 +292,19 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('taire', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('taire');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('taire'), '--stg-acc-lt': gameColorLight('taire'), '--stg-onramp-lt': gameOnrampLight('taire') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('taire'), '--stg-acc-lt': gameColorLight('taire'), '--stg-onramp-lt': gameOnrampLight('taire'), '--stg-acc-ink-lt': gameAccentInkLight('taire') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -709,7 +715,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap' }}>moves <b style={{ color: used > par ? `var(--stg-bad, ${COLORS.rust})` : `var(--stg-ink, ${COLORS.ink})`, fontWeight: 500 }}>{used}</b></span>
             <span style={{ whiteSpace: 'nowrap' }}>time <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{elapsed}</b></span>
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: INK, fontWeight: 500 }}>{perfect}</b></span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>par <b style={{ color: ACC_INK, fontWeight: 500 }}>{par}</b> &middot; perfect <b style={{ color: INK, fontWeight: 500 }}>{perfect}</b></span>
           </div>
           )}
 
@@ -717,7 +723,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           <div key={shake} className={`ta-felt${shake ? ' shake' : ''}`}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
               <div>
-                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5 }}>free cells</div>
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--stg-ink2, rgba(255,255,255,0.72))', marginBottom: 5 }}>free cells</div>
                 <div style={{ display: 'flex', gap: 7 }}>
                   {Array.from({ length: CELLS }).map((_, i) => {
                     const card = state.free[i];
@@ -732,7 +738,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                 </div>
               </div>
               <div>
-                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.72)', marginBottom: 5, textAlign: 'right' }}>home</div>
+                <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--stg-ink2, rgba(255,255,255,0.72))', marginBottom: 5, textAlign: 'right' }}>home</div>
                 <div style={{ display: 'flex', gap: 7 }}>
                   {[0, 1].map((s) => {
                     const top = fnd[s];
@@ -741,7 +747,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                       <Slot key={s} live={live} label={`${s === 1 ? 'hearts' : 'spades'} home pile`} onClick={() => onDest(FND)}>
                         {top > 0
                           ? <CardFace card={s * 16 + top} label={`${RANK_LABEL[top]} home`} />
-                          : <span style={{ color: s === 1 ? 'rgba(255,190,190,0.85)' : 'rgba(255,255,255,0.7)', fontSize: 19 }}>{s === 1 ? '♥' : '♠'}</span>}
+                          : <span style={{ color: s === 1 ? 'var(--stg-bad, rgba(255,190,190,0.85))' : 'var(--stg-ink2, rgba(255,255,255,0.7))', fontSize: 19 }}>{s === 1 ? '♥' : '♠'}</span>}
                       </Slot>
                     );
                   })}
@@ -756,8 +762,8 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                   <div key={j} onClick={() => (col.length ? null : onDest(j))}
                     style={{
                       minHeight: CARD_H + REVEAL * 3 + 8, borderRadius: 7, padding: 3,
-                      border: live ? `1.5px dashed ${T.white}` : '1.5px dashed rgba(255,255,255,0.16)',
-                      background: live ? 'rgba(255,255,255,0.16)' : 'transparent',
+                      border: `1.5px dashed rgba(var(--stg-fieldink, 255,255,255), ${live ? '0.9' : '0.16'})`,
+                      background: live ? 'var(--stg-cell, rgba(255,255,255,0.16))' : 'transparent',
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0, cursor: live ? 'pointer' : 'default',
                     }}>
                     {col.map((card, k) => {
@@ -771,7 +777,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
                         </div>
                       );
                     })}
-                    {!col.length && <div style={{ height: CARD_H, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: MONO }}>empty</div>}
+                    {!col.length && <div style={{ height: CARD_H, display: 'flex', alignItems: 'center', color: 'var(--stg-mute2, rgba(255,255,255,0.5))', fontSize: 11, fontFamily: MONO }}>empty</div>}
                   </div>
                 );
               })}
@@ -780,7 +786,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           </div>
 
           <div style={{ marginTop: 12, minHeight: 22, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? `var(--stg-acc, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
+            <span style={{ fontFamily: SANS, fontSize: 13, fontWeight: 800, color: playing ? `var(--stg-acc-ink, ${COLORS.accent})` : `var(--stg-mute, ${COLORS.faded})` }}>
               {!playing
                 ? (won ? (used === perfect ? `Home in ${used}. That is perfect.` : `Home in ${used}. Par was ${par}.`) : 'You left it on the table.')
                 : sel != null ? 'Now tap where it goes.' : movable.length ? 'Tap a card to pick it up.' : 'Nothing can move. Restart the board.'}
@@ -825,7 +831,7 @@ export default function TaireClient({ puzzles = [], forceNum = null }) {
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                Par was <span style={{ color: ACC }}>{par} moves</span>, perfect was <span style={{ color: INK }}>{perfect}</span>.
+                Par was <span style={{ color: ACC_INK }}>{par} moves</span>, perfect was <span style={{ color: INK }}>{perfect}</span>.
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 0', lineHeight: 1.5 }}>
                 {won

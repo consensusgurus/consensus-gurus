@@ -45,7 +45,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -302,7 +302,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('listed', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('listed');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('listed'), '--stg-acc-lt': gameColorLight('listed'), '--stg-onramp-lt': gameOnrampLight('listed') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('listed'), '--stg-acc-lt': gameColorLight('listed'), '--stg-onramp-lt': gameOnrampLight('listed'), '--stg-acc-ink-lt': gameAccentInkLight('listed') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -775,7 +775,7 @@ export default function ListedClient({ puzzles = [], forceNum = null }) {
           @keyframes lsshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-5px);}40%,80%{transform:translateX(5px);}}
           .ls-shake{animation:lsshake .45s ease;}
           .ls-arrow{width:34px;height:31px;border-radius:7px;border: 1.5px solid var(--stg-line, rgba(28,30,36,0.3));background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};color:${INK};cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;}
-          .ls-arrow:hover{background:var(--stg-surf2, ${COLORS.brandSoft});border-color:var(--stg-acc, ${COLORS.brand});color:var(--stg-acc, ${COLORS.brand});}
+          .ls-arrow:hover{background:var(--stg-surf2, ${COLORS.brandSoft});border-color:var(--stg-acc, ${COLORS.brand});color:var(--stg-acc-ink, ${COLORS.brand});}
           .ls-arrow:disabled{opacity:.25;cursor:default;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border-color:rgba(28,30,36,0.3);color:${INK};}
           @media(max-width:560px){.ls-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.ls-ttl h1{font-size:21px;letter-spacing:0.02em;}.ls-ttl .ls-ttl-dt{font-size:15px;}.ls-ttl-dot{display:none;}}
           @media(max-width:430px){.ls-mh-tile{width:34px !important;height:34px !important;font-size:20px !important;}}

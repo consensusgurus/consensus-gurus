@@ -50,7 +50,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColorLight, gameColor, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -239,13 +239,19 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
   // every call site below themes itself and none of them had to be found.
   // The literals are published on the root element instead.
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('anon');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('anon'), '--stg-acc-lt': gameColorLight('anon'), '--stg-onramp-lt': gameOnrampLight('anon') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('anon'), '--stg-acc-lt': gameColorLight('anon'), '--stg-onramp-lt': gameOnrampLight('anon'), '--stg-acc-ink-lt': gameAccentInkLight('anon') };
   const Cap = STAGE ? StageChrome : LoftCap;
   // Anon is a Word game, so on the stage its book cloth red becomes the
   // category step. ON_ACC is the ink that rides on it, which is dark here
   // and white on the Loft page, and the two must never be crossed.
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper. --stg-acc
+  // still paints; this writes. Same value on the dark register.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, transparent)' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
@@ -736,7 +742,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-cell.mine{background:${ACC_SOFT};border-color:#e3b9be;}
           .an-cell.on{outline:2px solid ${ACC};outline-offset:-2px;background:${ACC_SOFT};}
           .an-cell.miss{background:${STAGE ? 'rgba(220,38,38,0.22)' : '#fee2e2'};border-color:#dc2626;color:${STAGE ? '#ffc9c9' : '#7f1d1d'};}
-          .an-punc{align-self:center;color:#b6bcc7;font-weight:800;width:6px;text-align:center;}
+          .an-punc{align-self:center;color:var(--stg-mute2, #b6bcc7);font-weight:800;width:6px;text-align:center;}
           .an-banks{display:grid;grid-template-columns:1.25fr 1fr;gap:14px 26px;}
           @media(max-width:900px){.an-banks{grid-template-columns:1fr;}}
           .an-split{display:grid;gap:16px;align-items:start;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);}
@@ -749,7 +755,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-row{border:1px solid transparent;border-radius:8px;padding:4px 6px;margin-bottom:7px;}
           .an-row.on{border-color:#e3b9be;background:${ACC_SOFT};}
           .an-rowhead{display:flex;align-items:baseline;gap:8px;margin-bottom:3px;}
-          .an-tag{font-weight:900;font-size:13px;color:${ACC};width:13px;}
+          .an-tag{font-weight:900;font-size:13px;color:${ACC_INK};width:13px;}
           .an-cat{font-family:${MONO};font-size:10px;letter-spacing:0.07em;text-transform:uppercase;color:var(--stg-mute, #4b5563);}
           .an-cat.open{color:var(--stg-dim, #c3c8d1);font-style:italic;}
           .an-len{margin-left:auto;font-family:${MONO};font-size:10px;color:var(--stg-dim, #c3c8d1);}
@@ -797,7 +803,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
           .an-kr button:active{background:${STAGE ? 'var(--stg-line2,rgba(255,255,255,0.17))' : '#cfd6e2'};}
           .an-spine{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:0 0 14px;}
           .an-spine i{width:22px;height:28px;border-radius:4px;background:${ACC_SOFT};border:1px solid ${STAGE ? 'color-mix(in srgb, var(--stg-acc) 45%, transparent)' : '#e3b9be'};
-            display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${ACC};}
+            display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:900;font-size:15px;color:${ACC_INK};}
           .an-spine i.blank{color:${STAGE ? 'var(--stg-dim,#5a657d)' : '#dcc6c9'};background:${STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : 'var(--white)'};border-color:${STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.1)'};}
         `}</style>
 
@@ -834,7 +840,7 @@ export default function AnonClient({ puzzles = [], forceNum = null }) {
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 12px' }}>
                 Every box belongs to one answer below, so a letter you type appears in both halves at once.
                 There are no clues. Finish it and the first letters of the spine will have spelled out
-                <b style={{ color: ACC_DEEP }}> who wrote it</b>.
+                <b style={{ color: ACC_DEEP_INK }}> who wrote it</b>.
               </p>
               {gateRules && (
                 <div style={{ marginBottom: 14 }}>

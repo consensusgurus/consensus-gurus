@@ -42,7 +42,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -236,13 +236,19 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
   // Resolved in an effect: the server cannot know what is stored.
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('blitz');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('blitz'), '--stg-acc-lt': gameColorLight('blitz'), '--stg-onramp-lt': gameOnrampLight('blitz') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('blitz'), '--stg-acc-lt': gameColorLight('blitz'), '--stg-onramp-lt': gameOnrampLight('blitz'), '--stg-acc-ink-lt': gameAccentInkLight('blitz') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -623,7 +629,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
         {preStart && (
           <div className={STAGE ? 'stg-gate' : undefined} style={{ background: STAGE ? SURF : COLORS.cream, border: STAGE ? `1px solid ${SURF_B}` : `2px solid ${COLORS.ink}`, borderRadius: 12, padding: '22px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: FADED, marginBottom: 5 }}>Today&rsquo;s twenty</div>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 22, color: ACC, lineHeight: 1.2, marginBottom: 14 }}>Mental arithmetic, against the clock</div>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 22, color: ACC_INK, lineHeight: 1.2, marginBottom: 14 }}>Mental arithmetic, against the clock</div>
             {gateRules ? rulesBody : (
               <div style={{ fontSize: 14, lineHeight: 1.55, color: INK, fontWeight: 600 }}>
                 <p style={{ margin: '0 0 6px' }}>Twenty problems in five rounds, easy to hard, {Q_SECONDS} seconds each, and one life. Do it in your head and pick from four; every problem you clear is a point. Keys 1 to 4 answer. The clock starts when you do.</p>
@@ -647,12 +653,12 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 4, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Zap size={13} style={{ color: ACC }} />
+              <Zap size={13} style={{ color: ACC_INK }} />
               <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{score}</b>
               <span>of {TOTAL_Q}</span>
             </span>
             {scoreRow('time', elapsed)}
-            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: ACC, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
+            <span style={{ marginLeft: 'auto', whiteSpace: 'nowrap' }}>round <b style={{ color: ACC_INK, fontWeight: 500 }}>{tierNum + 1}/5</b> · {TIER_NAMES[tierNum]}</span>
           </div>
           )}
 
@@ -702,7 +708,7 @@ export default function BlitzClient({ puzzles = [], problemsByNum = {}, forceNum
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                {won ? <>A clean run: <span style={{ color: ACC }}>all 20</span>.</> : <>You cleared <span style={{ color: ACC }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
+                {won ? <>A clean run: <span style={{ color: ACC_INK }}>all 20</span>.</> : <>You cleared <span style={{ color: ACC_INK }}>{score} of {TOTAL_Q}</span>, out in the {TIER_NAMES[tierNum].toLowerCase()} round.</>}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {won

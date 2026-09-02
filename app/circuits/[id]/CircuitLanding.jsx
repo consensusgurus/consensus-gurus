@@ -303,7 +303,7 @@ const CSS = `
 .clp-go{background:var(--stg-acc);color:var(--stg-onramp,#08222e);border:1.5px solid transparent;}
 .clp-go:hover{filter:brightness(1.07);}
 .clp-sh{background:none;color:var(--stg-ink);border:1.5px solid var(--stg-line2);}
-.clp-sh:hover{border-color:var(--stg-acc);color:var(--stg-acc);}
+.clp-sh:hover{border-color:var(--stg-acc);color:var(--stg-acc-ink);}
 .clp-go:focus-visible,.clp-sh:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;}
 
 .clp-figs{display:flex;gap:26px;margin-top:20px;flex-wrap:wrap;}

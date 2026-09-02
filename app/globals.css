@@ -305,6 +305,13 @@ button, input, textarea, select { border-radius: 8px; }
      could never be re-themed by CSS. One place decides; every call site reads
      var(--stg-acc) and follows. */
   --stg-acc: var(--stg-acc-dk, #7dd3fc);
+  /* THE ACCENT AS TEXT, WHICH IS A DIFFERENT JOB FROM THE ACCENT AS A FILL.
+     On this register they are the same value, because every step of the dark
+     ramp is a pastel and a pastel on near-black is what text wants. The light
+     block is where they part; lib/category-ramp.js carries the measurement and
+     the reason. Anything that PAINTS with the accent keeps --stg-acc; anything
+     that WRITES with it reads this. */
+  --stg-acc-ink: var(--stg-acc);
   /* A TINT OF WHATEVER THE ACCENT IS. The one thing --stg-chip cannot do: a
      chip gives its colour UP (a warning that stops shouting on a near-black
      page), while a tint is how a surface says THIS ONE IS YOURS -- a found
@@ -566,6 +573,12 @@ html:not([data-stage-boot='dark']) .stage-page[data-stage-theme='light'] {
   --stg-fieldink: 11, 15, 26;
 
   --stg-acc: var(--stg-acc-lt, #0369a1);
+  /* Seven of the ten light steps are their own text colour; the three that
+     carry dark ink as a fill are pastels and are deepened. A stage client
+     publishes --stg-acc-ink-lt beside --stg-acc-lt; the fallback is the fill,
+     which is correct for the seven and is what a surface with no category
+     lands on. */
+  --stg-acc-ink: var(--stg-acc-ink-lt, var(--stg-acc-lt, #0369a1));
   /* The light step is a deep mid-tone rather than a pastel, so the same 18%
      would be a heavier wash than the dark register's. 12% lands at roughly the
      same distance from its own ground. */

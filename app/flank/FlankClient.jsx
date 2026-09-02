@@ -38,7 +38,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -230,13 +230,19 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
   // Resolved in an effect: the server cannot know what is stored.
   const [stageTheme] = useStageTheme();
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('flank');
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('flank'), '--stg-acc-lt': gameColorLight('flank'), '--stg-onramp-lt': gameOnrampLight('flank') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('flank'), '--stg-acc-lt': gameColorLight('flank'), '--stg-onramp-lt': gameOnrampLight('flank'), '--stg-acc-ink-lt': gameAccentInkLight('flank') };
   const Cap = STAGE ? StageChrome : LoftCap;
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
   const SURF = STAGE ? 'var(--stg-surf,rgba(255,255,255,0.045))' : T.white;
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
+  // THE ACCENT AS TEXT. On the light register the accent has two values,
+  // because three of the ten category steps are pastels chosen to be a FILL
+  // carrying dark ink, and a pastel cannot also be ink on paper (gold was
+  // 1.68:1 on the light ground, amber 1.47). --stg-acc still paints; this
+  // writes. On the dark register the two resolve to the same value.
+  const ACC_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
@@ -604,7 +610,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           {!LOFT && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: MONO, fontSize: 11.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: FADED, borderBottom: '1px solid rgba(28,30,36,0.18)', paddingBottom: 8, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={{ whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Milestone size={13} style={{ color: ACC }} />
+              <Milestone size={13} style={{ color: ACC_INK }} />
               <b style={{ color: INK, fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{foundCount}/{TOTAL}</b>
               <span>borders</span>
             </span>
@@ -615,7 +621,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
 
           {/* The prompt: today's country. A question stays with the board. */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: ACC, marginBottom: 4 }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 500, color: ACC_INK, marginBottom: 4 }}>
               Today&apos;s country{PUZZLE.sunday ? ' · Sunday Edition' : ''}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
@@ -677,7 +683,7 @@ export default function FlankClient({ puzzles = [], dayByNum = {}, forceNum = nu
           {!playing && (
             <div style={{ maxWidth: 472, margin: '0 auto' }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: INK, margin: '8px 0 0' }}>
-                {won ? <>A clean sweep: <span style={{ color: ACC }}>all {TOTAL} borders</span>.</> : <>You named <span style={{ color: ACC }}>{foundCount} of {TOTAL}</span>.</>}
+                {won ? <>A clean sweep: <span style={{ color: ACC_INK }}>all {TOTAL} borders</span>.</> : <>You named <span style={{ color: ACC_INK }}>{foundCount} of {TOTAL}</span>.</>}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: FADED, margin: '6px 0 4px', lineHeight: 1.5 }}>
                 {won

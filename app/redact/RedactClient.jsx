@@ -48,7 +48,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
-import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight } from '@/lib/category-ramp';
+import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
 import useNextUnplayed, { useUnplayedSimilar } from '../useNextUnplayed';
@@ -203,7 +203,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
   const STAGE = isStage('redact', searchParams);
   const STAGE_C = STAGE ? 'var(--stg-acc)' : gameColor('redact');
   const Cap = STAGE ? StageChrome : LoftCap;
-  const STAGE_ACC = { '--stg-acc-dk': gameColor('redact'), '--stg-acc-lt': gameColorLight('redact'), '--stg-onramp-lt': gameOnrampLight('redact') };
+  const STAGE_ACC = { '--stg-acc-dk': gameColor('redact'), '--stg-acc-lt': gameColorLight('redact'), '--stg-onramp-lt': gameOnrampLight('redact'), '--stg-acc-ink-lt': gameAccentInkLight('redact') };
   const [stageTheme] = useStageTheme();
   const INK = STAGE ? 'var(--stg-ink,#e9edf4)' : COLORS.ink;
   const FADED = STAGE ? 'var(--stg-mute,#8b95a8)' : COLORS.faded;
@@ -211,6 +211,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
   const SURF_B = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : 'rgba(28,30,36,0.42)';
   const ACC = STAGE ? STAGE_C : COLORS.accent;
   const ACC_DEEP = STAGE ? STAGE_C : COLORS.accentDeep;
+  const ACC_DEEP_INK = STAGE ? 'var(--stg-acc-ink)' : COLORS.accentDeep;
   const ACC_SOFT = STAGE ? 'var(--stg-line,rgba(255,255,255,0.11))' : COLORS.accentSoft;
   const ON_ACC = STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)';
   const prevPuzzle = puzzles.find((x) => x.num === PUZZLE.num - 1) || null;
@@ -532,8 +533,8 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
                 An entire article, blacked out. Name its subject.
               </h2>
               <p style={{ fontSize: 14.5, lineHeight: 1.6, color: FADED, fontWeight: 600, margin: '0 0 10px' }}>
-                Today&apos;s subject is a <b style={{ color: ACC_DEEP }}>{DAY ? PUZZLE.cat : ''}</b>, rated{' '}
-                <b style={{ color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</b>. Guess one word at a time;
+                Today&apos;s subject is a <b style={{ color: ACC_DEEP_INK }}>{DAY ? PUZZLE.cat : ''}</b>, rated{' '}
+                <b style={{ color: ACC_DEEP_INK }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</b>. Guess one word at a time;
                 every hit uncovers that word everywhere it appears. Uncover the title to win.
               </p>
               {gateRules && (
@@ -565,7 +566,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
               <div className="rd-sticky">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: playing ? 8 : 0, flexWrap: 'wrap' }}>
                   <span className="rd-chip" style={{ background: `var(--stg-acc, ${COLORS.accentDeep})`, color: `var(--stg-onramp, ${T.white})` }}>{PUZZLE.cat}</span>
-                  <span className="rd-chip" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, color: ACC_DEEP }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
+                  <span className="rd-chip" style={{ background: `var(--stg-surf, ${COLORS.accentSoft})`, color: ACC_DEEP_INK }}>{DIFF_LABEL[PUZZLE.diff] || 'Fair'}</span>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 14 }}>
                     <div className="rd-stat"><b>{g.guesses.length}</b><span>Guesses</span></div>
                     <div className="rd-stat"><b>{acc}%</b><span>Hit rate</span></div>
