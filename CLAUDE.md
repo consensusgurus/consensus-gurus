@@ -6881,20 +6881,28 @@ mockups is https://claude.ai/code/artifact/8d963ed1-c694-46e9-ad92-a70cd4e773f9.
   colour in it is a literal, not a stage token: painted in the page's own pale ground it
   read as a blank sheet with a sentence on it (owner, same day). On the light register the
   collapse lands on the cap and cross-fades for 200ms instead of colour onto colour.
-- **`app/StagePatch.jsx` is THE PATCH, mounted in `app/today/StageToday.jsx`.** A
-  per-cell loading cover for a figure that is waiting on its own read: dark ground
-  (`#0b0f1a` in both registers, the Ramp's door at the size of one cell) with the ten-rung
-  loop along its foot, leaving by the endings' clip collapse so the figure appears from
-  behind it. Rules: nothing mounts unless the cell is still waiting 260ms after the patch
-  does (a warm read covers nothing), a shown patch stays at least 400ms, and it never waits
-  on a rAF (CSS loop, timer exit). Covered today: the cap's three figures (keyed on
-  `stats.ready && mineIn`, only for a reader with a name), Your standing and Today's board
-  (keyed on `boardIn`; the sections are drawn as shells before the read answers so the page
-  keeps its shape). `mineIn` / `boardIn` are "the read has ANSWERED, success or failure";
-  keying a cover on the VALUE (`mine === null`) is a cover that never leaves for a guest.
-  The cap cells are rendered with KEYED children so the StagePatch instance survives the
-  placeholder-to-figure swap; that is what lets the collapse play over the number. It
-  carries no `<style>`: interpolate `PATCH_CSS` into the page's own stylesheet.
+- **`app/StagePatch.jsx` is THE PATCH, mounted in `app/today/StageToday.jsx` on the cap's
+  three user stats and NOWHERE ELSE** (owner, 2026-09-01, after two rounds). It paints NO
+  surface: the ten-rung loop alone, standing where the figure will, in the register's own
+  ramp (`light` prop: the deep twins on the pale page, the pastels on the near-black one),
+  leaving by the endings' clip collapse as the figure stamps in. Two things it was and is
+  not: a near-black box ("those look out of place" on the pale cap) and a raised cell
+  ("dark does not need a box, it can just be the base element"). It was also briefly on
+  Your standing, Today's board and the My games cards; those sit below the fold on
+  arrival, so covering them bought nothing and they went back to plain renders. Rules:
+  nothing mounts unless the cell is still waiting 260ms after the patch does (a warm read
+  covers nothing), a shown patch stays at least 400ms, and it never waits on a rAF. The
+  cap cells key on `capWait = who && (!stats.ready || !mineIn)`; `mineIn` is "the read has
+  ANSWERED, success or failure", because keying a cover on the VALUE (`mine === null`) is a
+  cover that never leaves for a guest. The cells render KEYED children so the StagePatch
+  instance survives the placeholder-to-figure swap, which is what lets the collapse play
+  over the number. It carries no `<style>`: interpolate `PATCH_CSS` into the page's own
+  stylesheet.
+- **A FIRST VISIT GETS THE DOOR TOO** (owner, same day). StageWelcome used to stand down
+  whenever `sot_theme_intro2` was unset, deferring to the first-load theme flip; that flip
+  is RETIRED (`INTRO_RETIRED` in `lib/stage-theme.js`) and never stamps its key, so the
+  check had become "never, for any new browser". Gone. The theme pop-up polls the DOM for
+  the `.stw` screen and waits its turn.
 - **`--stg-brand`: the mark's blue follows the register.** The mark and the word "Loft"
   used to take `--stg-acc` (a category step on a game page: mint on Numbers, orange on
   Trivia; `#0369a1` on the light home) while the app icon carries `#2563eb`. Measured:
@@ -6905,7 +6913,7 @@ mockups is https://claude.ai/code/artifact/8d963ed1-c694-46e9-ad92-a70cd4e773f9.
   literally. Never hand the brand mark a category colour again.
 
 Verifying: `/?welcome=1&theme=light` and `/?welcome=1` for the Ramp; the patches show on
-any load where a read outlasts 260ms (a cold `daily-combined` is 3-4s, so the board's
-patch is the one you will usually see). Chrome MCP screenshots time out mid-animation; a
+any load where daily-status or /api/quiz/me outlasts 260ms (`?welcome=0` plus a cache-busting
+query, zoom on the cap at ~0.45s). Chrome MCP screenshots time out mid-animation; a
 screenshot at 0.6s catches the patches under the fading-in curtain and one at ~2.5s the
 words on the dark ground.
