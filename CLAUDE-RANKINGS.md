@@ -22,8 +22,10 @@ rebuilt automatically every week.
    and only 24 resolve, the ranks below the missing one shift up by one and the whole column is
    quietly wrong. Fail the source, do not publish a short column.
 4. **Never modify `getSources` in `lib/helpers.js` for this feature.** That engine is capped at a
-   top ten (`bordaFromRank` returns 0 past rank 10) and drives 500+ lists across four mirrors.
-   Football rankings are 25 and 32 deep and run on `lib/gridiron.js` instead.
+   top ten and drives 500+ lists across four mirrors. Football rankings run on `lib/gridiron.js`
+   (three pillars on a points scale, section 2) and `lib/gridiron-math.js` instead.
+6. **No polls, no media, anywhere in the score (owner rule, 2026-09-01).** Results, betting
+   markets and analytics models only. See section 2.
 5. **The past is frozen.** A published week is history. Never rewrite a shipped week's composite;
    corrections go in the following week with a note.
 
@@ -90,192 +92,161 @@ app/api/cron/gridiron/route.js                the weekly job
 
 ---
 
-## 2. The composite
+## 2. The composite (v2, 2026-09-01: results + odds + analytics, no polls)
 
-### Depth and points
+**Owner rule, 2026-09-01: the score contains NO media rankings and NO human polls.** Not the AP,
+not the Coaches, not the CFP committee, not any outlet's power ranking. Three pillars, each
+accountable to something real (a score, a price, a measurement), each expressed on ONE scale:
+**points better than an average team in its league on a neutral field.** The composite is a
+weighted sum of the three and the rank is its sort order. The page prints the points.
 
-Every source is truncated to the evaluation depth for its sport, then scored as a straight Borda:
+The engine is `lib/gridiron.js` with the numerics in `lib/gridiron-math.js`; the 2025 backtest in
+`Consensus Gurus/football-rankings-results-odds-analytics.md` section 8 is why every number below
+is what it is. Borda rank points, depth truncation, the solo-tier cap and poll vote tails are all
+gone; a points scale needs none of them.
+
+### Pillar R, Results: what actually happened
+
+Input: every completed game this season (`block.games`, ESPN ids, scores, neutral flag).
+
+1. Capped margin `m = clamp(home - away, -C, C)`, `C = 28` CFB, `21` NFL. A 45-point win says
+   nothing a 28-point win does not, and uncapped margins reward running up the score.
+2. Margin rating: ridge least squares, `minimize sum (m - H*site - (r_h - r_a))^2 + lam sum r^2`,
+   `lam = 1` (one phantom game against an average team, so a 1-0 team is not +40). A team's rating
+   equals its average margin plus the average rating of its opponents, so schedule strength is
+   built in. Every unregistered CFB opponent pools into ONE FCS node.
+3. Win rating: Bradley-Terry with home field, penalized maximum likelihood, so a win counts beyond
+   its margin. Scaled to points by matching its spread to the margin rating's.
+4. `R = 0.6 * margin + 0.4 * wins`. A team that has not played yet sits at the played teams' mean,
+   which is zero after centring: no evidence reads as average, never as a penalty.
+
+Home field is FIT only once there are three games per team (`fitHomeField`); before that it is
+`hf` from `PARAMS` (2.5 CFB, 2.0 NFL). With fewer games the parameter is confounded with the
+ratings: in week 1 nearly every home team is a favourite, and a free H fit at 12 to 14 points.
+
+### Pillar O, Odds: what money says
+
+1. **Spread-implied rating** from `block.lines` (one home-team spread per game, closing for played
+   games, current for upcoming). Solved week by week in order: each week fits the last three
+   weeks' lines with weights `1 / 0.6 / 0.35`, tethered (`tau = 0.5`) to the previous week's
+   solution, which keeps the system determined (16 NFL lines cannot fix 32 unknowns), fills a bye,
+   and stops one odd line swinging a team six points. Lines are capped like margins, and home field
+   is never fit from lines (one to three lines per team is always too few); `hf` is subtracted.
+   **First fitted week:** no previous week to tether to, so the ridge is `tau0 = 0.05`, and until
+   THREE weeks of lines exist the ratings are rescaled so their spread is `sd(line) / sqrt 2` (a
+   spread is the difference of two ratings). One line per team fixes a pair's difference and
+   nothing else, so early on the fit's order is real and its scale is not.
+2. **Futures and the other market boards** (`tier: 'market'` sources, the ordinal boards): each
+   team's rank is placed on the spread-implied distribution by POSITION (the 7th-ranked team takes
+   the 7th-highest spread-implied value), then averaged across boards. The gaps come from the
+   market's own distribution, never invented.
+3. `O = 0.75 * lines + 0.25 * futures` for a team with a line in the window, futures alone
+   without one. **Until two weeks of lines exist the split is 0.5 / 0.5**, because one week of
+   lines is thin.
+
+### Pillar A, Analytics: what the models say
+
+Every live `tier: 'model'` source (30-day rule still applies), each team's rank placed on the ODDS
+distribution by position, averaged across models, then rescaled to the odds pillar's spread. A
+team below a model's published depth takes the mean of the odds values below that depth. Pure
+results models (PFR SRS, Sagarin RATING in season) do not belong here, pillar R already is that
+calculation; keep the predictive ones (FPI, SP+ when the CFBD key exists, F+, DRatings, Sagarin
+PREDICTOR). The collinearity rule in section 3 stands.
+
+**One model is not a tier (`soloScale`):** a lone live model carries HALF the pillar share and the
+rest goes to the market. The old solo cap, kept for the same reason.
+
+### Weights and the ramp
 
 ```
-depth = 50 (CFB), 32 (NFL)
-points(rank) = depth + 1 - rank      for rank 1..depth
-points        = 0                     otherwise
+S = wR * R + wO * O + wA * A          full strength: results 40, markets 35, models 25
+wR = 0.40 * min(1, W / G)             W = league weeks completed, G = 6 (CFB), 5 (NFL)
 ```
 
-**CFB runs to 50** (owner rule, 2026-08-28). Nobody else publishes a consensus top 50, and with 136
-FBS teams there is real signal well below 25. See §2a for the poll-depth problem this creates and
-how it is solved — the naive version of this change hands ranks 26-50 to the models alone.
+The rest splits between markets and models in their 35:25 ratio (after `soloScale`), and a pillar
+with nothing to say this week hands its share to the others. Preseason is 0 / 58 / 42.
 
-**Truncation is the load-bearing part.** Sources rank to wildly different depths: the AP poll stops
-at 25, FPI ranks 136 FBS teams, Sagarin ranks 266. Without truncation, FPI's #60 team would out-earn
-the AP's #20 team purely because FPI ranks deeper. Truncating every source to the same depth puts
-them on one scale, and an absent team earning ZERO is the same rule `getSources` already uses.
-
-### Tier weights
-
-Weight is assigned by TIER, not by source, so adding a fourth media outlet cannot drown out the AP
-poll:
-
-**TIER ORDER: MARKETS > MODELS > MEDIA > HUMAN POLLS** (owner rule, 2026-08-28). The tiers are
-ordered by **how little bias they carry**, not by how famous they are:
-
-- A **betting market** is the least biased signal available. It is real money, continuously
-  repriced by people who lose that money when they are wrong, with no reason to favour a brand, a
-  conference or a television window.
-- An **analytics model** is objective and results-derived, but it is one method with one set of
-  assumptions, and different models genuinely disagree.
-- **Human rankings** come last because their known failure modes all point the same way: voters
-  anchor on where a team started the season, reward reputation and blue-blood brands, are slow to
-  drop a name team that keeps losing, and see a fraction of the games they rank.
-
-That is not a knock on the AP poll, which is a fine measure of what people believe. It is the
-reason it does not lead here. This is a real editorial position, not a neutral default, so the
-argument is stated on the page rather than buried.
-
-| Tier | CFB | NFL | Why |
+| Point in season | Results | Markets | Models |
 |---|---|---|---|
-| Betting markets | **40%** | **45%** | The least biased signal available, and the hardest single one to beat. The largest tier in both sports. |
-| Analytics models | **35%** | **35%** | Objective and results-derived, but one method among several. |
-| Media power rankings | **10%** | **20%** | The softest signal and the most duplicative of the polls. Currently unpopulated for CFB (every fetchable CFB "media ranking" is an AP/Coaches reprint, which would double-count the poll tier). |
-| Official polls | **15%** | — | AP and Coaches still carry the historical consensus and the vote tail that makes a top 50 possible, but they are weighted last per the rule above. The NFL has no official poll. |
+| Preseason (W = 0) | 0 | 58 | 42 |
+| Week 2 | 13 | 51 | 36 |
+| Week 4 | 27 | 43 | 30 |
+| Week 6 CFB / 5 NFL on | 40 | 35 | 25 |
 
-Live shares after renormalization: **CFB** market 44.4, model 38.9, official 16.7. **NFL** market
-45.0, model 35.0, media 20.0.
+Why 40 / 35 / 25: markets and models are both forecasts and correlate at about 0.9, so together
+they are one signal counted twice; results are the only pillar that is not a forecast and the one a
+reader holds a ranking accountable to. Markets over models per the 2026-08-28 ruling. Why the
+ramp: in 2025 the results pillar alone predicted 60% of games in weeks 1 to 4 and matched the
+market by week 10. **Prediction accuracy was flat across every split from 0/58/42 to 60/35/25 on
+the 2025 backtest**, so the weight is an editorial choice about what a ranking is FOR and the data
+cannot make it; what moves is how closely the board tracks the standings (each ten points toward
+results buys about 0.01 of rank correlation with W-L).
 
-Within a tier, sources split the tier's share equally, except the official tier:
+Tie-break on composite, then results, then odds, then name. `SCORING_VERSION = 2`.
 
-```
-before the CFP's first release:  AP 60%,  Coaches 40%
-from the CFP's first release:    CFP 50%, AP 30%, Coaches 20%
-```
+### The 30-day rule (owner rule, 2026-08-28), unchanged
 
-This mirrors the `decisiveExpert` idea already in `CLAUDE.md`: the committee ranking is the one that
-decides the playoff, so it outweighs the other polls once it exists.
+A source whose data is more than 30 days old is EXCLUDED: scores nothing, takes no share, keeps its
+column struck through with the reason. An undated source must name the current season. A team
+ranked only by an excluded source never reaches the board. The preseason trap still bites (FPI is
+38 and 87 days old on 2026-09-01) and still resolves itself once the seasons start.
 
-⚠️ **Unresolved tension, needs an owner ruling before November, and it got sharper.** These two
-rules pull against each other. With the official tier now at 16.7% live, the CFP committee ranking
-would land at roughly **8% of the composite** — so the ranking that literally selects the playoff
-field would carry less weight than any single analytics model. That is defensible if the page's claim is "who is actually best," and wrong if the
-claim is "where does this team stand." Options when the committee's first release lands: leave it
-(models-first is the stated rule), raise the official tier only for the CFP weeks, or promote CFP
-out of the official tier into a decisive slot of its own. **Do not decide this silently in code.**
+## 2a. What the page shows
 
-### Two normalizations that keep it honest
+Per team: rank, composite in points, then the columns in pillar order: **Résumé** (results rank,
+points on hover) and **W-L**; **Lines** (spread-implied rank) and each market board; **Models**
+(analytics composite rank) and each model. Then **Résumé vs market** = results rank minus market
+rank: a large positive number is a team whose record the market does not yet believe, a large
+negative one is a favourite that keeps losing. These are the story rows. Deviation shading works
+as before against the composite rank. `computeComposite` returns the column list (`columns`) so
+the table, the PDF and the poster all render the same columns; never build a column list from
+`sources` by hand.
 
-**Tier renormalization.** Tier shares are divided by the total share of the tiers that actually
-published this week AND passed the age gate. A tier going dark reweights the rest instead of
-shrinking the composite. CFB currently has no usable media source, so it runs market 44.4% /
-model 38.9% / official 16.7%.
+## 2b. Ordering, and what was retired
 
-**The solo-tier cap (`SOLO_CAP = 0.35`).** A tier carrying exactly one source is capped at 35% and
-the excess redistributes. One outlet is not a tier. Without this the NFL media tier — currently just
-CBS — would carry 50% of the composite alone, more than three independent models combined.
+The composite is continuous, so ties are near impossible. Retired in v2: `bordaFromRank`, depth
+truncation for scoring (depth still caps the DISPLAY), the `official` and `media` tiers, the
+`poll` source kind on the page (the `rankSource` parser keeps it for any priced or vote-tailed
+board), the solo-tier cap (replaced by `soloScale` on models only), the CFP weighting question in
+the old section 2 (moot: the committee ranking is a poll and is not scored). AP and CFP can be
+shown as UNSCORED reference columns if the owner asks; today they are not in the snapshot at all.
 
-**The market tier is EXEMPT from the cap, and that exemption is what makes the ordering possible.**
-The cap exists to stop one publication's OPINION standing in for a whole category. A betting line is
-not an opinion: it is already an aggregation, priced by everyone with money at stake and moved by
-books balancing action against each other, so a single futures board carries the market rather than
-one voice. Without the exemption the cap handed the top tier straight back to the models on college
-football, where the market is one source. Adding a second CFB market source would make the point
-moot and is worth doing.
+## 2c. The 2025 backtest, in one table
 
-### The 30-day rule (owner rule, 2026-08-28)
+Run 2026-09-01 on every 2025 game and ESPN BET closing line, analytics proxied by an Elo carried
+from 2024 (no archive of weekly FPI/SP+ exists). Next-week prediction, full season:
 
-**A source whose data is more than 30 days old is EXCLUDED from the composite.** It scores nothing
-and takes no tier weight; the remaining tiers renormalize around it.
+| | NFL SU | NFL MAE | CFB SU | CFB MAE |
+|---|---|---|---|---|
+| Composite 40 / 35 / 25 | 63.1 | 9.98 | 73.6 | 12.16 |
+| Odds pillar alone | 65.3 | 9.81 | 74.7 | 11.82 |
+| Results pillar alone | 63.1 | 10.63 | 71.4 | 13.26 |
+| The closing line itself | 64.9 | 9.71 | 77.3 | 11.92 |
+| AP poll (249 CFB games with a ranked team) | | | 75.5 vs composite 78.7 | |
 
-- **The column stays on the page**, struck through, marked `EXCLUDED`, with its date and the reason.
-  A dropped source that simply vanishes teaches the reader nothing, and hiding it is exactly how a
-  thin week passes for a full one.
-- **An undated source must name the current season in its own label** to survive (Sagarin's "2026
-  preseason", the market's "2026 season"). Anything undated that does not name the season fails.
-  This is the content-derived freshness test from §5 applied to sources that publish no timestamp.
-- **A team ranked ONLY by an excluded source never reaches the board.** Excluded ranks are carried
-  for display, never for membership.
-
-⚠️ **The preseason trap, and it is live right now.** The rule is correct in season, when every
-source re-publishes weekly. In the preseason it is brutal, because several sources legitimately have
-not re-run since spring. As of 2026-08-28 it excludes:
-
-| Sport | Excluded | Age |
-|---|---|---|
-| CFB | ESPN FPI | 38 days |
-| NFL | ESPN FPI | 87 days |
-| NFL | Sagarin | 201 days |
-| NFL | CBS Sports | 122 days |
-
-That leaves the **NFL model tier with a single source** (DRatings), which the solo cap then holds at
-35% — one model carrying more than a third of the composite, which is the very concentration the cap
-exists to prevent. CFB is fine (five sources, three tiers).
-
-This resolves itself once the seasons start (NFL Sept 10), when every source returns to a weekly
-cadence. **If it is still biting after Week 2, the fix is a phase-aware limit** — 30 days in season,
-looser in the preseason — not a blanket loosening, because the whole point of the rule is to catch a
-source that has stopped updating when it should be updating. Do not change `MAX_AGE_DAYS` without
-re-reading this note.
-
----
-
-## 2a. The poll-depth problem, and "others receiving votes"
-
-**This is the thing that makes a CFB top 50 honest rather than a lie about its own methodology.**
-
-The AP and Coaches polls rank exactly 25 teams. At depth 50 the naive implementation gives every
-team below 25 a zero from both polls, so the official tier — 62.5% of the composite — contributes
-**nothing at all** to half the page, and the models silently decide ranks 26-50 while the header
-still claims polls carry 62.5%. The weights would be a lie below the fold.
-
-The fix is that the polls are deeper than they look. Both publish **"others receiving votes"** with
-vote totals, and ESPN's core API returns it as a populated `others[]` array alongside `ranks[]`
-(same schema; `current: 0` is the reliable marker for an others row — do not rely on array
-position). Measured 2026-08-28: **AP reaches 50 distinct teams, Coaches 55, union 59.** So the polls
-genuinely cover the whole top 50 and the tier weights stay true all the way down.
-
-Three rules for handling the tail:
-
-1. **Rank the tail by VOTE POINTS, not array position.** Points are the only ordering a vote tail
-   has.
-2. **Ties share an averaged rank.** Ties are everywhere down there — the 2026 preseason AP has USC
-   and BYU tied at 839 points in the ranked block, and four teams tied on a single point in the
-   tail. Tied teams take the average of the ranks they span (standard competition ranking), so a
-   coin-flip ordering inside a tie can never leak into the composite.
-3. **The cell renders `RV`, never a number.** The AP did not rank Clemson 26th; it said Clemson
-   received votes. Printing "#26" would invent a rank the poll never published. The effective rank
-   is still used for scoring and appears in the cell's tooltip.
-
-**Known limit, and it is real.** Counting only teams with 5+ votes, AP separates about 38 teams and
-Coaches about 46. Below that the tail is 1-to-4-point near-ties that barely discriminate. So poll
-input is genuinely informative to roughly rank 40-46, and **ranks ~46-50 remain substantially
-model-driven** even with the tail folded in. That is a fair description of the data rather than a
-bug, but do not claim the polls fully own the bottom of the board.
-
----
-
-## 2b. Ordering
-
-1. Composite score, descending
-2. Number of sources ranking the team (a team five sources rank beats one that two rank)
-3. Best single rank across sources
-4. Alphabetical
-
-Deterministic at every step, so the same inputs always produce the same published week.
-
-### What the page shows beyond the ranking
-
-**Spread** — the gap between a team's best and worst rank, and the single most interesting number
-here, because no one else publishes it. It is computed **across the sources that rank the team**,
-with the `ranked by only N of M` line under the team name carrying the caveat. (Requiring every
-source to rank a team was fine at depth 25; at depth 50, with sources of wildly different depths, it
-would make spread meaningless below 25.) In the 2026 preseason build, BYU spreads 12 (polls #15,
-Sagarin #24) and the NFL's Cowboys spread 18 (CBS #8, Sagarin #26).
-
-**Cell shading** — each source cell is tinted by its deviation from the composite: blue where that
-source is 3+ spots higher on the team, amber where it is 3+ lower, deeper at 5+. This is how a
-reader sees which outlet is the outlier without reading a single number.
-
----
+End of season: NFL composite 0.94 rank correlation with W-L (market alone 0.80), 11 of 14 playoff
+teams in the top 14 (market 9). CFB 21 of the committee's 25, Spearman 0.87. Pillar internals
+(cap 14 to 35, ridge 0.5 to 4, mix 40 to 100%, tether 0.1 to 2, one- to four-week windows) all
+moved results by under a point. Full write-up in the Consensus Gurus folder.
 
 ## 3. Source registry (verified live 2026-08-28)
+
+**v2 note (2026-09-01):** only `tier: 'market'` and `tier: 'model'` sources are scored, and the
+snapshot carries only those. The poll and media entries below are kept as REFERENCE (endpoints,
+parsers, traps) in case the owner ever asks for an unscored reference column; do not put them
+back in `lib/gridiron-data.js` without that ask. Two ingests were ADDED, both from ESPN and both
+already used by the 2025 backtest:
+
+| Feed | Endpoint | Notes |
+|---|---|---|
+| Games (results) | `site.api.espn.com/apis/site/v2/sports/football/{college-football|nfl}/scoreboard?dates={yr}&seasontype=2&week={w}` (CFB add `&groups=80&limit=400`) | completed games only (`status.type.state === 'post'`); store `{ w, id, d, hid, aid, n, hs, as }` with ESPN team ids and `n = 1` on `neutralSite` |
+| Lines | upcoming: same scoreboard, `competitions[0].odds[0].spread` (HOME-team spread, DraftKings); played: `sports.core.api.espn.com/v2/sports/football/leagues/{lg}/events/{id}/competitions/{id}/odds`, provider id 58 (ESPN BET), `homeTeamOdds.close.pointSpread.american` | keep the current week and the two before it; `sp` is the home spread, negative = home favoured |
+
+Both endpoints are CORS-open, so a session gathers them with `fetch()` from a www.espn.com tab in
+the connected Chrome (sandbox curl cannot reach ESPN). `$ref` links in core responses are `http://`
+with a query string; convert to `https://` and strip the query before fetching. The FBS team list
+(`.../seasons/{yr}/types/2/groups/80/teams?limit=200`) carries a few all-star pseudo-teams
+(ids 3144 and up, 125290, 125291); ignore those.
 
 ### The one endpoint that matters
 
@@ -488,6 +459,10 @@ the Loft surfaces.
   real internal-link registry, and a sub-brand inside a parent site is the normal shape for that.
   Branding only: the visual system is unchanged (Midnight blue, Manrope), NOT the pre-rebrand
   cream/Fraunces identity.
+- **v2 (2026-09-01): rank, team (record beneath), RATING in points, then the three pillars in
+  order results / markets / models, each pillar's own column first and its sources beside it, then
+  Résumé vs market.** `PILLAR_ORDER` in `lib/gridiron.js`; the table, PDF and poster all read
+  `columns` off `computeComposite`. The two rules below describe the same shape and still hold.
 - **Column order is fixed: rank, team, CONSENSUS SCORE, then every source, then spread** (owner
   rule, 2026-08-28). The composite score sits immediately beside the team name, ahead of every
   source column, in a filled `--accent` box. It is the answer the page exists to give, so it is
@@ -590,7 +565,14 @@ button on each page. 1200x1558 for the 50, 1200x1140 for the 32. Shared renderer
 
 ## 7. Weekly build checklist
 
-1. Fetch every registered source; run the per-source gate (§5) on each.
+0. **v2:** pull this season's completed games and the current week's lines (section 3, the two
+   added feeds), splice them into `block.games` / `block.lines`, set `block.week` to the ESPN week
+   whose games are NEXT, stamp `gamesAt` / `linesAt`, and run `node scripts/verify-gridiron.mjs`.
+   The verifier fails on an unresolved NFL id, a duplicate game, a CFB game with no registered
+   team on either side, a pillar share that does not follow the ramp, or a composite that is not
+   the weighted sum the shares say it is. A brand-new FBS program needs a registry row with its
+   ESPN id first; anything unregistered pools into the FCS node and never reaches the board.
+1. Fetch every registered market and model source; run the per-source gate (§5) on each.
 2. Resolve all team names; abort any source with an unresolved name.
 3. Compute the composite (`lib/gridiron.js`), including tier renormalization and the solo cap.
 4. Diff against last week's snapshot; run the publish gate (§5).
@@ -616,9 +598,12 @@ button on each page. 1200x1558 for the 50, 1200x1140 for the 32. Shared renderer
       April post-draft edition.
 - [ ] Wire PFR SRS for the NFL — it is empty until Week 1 and then becomes the most durable model
       source available.
-- [ ] **Rule the CFP weighting question before the committee's first release in early November**
-      (see §2). At the current tier weights the playoff-selecting ranking carries 15% of the
-      composite.
+- [x] ~~Rule the CFP weighting question~~ Moot since v2 (2026-09-01): polls are not scored.
+- [ ] Decide whether AP / CFP return as UNSCORED reference columns (owner call; off by default).
+- [ ] Register the collegefootballdata.com key: it also supplies `/games` and `/lines` in one call
+      each, which would replace the two ESPN ingests for CFB and add SP+.
+- [ ] Re-run the 2025 backtest with real weekly FPI / SP+ once an archive exists (the Elo proxy is
+      the one substitution in the numbers above).
 - [ ] Un-suppress the ESPN SOR column once `accomplishmentrank` populates, ~Week 3.
 - [ ] Re-verify the CFP official site parser in early November; it was redesigned 2026-08-27 and its
       record strings render mangled (rank and team name are clean; records are not).

@@ -17,7 +17,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const TITLE = 'NFL Consensus Power Rankings: All 32 Teams | Source of Truths';
 const DESCRIPTION =
-  'One consensus from every NFL power ranking worth reading: analytics models, betting markets and media, each scored 1 to 32 and weighted by tier. Every source shown side by side.';
+  'All 32 teams rated on results, betting markets and analytics models, with no media polls: what happened, what money says and what the models say, each in points and shown side by side.';
 
 // Share copy is written for the moment someone sees it in a feed, so it leads
 // with what makes the page different (the consensus, and that the disagreement
@@ -26,7 +26,7 @@ const DESCRIPTION =
 const SHARE_TITLE = 'The NFL Consensus, All 32 Teams';
 // Kept under ~200 characters: Twitter truncates a card description around there.
 const SHARE_DESCRIPTION =
-  'Every NFL power ranking in one table, and the consensus they add up to. Models, betting markets and media side by side, so you can see exactly where they disagree and by how much.';
+  'The NFL rated on results, betting markets and analytics models, no media polls. Every team in points better than average, with the résumé and the market side by side so you can see exactly where they disagree.';
 
 export const metadata = {
   title: TITLE,
@@ -48,7 +48,7 @@ export const metadata = {
 };
 
 export default function NflRankingsPage() {
-  const { ranked } = computeComposite(GRIDIRON.nfl.sources, 'nfl');
+  const { ranked } = computeComposite(GRIDIRON.nfl, 'nfl');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -85,14 +85,15 @@ export default function NflRankingsPage() {
             NFL <span style={{ color: T.accent }}>consensus power rankings</span>
           </h1>
           <p style={{ marginTop: 10, maxWidth: 660, fontSize: 15, lineHeight: 1.55, color: T.muted }}>
-            Every NFL ranking scored into one. Betting markets and analytics models carry the most
-            weight because they carry the least bias: money and math have no attachment to a brand
-            name, while media voters lean on reputation and on last season.
+            Results, betting markets and analytics models, scored into one rating in points. No
+            media polls: a score, a price and a measurement each answer to something real, while
+            media voters lean on reputation and on last season.
           </p>
         </div>
 
         <GridironTable
-          data={{ sources: GRIDIRON.nfl.sources, fetchedAt: GRIDIRON.fetchedAt }}
+          data={GRIDIRON.nfl}
+          fetchedAt={GRIDIRON.fetchedAt}
           sport="nfl"
           eyebrow="NFL &middot; 2026 season"
           boardTitle="Consensus 1 through 32"

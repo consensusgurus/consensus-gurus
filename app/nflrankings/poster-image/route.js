@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   return renderGridironPoster({
-    sources: GRIDIRON.nfl.sources,
+    block: GRIDIRON.nfl,
     sport: 'nfl',
     fetchedAt: GRIDIRON.fetchedAt,
     title: 'NFL Consensus Power Rankings',

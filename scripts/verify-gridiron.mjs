@@ -1,0 +1,136 @@
+// Verifier for the Sports Ranking pages (lib/gridiron.js v2).
+//
+// Imports the REAL engine through alias-loader.mjs rather than restating it, so
+// it cannot drift from what it certifies. Run: node scripts/verify-gridiron.mjs
+// Discovered by scripts/verify-all.mjs. Exit 1 on any failure.
+//
+// What it proves, per sport:
+//   1. every game and line resolves to a registered team (CFB: or the FCS pool)
+//   2. no game or line references a team id the registry does not know AND
+//      names an FBS-looking opponent twice (a duplicate id, a copy-paste slip)
+//   3. the composite runs, the board is full depth, ranks are 1..depth, unique
+//   4. pillar shares sum to 1 and follow the ramp for the snapshot's week
+//   5. every pillar is centred (mean 0 over the board) and the analytics pillar
+//      is on the market's scale
+//   6. a team's composite is the weighted sum the shares say it is
+//   7. the results pillar prefers the team that won every game between two
+//      otherwise equal teams (a sanity check on sign conventions: a home team
+//      that WINS by 20 must rate above its opponent, and the line sign is the
+//      home spread, so -7 means the home team is favoured by 7)
+//   8. no media or poll source is present in the snapshot at all
+import { register } from 'node:module';
+register('./alias-loader.mjs', import.meta.url);
+
+const { computeComposite, PILLARS, RAMP_WEEKS, DEPTH } = await import('../lib/gridiron.js');
+const { ridgeLS, bradleyTerry, mean } = await import('../lib/gridiron-math.js');
+const { GRIDIRON } = await import('../lib/gridiron-data.js');
+const { teamById } = await import('../lib/gridiron-teams.js');
+
+let fails = 0;
+const fail = (m) => { fails++; console.log('✗', m); };
+const ok = (m) => console.log('  ok', m);
+const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
+
+// ---- 7 first: sign conventions on a synthetic league ----
+{
+  const rows = [
+    { h: 0, a: 1, site: 1, y: 20 - 2.5 }, { h: 1, a: 2, site: 1, y: 3 - 2.5 }, { h: 2, a: 0, site: 1, y: -10 - 2.5 },
+  ];
+  const { x } = ridgeLS(rows, 3, { lam: 0.5, fitH: false });
+  if (!(x[0] > x[1] && x[0] > x[2])) fail(`ridgeLS sign: team 0 should lead, got ${x.map((v) => v.toFixed(2))}`);
+  else ok('ridgeLS: the team that wins big rates highest');
+  const b = bradleyTerry([{ h: 0, a: 1, site: 1, y: 1 }, { h: 0, a: 1, site: 0, y: 1 }, { h: 1, a: 0, site: 1, y: 0 }], 2, { lam: 0.5, h: 0.3 });
+  if (!(b[0] > b[1])) fail('bradleyTerry sign: the 3-0 team should lead');
+  else ok('bradleyTerry: the team that wins rates highest');
+}
+
+for (const sport of ['cfb', 'nfl']) {
+  console.log(`== ${sport}`);
+  const block = GRIDIRON[sport];
+  const depth = DEPTH[sport];
+
+  // 8. no polls, no media
+  for (const [id, s] of Object.entries(block.sources)) {
+    if (s.tier !== 'market' && s.tier !== 'model') fail(`${sport}: source ${id} has tier "${s.tier}"; only market and model are allowed`);
+  }
+  ok('no media or poll source in the snapshot');
+
+  // 1, 2. resolution
+  const seen = new Set();
+  for (const g of block.games || []) {
+    if (seen.has(g.id)) fail(`${sport}: game ${g.id} listed twice`);
+    seen.add(g.id);
+    for (const id of [g.hid, g.aid]) {
+      if (!teamById(sport, id) && sport === 'nfl') fail(`${sport}: game ${g.id} has unknown team id ${id}`);
+    }
+    if (!(Number.isFinite(g.hs) && Number.isFinite(g.as))) fail(`${sport}: game ${g.id} has no score`);
+    if (g.n !== 0 && g.n !== 1) fail(`${sport}: game ${g.id} neutral flag must be 0 or 1`);
+  }
+  const lseen = new Set();
+  for (const l of block.lines || []) {
+    if (lseen.has(l.id)) fail(`${sport}: line ${l.id} listed twice`);
+    lseen.add(l.id);
+    if (!Number.isFinite(l.sp)) fail(`${sport}: line ${l.id} has no spread`);
+    if (sport === 'nfl' && (!teamById(sport, l.hid) || !teamById(sport, l.aid))) fail(`${sport}: line ${l.id} has an unknown team`);
+  }
+  // CFB: a game or line where NEITHER side is registered is a bug (two FCS teams
+  // cannot appear in an FBS scoreboard pull).
+  if (sport === 'cfb') {
+    for (const g of [...(block.games || []), ...(block.lines || [])]) {
+      if (!teamById(sport, g.hid) && !teamById(sport, g.aid)) fail(`cfb: ${g.id} has no registered team on either side`);
+    }
+  }
+  ok(`${(block.games || []).length} games and ${(block.lines || []).length} lines resolve`);
+
+  // 3. the board
+  const r = computeComposite(block, sport);
+  if (r.problems.length) r.problems.forEach((p) => fail(`${sport}: ${p}`));
+  if (r.ranked.length !== depth) fail(`${sport}: board has ${r.ranked.length} rows, expected ${depth}`);
+  const ranks = r.ranked.map((x) => x.rank);
+  if (ranks.some((v, i) => v !== i + 1)) fail(`${sport}: ranks are not 1..${depth}`);
+  if (new Set(r.ranked.map((x) => x.team)).size !== r.ranked.length) fail(`${sport}: duplicate team on the board`);
+  for (let i = 1; i < r.ranked.length; i++) {
+    if (r.ranked[i].score > r.ranked[i - 1].score + 1e-9) fail(`${sport}: board not sorted at ${i}`);
+  }
+  ok(`board is ${depth} deep, sorted, unique`);
+
+  // 4. shares and ramp
+  const shares = Object.values(r.tierShare);
+  if (!near(shares.reduce((a, b) => a + b, 0), 1)) fail(`${sport}: pillar shares sum to ${shares.reduce((a, b) => a + b, 0)}`);
+  const weeksPlayed = Math.max(0, (block.week || 1) - 1);
+  const expectR = (block.games || []).length ? PILLARS.results * Math.min(1, weeksPlayed / RAMP_WEEKS[sport]) : 0;
+  if (!near(r.tierShare.results || 0, expectR)) fail(`${sport}: results share ${r.tierShare.results} != ramp ${expectR}`);
+  if ((r.tierShare.market || 0) < (r.tierShare.model || 0) - 1e-9) fail(`${sport}: models outweigh markets`);
+  ok(`shares ${JSON.stringify(Object.fromEntries(Object.entries(r.tierShare).map(([k, v]) => [k, +v.toFixed(3)])))}`);
+
+  // 5. centring and scale
+  const all = r.all;
+  const mO = mean(all.map((x) => x.O));
+  if (!near(mO, 0, 1e-6)) fail(`${sport}: odds pillar not centred (${mO})`);
+  if (all[0].A != null) {
+    const mA = mean(all.map((x) => x.A));
+    if (!near(mA, 0, 1e-6)) fail(`${sport}: analytics pillar not centred (${mA})`);
+    const sdv = (v) => Math.sqrt(mean(v.map((x) => x * x)));
+    const sO = sdv(all.map((x) => x.O)), sA = sdv(all.map((x) => x.A));
+    if (!near(sO, sA, 1e-6)) fail(`${sport}: analytics scale ${sA} != market scale ${sO}`);
+  }
+  if (all[0].R != null && !near(mean(all.map((x) => x.R)), 0, 1e-6)) fail(`${sport}: results pillar not centred`);
+  ok('pillars centred, analytics on the market scale');
+
+  // 6. the composite is the weighted sum
+  for (const x of r.ranked.slice(0, 10)) {
+    const s = (r.tierShare.results || 0) * (x.R || 0) + (r.tierShare.market || 0) * x.O + (r.tierShare.model || 0) * (x.A || 0);
+    if (!near(s, x.score, 1e-6)) fail(`${sport}: ${x.team} composite ${x.score} != weighted sum ${s}`);
+  }
+  ok('composite equals the weighted sum of the pillars');
+
+  // columns: every column id the rows carry exists, and vice versa
+  const colIds = new Set(r.columns.map((c) => c.id));
+  for (const x of r.ranked) for (const id of Object.keys(x.shown)) if (!colIds.has(id)) fail(`${sport}: row carries unknown column ${id}`);
+  ok(`${r.columns.length} columns, ${r.excluded.length} excluded by age`);
+
+  console.log('   top 5:', r.ranked.slice(0, 5).map((x) => `${x.team} ${x.score > 0 ? '+' : ''}${x.score.toFixed(1)}`).join(' | '));
+}
+
+console.log(fails ? `\n${fails} FAILURE(S)` : '\nall gridiron checks pass');
+process.exit(fails ? 1 : 0);

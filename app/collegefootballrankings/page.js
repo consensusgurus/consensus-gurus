@@ -17,7 +17,7 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const TITLE = 'College Football Consensus Rankings: Top 50 | Source of Truths';
 const DESCRIPTION =
-  'Seven rankings, one consensus: the AP and Coaches polls, four analytics models and the betting market, each scored 50 deep and weighted by tier. Every source shown side by side.';
+  'The top 50 rated on results, betting markets and analytics models, with no polls: what happened, what money says and what the models say, each in points and shown side by side.';
 
 // Share copy is written for the moment someone sees it in a feed, so it leads
 // with what makes the page different (the consensus, and that the disagreement
@@ -26,7 +26,7 @@ const DESCRIPTION =
 const SHARE_TITLE = 'The College Football Consensus, 50 Deep';
 // Kept under ~200 characters: Twitter truncates a card description around there.
 const SHARE_DESCRIPTION =
-  'Every major college football ranking in one table, and the consensus they add up to. Polls, models and the betting market side by side, so you can see exactly where they disagree and by how much.';
+  'College football rated on results, betting markets and analytics models, no polls. Every team in points better than average, with the résumé and the market side by side so you can see exactly where they disagree.';
 
 export const metadata = {
   title: TITLE,
@@ -48,7 +48,7 @@ export const metadata = {
 };
 
 export default function CollegeFootballRankingsPage() {
-  const { ranked } = computeComposite(GRIDIRON.cfb.sources, 'cfb');
+  const { ranked } = computeComposite(GRIDIRON.cfb, 'cfb');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -85,14 +85,15 @@ export default function CollegeFootballRankingsPage() {
             College football <span style={{ color: T.accent }}>consensus top 50</span>
           </h1>
           <p style={{ marginTop: 10, maxWidth: 660, fontSize: 15, lineHeight: 1.55, color: T.muted }}>
-            Seven rankings scored into one. Betting markets and analytics models carry the most
-            weight because they carry the least bias: money and math have no attachment to a brand
-            name, while poll voters lean on reputation and preseason expectation.
+            Results, betting markets and analytics models, scored into one rating in points. No
+            polls: a score, a price and a measurement each answer to something real, while poll
+            voters lean on reputation and preseason expectation.
           </p>
         </div>
 
         <GridironTable
-          data={{ sources: GRIDIRON.cfb.sources, fetchedAt: GRIDIRON.fetchedAt }}
+          data={GRIDIRON.cfb}
+          fetchedAt={GRIDIRON.fetchedAt}
           sport="cfb"
           eyebrow="College football &middot; FBS &middot; 2026 season"
           boardTitle="Consensus Top 50"

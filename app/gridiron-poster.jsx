@@ -20,11 +20,8 @@ const PAL = {
 };
 const MEDAL = [PAL.gold, PAL.silver, PAL.bronze];
 
-const TIER_LABEL = {
-  market: 'Betting markets', model: 'Analytics models',
-  media: 'Media rankings', official: 'Official polls',
-};
-const TIER_ORDER = ['market', 'model', 'media', 'official'];
+const TIER_LABEL = { results: 'Results', market: 'Betting markets', model: 'Analytics models' };
+const TIER_ORDER = ['results', 'market', 'model'];
 
 async function loadFont(url) {
   try {
@@ -72,14 +69,14 @@ function Row({ r, height, fontScale }) {
           fontSize: 19 * fontScale, fontWeight: 800, color: PAL.accent,
         }}
       >
-        {r.score.toFixed(1)}
+        {(r.score > 0 ? '+' : '') + r.score.toFixed(1)}
       </div>
     </div>
   );
 }
 
-export async function renderGridironPoster({ sources, sport, fetchedAt, title, eyebrow, url }) {
-  const { ranked, tierShare, depth } = computeComposite(sources, sport);
+export async function renderGridironPoster({ block, sport, fetchedAt, title, eyebrow, url }) {
+  const { ranked, tierShare, depth } = computeComposite(block, sport);
 
   const [w800, w700, w600] = await Promise.all([
     loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-800-normal.woff'),

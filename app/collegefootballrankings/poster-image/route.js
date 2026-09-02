@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 
 export async function GET() {
   return renderGridironPoster({
-    sources: GRIDIRON.cfb.sources,
+    block: GRIDIRON.cfb,
     sport: 'cfb',
     fetchedAt: GRIDIRON.fetchedAt,
     title: 'College Football Consensus Top 50',

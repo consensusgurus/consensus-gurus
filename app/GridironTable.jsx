@@ -6,32 +6,23 @@
 // being assembled by script after load.
 //
 // Layout rules live in CLAUDE-RANKINGS.md section 6. The load-bearing ones:
-// the composite score sits immediately beside the team name and ahead of every
-// source column; every source shows its own last-updated date; and a source
-// excluded by the age gate keeps its column, struck through, rather than
-// silently disappearing.
+// the composite rating sits immediately beside the team name and ahead of every
+// column; every column shows its own date; and a source excluded by the age
+// gate keeps its column, struck through, rather than silently disappearing.
+//
+// v2 (2026-09-01): columns are the three PILLARS (results, betting markets,
+// analytics models) with each pillar's sources beside it. There are no media
+// or poll columns because nothing of that kind is scored.
 import Image from 'next/image';
-import { computeComposite, MAX_AGE_DAYS } from '@/lib/gridiron';
+import { computeComposite, MAX_AGE_DAYS, PILLAR_LABEL, PILLAR_ORDER, RAMP_WEEKS, PILLARS } from '@/lib/gridiron';
 
-const TIER_LABEL = {
-  official: 'Official polls',
-  model: 'Analytics models',
-  media: 'Media power rankings',
-  market: 'Betting markets',
-};
-// Column order follows the WEIGHTING, heaviest first (owner rule, 2026-08-28), so the
-// left-to-right reading order matches how much each tier actually moves the consensus.
-const TIER_ORDER = ['market', 'model', 'media', 'official'];
-// Tier colours, used only on mobile, where the desktop column grouping is gone
-// and a chip has to say which kind of source it came from on its own.
-// Descending the site's own blue ramp in weight order, so the heaviest tier reads
-// as the deepest colour. Slate closes it out for the polls. No gold: the theme
-// reserves that for medals.
+// Pillar colours, used only on mobile, where the desktop column grouping is gone
+// and a chip has to say which pillar it came from on its own. Descending the
+// site's own blue ramp in weight order. No gold: the theme reserves that for medals.
 const TIER_COLOR = {
-  market: 'var(--accent)',
-  model: 'var(--blue)',
-  media: 'var(--blue-400)',
-  official: 'var(--slate)',
+  results: 'var(--accent)',
+  market: 'var(--blue)',
+  model: 'var(--blue-400)',
 };
 const MEDAL = ['#e8b43a', '#aeb4bd', '#c88a55'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -44,41 +35,44 @@ function fmtDate(s) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
   return m ? `${MON[+m[2] - 1]} ${+m[3]}` : (s || 'undated');
 }
+const signed = (v, d = 1) => (v > 0 ? '+' : '') + v.toFixed(d);
+const pct = (v) => (Math.abs(v * 100 - Math.round(v * 100)) < 0.05 ? (v * 100).toFixed(0) : (v * 100).toFixed(1));
 
-// The methodology note reads "down to 1 for the {depth}th", and the depth is 32
-// for the NFL, so a hardcoded "th" printed "32th" on a live page.
-function ordinal(n) {
-  const t = n % 100;
-  if (t >= 11 && t <= 13) return `${n}th`;
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`;
-}
+export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTitle }) {
+  const out = computeComposite(data, sport);
+  const { ranked, columns, tierShare, depth, excluded, week, weeksPlayed } = out;
+  const cols = [...columns].sort((a, b) => PILLAR_ORDER.indexOf(a.tier) - PILLAR_ORDER.indexOf(b.tier));
+  const live = cols.filter((c) => c.kind === 'source' && c.ok);
+  const nSrc = cols.filter((c) => c.kind === 'source').length;
+  const gone = excluded;
+  const maxGap = Math.max(...ranked.map((r) => Math.abs(r.gap || 0)), 1);
+  const fullIn = RAMP_WEEKS[sport];
+  const rampNote = weeksPlayed < fullIn
+    ? `Results carry ${pct(tierShare.results || 0)}% this week and reach ${pct(PILLARS.results)}% after week ${fullIn}.`
+    : `Results carry their full ${pct(PILLARS.results)}%.`;
 
-export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
-  const { ranked, weights, tierShare, depth, status } = computeComposite(data.sources, sport);
-
-  const ids = Object.keys(data.sources).sort(
-    (a, b) => TIER_ORDER.indexOf(data.sources[a].tier) - TIER_ORDER.indexOf(data.sources[b].tier)
-      || ((weights[b] || 0) - (weights[a] || 0))
-  );
-  const S = ids.map((id) => ({ id, ...data.sources[id], weight: weights[id] || 0, ...status[id] }));
-  const live = S.filter((s) => s.ok);
-  const out = S.filter((s) => !s.ok);
-  const maxSpread = Math.max(...ranked.map((r) => r.spread || 0), 1);
-  const hasPoll = live.some((s) => s.tier === 'official');
-
-  // Tier header groups: one cell spanning each tier's run of columns.
+  // Pillar header groups: one cell spanning each pillar's run of columns.
   const groups = [];
-  S.forEach((s, i) => {
-    if (!groups.length || groups[groups.length - 1].tier !== s.tier) groups.push({ tier: s.tier, n: 1, at: i });
+  cols.forEach((c, i) => {
+    if (!groups.length || groups[groups.length - 1].tier !== c.tier) groups.push({ tier: c.tier, n: 1, at: i });
     else groups[groups.length - 1].n++;
   });
   const startsGroup = (i) => groups.some((g) => g.at === i && g.at !== 0);
-  const pct = (v) => (Math.abs(v * 100 - Math.round(v * 100)) < 0.05 ? (v * 100).toFixed(0) : (v * 100).toFixed(1));
 
   // Deviation shading scales with depth: 3 spots means much less on a 50-deep
   // board than on a 32-deep one.
   const hi = depth > 32 ? 5 : 3;
   const lo = depth > 32 ? 9 : 5;
+  const weightText = (c) => {
+    if (c.kind === 'record') return 'shown';
+    if (!c.ok) return c.kind === 'source' ? 'excluded' : 'not yet';
+    return `${(c.weight * 100).toFixed(1)}%`;
+  };
+  const cellTitle = (c, r) => {
+    if (c.kind === 'pillar' && r.pts[c.id] != null) return `${signed(r.pts[c.id])} points vs an average team`;
+    if (c.kind === 'source' && r.ranks[c.id] != null) return `scored as rank ${r.ranks[c.id]}`;
+    return undefined;
+  };
 
   return (
     <div className="gr">
@@ -207,7 +201,6 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
   .gr-crange em{font-style:normal;color:var(--muted);}
 }
       ` }} />
-
       <div className="gr-console">
         <div className="gr-chead">
           <div>
@@ -215,18 +208,17 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
             <h2>{boardTitle}</h2>
           </div>
           <div className="gr-stamp">
-            <b>{live.length} of {S.length} sources</b> scoring, across{' '}
-            {new Set(live.map((s) => s.tier)).size} tiers<br />
-            built {data.fetchedAt}
+            <b>{live.length} of {nSrc} sources</b> scoring, across{' '}
+            {Object.keys(tierShare).length} pillars<br />
+            week {week} &middot; built {fetchedAt}
           </div>
         </div>
 
-        {out.length > 0 && (
+        {gone.length > 0 && (
           <div className="gr-warn">
-            <b>{out.length} source{out.length > 1 ? 's' : ''} excluded by the {MAX_AGE_DAYS}-day rule.</b>{' '}
-            {out.map((s) => `${s.label} (${s.why})`).join('; ')}. Their columns are shown struck
-            through for transparency, but they score nothing and the remaining tiers reweighted
-            around them.
+            <b>{gone.length} source{gone.length > 1 ? 's' : ''} excluded by the {MAX_AGE_DAYS}-day rule.</b>{' '}
+            {gone.map((s) => `${s.label} (${s.why})`).join('; ')}. Their columns are shown struck
+            through for transparency, but they score nothing and their pillar reweighted around them.
           </div>
         )}
 
@@ -237,7 +229,7 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
                 <th className="cRank" /><th className="cTeam" /><th className="cScore" />
                 {groups.map((g, i) => (
                   <th key={g.tier} colSpan={g.n} className={i ? 'tg' : undefined}>
-                    {TIER_LABEL[g.tier]} &middot; {pct(tierShare[g.tier] || 0)}%
+                    {PILLAR_LABEL[g.tier]} &middot; {pct(tierShare[g.tier] || 0)}%
                   </th>
                 ))}
                 <th />
@@ -245,24 +237,25 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
               <tr className="gr-srcs">
                 <th className="cRank">#</th>
                 <th className="cTeam">Team</th>
-                <th className="cScore">Consensus</th>
-                {S.map((s, i) => (
+                <th className="cScore">Rating</th>
+                {cols.map((c, i) => (
                   <th
-                    key={s.id}
-                    className={[startsGroup(i) ? 'tg' : '', s.ok ? '' : 'out'].filter(Boolean).join(' ') || undefined}
-                    title={`${s.label} — ${s.why}`}
+                    key={c.id}
+                    className={[startsGroup(i) ? 'tg' : '', c.ok || c.kind !== 'source' ? '' : 'out'].filter(Boolean).join(' ') || undefined}
+                    title={`${c.label} — ${c.why}`}
                   >
-                    {s.short || s.label}
-                    <span className="gr-w">{s.ok ? `${(s.weight * 100).toFixed(1)}%` : 'excluded'}</span>
-                    <span className={`gr-asof${s.ok ? '' : ' bad'}`}>{fmtDate(s.asOf)}</span>
+                    {c.short || c.label}
+                    <span className="gr-w">{weightText(c)}</span>
+                    <span className={`gr-asof${c.ok || c.kind !== 'source' ? '' : ' bad'}`}>{fmtDate(c.asOf)}</span>
                   </th>
                 ))}
-                <th style={{ paddingRight: 16 }}>Spread</th>
+                <th style={{ paddingRight: 16 }} title="Results rank minus market rank. Positive: the results say better than the market does.">Résumé vs market</th>
               </tr>
             </thead>
             <tbody>
               {ranked.map((r) => {
-                const hot = r.spread >= maxSpread * 0.75;
+                const g = r.gap;
+                const hot = g != null && Math.abs(g) >= Math.max(hi, maxGap * 0.6);
                 return (
                   <tr key={r.team}>
                     <td className="cRank rk">
@@ -277,32 +270,33 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
                           : <span className="gr-mono">{r.mono}</span>}
                         <div className="gr-tmn">
                           {r.team}
-                          {r.appearances < live.length && (
-                            <span className="gr-apps">ranked by only {r.appearances} of {live.length}</span>
-                          )}
+                          {r.record && <span className="gr-apps">{r.record.text}</span>}
                         </div>
                       </div>
                     </td>
                     <td className="cScore">
-                      <span className="gr-score"><b>{r.score.toFixed(1)}</b><i>score</i></span>
+                      <span className="gr-score"><b>{signed(r.score)}</b><i>pts</i></span>
                     </td>
-                    {S.map((s, i) => {
+                    {cols.map((c, i) => {
                       const tg = startsGroup(i) ? ' tg' : '';
-                      const shown = r.shown[s.id];
-                      const rv = shown === 'RV' ? ' rv' : '';
-                      if (!s.ok) return <td key={s.id} className={`cell out${tg}${rv}`}>{shown == null ? '—' : shown}</td>;
-                      const v = r.ranks[s.id];
-                      if (v == null) return <td key={s.id} className={`cell nr${tg}`}>{'—'}</td>;
-                      const dev = r.rank - v;   // positive: this source is HIGHER on them
+                      const shown = r.shown[c.id];
+                      if (c.kind === 'source' && !c.ok) return <td key={c.id} className={`cell out${tg}`}>{shown == null ? '—' : shown}</td>;
+                      if (shown == null) return <td key={c.id} className={`cell nr${tg}`}>{'—'}</td>;
+                      if (c.kind === 'record') return <td key={c.id} className={`cell rv${tg}`}>{shown}</td>;
+                      const v = r.ranks[c.id];
+                      if (v == null) return <td key={c.id} className={`cell rv${tg}`}>{shown}</td>;
+                      const dev = r.rank - v;   // positive: this column is HIGHER on them
                       const cls = dev >= lo ? ' up2' : dev >= hi ? ' up1' : dev <= -lo ? ' dn2' : dev <= -hi ? ' dn1' : '';
-                      return <td key={s.id} className={`cell${cls}${tg}${rv}`} title={`scored as rank ${v}`}>{shown}</td>;
+                      return <td key={c.id} className={`cell${cls}${tg}`} title={cellTitle(c, r)}>{shown}</td>;
                     })}
                     <td className="sp">
-                      <div className="gr-spbar">
-                        <i className={hot ? 'hot' : undefined}
-                           style={{ width: Math.max(4, (r.spread / maxSpread) * 62) }} />
-                        <span>{Number.isInteger(r.spread) ? r.spread : r.spread.toFixed(1)}</span>
-                      </div>
+                      {g == null ? <span className="gr-spbar"><span>—</span></span> : (
+                        <div className="gr-spbar">
+                          <i className={hot ? 'hot' : undefined}
+                             style={{ width: Math.max(4, (Math.abs(g) / maxGap) * 62) }} />
+                          <span>{g > 0 ? `+${g}` : g}</span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -316,7 +310,7 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
           {groups.map((g) => (
             <span key={g.tier} className="gr-tk">
               <i style={{ background: TIER_COLOR[g.tier] }} />
-              {TIER_LABEL[g.tier]} {pct(tierShare[g.tier] || 0)}%
+              {PILLAR_LABEL[g.tier]} {pct(tierShare[g.tier] || 0)}%
             </span>
           ))}
         </div>
@@ -332,73 +326,68 @@ export default function GridironTable({ data, sport, eyebrow, boardTitle }) {
                 {r.logo
                   ? <Image className="gr-lg" src={r.logo} alt="" width={28} height={28} />
                   : <span className="gr-mono">{r.mono}</span>}
-                <span className="gr-cname">{r.team}</span>
-                <span className="gr-cscore"><b>{r.score.toFixed(1)}</b><i>score</i></span>
+                <span className="gr-cname">{r.team}{r.record ? ` · ${r.record.text}` : ''}</span>
+                <span className="gr-cscore"><b>{signed(r.score)}</b><i>pts</i></span>
               </div>
               <div className="gr-chips">
-                {S.map((s) => {
-                  const shown = r.shown[s.id];
-                  if (shown == null) return null;          // not ranked by this source
-                  const v = r.ranks[s.id];
+                {cols.map((c) => {
+                  if (c.kind === 'record') return null;
+                  const shown = r.shown[c.id];
+                  if (shown == null) return null;
+                  const v = r.ranks[c.id];
                   const dev = v == null ? 0 : r.rank - v;
-                  const cls = !s.ok ? 'gone' : dev >= hi ? 'up' : dev <= -hi ? 'dn' : '';
+                  const dead = c.kind === 'source' && !c.ok;
+                  const cls = dead ? 'gone' : dev >= hi ? 'up' : dev <= -hi ? 'dn' : '';
                   return (
                     <span
-                      key={s.id}
-                      className={`gr-chip ${cls}${shown === 'RV' ? ' rvc' : ''}`.trim()}
-                      style={{ borderLeftColor: TIER_COLOR[s.tier] }}
+                      key={c.id}
+                      className={`gr-chip ${cls}${v == null ? ' rvc' : ''}`.trim()}
+                      style={{ borderLeftColor: TIER_COLOR[c.tier] }}
                     >
-                      <s>{s.short || s.label}</s><b>{shown}</b>
+                      <s>{c.short || c.label}</s><b>{shown}</b>
                     </span>
                   );
                 })}
               </div>
               <div className="gr-crange">
-                Ranked <em>#{r.best}</em> to <em>#{r.best + r.spread}</em>
-                {' '}&middot; spread <em>{Number.isInteger(r.spread) ? r.spread : r.spread.toFixed(1)}</em>
-                {r.appearances < live.length && <> &middot; on {r.appearances} of {live.length} sources</>}
+                Results <em>{r.rR ? `#${r.rR}` : 'no games'}</em> &middot; market <em>#{r.rO}</em>
+                {r.rA && <> &middot; models <em>#{r.rA}</em></>}
+                {r.gap != null && <> &middot; résumé vs market <em>{r.gap > 0 ? `+${r.gap}` : r.gap}</em></>}
               </div>
             </li>
           ))}
         </ul>
 
         <div className="gr-legend">
-          <span className="gr-k"><i className="gr-sw" style={{ background: '#dbe9fe' }} /> source ranks them higher than consensus</span>
-          <span className="gr-k"><i className="gr-sw" style={{ background: '#fbe8cf' }} /> lower than consensus</span>
-          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--blue-deep)' }} /> widest disagreement</span>
-          <span className="gr-k">{'—'} not ranked by that source</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: '#dbe9fe' }} /> column ranks them higher than the composite</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: '#fbe8cf' }} /> lower than the composite</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--blue-deep)' }} /> widest résumé-versus-market gap</span>
+          <span className="gr-k">{'—'} not ranked by that column</span>
         </div>
 
         <div className="gr-notes">
-          <b>How the composite is built.</b> Each source is truncated to its top {depth} and scored{' '}
-          {depth} points for first down to 1 for {ordinal(depth)}; a team a source does not rank
-          earns nothing from it. Every source is then weighted by its tier share, split within the tier.
-          Tier shares renormalize over the tiers that published this week, so a tier going dark never
-          breaks the ranking, and a tier carrying only one source is capped at 35% because one outlet
-          is not a tier. Ties break on how many sources ranked the team, then its single best rank,
-          then alphabetically.{' '}
-          <b>The tiers are ordered by how little bias they carry, not by how famous they are.</b>{' '}
-          A betting market is the least biased signal available: it is real money, continuously
-          repriced by people who lose that money when they are wrong, and it has no reason to favour
-          a brand, a conference or a television window. An analytics model is next, objective and
-          results-derived, but it is one method with one set of assumptions, and different models
-          genuinely disagree. Human rankings come last because their known failure modes all point
-          the same way: voters anchor on where a team started the season, they reward reputation and
-          blue-blood brands, they are slow to drop a name team that keeps losing, and they see a
-          fraction of the games they rank. That is not a knock on the AP poll, which is a fine
-          measure of what people believe. It is simply the reason it does not lead here.
-          {hasPoll && (
-            <>
-              {' '}<b>RV means receiving votes.</b> The AP and Coaches polls publish 25 ranks plus a
-              list of teams receiving votes, so below 25 they still carry real signal. Vote-getters
-              are scored on their vote totals, and teams level on votes share an averaged rank rather
-              than being ordered arbitrarily, but the cell reads RV because that is what the poll
-              actually published.
-            </>
-          )}
-          {' '}<b>Spread</b> is the gap between a team&rsquo;s best and worst rank among the sources
-          that rank them; the count under a team name says how many of the {live.length} scoring
-          sources that is. A source whose data is more than {MAX_AGE_DAYS} days old is excluded
+          <b>How the rating is built.</b> Every team gets a rating in points better than an average{' '}
+          {sport === 'nfl' ? 'NFL' : 'FBS'} team on a neutral field, from each of three pillars, and
+          the composite is their weighted sum.{' '}
+          <b>Results</b> is what actually happened: each game&rsquo;s margin, capped at{' '}
+          {sport === 'nfl' ? 21 : 28} points, solved across the whole schedule so that beating good
+          teams counts for more than beating bad ones, blended 60/40 with a win rating so a win counts
+          beyond its margin.{' '}
+          <b>Betting markets</b> is what money says: a rating fit to the last three weeks of point
+          spreads, blended with the futures boards.{' '}
+          <b>Analytics models</b> is what the models say: every live model, placed on the same points
+          scale by its position against the market.{' '}
+          Full-season weights are results {pct(PILLARS.results)}%, markets {pct(PILLARS.market)}%,
+          models {pct(PILLARS.model)}%; results phase in over the first {fullIn} weeks because a
+          September record predicts almost nothing, and a pillar with nothing to say this week hands
+          its share to the others. {rampNote}{' '}
+          <b>There are no media rankings and no human polls in the score.</b> Voters anchor on where a
+          team started the season, reward reputation, and see a fraction of the games they rank; the
+          three pillars here are each accountable to something real, a score, a price, or a
+          measurement.{' '}
+          <b>Résumé vs market</b> is the results rank minus the market rank: a large positive number
+          is a team whose record the market does not yet believe, a large negative one is a favourite
+          that keeps losing. A source whose data is more than {MAX_AGE_DAYS} days old is excluded
           from scoring and shown struck through.
         </div>
       </div>

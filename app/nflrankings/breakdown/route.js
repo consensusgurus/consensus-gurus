@@ -6,20 +6,13 @@ import { SOT_URL } from '@/lib/site';
 
 export const runtime = 'nodejs';
 
-const TIER_ORDER = ['market', 'model', 'media', 'official'];
-
 export async function GET() {
-  const src = GRIDIRON.nfl.sources;
-  const { ranked, weights, tierShare, depth, status } = computeComposite(src, 'nfl');
-  // Same column order the page uses: heaviest tier first.
-  const ids = Object.keys(src).sort(
-    (a, b) => TIER_ORDER.indexOf(src[a].tier) - TIER_ORDER.indexOf(src[b].tier)
-      || ((weights[b] || 0) - (weights[a] || 0))
+  const { ranked, columns, tierShare, depth } = computeComposite(GRIDIRON.nfl, 'nfl');
+  // Same columns the page renders: the three pillars, each with its sources.
+  const PILLAR_ORDER = ['results', 'market', 'model'];
+  const sources = [...columns].sort(
+    (a, b) => PILLAR_ORDER.indexOf(a.tier) - PILLAR_ORDER.indexOf(b.tier)
   );
-  const sources = ids.map((id) => ({
-    id, short: src[id].short, label: src[id].label, tier: src[id].tier,
-    weight: weights[id] || 0, ok: status[id].ok,
-  }));
 
   const bytes = buildGridironPdf({
     ranked, sources, tierShare, depth,
