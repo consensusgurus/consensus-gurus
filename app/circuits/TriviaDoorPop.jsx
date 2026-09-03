@@ -51,6 +51,8 @@ import { DOOR_PARAM, DOOR_VALUE, DOOR_STORE } from '@/lib/trivia-door';
 import { T } from '@/lib/theme';
 
 const WAIT_MS = 2000;
+const PREVIEW_PARAM = 'door';
+const PREVIEW_VALUE = 'preview';
 // A visitor id minted within this window is one minted on THIS page load.
 const FRESH_MS = 60 * 1000;
 
@@ -63,14 +65,27 @@ const MONO = "'DM Mono', ui-monospace, 'SFMono-Regular', monospace";
 function readArrival() {
   if (typeof window === 'undefined') return;
   let through = false;
+  let preview = false;
   try {
     const u = new URL(window.location.href);
     through = u.searchParams.get(DOOR_PARAM) === DOOR_VALUE;
-    if (u.searchParams.has(DOOR_PARAM)) {
+    preview = u.searchParams.get(PREVIEW_PARAM) === PREVIEW_VALUE;
+    if (u.searchParams.has(DOOR_PARAM) || u.searchParams.has(PREVIEW_PARAM)) {
       u.searchParams.delete(DOOR_PARAM);
+      u.searchParams.delete(PREVIEW_PARAM);
       window.history.replaceState(window.history.state, '', u.pathname + u.search + u.hash);
     }
   } catch (e) { return; }
+  // THE PREVIEW SWITCH (owner, 2026-09-03: "i didnt see the popup"). The real
+  // gates mean the owner, who has an identity on every device, can never see
+  // this card by playing. ?door=preview on the run address arms it for this
+  // browser regardless of who they are or whether it has shown before, same
+  // idea as ?premiere=1. On a run already finished today it opens two seconds
+  // after the card; otherwise it waits for the finish like any arrival.
+  if (preview) {
+    try { localStorage.setItem(DOOR_STORE, 'armed'); } catch (e) {}
+    return;
+  }
   if (!through) return;
   try {
     if (localStorage.getItem(DOOR_STORE)) return;
