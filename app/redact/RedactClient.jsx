@@ -742,7 +742,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
 
       {confirmGiveUp && (
         <div onClick={() => setConfirmGiveUp(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? SURF : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 400, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 400, fontFamily: SANS }}>
             <b style={{ fontSize: 16, color: INK }}>Reveal the article?</b>
             <p style={{ fontSize: 13.5, lineHeight: 1.6, color: FADED, margin: '8px 0 14px' }}>
               This ends the day. Your result posts as {pct}% uncovered, and the streak resets.
@@ -756,7 +756,7 @@ export default function RedactClient({ puzzles = [], forceNum = null }) {
       {showHelp && (
         <div onClick={() => { setShowHelp(false); try { localStorage.setItem(HELP_KEY, '1'); } catch (e) {} }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(20,22,28,0.55)', zIndex: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? SURF : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: STAGE ? 'var(--stg-raise,#0e131f)' : T.white, borderRadius: 13, padding: '20px 22px', maxWidth: 460, fontFamily: SANS }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 10 }}>
               <HelpCircle size={19} color={COLORS.accentDeep} />
               <b style={{ fontSize: 17, color: INK }}>How Redact works</b>

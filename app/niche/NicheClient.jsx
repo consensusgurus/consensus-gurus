@@ -648,7 +648,7 @@ export default function NicheClient({ puzzles = [], forceNum = null }) {
           .nc-plus{font-size:19px;font-weight:600;color:var(--stg-mute2, #c3c8d1);}
           .nc-ex{font-size:10.5px;line-height:1.25;color:#9aa0ab;font-style:italic;text-align:center;}
           .nc-input{width:100%;border:none;outline:none;font-family:${SANS};font-size:15px;font-weight:700;color:${INK};background:transparent;}
-          .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:${STAGE ? 'var(--stg-surf)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
+          .nc-dd{position:absolute;top:calc(100% + 5px);left:0;right:0;background:${STAGE ? 'var(--stg-raise)' : 'var(--white)'};border: 1.5px solid var(--stg-line, rgba(28,30,36,0.2));border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,0.16);z-index:20;overflow:hidden;}
           .nc-dd button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:9px 12px;font-family:${SANS};font-size:13.5px;font-weight:700;color:${INK};cursor:pointer;}
           .nc-dd button.hot{background:color-mix(in srgb, var(--stg-acc, ${COLORS.accentDeep}) 16%, transparent);color:${STAGE ? 'var(--stg-ink)' : COLORS.accentDeep};}
           .nc-dd button .nc-sub{margin-left:auto;font-family:${MONO};font-size:10px;color:${FADED};font-weight:400;}

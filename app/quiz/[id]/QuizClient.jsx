@@ -1613,8 +1613,8 @@ export default function QuizClient({ quizId }) {
   // inline (non-popup) mobile layout.
   const mapBarDock = mobile === true && mapMode && started && !ended && !mPlayOverlay;
   const mapBarStyle = mapBarDock
-    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: `var(--stg-surf2,${COLORS.ink})`, color: COLORS.cream, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? `var(--stg-surf2,${COLORS.ink})` : `var(--stg-surf,${COLORS.paper})`, color: started && !ended ? `var(--stg-ink,${COLORS.cream})` : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: `var(--stg-raise,${COLORS.ink})`, color: COLORS.cream, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, background: started && !ended ? `var(--stg-raise,${COLORS.ink})` : `var(--stg-raise,${COLORS.paper})`, color: started && !ended ? `var(--stg-ink,${COLORS.cream})` : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '7px 14px', marginBottom: 8, minHeight: 0 };
 
   return (
     <div className={QSTAGE ? 'stage-page' : (LOFT ? 'loft-page' : undefined)}
