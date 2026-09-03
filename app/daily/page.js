@@ -76,6 +76,8 @@ import { PUZZLES as BARTER_FULL } from '../barter/puzzles';
 import { PUZZLES as DEFEND_FULL } from '../defend/puzzles';
 import { PUZZLES as BLITZ_FULL } from '../blitz/puzzles';
 import { PUZZLES as BLITZED_FULL } from '../blitzed/puzzles';
+import { PUZZLES as SUMS_FULL } from '../sums/puzzles';
+import { PUZZLES as HINGE_FULL } from '../hinge/puzzles';
 import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { PUZZLES as BLOCKS_FULL } from '../blocks/puzzles';
@@ -143,6 +145,8 @@ const BARTER = BARTER_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const DEFEND = DEFEND_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLITZ = BLITZ_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
 const BLITZED = BLITZED_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
+const SUMS = SUMS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const HINGE = HINGE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLOCKS = BLOCKS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -257,6 +261,7 @@ const GAMES = [
   { key: 'park', name: 'Parker', path: '/parker', tag: 'Get the red one out', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)', src: PARK },
   { key: 'check', name: 'Check', path: '/check', tag: 'Red to play and sweep', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },
+  { key: 'hinge', name: 'Hinge', path: '/hinge', tag: 'Chain the compounds', accent: '#4f46e5', bg: '#e0e7ff', border: 'rgba(79,70,229,0.4)', src: HINGE },
   { key: 'crunch', name: 'Crunch', path: '/crunch', tag: 'Six numbers, one target', accent: '#b45309', bg: '#fdf3e3', border: 'rgba(180,83,9,0.35)', src: CRUNCH },
   { key: 'taire', name: 'Taire', path: '/taire', tag: 'The daily solitaire', accent: '#1d6b4f', bg: '#e6f2ec', border: 'rgba(29,107,79,0.35)', src: TAIRE },
   { key: 'fib', name: 'Fib', path: '/fib', tag: 'One clue is lying', accent: '#4c1d95', bg: '#f1edfb', border: 'rgba(76,29,149,0.35)', src: FIB },
@@ -273,6 +278,7 @@ const GAMES = [
   { key: 'defend', name: 'Defend', path: '/defend', tag: 'Black to play and survive', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)', src: DEFEND },
   { key: 'blitz', name: 'Blitz', path: '/blitz', tag: 'Twenty problems, one life', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)', src: BLITZ },
   { key: 'blitzed', name: 'Blitzed', path: '/blitzed', tag: 'Twenty problems, three numbers each', accent: '#3f6d1f', bg: '#eaf5e2', border: 'rgba(63,109,31,0.4)', src: BLITZED },
+  { key: 'sums', name: 'Sums', path: '/sums', tag: 'The daily kakuro', accent: '#be185d', bg: '#fce7f3', border: 'rgba(190,24,93,0.4)', src: SUMS },
   { key: 'redact', name: 'Redact', path: '/redact', tag: 'Uncover the story', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)', src: REDACT },
   { key: 'paths', name: 'Paths', path: '/paths', tag: 'Link every town', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)', src: PATHS },
   { key: 'deep', name: 'Deep', path: '/deep', tag: 'One topic, fifteen questions', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)', src: DEEP },

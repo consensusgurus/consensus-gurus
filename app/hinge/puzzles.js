@@ -1,0 +1,98 @@
+// Puzzle data for Hinge, the daily compound-word chain. Imported ONLY by the
+// server page (app/hinge/page.js), which filters live<=today before handing
+// puzzles to the client, so future chains never reach a browser.
+//
+// `words` is the setter's chain, first to last; the player is shown words[0],
+// words[last], the letter count of every word between, and on a Sunday the word
+// at index `reveal`. Every neighbouring pair is a line of scripts/hinge-pairs.txt
+// read downward. `paths` is the MEASURED number of chains the vocabulary admits
+// between the same endpoints under the same letter counts (1 to 4 by rule): the
+// player's chain need not be the setter's, any chain the vocabulary accepts
+// counts. Weekdays are six words (four to fill); the Sunday Edition is eight
+// words (six to fill) with one middle word printed.
+//
+// Variety, checked by scripts/verify-hinge.mjs: no word returns inside 7 days,
+// no hinge inside 21, no endpoint inside 21.
+//
+// Do NOT hand-edit a chain here. Regenerate with scripts/gen-hinge.mjs and
+// re-run scripts/verify-hinge.mjs.
+export const PUZZLES = [
+  { num: 1, quizId: 'hinge-9-3-26', live: '2026-09-03', dateLabel: 'September 3, 2026', sunday: false, words: ["FIRE","PLACE","MAT","BOARD","GAME","PLAN"], reveal: null, paths: 2 },
+  { num: 2, quizId: 'hinge-9-4-26', live: '2026-09-04', dateLabel: 'September 4, 2026', sunday: false, words: ["HAND","SET","BACK","DROP","KICK","BOXING"], reveal: null, paths: 2 },
+  { num: 3, quizId: 'hinge-9-5-26', live: '2026-09-05', dateLabel: 'September 5, 2026', sunday: false, words: ["BLACK","OUT","HOUSE","KEY","PAD","LOCK"], reveal: null, paths: 1 },
+  { num: 4, quizId: 'hinge-9-6-26', live: '2026-09-06', dateLabel: 'September 6, 2026', sunday: true, words: ["DRY","WALL","STREET","SIGN","POST","MAN","POWER","PLAY"], reveal: 4, paths: 2 },
+  { num: 5, quizId: 'hinge-9-7-26', live: '2026-09-07', dateLabel: 'September 7, 2026', sunday: false, words: ["ZIP","LINE","UP","SHOT","GUN","POWDER"], reveal: null, paths: 1 },
+  { num: 6, quizId: 'hinge-9-8-26', live: '2026-09-08', dateLabel: 'September 8, 2026', sunday: false, words: ["TEAM","WORK","DAY","DREAM","LAND","SLIDE"], reveal: null, paths: 1 },
+  { num: 7, quizId: 'hinge-9-9-26', live: '2026-09-09', dateLabel: 'September 9, 2026', sunday: false, words: ["COOK","BOOK","CLUB","CAR","PORT","HOLE"], reveal: null, paths: 1 },
+  { num: 8, quizId: 'hinge-9-10-26', live: '2026-09-10', dateLabel: 'September 10, 2026', sunday: false, words: ["SALT","MINE","FIELD","TRIP","WIRE","TAP"], reveal: null, paths: 1 },
+  { num: 9, quizId: 'hinge-9-11-26', live: '2026-09-11', dateLabel: 'September 11, 2026', sunday: false, words: ["SUMMER","CAMP","FIRE","ARM","BAND","WAGON"], reveal: null, paths: 1 },
+  { num: 10, quizId: 'hinge-9-12-26', live: '2026-09-12', dateLabel: 'September 12, 2026', sunday: false, words: ["PET","SHOP","WINDOW","BOX","SEAT","COVER"], reveal: null, paths: 1 },
+  { num: 11, quizId: 'hinge-9-13-26', live: '2026-09-13', dateLabel: 'September 13, 2026', sunday: true, words: ["PAN","CAKE","WALK","OUT","BREAK","WATER","FRONT","DOOR"], reveal: 4, paths: 1 },
+  { num: 12, quizId: 'hinge-9-14-26', live: '2026-09-14', dateLabel: 'September 14, 2026', sunday: false, words: ["TRADE","OFF","HAND","SPRING","ROLL","CALL"], reveal: null, paths: 1 },
+  { num: 13, quizId: 'hinge-9-15-26', live: '2026-09-15', dateLabel: 'September 15, 2026', sunday: false, words: ["WILD","WOOD","WIND","SURF","BOARD","MEETING"], reveal: null, paths: 3 },
+  { num: 14, quizId: 'hinge-9-16-26', live: '2026-09-16', dateLabel: 'September 16, 2026', sunday: false, words: ["PICTURE","BOOK","END","GAME","POINT","BLANK"], reveal: null, paths: 1 },
+  { num: 15, quizId: 'hinge-9-17-26', live: '2026-09-17', dateLabel: 'September 17, 2026', sunday: false, words: ["CAT","FISH","NET","WORK","MAN","HUNT"], reveal: null, paths: 3 },
+  { num: 16, quizId: 'hinge-9-18-26', live: '2026-09-18', dateLabel: 'September 18, 2026', sunday: false, words: ["FLY","PAPER","TRAIL","HEAD","REST","ROOM"], reveal: null, paths: 1 },
+  { num: 17, quizId: 'hinge-9-19-26', live: '2026-09-19', dateLabel: 'September 19, 2026', sunday: false, words: ["APPLE","TREE","HOUSE","BOAT","YARD","ARM"], reveal: null, paths: 1 },
+  { num: 18, quizId: 'hinge-9-20-26', live: '2026-09-20', dateLabel: 'September 20, 2026', sunday: true, words: ["NOTE","CARD","TABLE","TOP","SIDE","DOOR","BELL","TOWER"], reveal: 4, paths: 1 },
+  { num: 19, quizId: 'hinge-9-21-26', live: '2026-09-21', dateLabel: 'September 21, 2026', sunday: false, words: ["COCK","PIT","BULL","DOG","PARK","WAY"], reveal: null, paths: 2 },
+  { num: 20, quizId: 'hinge-9-22-26', live: '2026-09-22', dateLabel: 'September 22, 2026', sunday: false, words: ["POP","CORN","FIELD","DAY","TIME","KEEPER"], reveal: null, paths: 1 },
+  { num: 21, quizId: 'hinge-9-23-26', live: '2026-09-23', dateLabel: 'September 23, 2026', sunday: false, words: ["WATER","WHEEL","CHAIR","BACK","BOARD","WALK"], reveal: null, paths: 1 },
+  { num: 22, quizId: 'hinge-9-24-26', live: '2026-09-24', dateLabel: 'September 24, 2026', sunday: false, words: ["PIG","TAIL","LIGHT","YEAR","BOOK","STORE"], reveal: null, paths: 1 },
+  { num: 23, quizId: 'hinge-9-25-26', live: '2026-09-25', dateLabel: 'September 25, 2026', sunday: false, words: ["MILK","BOTTLE","CAP","STONE","WALL","PAPER"], reveal: null, paths: 1 },
+  { num: 24, quizId: 'hinge-9-26-26', live: '2026-09-26', dateLabel: 'September 26, 2026', sunday: false, words: ["JACK","POT","HOLE","PUNCH","LINE","BACKER"], reveal: null, paths: 1 },
+  { num: 25, quizId: 'hinge-9-27-26', live: '2026-09-27', dateLabel: 'September 27, 2026', sunday: true, words: ["INK","PAD","LOCK","JAW","BONE","YARD","STICK","BALL"], reveal: 3, paths: 1 },
+  { num: 26, quizId: 'hinge-9-28-26', live: '2026-09-28', dateLabel: 'September 28, 2026', sunday: false, words: ["PEA","NUT","SHELL","FISH","CAKE","SHOP"], reveal: null, paths: 1 },
+  { num: 27, quizId: 'hinge-9-29-26', live: '2026-09-29', dateLabel: 'September 29, 2026', sunday: false, words: ["TABLE","TENNIS","COURT","HOUSE","GUEST","LIST"], reveal: null, paths: 1 },
+  { num: 28, quizId: 'hinge-9-30-26', live: '2026-09-30', dateLabel: 'September 30, 2026', sunday: false, words: ["UNDER","DOG","WOOD","LAND","SLIDE","SHOW"], reveal: null, paths: 2 },
+  { num: 29, quizId: 'hinge-10-1-26', live: '2026-10-01', dateLabel: 'October 1, 2026', sunday: false, words: ["POST","MAN","POWER","PLAY","PEN","NAME"], reveal: null, paths: 1 },
+  { num: 30, quizId: 'hinge-10-2-26', live: '2026-10-02', dateLabel: 'October 2, 2026', sunday: false, words: ["OPEN","AIR","MAIL","BAG","PIPE","DREAM"], reveal: null, paths: 1 },
+  { num: 31, quizId: 'hinge-10-3-26', live: '2026-10-03', dateLabel: 'October 3, 2026', sunday: false, words: ["GOLF","CART","WHEEL","BASE","CAMP","GROUND"], reveal: null, paths: 1 },
+  { num: 32, quizId: 'hinge-10-4-26', live: '2026-10-04', dateLabel: 'October 4, 2026', sunday: true, words: ["BUCK","SHOT","GUN","FIRE","STORM","DOOR","STEP","SON"], reveal: 4, paths: 1 },
+  { num: 33, quizId: 'hinge-10-5-26', live: '2026-10-05', dateLabel: 'October 5, 2026', sunday: false, words: ["CHALK","LINE","UP","TURN","COAT","TAIL"], reveal: null, paths: 1 },
+  { num: 34, quizId: 'hinge-10-6-26', live: '2026-10-06', dateLabel: 'October 6, 2026', sunday: false, words: ["QUICK","SAND","PIT","FALL","OUT","GROWTH"], reveal: null, paths: 1 },
+  { num: 35, quizId: 'hinge-10-7-26', live: '2026-10-07', dateLabel: 'October 7, 2026', sunday: false, words: ["GEAR","BOX","SPRING","ROLL","OVER","BITE"], reveal: null, paths: 1 },
+  { num: 36, quizId: 'hinge-10-8-26', live: '2026-10-08', dateLabel: 'October 8, 2026', sunday: false, words: ["BROAD","SIDE","ARM","BAND","WAGON","TRAIN"], reveal: null, paths: 1 },
+  { num: 37, quizId: 'hinge-10-9-26', live: '2026-10-09', dateLabel: 'October 9, 2026', sunday: false, words: ["POWER","BOAT","HOUSE","WORK","BOOK","CASE"], reveal: null, paths: 2 },
+  { num: 38, quizId: 'hinge-10-10-26', live: '2026-10-10', dateLabel: 'October 10, 2026', sunday: false, words: ["STOP","WATCH","WORD","PLAY","OFF","SHOOT"], reveal: null, paths: 1 },
+  { num: 39, quizId: 'hinge-10-11-26', live: '2026-10-11', dateLabel: 'October 11, 2026', sunday: true, words: ["LAMP","POST","CARD","GAME","NIGHT","LIFE","LONG","SHOT"], reveal: 4, paths: 1 },
+  { num: 40, quizId: 'hinge-10-12-26', live: '2026-10-12', dateLabel: 'October 12, 2026', sunday: false, words: ["NECK","TIE","BREAK","WATER","GATE","WAY"], reveal: null, paths: 2 },
+  { num: 41, quizId: 'hinge-10-13-26', live: '2026-10-13', dateLabel: 'October 13, 2026', sunday: false, words: ["POLE","STAR","FISH","HOOK","WORM","HOLE"], reveal: null, paths: 1 },
+  { num: 42, quizId: 'hinge-10-14-26', live: '2026-10-14', dateLabel: 'October 14, 2026', sunday: false, words: ["FLASH","LIGHT","SWITCH","BOARD","ROOM","SERVICE"], reveal: null, paths: 1 },
+  { num: 43, quizId: 'hinge-10-15-26', live: '2026-10-15', dateLabel: 'October 15, 2026', sunday: false, words: ["PACK","RAT","RACE","CAR","SEAT","COVER"], reveal: null, paths: 1 },
+  { num: 44, quizId: 'hinge-10-16-26', live: '2026-10-16', dateLabel: 'October 16, 2026', sunday: false, words: ["PICTURE","BOOK","STORE","HOUSE","BOAT","YARD"], reveal: null, paths: 1 },
+  { num: 45, quizId: 'hinge-10-17-26', live: '2026-10-17', dateLabel: 'October 17, 2026', sunday: false, words: ["KITCHEN","TABLE","SALT","MINE","FIELD","GOAL"], reveal: null, paths: 1 },
+  { num: 46, quizId: 'hinge-10-18-26', live: '2026-10-18', dateLabel: 'October 18, 2026', sunday: true, words: ["HOME","RUN","OFF","SIDE","ROAD","TRIP","WIRE","TAP"], reveal: 3, paths: 1 },
+  { num: 47, quizId: 'hinge-10-19-26', live: '2026-10-19', dateLabel: 'October 19, 2026', sunday: false, words: ["BODY","WORK","SHOP","FRONT","PAGE","TURNER"], reveal: null, paths: 1 },
+  { num: 48, quizId: 'hinge-10-20-26', live: '2026-10-20', dateLabel: 'October 20, 2026', sunday: false, words: ["STAR","DUST","STORM","WATER","PARK","LAND"], reveal: null, paths: 2 },
+  { num: 49, quizId: 'hinge-10-21-26', live: '2026-10-21', dateLabel: 'October 21, 2026', sunday: false, words: ["BIRD","SEED","BED","POST","BOX","OFFICE"], reveal: null, paths: 1 },
+  { num: 50, quizId: 'hinge-10-22-26', live: '2026-10-22', dateLabel: 'October 22, 2026', sunday: false, words: ["GAME","BOARD","WALK","OUT","DOOR","MAT"], reveal: null, paths: 3 },
+  { num: 51, quizId: 'hinge-10-23-26', live: '2026-10-23', dateLabel: 'October 23, 2026', sunday: false, words: ["SILVER","WARE","HOUSE","CAT","FISH","POND"], reveal: null, paths: 1 },
+  { num: 52, quizId: 'hinge-10-24-26', live: '2026-10-24', dateLabel: 'October 24, 2026', sunday: false, words: ["HIGH","CHAIR","BACK","FIRE","WALL","STREET"], reveal: null, paths: 1 },
+  { num: 53, quizId: 'hinge-10-25-26', live: '2026-10-25', dateLabel: 'October 25, 2026', sunday: true, words: ["NOTE","CARD","TABLE","TENNIS","COURT","SIDE","DISH","WASHER"], reveal: 3, paths: 1 },
+  { num: 54, quizId: 'hinge-10-26-26', live: '2026-10-26', dateLabel: 'October 26, 2026', sunday: false, words: ["HARD","SHIP","YARD","ARM","REST","ROOM"], reveal: null, paths: 1 },
+  { num: 55, quizId: 'hinge-10-27-26', live: '2026-10-27', dateLabel: 'October 27, 2026', sunday: false, words: ["HAIR","NET","WORK","HORSE","FLY","WHEEL"], reveal: null, paths: 1 },
+  { num: 56, quizId: 'hinge-10-28-26', live: '2026-10-28', dateLabel: 'October 28, 2026', sunday: false, words: ["COAST","GUARD","RAIL","CAR","POOL","HALL"], reveal: null, paths: 1 },
+  { num: 57, quizId: 'hinge-10-29-26', live: '2026-10-29', dateLabel: 'October 29, 2026', sunday: false, words: ["THUNDER","STORM","DOOR","STOP","SIGN","POST"], reveal: null, paths: 1 },
+  { num: 58, quizId: 'hinge-10-30-26', live: '2026-10-30', dateLabel: 'October 30, 2026', sunday: false, words: ["TOLL","ROAD","BLOCK","PARTY","HAT","RACK"], reveal: null, paths: 2 },
+  { num: 59, quizId: 'hinge-10-31-26', live: '2026-10-31', dateLabel: 'October 31, 2026', sunday: false, words: ["PINE","APPLE","SAUCE","PAN","CAKE","WALK"], reveal: null, paths: 1 },
+  { num: 60, quizId: 'hinge-11-1-26', live: '2026-11-01', dateLabel: 'November 1, 2026', sunday: true, words: ["TRASH","BAG","PIPE","LINE","UP","SHOT","GUN","POWDER"], reveal: 4, paths: 1 },
+  { num: 61, quizId: 'hinge-11-2-26', live: '2026-11-02', dateLabel: 'November 2, 2026', sunday: false, words: ["PICK","POCKET","WATCH","BAND","STAND","POINT"], reveal: null, paths: 1 },
+  { num: 62, quizId: 'hinge-11-3-26', live: '2026-11-03', dateLabel: 'November 3, 2026', sunday: false, words: ["BOTTLE","CAP","STONE","WALL","CLOCK","WISE"], reveal: null, paths: 1 },
+  { num: 63, quizId: 'hinge-11-4-26', live: '2026-11-04', dateLabel: 'November 4, 2026', sunday: false, words: ["LAMP","LIGHT","SWITCH","BACK","HAND","MADE"], reveal: null, paths: 1 },
+  { num: 64, quizId: 'hinge-11-5-26', live: '2026-11-05', dateLabel: 'November 5, 2026', sunday: false, words: ["MASTER","KEY","WORD","PLAY","PEN","KNIFE"], reveal: null, paths: 1 },
+  { num: 65, quizId: 'hinge-11-6-26', live: '2026-11-06', dateLabel: 'November 6, 2026', sunday: false, words: ["BOAT","RACE","CAR","WASH","ROOM","MATE"], reveal: null, paths: 2 },
+  { num: 66, quizId: 'hinge-11-7-26', live: '2026-11-07', dateLabel: 'November 7, 2026', sunday: false, words: ["FAIR","GROUND","WORK","PLACE","MAT","BOARD"], reveal: null, paths: 2 },
+  { num: 67, quizId: 'hinge-11-8-26', live: '2026-11-08', dateLabel: 'November 8, 2026', sunday: true, words: ["DOUGH","NUT","SHELL","FISH","FARM","YARD","STICK","BALL"], reveal: 4, paths: 1 },
+  { num: 68, quizId: 'hinge-11-9-26', live: '2026-11-09', dateLabel: 'November 9, 2026', sunday: false, words: ["COCK","TAIL","SPIN","OFF","SPRING","TIME"], reveal: null, paths: 1 },
+  { num: 69, quizId: 'hinge-11-10-26', live: '2026-11-10', dateLabel: 'November 10, 2026', sunday: false, words: ["COUNTER","TOP","HAT","BAND","WAGON","TRAIN"], reveal: null, paths: 1 },
+  { num: 70, quizId: 'hinge-11-11-26', live: '2026-11-11', dateLabel: 'November 11, 2026', sunday: false, words: ["MID","NIGHT","FALL","OUT","LINE","BACKER"], reveal: null, paths: 2 },
+  { num: 71, quizId: 'hinge-11-12-26', live: '2026-11-12', dateLabel: 'November 12, 2026', sunday: false, words: ["UNDER","PASS","KEY","RING","SIDE","TABLE"], reveal: null, paths: 2 },
+  { num: 72, quizId: 'hinge-11-13-26', live: '2026-11-13', dateLabel: 'November 13, 2026', sunday: false, words: ["POP","CORN","COB","WEB","PAGE","TURNER"], reveal: null, paths: 1 },
+  { num: 73, quizId: 'hinge-11-14-26', live: '2026-11-14', dateLabel: 'November 14, 2026', sunday: false, words: ["CHAIN","MAIL","BOX","OFFICE","CHAIR","MAN"], reveal: null, paths: 1 },
+  { num: 74, quizId: 'hinge-11-15-26', live: '2026-11-15', dateLabel: 'November 15, 2026', sunday: true, words: ["PACK","HORSE","POWER","BOAT","HOUSE","FLY","PAPER","WEIGHT"], reveal: 4, paths: 2 },
+  { num: 75, quizId: 'hinge-11-16-26', live: '2026-11-16', dateLabel: 'November 16, 2026', sunday: false, words: ["PAY","DAY","DREAM","LAND","SLIDE","SHOW"], reveal: null, paths: 1 },
+  { num: 76, quizId: 'hinge-11-17-26', live: '2026-11-17', dateLabel: 'November 17, 2026', sunday: false, words: ["LOG","BOOK","WORM","HOLE","PUNCH","BAG"], reveal: null, paths: 1 },
+  { num: 77, quizId: 'hinge-11-18-26', live: '2026-11-18', dateLabel: 'November 18, 2026', sunday: false, words: ["BASE","CAMP","FIRE","WORK","SHOP","FRONT"], reveal: null, paths: 1 },
+  { num: 78, quizId: 'hinge-11-19-26', live: '2026-11-19', dateLabel: 'November 19, 2026', sunday: false, words: ["CROSS","BOW","TIE","BREAK","DOWN","STREAM"], reveal: null, paths: 1 },
+];

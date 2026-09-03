@@ -6910,6 +6910,74 @@ surfaces draw the glyph.
 **Not in a circuit** (Gauntlet is at its cap and Thread is not a question bank), not in
 the Daily Five bank. Share text carries one logline and never a title or the thread.
 
+## Sums (`/sums`) — the daily kakuro (launched 2026-09-03)
+
+Key/route/folder `sums`, category **Numbers**, registry `miss: null` (nothing counts against you,
+a solve is a flat 10, the clock decides the day, exactly Sixes' manners), legacy accent `#be185d`
+rose / navy `#f472b6` (the one hue the Numbers row lacked; the stage paints the category step).
+Day 1 is **2026-09-03**, bank runs to **2026-11-19** (78 days, seed 20260903). Wired by
+`scripts/wire-sums-hinge.mjs` (anchored on the `blitzed` rows, idempotent, shared with Hinge).
+Premiere window 9/3 to 9/7. No PNG tile; `lib/game-glyphs.js` has `sums`. Share card is a static
+`public/og/sums.png` from `renderSumsCard()`. Design study with both games:
+https://claude.ai/code/artifact/54faaf20-7b2a-4f48-83bf-444b1388c924.
+
+**The game.** A crossword-shaped grid. Row 0 and column 0 are black; a black square prints the
+total of the run to its right (top right) and/or the run beneath it (bottom left). Fill every run
+with digits 1 to 9 that add to its total, no digit repeated inside a run. Weekdays 7x7, the
+**Sunday Edition 11x11** (`sunday: true`, listed in `lib/sunday-editions.js`). Selecting a square
+lights its two RUNS, not its row and column; the pad greys digits already placed in either run;
+and the **combo line** under the board lists, for each run the square sits in, the digit sets
+that can still finish it given what is placed (a set is live only if it contains every placed
+digit). That line is the whole tutorial: 3 in two is 1+2, 24 in three is 7+8+9.
+
+**The bank** (`app/sums/puzzles.js`, `sol` with 0 for black, `across` and `down` totals at the
+run heads, measured `whites` / `fixed` / `runs`). `scripts/sums-core.mjs` is the engine and
+`scripts/gen-sums.mjs` the generator: draw a symmetric black pattern and REPAIR it (random
+blackening is illegal 97 times in 100), fill the whites, then **search the filling** (`refine`):
+change one digit at a time and keep the change when run-by-run candidate propagation leaves fewer
+cells undecided. A random filling is unique about once in 700 at 7x7; the search reaches zero
+undecided cells, which is both the no-guessing proof and the uniqueness proof, in about a fifth of
+a second (bitmask candidates plus a memoised per-run enumeration; the Set-based first draft was
+50x slower). An independent counting solver then confirms exactly one filling.
+`scripts/verify-sums.mjs` shares NO code with the core: it re-derives geometry, totals, symmetry,
+connectivity, uniqueness (cell-by-cell counter) and no-guessing (array-based deduction), and the
+ramp. Ramp, whites / fixed runs: Mon 22 / >=4, Tue 22-24 / >=4, Wed 24-26 / >=3, Thu 26 / >=3,
+Fri 28 / <=5, Sat 30 / <=5, Sun 62-72 / <=12. The bands were set from a measured distribution
+(the search lands 2 to 9 fixed runs on 12 to 20 at 7x7). Not in a circuit, not in the Daily Five.
+
+## Hinge (`/hinge`) — the daily compound-word chain (launched 2026-09-03)
+
+Key/route/folder `hinge`, category **Word**, registry `miss: 'Detours'` (`MISS_ONE` has
+`Detours: 'detour'`), legacy accent `#4f46e5` indigo / navy `#a5b4fc`. Day 1 is **2026-09-03**
+(FIRE > PLACE > MAT > BOARD > GAME > PLAN, the chain from the design study, pinned by `--first`),
+bank to **2026-11-19**. Wired by `scripts/wire-sums-hinge.mjs` (anchored on the `rung` rows).
+Sunday Edition: eight words, six to fill, one middle word printed (`reveal`, index 3 or 4).
+Share card `public/og/hinge.png` from `renderHingeCard()`.
+
+**The game.** Six words in a chain; the first and last are given with the letter count of every
+word between; every neighbouring pair must be a compound word or a common two-word phrase read
+downward. **ANY chain the vocabulary accepts counts**, not only the setter's, and the end card
+shows yours beside the setter's. A real word that does not hinge is a **detour**: it stays on the
+board struck through on the link and is the tiebreak (`guessesUsed`); the clock is the score. A
+string not in the word list (`/crux-words.txt` unioned with the vocabulary, with Crux's
+stand-down rule for a thin length), the wrong length, or a word already in the chain costs
+nothing. **Tapping a placed word clears it and everything below it for free**, and the board says
+the moment no chain can reach the end from where you are (`completion()` in the client), so a
+dead end is never a trap. The hint places the next word of a chain that reaches the end, and on a
+dead end names the problem instead of spending itself.
+
+**The vocabulary is `scripts/hinge-pairs.txt`**, one `FIRST SECOND` pair a line, hand curated
+(about 1,880 pairs). `node scripts/gen-hinge.mjs --pairs > lib/hinge-pairs.js` is the client's
+copy and the verifier fails when the two drift. A pair belongs only if an ordinary reader would
+say the two words go together unprompted; a false split (MUSH ROOM, KID NAP, CAT NIP) was cut.
+`scripts/gen-hinge.mjs` walks the pair graph at random, counts every chain between the same
+endpoints under the same letter counts (and the Sunday reveal), and keeps a day only at **1 to 4
+chains**; variety is no word inside 7 days, no hinge inside 21, no endpoint inside 21. The first
+draft ran 14 / 30 / 30 and exhausted a 700-pair vocabulary after 24 days, which is why the list
+doubled and the windows narrowed. `scripts/verify-hinge.mjs` re-parses the text file, rebuilds
+the graph, recomputes `paths` with its own search and re-checks every window. Not in a circuit,
+not in the Daily Five.
+
 ## Blitzed (`/blitzed`) — Blitz with a third number on every line (launched 2026-09-03)
 
 Key/route/folder `blitzed`, category **Numbers**, registry `miss: 'Asked'`, legacy accent

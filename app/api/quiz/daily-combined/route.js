@@ -631,10 +631,18 @@ export async function GET(request) {
       bestN: effBestN,
       gameCount,
       uniquePlayers,
-      // overallField = full combined field (all players) for the end card's
-      // "Combined today · of <field>". `overall` shows only named players but
-      // ranks reflect the full pool (guests included).
-      overallField: (memberKeys ? overallFull.filter(rankEligible) : overallFull).length,
+      // overallField = EVERYONE WHO PLAYED, guests and partial runs included
+      // (owner, 2026-09-03: "#1 of 24 on the Trivia Gauntlet should be out of
+      // all plays"). It used to count only players eligible to be ranked on a
+      // circuit, i.e. those who had finished every member game, which read as
+      // a smaller crowd than the one the reader had actually beaten. The RANK
+      // beside it is unchanged: a registered player's position among
+      // registered, rank-eligible players, so guests ahead of you never move
+      // your number, only the denominator. Ten guests who played and five who
+      // placed ahead therefore read "#1 of 34", not "#6 of 34" and not
+      // "#1 of 24". `partial` still counts the named players who are not yet
+      // eligible, so a strict board can explain itself.
+      overallField: overallFull.length,
       games: gameBoards,
       overall: overallBoardOut,
       me,

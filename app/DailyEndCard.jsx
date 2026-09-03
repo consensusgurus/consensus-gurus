@@ -115,7 +115,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['sums', 'hinge', 'blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -209,6 +209,8 @@ export const GAME_META = {
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
   blitz: { accent: '#657512', badgeBg: '#657512', badgeInk: T.white, Fin: Zap },
   blitzed: { accent: '#3f6d1f', badgeBg: '#3f6d1f', badgeInk: T.white, Fin: Sigma },
+  sums: { accent: '#be185d', badgeBg: '#be185d', badgeInk: T.white, Fin: Sigma },
+  hinge: { accent: '#4f46e5', badgeBg: '#4f46e5', badgeInk: T.white, Fin: Link2 },
   strata: { accent: '#9a3412', badgeBg: '#9a3412', badgeInk: T.white, Fin: Layers },
   blocks: { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: Grid3x3 },
   sweep:  { accent: '#0f766e', badgeBg: '#0f766e', badgeInk: T.white, Fin: Flag },
@@ -296,6 +298,7 @@ const ALL_DAILY_GAMES = [
   { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
   { key: 'docket', cat: 'logic',      name: 'Docket', tag: 'One setup, five deductions',   blurb: 'A small world and a few conditions, then five questions about what they force. Diagram once, answer five times.', href: '/docket' },
   { key: 'blitz',  cat: 'numbers',   name: 'Blitz',  tag: 'Twenty problems, one life',   blurb: 'Mental arithmetic against a fifteen second clock. Twenty problems, getting harder, and one wrong answer ends the run.', href: '/blitz' },
+  { key: 'sums',  cat: 'numbers',   name: 'Sums',  tag: 'The daily kakuro',   blurb: 'The cross-sums crossword. Every run of squares adds up to the total at its head, digits 1 to 9, no repeats. One solution, and the clock decides the day.', href: '/sums' },
   { key: 'blitzed',  cat: 'numbers',   name: 'Blitzed',  tag: 'Twenty problems, three numbers each',   blurb: 'Blitz with a third number on every line, like 5 + 10 × 2. Twenty problems, twenty seconds each, and one wrong answer ends the run.', href: '/blitzed' },
   { key: 'defend', cat: 'endgame',     name: 'Defend', tag: 'Black to play and survive',   blurb: 'The other half of a mate puzzle. Five moves look like they stop the mate, one does, and then you have to do it again.', href: '/defend' },
   { key: 'turn',   cat: 'endgame',     name: 'Turn',   tag: 'Ten squares left',            blurb: 'An Othello endgame you are already winning. One square keeps it, and the careful little move is not always it.', href: '/turn' },
@@ -305,6 +308,7 @@ const ALL_DAILY_GAMES = [
   { key: 'sweep', cat: 'arcade',     name: 'Sweep', tag: 'No bottom edge',           blurb: 'Minesweeper that runs downward forever. The same field for everybody, never a guess, one life a run and as many runs as you like.', href: '/sweep' },
   { key: 'blocks', cat: 'arcade',    name: 'Blocks', tag: 'Same shapes, same order',   blurb: 'Falling shapes in a short well, the same order for everybody, and as many runs as you like with your best one scored. It never speeds up.', href: '/blocks' },
   { key: 'strata', cat: 'word',       name: 'Strata', tag: 'Dig the words out',          blurb: 'Every letter belongs to a buried word. Take one out and the letters above it fall, which is what lets you read the next.', href: '/strata' },
+  { key: 'hinge',   cat: 'word',      name: 'Hinge',   tag: 'Chain the compounds',   blurb: 'First and last word given. Fill the chain so every pair of neighbours makes a compound word or a phrase everyone knows. Any chain that holds counts.', href: '/hinge' },
   { key: 'rung',   cat: 'word',      name: 'Rung',   tag: 'One letter at a time',       blurb: 'Climb from the first word to the last, changing a single letter on every rung.', href: '/rung' },
   { key: 'crunch', cat: 'numbers',   name: 'Crunch', tag: 'Six numbers, one target',    blurb: 'Six numbers, four operations, one target. Hit it exactly or get as close as you can.', href: '/crunch' },
   { key: 'taire',  cat: 'cards',       name: 'Taire',  tag: 'The daily solitaire',        blurb: 'A trimmed solitaire deal that always has a finish in it. Clear the board and beat par.', href: '/taire' },
