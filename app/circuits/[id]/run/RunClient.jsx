@@ -47,6 +47,7 @@ import { notifyShareCredit } from '../../../ShareCreditPop';
 import { runSummaryHref, circuitShareUrl, circuitScoreMode, circuitShareResult } from '@/lib/circuits';
 import GauntletLadder, { rampFor } from '../../GauntletLadder';
 import RunNextUp from '../../RunNextUp';
+import TriviaDoorPop from '../../TriviaDoorPop';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
 import GauntletFinale from '../../GauntletFinale';
@@ -1377,6 +1378,12 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           onDone={() => setCurtain(false)}
         />
       ) : null}
+
+      {/* THE DOOR'S ONE WORD ABOUT THE REST OF THE SITE (owner, 2026-09-03).
+          Mounted in every phase so it can read the /trivia arrival at mount;
+          it opens only on the scorecard, after the curtain, and only for a
+          first-timer who came in through /trivia. See TriviaDoorPop. */}
+      <TriviaDoorPop ready={hydrated && done && !curtain} />
     </div>
   );
 }
