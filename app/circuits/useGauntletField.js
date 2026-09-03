@@ -105,6 +105,15 @@ export default function useGauntletField(sections, active = true) {
           const i = Math.max(0, Math.min(al.length - 1, score));
           return (p - al[i]) / p;
         },
+        // The place a score of `s` takes on that bank's field today: everyone
+        // who scored strictly more, plus one. Null under the floor, like the
+        // curve, because a rank over eleven attempts is noise that looks exact.
+        rank(key, score) {
+          const al = atLeast[key];
+          if (!al) return null;
+          const i = Math.max(0, Math.min(al.length - 1, score + 1));
+          return al[i] + 1;
+        },
         has(key) { return !!curves[key]; },
         any: Object.keys(curves).length > 0,
       });

@@ -1369,6 +1369,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           score={cleared}
           total={askable}
           avgTotal={finaleAvg}
+          field={field}
           leaderScore={rightUnit ? leaderScore : null}
           rank={boardQ.data && boardQ.data.me && Number.isFinite(boardQ.data.me.rank) ? boardQ.data.me.rank : null}
           fieldSize={(boardQ.data && boardQ.data.overallField) || null}

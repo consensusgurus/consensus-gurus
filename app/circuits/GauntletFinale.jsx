@@ -38,15 +38,29 @@
 // ladder block is one masked fill whose width animates, and each column segment
 // is a height. Only the numbers tick per frame, inside their own components, so
 // a step costs one render of ten nodes rather than sixty renders of two hundred.
+//
+// EACH BANK CARRIES ITS PLACE ON ITS OWN FIELD (owner, 2026-09-03: "just the
+// rank per each of the 7 elements"). Once a bank's count has landed, the line
+// under it reads `#14 of 218 on this quiz today`, and the board phase repeats
+// all seven in a row under the position. It costs no request: the run already
+// fetched every bank's scoreDist for the average, and a rank on a one-life quiz
+// is everyone who scored more, plus one (useGauntletField's `rank`). A bank
+// under the field floor says how many have played and no more, the same rule
+// the average follows: a rank over eleven attempts looks authoritative and is
+// noise. The owner saw and declined a per-sub-topic layer the same day, so the
+// paint carries the rank and nothing else beneath the count.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { rampFor } from '@/lib/circuits';
 
-const PAINT_MS = 980;      // one bank owns the screen for this long
+const PAINT_MS = 1250;     // one bank owns the screen for this long (980 before the rank line)
 const COUNT_MS = 560;      // its number, its ladder block and its segment
 const REPAINT_MS = 1250;   // the colours come back, the total lands
 const CLIMB_MS = 3400;     // the position falls to the player's slot
 const HOLD_MS = 1500;      // the finished frame, before the card
+const RANK_AT_MS = COUNT_MS + 120;  // the rank line, once the bank's count has landed
+const SLOT_FROM_MS = 500;   // the first by-quiz slot lands this long into the board
+const SLOT_GAP_MS = 300;    // and the rest follow at this pace
 
 // A dark ink for a ramp colour. Every colour in LADDER_RAMP is a high-lightness
 // pastel, so a flat scale toward black is legible on all eight without a table
@@ -100,6 +114,7 @@ export default function GauntletFinale({
   rows = [],
   meKey = null,
   guest = false,
+  field = null,
   onDone,
 }) {
   const N = sections.length;
@@ -108,6 +123,9 @@ export default function GauntletFinale({
   // rendering it before the first bank flashed the run's final score for a
   // quarter of a second and gave away the ending the sequence exists to build.
   const [step, setStep] = useState(-1);
+  // The bank whose rank line is up, and how many by-quiz slots have landed.
+  const [rankIn, setRankIn] = useState(-1);
+  const [landed, setLanded] = useState(0);
   const doneRef = useRef(false);
 
   const banks = useMemo(() => sections.map((s, i) => {
@@ -115,8 +133,12 @@ export default function GauntletFinale({
     const asked = (s.questions && s.questions.length) || (res && res.total) || 0;
     const got = res && Number.isFinite(res.score) ? res.score : 0;
     const colour = rampFor(Number.isFinite(s.slot) ? s.slot : i);
-    return { key: s.key, name: s.name || s.key, subject: s.subject || '', asked, got, colour, ink: inkFor(colour) };
-  }), [sections, results]);
+    // The place on this bank's own field, or null under the floor. `plays` is
+    // reported either way so the line can say how many have played so far.
+    const rank = field && typeof field.rank === 'function' ? field.rank(s.key, got) : null;
+    const plays = field && field.plays && Number.isFinite(field.plays[s.key]) ? field.plays[s.key] : null;
+    return { key: s.key, name: s.name || s.key, subject: s.subject || '', asked, got, colour, ink: inkFor(colour), rank, plays };
+  }), [sections, results, field]);
 
   const running = useMemo(() => {
     const out = [];
@@ -139,10 +161,14 @@ export default function GauntletFinale({
     if (reduced || !N) { finish(); return undefined; }
     const timers = [];
     const at = (ms, fn) => timers.push(setTimeout(fn, ms));
-    banks.forEach((b, i) => at(260 + i * PAINT_MS, () => setStep(i)));
+    banks.forEach((b, i) => {
+      at(260 + i * PAINT_MS, () => setStep(i));
+      at(260 + i * PAINT_MS + RANK_AT_MS, () => setRankIn(i));
+    });
     const end = 260 + N * PAINT_MS;
     at(end, () => setStep(N));
     at(end + REPAINT_MS, () => setStep(N + 1));
+    banks.forEach((b, i) => at(end + REPAINT_MS + SLOT_FROM_MS + i * SLOT_GAP_MS, () => setLanded(i + 1)));
     at(end + REPAINT_MS + CLIMB_MS + HOLD_MS, finish);
     return () => timers.forEach(clearTimeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,6 +222,16 @@ export default function GauntletFinale({
             <div className="gfin-nm">{cur.name}</div>
             <div className="gfin-n"><Count to={cur.got} ms={COUNT_MS} from={0} resetKey={step} /></div>
             <div className="gfin-of">{cur.got === cur.asked ? 'cleared' : `of ${cur.asked} before the miss`}</div>
+            {/* THE RANK LINE waits for the count. It is drawn on the same
+                condition as the average: a field, or an honest count of who
+                has played and no number over it. */}
+            {cur.rank != null || cur.plays != null ? (
+              <div className={`gfin-rk${rankIn === step ? ' in' : ''}`}>
+                {cur.rank != null
+                  ? <><span className="n">#{cur.rank}</span><span className="h">of {cur.plays} on this quiz today</span></>
+                  : <span className="h">{cur.plays} played so far · no field yet</span>}
+              </div>
+            ) : null}
           </>
         ) : (
           <>
@@ -281,6 +317,32 @@ export default function GauntletFinale({
         {rank != null && fieldSize && guest ? (
           <div className="gfin-claim">(select a name to claim)</div>
         ) : null}
+        {/* BY QUIZ. Seven slots in the ramp, each bank's place on its own
+            field, landing in run order under the position as it falls. The
+            best of the seven is raised; a bank with no field says so in the
+            slot rather than leaving a hole in the row. */}
+        {banks.some((b) => b.rank != null || b.plays != null) ? (() => {
+          let best = null;
+          banks.forEach((b) => { if (b.rank != null && (best == null || b.rank < best.rank)) best = b; });
+          return (
+            <>
+              <div className="gfin-qh"><span>by quiz · your place on each field</span><span>today</span></div>
+              <div className="gfin-quiz" style={{ '--gfin-cols': banks.length }}>
+                {banks.map((b, i) => (
+                  <div
+                    key={b.key}
+                    className={`gfin-q${i < landed ? ' in' : ''}${b.rank == null ? ' nofield' : ''}${best === b ? ' best' : ''}`}
+                    style={{ '--c': b.colour }}
+                  >
+                    <span className="nm">{b.name}</span>
+                    <span className="rk">{b.rank != null ? `#${b.rank}` : 'no field'}</span>
+                    <span className="of">{b.rank != null && b.plays != null ? `${b.got} of ${b.asked} · ${b.plays} played` : `${b.got} of ${b.asked}`}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          );
+        })() : null}
         <div className="gfin-rows">
           {top.map((row, i) => (
             <div key={row.userKey || i} className={`gfin-row${meKey && row.userKey === meKey ? ' me' : ''}`}>
@@ -323,6 +385,12 @@ const CSS = `
   font-variant-numeric:tabular-nums;transition:font-size .5s ease}
 .gfin-mid.up .gfin-n{font-size:clamp(44px,7vw,78px)}
 .gfin-of{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;opacity:.62}
+.gfin-rk{margin-top:14px;display:flex;align-items:baseline;gap:10px;opacity:0;transform:translateY(8px);
+  transition:opacity .35s ease,transform .35s cubic-bezier(.2,.8,.25,1)}
+.gfin-rk.in{opacity:1;transform:none}
+.gfin-rk .n{font-size:clamp(30px,4.6vw,52px);font-weight:800;letter-spacing:-.04em;line-height:1;
+  font-variant-numeric:tabular-nums}
+.gfin-rk .h{font-size:12px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.62}
 
 .gfin-lad{position:absolute;left:30px;right:126px;bottom:76px;height:42px;display:flex;gap:5px}
 .gfin-blk{position:relative;height:100%}
@@ -356,6 +424,21 @@ const CSS = `
   line-height:.9;font-variant-numeric:tabular-nums}
 .gfin-claim{margin-top:-8px;font-size:clamp(12.5px,1.9vw,16px);font-weight:700;
   letter-spacing:.03em;opacity:.62;text-align:center}
+.gfin-qh{width:min(640px,100%);display:flex;justify-content:space-between;font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;opacity:.5;margin-top:8px}
+.gfin-quiz{width:min(640px,100%);display:grid;grid-template-columns:repeat(var(--gfin-cols,7),1fr);gap:5px;margin-top:-6px}
+.gfin-q{display:flex;flex-direction:column;gap:3px;padding:8px 8px 7px;border-radius:7px;background:rgba(255,255,255,.04);
+  border-top:3px solid var(--c);opacity:0;transform:translateY(8px);
+  transition:opacity .35s ease,transform .35s cubic-bezier(.2,.8,.25,1)}
+.gfin-q.in{opacity:1;transform:none}
+.gfin-q .nm{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.62;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gfin-q .rk{font-size:clamp(18px,2.4vw,26px);font-weight:800;letter-spacing:-.03em;line-height:1;
+  font-variant-numeric:tabular-nums;color:var(--c)}
+.gfin-q .of{font-size:10.5px;font-weight:600;letter-spacing:.04em;opacity:.5;font-variant-numeric:tabular-nums}
+.gfin-q.best{background:rgba(255,255,255,.09)}
+.gfin-q.nofield .rk{font-size:10px;white-space:nowrap;font-weight:700;letter-spacing:.06em;color:inherit;opacity:.5;
+  line-height:clamp(18px,2.4vw,26px)}
 .gfin-rows{width:min(520px,100%);display:flex;flex-direction:column;gap:2px}
 .gfin-row{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;
   padding:7px 14px;border-radius:8px;font-size:14px;font-weight:600;
@@ -374,6 +457,9 @@ const CSS = `
   .gfin-n{font-size:84px}
   .gfin-mid.up .gfin-n{font-size:52px}
   .gfin-of{font-size:10.5px}
+  .gfin-rk{margin-top:10px}
+  .gfin-rk .n{font-size:34px}
+  .gfin-rk .h{font-size:10px}
   .gfin-lad{left:16px;right:62px;bottom:56px;height:28px;gap:3px}
   .gfin-side{right:16px;top:44px;bottom:56px;width:32px}
   .gfin-mark{right:40px;gap:5px;font-size:9px;letter-spacing:.06em}
@@ -381,12 +467,18 @@ const CSS = `
   .gfin-board{padding:0 62px 74px 18px;gap:10px}
   .gfin-pos .n{font-size:62px}
   .gfin-claim{margin-top:-4px;font-size:12px}
+  .gfin-qh{font-size:9.5px}
+  .gfin-quiz{grid-template-columns:repeat(4,1fr);gap:4px}
+  .gfin-q{padding:6px 6px 5px}
+  .gfin-q .nm{font-size:9px}
+  .gfin-q .rk{font-size:17px}
+  .gfin-q .of{font-size:9px}
   .gfin-rows{width:100%}
   .gfin-row{grid-template-columns:34px 1fr auto;gap:8px;padding:6px 10px;font-size:12.5px}
   .gfin-skip{bottom:18px;font-size:10px}
 }
 
 @media (prefers-reduced-motion: reduce){
-  .gfin,.gfin-mid,.gfin-fill,.gfin-seg,.gfin-board,.gfin-mark,.gfin-n{transition:none}
+  .gfin,.gfin-mid,.gfin-fill,.gfin-seg,.gfin-board,.gfin-mark,.gfin-n,.gfin-rk,.gfin-q{transition:none}
 }
 `;
