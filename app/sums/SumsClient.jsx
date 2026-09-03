@@ -810,7 +810,10 @@ export default function SumsClient({ puzzles = [], forceNum = null }) {
     // takes a token with its Loft value as the fallback, so the stage gets a
     // dark grid under its pale ink and the Loft render is unchanged.
     let bg = STAGE ? 'var(--stg-cell)' : T.white;
-    if (black) bg = STAGE ? 'color-mix(in srgb, var(--stg-ink) 9%, var(--stg-ground))' : '#e9edf3';
+    // A clue square is the page GROUND, not a tint of the cell: on the dark
+    // register a 9% ink mix over the ground came out within a few points of
+    // the cell itself and the board read as one grey sheet (seen live 9/3).
+    if (black) bg = STAGE ? 'var(--stg-ground)' : '#e9edf3';
     if (peer) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 16%, var(--stg-cell))' : COLORS.accentSoft;
     if (sameVal) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 34%, var(--stg-cell))' : COLORS.accentTint;
     if (isSel) bg = STAGE ? 'color-mix(in srgb, var(--stg-acc) 48%, var(--stg-cell))' : COLORS.accentPick;
@@ -878,7 +881,7 @@ export default function SumsClient({ puzzles = [], forceNum = null }) {
           .su-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;padding:2px;box-sizing:border-box;}
           .su-note{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-size:${N > 7 ? 7.5 : 9.5}px;line-height:1;color:${STAGE ? 'var(--stg-mute2,#8a93a3)' : '#8a93a3'};}
           .su-black{cursor:default;}
-          .su-clue::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),var(--stg-cell-line, rgba(28,30,36,0.28)) calc(50% - 0.5px),var(--stg-cell-line, rgba(28,30,36,0.28)) calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none;}
+          .su-clue::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom right,transparent calc(50% - 0.5px),var(--stg-line2, rgba(28,30,36,0.28)) calc(50% - 0.5px),var(--stg-line2, rgba(28,30,36,0.28)) calc(50% + 0.5px),transparent calc(50% + 0.5px));pointer-events:none;}
           .su-a,.su-d{position:absolute;font-family:${MONO};font-size:${N > 7 ? 'clamp(8px, 2.2vw, 11px)' : 'clamp(9.5px, 2.6vw, 13px)'};line-height:1;font-weight:500;color:${INK};z-index:1;}
           .su-a{top:${N > 7 ? 2 : 3}px;right:${N > 7 ? 2 : 4}px;}
           .su-d{bottom:${N > 7 ? 2 : 3}px;left:${N > 7 ? 2 : 4}px;}
