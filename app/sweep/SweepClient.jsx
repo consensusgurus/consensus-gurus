@@ -38,6 +38,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionHue } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -70,6 +71,17 @@ const COLORS = {
 // deliberately NOT a rainbow: the low numbers you read constantly are cool and
 // quiet, the high ones you meet rarely are hot, so a 6 catches the eye.
 const NUM_COLOR = ['', '#2563eb', '#15803d', '#c0392b', '#233a63', '#a16207', '#0e7490', '#0b0d12', '#6b7280'];
+// On the stage the eight counts take ramp ink (the 7 above is near-black and
+// vanished on the dark register): sky, mint, rose, periwinkle, gold, magenta,
+// violet, then page ink for 8. Loosely the classic order (1 cool, 3 red) so a
+// habit still works. Resolved per register by --stg-dk, as regionStyle() does.
+const NUM_RAMP = [null, 0, 2, 3, 7, 1, 6, 4, null];
+const numInk = (n) => {
+  const k = NUM_RAMP[n];
+  if (k == null) return 'var(--stg-ink)';
+  const h = regionHue(k);
+  return `color-mix(in srgb, ${h.dk} var(--stg-dk, 100%), ${h.ink})`;
+};
 const HELP_KEY = 'sot_sweep_help_seen';
 const STATS_KEY = 'sot_sweep_stats';
 const VIEW_ROWS = 15;          // rows of field on screen at once
@@ -620,7 +632,7 @@ export default function SweepClient({ puzzles = [], forceNum = null }) {
             WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation',
             cursor: over ? 'default' : 'pointer',
             background: isBoom ? '#dc2626' : showMine ? '#94a3b8' : isFlag ? '#fde68a' : isOpen ? 'var(--stg-panel, #fff)' : `var(--stg-cell, ${COLORS.covered})`,
-            color: isBoom ? '#fff' : NUM_COLOR[n] || `var(--stg-mute, ${COLORS.faded})`,
+            color: isBoom ? '#fff' : (STAGE && n ? numInk(n) : NUM_COLOR[n] || `var(--stg-mute, ${COLORS.faded})`),
             boxShadow: isOpen && !isBoom ? 'none' : 'inset 0 0 0 1px var(--stg-cell-line, transparent), inset 0 -2px 0 rgba(15,23,42,0.10)',
           }}
         >

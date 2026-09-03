@@ -46,6 +46,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
@@ -251,7 +252,9 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
       while (taken.has(c)) c++;
       col[k] = c;
     }
-    return col.map((c) => CAGE_TINTS[c % CAGE_TINTS.length]);
+    // The colour INDEX is what the board decided; the Loft reads a pastel off
+    // it and the stage reads a ramp hue (regionStyle) in cellStyle below.
+    return col;
   }, [CAGE, SUMS]);
   // the cell each cage prints its total in: topmost, then leftmost
   const SUM_AT = useMemo(() => {
@@ -810,16 +813,31 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
     // replacing it: replacing it meant that the moment you selected a square,
     // every cage in its row, column and box lost its identity, which is most of
     // the board and exactly when you need to read it.
-    const bg = CAGE_TINT[CAGE[idx]];
+    const tone = CAGE_TINT[CAGE[idx]];
+    // On the stage the cage tint is its ramp hue mixed into the cell at the
+    // register's mix, and the three highlights are mixed INTO it rather than
+    // washed over it, exactly as Quilt's regions are (peer a neutral ink lift,
+    // same-digit and selected carrying the accent). The Loft keeps its seven
+    // pastels and its translucent washes untouched.
+    const tint = STAGE ? regionMix(1) : CAGE_TINTS[tone % CAGE_TINTS.length];
+    let bg = tint;
+    if (STAGE) {
+      if (peer) bg = `color-mix(in srgb, var(--stg-ink) 12%, ${tint})`;
+      if (sameVal) bg = `color-mix(in srgb, var(--stg-acc) 24%, ${tint})`;
+      if (isSel) bg = `color-mix(in srgb, var(--stg-acc) 40%, ${tint})`;
+    }
     let wash = null;
-    if (peer) wash = 'rgba(22,26,42,0.055)';
-    if (sel >= 0 && CAGE[idx] === selK && !isSel) wash = 'rgba(107,33,168,0.13)';
-    if (sameVal) wash = 'rgba(107,33,168,0.2)';
-    if (isSel) wash = 'rgba(107,33,168,0.3)';
+    if (!STAGE) {
+      if (peer) wash = 'rgba(22,26,42,0.055)';
+      if (sel >= 0 && CAGE[idx] === selK && !isSel) wash = 'rgba(107,33,168,0.13)';
+      if (sameVal) wash = 'rgba(107,33,168,0.2)';
+      if (isSel) wash = 'rgba(107,33,168,0.3)';
+    }
     const shadow = [];
-    if (isSel) shadow.push(`inset 0 0 0 2.5px ${COLORS.accent}`);   // listed first, so it paints above the wash
+    if (isSel) shadow.push(`inset 0 0 0 2.5px ${STAGE ? 'var(--stg-acc)' : COLORS.accent}`);   // listed first, so it paints above the wash
     if (wash) shadow.push(`inset 0 0 0 999px ${wash}`);
     return {
+      ...(STAGE ? regionStyle(tone) : null),
       background: bg,
       // The cage tints are pale in BOTH registers, so the digits are dark in
       // both, exactly as Quilt's are. Without this the entered numbers took
@@ -827,7 +845,10 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
       // pastel cage at a contrast ratio near 1.5, which on a board that opens
       // completely empty means every number a player writes is invisible.
       // An inline colour also outranks .cg-user, which is the point.
-      color: '#0b0d12',
+      // On the stage the tint follows the register, so the digit ink comes from
+      // .cg-given / .cg-user as Quilt's does; only the SELECTED cell, whose
+      // fill carries the accent, still pins page ink.
+      color: STAGE ? (isSel ? 'var(--stg-ink)' : undefined) : '#0b0d12',
       boxShadow: shadow.length ? shadow.join(', ') : undefined,
       zIndex: isSel ? 1 : undefined,
       borderRight: `${c % 3 === 2 && c !== 8 ? 2.5 : 1}px solid ${c % 3 === 2 && c !== 8 ? 'var(--stg-line3, rgba(28,30,36,0.85))' : 'var(--stg-cell-line, rgba(28,30,36,0.18))'}`,
@@ -915,8 +936,8 @@ export default function CagesClient({ puzzles = [], forceNum = null }) {
              5px has the dashed line drawn straight through the numerals: that
              shipped once and every printed total came out looking sliced in
              half. Keep these two rules in step if the inset ever changes. */
-          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:${SANS};font-size:10px;line-height:1;font-weight:800;color:#2f1259;pointer-events:none;letter-spacing:-0.02em;}
-          .cg-sum.done{color:rgba(47,18,89,0.32);}
+          .cg-sum{position:absolute;top:5px;left:5.5px;font-family:${SANS};font-size:10px;line-height:1;font-weight:800;color:var(--hue-ink, #2f1259);pointer-events:none;letter-spacing:-0.02em;}
+          .cg-sum.done{color:color-mix(in srgb, var(--hue-ink, #2f1259) 40%, transparent);}
           .cg-notes.hassum{padding-top:11px;}
           .cg-notes.hassum .cg-note{font-size:8px;}
           @media(max-width:420px){.cg-sum{font-size:8px;top:3.5px;left:4px;}.cg-wall{inset:2px;}.cg-notes.hassum{padding-top:9px;}}

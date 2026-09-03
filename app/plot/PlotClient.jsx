@@ -41,6 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix, REGION_INK } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -838,8 +839,11 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
                 const tint = TINT[p[4] % TINT.length];
                 return (
                   <div key={`p${i}`} style={{
+                    ...(STAGE ? regionStyle(p[4]) : null),
                     position: 'absolute', left: pct(p[1]), top: pct(p[0]), width: pct(p[2]), height: pct(p[3]),
-                    background: bad ? WRONG_BG : tint[0], border: `2px solid ${bad ? WRONG_EDGE : tint[1]}`,
+                    // Stage: the plot's ramp hue mixed into the cell, edged in the hue's ink.
+                    background: STAGE ? (bad ? 'color-mix(in srgb, var(--stg-bad) 38%, var(--stg-cell))' : regionMix(1)) : (bad ? WRONG_BG : tint[0]),
+                    border: `2px solid ${STAGE ? (bad ? 'var(--stg-bad)' : REGION_INK) : (bad ? WRONG_EDGE : tint[1])}`,
                     borderRadius: 4, boxSizing: 'border-box', pointerEvents: 'none',
                   }} />
                 );
@@ -848,9 +852,9 @@ export default function PlotClient({ puzzles = [], forceNum = null }) {
               {CLUES.map((cl, k) => {
                 const i = owner[cl[0] * N + cl[1]];
                 const bad = i >= 0 && wrongSet.has(i);
-                const col = i >= 0 ? (bad ? WRONG_EDGE : TINT[plots[i][4] % TINT.length][1]) : `var(--stg-ink, ${COLORS.ink})`;
+                const col = i >= 0 ? (bad ? (STAGE ? 'var(--stg-bad)' : WRONG_EDGE) : (STAGE ? REGION_INK : TINT[plots[i][4] % TINT.length][1])) : `var(--stg-ink, ${COLORS.ink})`;
                 return (
-                  <div key={`c${k}`} className="pl-num" style={{ left: pct(cl[1]), top: pct(cl[0]), width: pct(1), height: pct(1), fontSize: numFs, color: col }}>{cl[2]}</div>
+                  <div key={`c${k}`} className="pl-num" style={{ ...(STAGE && i >= 0 ? regionStyle(plots[i][4]) : null), left: pct(cl[1]), top: pct(cl[0]), width: pct(1), height: pct(1), fontSize: numFs, color: col }}>{cl[2]}</div>
                 );
               })}
               {/* the plot being dragged out */}

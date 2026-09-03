@@ -49,6 +49,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -934,7 +935,13 @@ export default function JesterClient({ puzzles = [], forceNum = null }) {
                       onTouchCancel={endPress}
                       role="button"
                       aria-label={`Row ${r + 1}, column ${c + 1}: ${v === 2 ? 'jester' : showX ? 'ruled out' : 'blank'}${conflict ? ', quarrelling' : ''}. Tap to place the ${tool === 'jester' ? 'jester' : '✗ mark'}; hold or right-click to seat a jester directly.`}
-                      style={{ width: cellPx, height: cellPx, background: conflict ? '#fecaca' : (doneRegions.has(id) ? REGION_FILLS_DONE : REGION_FILLS)[id % REGION_FILLS.length], borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px var(--stg-acc, ${COLORS.accent})` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
+                      style={{ ...(STAGE ? regionStyle(id) : null), width: cellPx, height: cellPx,
+                        // Stage: the court's ramp hue mixed into the cell at the register's mix, a
+                        // full court at half of it (it fades on either ground instead of washing
+                        // toward a literal white), a quarrel in the page's own red. Loft: untouched.
+                        background: STAGE
+                          ? (conflict ? 'color-mix(in srgb, var(--stg-bad) 38%, var(--stg-cell))' : regionMix(doneRegions.has(id) ? 0.5 : 1))
+                          : (conflict ? '#fecaca' : (doneRegions.has(id) ? REGION_FILLS_DONE : REGION_FILLS)[id % REGION_FILLS.length]), borderTop: bTop, borderLeft: bLeft, boxShadow: locked ? `inset 0 0 0 2px var(--stg-acc, ${COLORS.accent})` : 'none', WebkitTouchCallout: 'none', WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
                     >
                       {v !== 2 && showX && <span className="je-x" style={autoMark ? { opacity: 0.6 } : undefined}>✗</span>}
                       {v === 2 && <JesterMark size={Math.round(cellPx * 0.6)} conflict={conflict} />}

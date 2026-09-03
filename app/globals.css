@@ -249,6 +249,11 @@ button, input, textarea, select { border-radius: 8px; }
      is the register saying how much of them to use, so a surface and its ink
      move together. */
   --stg-tint-mix: 26%;
+  /* WHICH REGISTER A REGION HUE RESOLVES TO. lib/category-ramp.js regionStyle()
+     writes a cell's --hue as color-mix(<dark pastel> var(--stg-dk), <light
+     deep twin>): 100% here, 0% in the light block, so the same inline style
+     lands on the right hue in either register with no class and no repaint. */
+  --stg-dk: 100%;
 
   --stg-ink: #e9edf4;
   --stg-ink2: #aab5c7;
@@ -529,7 +534,10 @@ html:not([data-stage-boot='dark']) .stage-page[data-stage-theme='light'] {
   --stg-cell-line: rgba(11, 15, 26, 0.44);
   /* 7% of a hue in white lands within a hair of the pale tints this board
      carried before the token existed, so the light register is unchanged. */
-  --stg-tint-mix: 7%;
+  --stg-tint-mix: 12%;   /* was 7% (Quilt's own near-white pastels); the region
+                            boards' pastels were stronger, and 12 is the value
+                            the owner approved in the 9/3 mockups for all six */
+  --stg-dk: 0%;
 
   --stg-ink: #0b0d12;
   --stg-ink2: #3f4757;

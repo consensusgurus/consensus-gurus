@@ -39,6 +39,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix, REGION_INK } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -658,7 +659,10 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     const hue = reg >= 0 ? REGION_HUES[reg % REGION_HUES.length] : null;
     const isLocked = reg >= 0 && locked.includes(reg);
     let bg = STAGE ? 'var(--stg-surf)' : THEME.white;
-    if (hue) bg = isLocked ? hue.mid : hue.soft;
+    // On the stage a carved block is its ramp hue mixed into the cell at the
+    // register's tint mix, a locked one at twice it, and the digit is page ink;
+    // the Loft keeps its nine pastels with dark ink, untouched.
+    if (hue) bg = STAGE ? regionMix(isLocked ? 2 : 1) : (isLocked ? hue.mid : hue.soft);
     const edge = (j) => {
       if (j < 0) return true;
       return assign[j] !== reg;
@@ -669,11 +673,12 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
     // both registers, so a white hairline would vanish on it exactly as a dark
     // one vanishes on the stage.
     const onStage = STAGE && !hue;
-    const thin = `1px solid ${onStage ? 'var(--stg-line)' : 'rgba(28,30,36,0.16)'}`;
-    const thickColor = onStage ? 'var(--stg-line3)' : 'rgba(28,30,36,0.78)';
+    const thin = `1px solid ${STAGE ? 'var(--stg-line)' : 'rgba(28,30,36,0.16)'}`;
+    const thickColor = STAGE ? (hue ? REGION_INK : 'var(--stg-line3)') : 'rgba(28,30,36,0.78)';
     return {
+      ...(STAGE && hue ? regionStyle(reg) : null),
       background: bg,
-      color: hue ? '#0b0d12' : undefined,
+      color: hue ? (STAGE ? 'var(--stg-ink)' : '#0b0d12') : undefined,
       borderRight: c === N - 1 ? 'none' : (edge(rightIdx) && (reg >= 0 || (rightIdx >= 0 && assign[rightIdx] >= 0)) ? `2.5px solid ${thickColor}` : thin),
       borderBottom: r === N - 1 ? 'none' : (edge(downIdx) && (reg >= 0 || (downIdx >= 0 && assign[downIdx] >= 0)) ? `2.5px solid ${thickColor}` : thin),
     };
@@ -830,8 +835,8 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                 const wrongFlash = flash && flash.cells.includes(idx);
                 return (
                   <div key={idx} className={`cv-cell${wrongFlash ? ' cv-wrongflash' : ''}${bounce === idx ? ' cv-bounce' : ''}`} style={cellStyle(idx)} onClick={() => cellClick(idx)}>
-                    {isSeed && hue && <span className="cv-seed-ring" style={{ border: `2.5px solid ${hue.line}` }} />}
-                    <span style={{ fontSize: cellPx, fontWeight: isSeed ? 700 : 500, color: hue ? '#0b0d12' : INK, position: 'relative' }}>{gridFlat[idx]}</span>
+                    {isSeed && hue && <span className="cv-seed-ring" style={{ border: `2.5px solid ${STAGE ? REGION_INK : hue.line}` }} />}
+                    <span style={{ fontSize: cellPx, fontWeight: isSeed ? 700 : 500, color: hue ? (STAGE ? 'var(--stg-ink)' : '#0b0d12') : INK, position: 'relative' }}>{gridFlat[idx]}</span>
                   </div>
                 );
               })}
@@ -849,9 +854,11 @@ export default function CarveClient({ puzzles = [], forceNum = null }) {
                   return (
                     <button key={k} className={`cv-chip${on ? ' on' : ''}${done ? ' done' : ''}`} onClick={() => { if (!done) setCur(k); }}
                       aria-label={`carve block ${k + 1}`}
-                      style={{ borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : (STAGE ? 'var(--stg-surf)' : THEME.white)) }}>
-                      <span style={{ width: 14, height: 14, borderRadius: 99, background: hue.line, display: 'inline-block' }} />
-                      <span style={{ fontSize: 10.5, fontWeight: 500, color: (done || on) ? '#0b0d12' : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      style={STAGE
+                        ? { ...regionStyle(k), borderColor: on ? REGION_INK : undefined, background: done ? regionMix(2) : (on ? regionMix(1) : 'var(--stg-surf)') }
+                        : { borderColor: on ? hue.line : undefined, background: done ? hue.mid : (on ? hue.soft : THEME.white) }}>
+                      <span style={{ width: 14, height: 14, borderRadius: 99, background: STAGE ? REGION_INK : hue.line, display: 'inline-block' }} />
+                      <span style={{ fontSize: 10.5, fontWeight: 500, color: (done || on) && !STAGE ? '#0b0d12' : `var(--stg-ink, ${COLORS.ink})`, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                         {done ? '✓' : `${sums[k]}/${TARGET}`}
                       </span>
                     </button>

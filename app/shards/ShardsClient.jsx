@@ -55,6 +55,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix, regionHue, REGION_INK } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -1046,7 +1047,14 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                         key={i}
                         data-cell="1" data-r={r} data-c={c}
                         className={`sh-cell${isBlock ? ' block' : ''}${cell ? ' filled' : ''}${isArmedCell ? ' armed' : ''}${isWrong ? ' wrong' : ''}${isHome ? ' home' : ''}${isLocked ? ' locked' : ''}${cell && g.wet === cell.id ? ' wet' : ''}${cell && drag && drag.id === cell.id ? ' dragging' : ''}${hoverCls}`}
-                        style={tint ? { '--tint': COLORS.accentSoft, background: tintBg(tint), color: '#12312e' } : undefined}
+                        style={tint
+                          // Stage: a placed piece is its ramp hue at twice the register's mix (a piece
+                          // is a mark you pick up, so it sits a step above a region), edged in the
+                          // hue's ink, lettered in page ink. Loft: the lightened tint, untouched.
+                          ? (STAGE
+                            ? { ...regionStyle(cell.id), '--tint': COLORS.accentSoft, background: regionMix(2), color: 'var(--stg-ink)', borderColor: `color-mix(in srgb, ${REGION_INK} 55%, transparent)` }
+                            : { '--tint': COLORS.accentSoft, background: tintBg(tint), color: '#12312e' })
+                          : undefined}
                         onClick={() => { if (!draggedRef.current) onCellTap(r, c); }}
                         onPointerDown={(e) => { if (cell && !isBlock) { const grab = { dr: r - g.placements[cell.id].r, dc: c - g.placements[cell.id].c }; beginPointer(e, cell.id, grab, 'board'); } }}
                         role="gridcell"
@@ -1065,12 +1073,12 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
                 <div className="sh-tray">
                   {trayShards.map((id) => {
                     const s = SHARDS[id];
-                    const tint = SHARD_TINTS[id % SHARD_TINTS.length];
+                    const tint = STAGE ? 'var(--hue)' : SHARD_TINTS[id % SHARD_TINTS.length];
                     return (
                       <div
                         key={id}
                         className={`sh-piece${armed === id ? ' armed' : ''}${drag && drag.id === id ? ' dragging' : ''}`}
-                        style={{ gridTemplateColumns: `repeat(${s.w}, ${TRAYCELL}px)`, gridTemplateRows: `repeat(${s.h}, ${TRAYCELL}px)` }}
+                        style={{ ...(STAGE ? regionStyle(id) : null), gridTemplateColumns: `repeat(${s.w}, ${TRAYCELL}px)`, gridTemplateRows: `repeat(${s.h}, ${TRAYCELL}px)` }}
                         onClick={() => { if (!draggedRef.current) onShardTap(id); }}
                         onPointerDown={(e) => {
                           // Grab the sub-cell actually pressed. Hardcoding {0,0}
@@ -1234,13 +1242,13 @@ export default function ShardsClient({ puzzles = [], forceNum = null }) {
       {/* dragging ghost */}
       {drag && (() => {
         const s = SHARDS[drag.id];
-        const tint = SHARD_TINTS[drag.id % SHARD_TINTS.length];
+        const tint = STAGE ? 'var(--hue)' : SHARD_TINTS[drag.id % SHARD_TINTS.length];
         // Always board scale: the ghost has to be the size of the thing that is
         // about to land, and the old tray-scale branch made it balloon under the
         // pointer the instant the clock started.
         const gcell = CELL;
         return (
-          <div className="sh-ghost" style={{ left: drag.x - (drag.grab.dc + 0.5) * gcell, top: drag.y - (drag.lift || 0) - (drag.grab.dr + 0.5) * gcell, gridTemplateColumns: `repeat(${s.w}, ${gcell}px)`, gridTemplateRows: `repeat(${s.h}, ${gcell}px)` }}>
+          <div className="sh-ghost" style={{ ...(STAGE ? regionStyle(drag.id) : null), left: drag.x - (drag.grab.dc + 0.5) * gcell, top: drag.y - (drag.lift || 0) - (drag.grab.dr + 0.5) * gcell, gridTemplateColumns: `repeat(${s.w}, ${gcell}px)`, gridTemplateRows: `repeat(${s.h}, ${gcell}px)` }}>
             {Array.from({ length: s.w * s.h }, (_, i) => {
               const dr = Math.floor(i / s.w), dc = i % s.w;
               const o = s.offs.find((x) => x.dr === dr && x.dc === dc);

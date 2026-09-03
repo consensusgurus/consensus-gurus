@@ -41,6 +41,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, regionMix } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import LoftFinish from '../LoftFinish';
@@ -766,9 +767,10 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
   // already tunes for exactly that job.
   const WALL = `rgba(var(--stg-fieldink, 28,30,36), ${STAGE ? '0.75' : '0.85'})`;
   const HAIR = 'var(--stg-cell-line, rgba(28,30,36,0.18))';
-  const regionTint = (b) => (STAGE
-    ? `color-mix(in srgb, ${REGION_HUE[b] || REGION_HUE[0]} var(--stg-tint-mix, 26%), var(--stg-cell, #ffffff))`
-    : (REGION_TINT[b] || T.white));
+  // On the stage the nine regions index the shared REGION_RAMP (one vocabulary
+  // with Carve, Cages, Jesters, Plot and Shards, owner 2026-09-03); the hue is
+  // published on the cell by regionStyle() below and mixed in here.
+  const regionTint = (b) => (STAGE ? regionMix(1) : (REGION_TINT[b] || T.white));
 
   function cellStyle(idx) {
     const r = Math.floor(idx / 9), c = idx % 9, b = REG[idx];
@@ -791,6 +793,7 @@ export default function QuiltClient({ puzzles = [], forceNum = null }) {
     const wallR = c !== 8 && REG[idx + 1] !== b;
     const wallB = r !== 8 && REG[idx + 9] !== b;
     return {
+      ...(STAGE ? regionStyle(b) : null),
       background: bg,
       // Digit ink comes from .ql-given and .ql-user, both of which the register
       // already moves. An inline colour here outranks a stylesheet, so the flat

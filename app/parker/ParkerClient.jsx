@@ -50,6 +50,7 @@ import LoftCap from '../LoftCap';
 import StageChrome from '../StageChrome';
 import { isStage } from '@/lib/stage';
 import { useStageTheme } from '@/lib/stage-theme';
+import { regionStyle, REGION_INK } from '@/lib/category-ramp';
 import { gameColor, gameColorLight, RAMP_INK, STAGE_GROUND, gameOnrampLight, gameAccentInkLight } from '@/lib/category-ramp';
 import GamePanel from '../GamePanel';
 import useIqStanding from '../useIqStanding';
@@ -92,10 +93,16 @@ const RED_EDGE = 'var(--stg-onramp, #7a2318)';
 // the Loft board and the fallbacks below only cover the single-value constants.
 const PAINT = ['#6b7f9e', '#8a9a6b', '#a8846b', '#7f9e94', '#9e8a6b', '#6b8a9e', '#a89a6b', '#8a6b7f', '#7f8a6b', '#9e6b6b', '#6b9e8a', '#8a7f9e'];
 const TRUCK = ['#3f4a5c', '#4c5c3f', '#5c4c3f', '#3f5c55', '#5c553f', '#3f4f5c'];
-const BLOCK_LIFT = ['var(--stg-b1)', 'var(--stg-b2)', 'var(--stg-b3)', 'var(--stg-b4)'];
-// Raised from [.34 .48 .64 .82] after looking at the LIGHT register live: a green
-// edge at 34% on a near-white block is not an edge. These read on both grounds.
-const BLOCK_EDGE = [0.46, 0.60, 0.74, 0.90];
+// THE FLEET WEARS THE RAMP (owner, 2026-09-03, "proposed A"). Six region-ramp
+// indices: never lime, which is Logic's accent and marks the block you hold, and
+// never rose, orange or amber, the red car's neighbours. A block is its hue at
+// 2.2x the register's tint mix into the cell, edged in the hue's ink, so the
+// fleet is quiet on the dark stage and pastel on the light one, and the red is
+// the loudest thing in the lot in both. Replaces four grey lifts told apart by
+// edge weight (BLOCK_EDGE), which the owner found too uniform.
+const FLEET = [0, 2, 1, 4, 7, 6];   // sky, mint, gold, violet, periwinkle, magenta (REGION_RAMP order)
+const BLOCK_LIFT = FLEET.map(() => null);   // length only: blockTones() walks it
+const BLOCK_FILL = 'color-mix(in srgb, var(--hue) calc(var(--stg-tint-mix, 26%) * 2.2), var(--stg-cell, #1a1d28))';
 
 // WHICH LIFT A BLOCK GETS IS DECIDED BY THE BOARD, not by its place in the array.
 // Four steps into a thirteen block lot means repeats, and a repeat only matters
@@ -784,10 +791,10 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
                 const truck = p.len >= 3;
                 const tone = blockTone[i] || 0;
                 const fill = isRed ? RED_BLOCK
-                  : STAGE ? BLOCK_LIFT[tone]
+                  : STAGE ? BLOCK_FILL
                   : truck ? TRUCK[i % TRUCK.length] : PAINT[i % PAINT.length];
                 const carEdge = STAGE
-                  ? `${truck ? 2 : 1}px solid color-mix(in srgb, var(--stg-acc) ${Math.round(BLOCK_EDGE[tone] * 100)}%, transparent)`
+                  ? `${truck ? 2 : 1}px solid color-mix(in srgb, ${REGION_INK} 70%, transparent)`
                   : 'none';
                 const top = p.horiz ? p.fixed : p.pos;
                 const left = p.horiz ? p.pos : p.fixed;
@@ -796,6 +803,7 @@ export default function ParkerClient({ puzzles = [], forceNum = null }) {
                 return (
                   <div key={i} className="pk-blk"
                     style={{
+                      ...(STAGE && !isRed ? regionStyle(FLEET[tone]) : null),
                       left: `calc(${left * cellPct}% + 3px)`, top: `calc(${top * cellPct}% + 3px)`,
                       width: `calc(${w * cellPct}% - 6px)`, height: `calc(${h * cellPct}% - 6px)`,
                       background: fill, zIndex: 2,
