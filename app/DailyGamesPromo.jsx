@@ -71,6 +71,7 @@ export const DAILY_GAMES = [
   { key: 'docket', href: '/docket', name: 'Docket', tag: 'one setup, five deductions', store: 'sot_docket_day', accent: '#5b2333', bg: '#f7e8ec', border: 'rgba(91,35,51,0.4)' },
   { key: 'defend', href: '/defend', name: 'Defend', tag: 'black to play and survive', store: 'sot_defend_day', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)' },
   { key: 'blitz', href: '/blitz', name: 'Blitz', tag: 'twenty problems, one life', store: 'sot_blitz_day', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)' },
+  { key: 'blitzed', href: '/blitzed', name: 'Blitzed', tag: 'twenty problems, three numbers each', store: 'sot_blitzed_day', accent: '#3f6d1f', bg: '#eaf5e2', border: 'rgba(63,109,31,0.4)' },
   { key: 'paths', href: '/paths', name: 'Paths', tag: 'link every town', store: 'sot_paths_day', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)' },
   { key: 'deep', href: '/deep', name: 'Deep', tag: 'one topic, fifteen questions', store: 'sot_deep_day', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)' },
   { key: 'anon', href: '/anon', name: 'Anon', tag: 'a clueless acrostic', store: 'sot_anon_day', accent: '#8c2f39', bg: '#f8ecee', border: 'rgba(140,47,57,0.4)' },

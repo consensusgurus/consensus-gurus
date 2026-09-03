@@ -6910,6 +6910,50 @@ surfaces draw the glyph.
 **Not in a circuit** (Gauntlet is at its cap and Thread is not a question bank), not in
 the Daily Five bank. Share text carries one logline and never a title or the thread.
 
+## Blitzed (`/blitzed`) — Blitz with a third number on every line (launched 2026-09-03)
+
+Key/route/folder `blitzed`, category **Numbers**, registry `miss: 'Asked'`, legacy accent
+`#3f6d1f` / navy `#a8e063` (the stage paints the Numbers category step, like every daily;
+the pair only feeds pre-stage surfaces). Day 1 is **2026-09-03**, bank runs to
+**2026-11-19** (78 days, the same end date as Blitz), seed 20260903. Wired by
+`scripts/wire-blitzed.mjs` (anchored on the `blitz` rows so the two sit together in every
+ordered list, idempotent) off a same-step `git archive FETCH_HEAD` export. Premiere window
+9/3 to 9/7 in `PREMIERES`. **No PNG tile** (owner, 2026-09-03: icons are gone, the glyph is
+the icon), so `public/games/btn-blitzed.png` does not exist and the `img` fields the legacy
+rows carry point at nothing; `lib/game-glyphs.js` has `blitzed` (Blitz's bolt over three dots).
+
+**The game.** `app/blitz/BlitzClient.jsx` with the key, the copy and the clock changed:
+same twenty problems in five rounds of four, same one life, **twenty seconds** a problem
+where Blitz gives fifteen (owner's call; a second operation earns five more). The rule that
+makes it a different game: **every line has exactly three operands and two binary
+operations**, `5 + 10 × 2` and never `47 × 6`. A square, a cube or a root decorates an
+operand and is not an operation, so `13² + 4 × 7` is a line and `13² + 8` is not. "p% of x"
+and "n/d of x" are two operands joined by "of". The verifier counts all of this on every
+problem, from the printed string.
+
+**The bank** (`scripts/gen-blitzed.mjs`, `app/blitzed/problems.js`, ids `z<day>p<slot>`,
+quizIds `blitzed-M-D-YY`). Thirty-four families, each in exactly one tier, four per round
+from different families with one operation per round (the `sig` rule from Blitz). Round one
+is chains that read left to right and mean it (`a + b + c`, `a − b − c`, and `a × b + c`,
+which gives the same answer under either rule so precedence is not yet demanded); round
+two brings `a + b × c` and `a − b × c`; three adds brackets, `a ÷ b ÷ c`, `a + b ÷ c`, a
+percentage with a tail and `n² + a × b`; four has `(a − b) × c`, structured two-digit
+products with a tail, fractions, `a × b ÷ c`, `a × b × c`; five is awkward two-digit
+products, `n³ + a × b`, big squares, `√n + a × b`, `(a + b) ÷ c`. Blitz's anti-sieve rules
+(tight / sane / digit), sorted-position balance and per-day A-D balance all carry over
+unchanged. The distractor Blitz does not have is **the dropped third term**: doing the first
+operation and stopping. It is listed first on most families because it is the mistake a
+third element invites, and the About prose says so. Guards added on the first read of the
+output: no `43 + 5 − 5` (equal second and third terms are refused), no `40 ÷ 2 ÷ 2` in
+round three (`divChain` needs a dividend of 60+ and not 2 ÷ 2), `a × b × c` products under
+60 are refused. `scripts/verify-blitzed.mjs` re-derives every answer through its own
+tokeniser and shunting-yard evaluator, shares no code with the generator, and is clean.
+
+**Not in a circuit** (Mental Math is at its cap of five) and not in the Daily Five bank.
+No Sunday Edition, and no `sunday` field, matching Blitz. The share card is a static
+`public/og/blitzed.png` rendered from `renderBlitzedCard()`; its demo line `5 + 10 x 2` is
+below anything round three ever generates, so it hands nobody a live answer.
+
 ## The home's arrival: the Ramp once a day, the Patch on every other wait (owner, 2026-09-01)
 
 Three things shipped together (`32a923301`, `19f8cfb7b`); the design study with looping

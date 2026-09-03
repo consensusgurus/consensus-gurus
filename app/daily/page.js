@@ -75,6 +75,7 @@ import { PUZZLES as PLOT_FULL } from '../plot/puzzles';
 import { PUZZLES as BARTER_FULL } from '../barter/puzzles';
 import { PUZZLES as DEFEND_FULL } from '../defend/puzzles';
 import { PUZZLES as BLITZ_FULL } from '../blitz/puzzles';
+import { PUZZLES as BLITZED_FULL } from '../blitzed/puzzles';
 import { PUZZLES as REDACT_FULL } from '../redact/puzzles';
 import { PUZZLES as STRATA_FULL } from '../strata/puzzles';
 import { PUZZLES as BLOCKS_FULL } from '../blocks/puzzles';
@@ -141,6 +142,7 @@ const PLOT = PLOT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num,
 const BARTER = BARTER_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const DEFEND = DEFEND_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLITZ = BLITZ_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
+const BLITZED = BLITZED_FULL.map(({ num, quizId, live, dateLabel }) => ({ num, quizId, live, dateLabel }));
 const REDACT = REDACT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const STRATA = STRATA_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const BLOCKS = BLOCKS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -270,6 +272,7 @@ const GAMES = [
   { key: 'barter', name: 'Barter', path: '/barter', tag: 'Trade the letters home', accent: '#be123c', bg: '#fdeef2', border: 'rgba(190,18,60,0.4)', src: BARTER },
   { key: 'defend', name: 'Defend', path: '/defend', tag: 'Black to play and survive', accent: '#2f4f4f', bg: '#e9f0ef', border: 'rgba(47,79,79,0.4)', src: DEFEND },
   { key: 'blitz', name: 'Blitz', path: '/blitz', tag: 'Twenty problems, one life', accent: '#657512', bg: '#f3f7de', border: 'rgba(101,117,18,0.4)', src: BLITZ },
+  { key: 'blitzed', name: 'Blitzed', path: '/blitzed', tag: 'Twenty problems, three numbers each', accent: '#3f6d1f', bg: '#eaf5e2', border: 'rgba(63,109,31,0.4)', src: BLITZED },
   { key: 'redact', name: 'Redact', path: '/redact', tag: 'Uncover the story', accent: '#27272a', bg: '#f4f4f5', border: 'rgba(39,39,42,0.4)', src: REDACT },
   { key: 'paths', name: 'Paths', path: '/paths', tag: 'Link every town', accent: '#065f46', bg: '#e6f4ee', border: 'rgba(6,95,70,0.4)', src: PATHS },
   { key: 'deep', name: 'Deep', path: '/deep', tag: 'One topic, fifteen questions', accent: '#0c4a6e', bg: '#e6f1f8', border: 'rgba(12,74,110,0.4)', src: DEEP },
