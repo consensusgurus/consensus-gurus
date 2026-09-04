@@ -281,6 +281,19 @@ function daysBetween(mdy, todayYmd) {
   return d >= 0 && d < 3650 ? d : null;
 }
 
+// YESTERDAY IN ET, AS "M-D-YY". PREVIEW ONLY. The route's `date` parameter
+// speaks M-D-YY (see its header), which is also the shape `lastPlayed` arrives
+// in, so this has to match that and not etToday()'s YYYY-MM-DD. Built off
+// etToday() rather than a local clock so it is the ET day before the ET day,
+// not the day before wherever the reader happens to be standing.
+function etPrevMdy() {
+  try {
+    const [Y, M, D] = etToday().split('-').map(Number);
+    const d = new Date(Date.UTC(Y, M - 1, D) - 86400000);
+    return `${d.getUTCMonth() + 1}-${d.getUTCDate()}-${String(d.getUTCFullYear()).slice(2)}`;
+  } catch (e) { return null; }
+}
+
 // ONCE PER ET DAY, AND THAT IS THE POINT (owner, live, 2026-08-31: "this
 // animation should not display EVERY time a person returns to main page. now it
 // displays whenever a game completes and user goes back to main").
@@ -309,6 +322,18 @@ export default function StageWelcome({ capRef }) {
   const [todayDone, setTodayDone] = useState(false);
   const [name, setName] = useState('');
   const [cold, setCold] = useState(false);  // no name: the mark and the three lines
+  // THE BOARDS ON DEMAND (?boards=1). The two boards are gated on a cross-day
+  // arrival, which by definition excludes anyone who has already played today,
+  // so without this there is no way to look at the screen on purpose: you wait
+  // until tomorrow morning and you get one attempt. It forces the screen open
+  // as well, so ?boards=1 is enough on its own and does not need ?welcome=1.
+  const [preview, setPreview] = useState(false);
+  // THE DAY THE LEFT COLUMN READS. Live, the reader's own last day out. Under
+  // the preview, yesterday: the only reader who ever asks for this screen on
+  // purpose is one who has played today, and their last day out IS today, so
+  // both columns would ask for the same board and print it beside itself.
+  // This is the ONLY thing the preview fakes. Both columns are live reads.
+  const lastDay = preview ? etPrevMdy() : ((data && data.lastPlayed) || null);
   const today = useMemo(() => {
     try {
       const [Y, M, D] = etToday().split('-').map(Number);
@@ -342,11 +367,13 @@ export default function StageWelcome({ capRef }) {
   // ── whether it runs at all ───────────────────────────────────────────────
   useEffect(() => {
     let alive = true;
-    let force = false, off = false;
+    let force = false, off = false, pv = false;
     try {
       const q = new URLSearchParams(window.location.search);
       force = q.get('welcome') === '1';   // preview, for showing the owner
       off = q.get('welcome') === '0';     // the kill switch
+      pv = q.get('boards') === '1';       // the boards, for showing the owner
+      if (pv) force = true;               // it implies the screen, and the replay
     } catch (e) {}
     if (off) return;
     if (!force) {
@@ -374,6 +401,7 @@ export default function StageWelcome({ capRef }) {
     }
     setName(who || '');
     setCold(!who);
+    setPreview(pv);
 
     // NO FLOOR ANY MORE: the day's first visit always gets the door. The
     // read is still the page's own memoised fetchDayStatus, so this costs no
@@ -412,9 +440,13 @@ export default function StageWelcome({ capRef }) {
     if (!on) return;
     // A read that settled empty has no last day to ask about.
     if (!data) { if (settled) setRecapDone(true); return; }
-    const last = data.lastPlayed;
+    const last = lastDay;
     const gap = daysBetween(last, etToday());
-    if (data.playedToday || gap == null || gap < 1) { setRecapDone(true); return; }
+    // The preview skips the GATE, not the read: it still asks the live route
+    // for a real day and prints whatever comes back.
+    if (!last || (!preview && (data.playedToday || gap == null || gap < 1))) {
+      setRecapDone(true); return;
+    }
     let alive = true;
     const p = new URLSearchParams();
     p.set('date', last);
@@ -463,7 +495,7 @@ export default function StageWelcome({ capRef }) {
       .catch(() => { if (alive) setRecapDone(true); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, data, settled]);
+  }, [on, data, settled, preview, lastDay]);
 
   // ── today's board, the right column ──────────────────────────────────────
   // THE SAME AUDIENCE AS THE RECAP (owner, 2026-09-04): a cross-day arrival by
@@ -478,8 +510,8 @@ export default function StageWelcome({ capRef }) {
   useEffect(() => {
     if (!on) return;
     if (!data) { if (settled) setTodayDone(true); return; }
-    const gap = daysBetween(data.lastPlayed, etToday());
-    if (data.playedToday || gap == null || gap < 1) { setTodayDone(true); return; }
+    const gap = daysBetween(lastDay, etToday());
+    if (!preview && (data.playedToday || gap == null || gap < 1)) { setTodayDone(true); return; }
     let alive = true;
     fetchDailyBoard(dailyBoardQuery(dailyBoardIdentity()))
       .then((d) => {
@@ -490,14 +522,14 @@ export default function StageWelcome({ capRef }) {
       .catch(() => { if (alive) setTodayDone(true); });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, data, settled]);
+  }, [on, data, settled, preview, lastDay]);
 
   // ── the case, and its figures ────────────────────────────────────────────
   const view = useMemo(() => {
     const today = etToday();
     if (cold) return { figs: LINES };
     if (!data) return { figs: [] };
-    const gap = daysBetween(data.lastPlayed, today);
+    const gap = preview ? 1 : daysBetween(data.lastPlayed, today);
     const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
 
     // THE TWO BOARDS AS ONE QUEUE ITEM, or the recap rows they replaced. A column
@@ -508,7 +540,7 @@ export default function StageWelcome({ capRef }) {
     const listOf = () => {
       if (RECAP_ROWS) return rowsOf(recap);
       const cols = [];
-      const left = colOf('lb', 'Last time out', dayLabel(data.lastPlayed), 'Final',
+      const left = colOf('lb', 'Last time out', dayLabel(lastDay), 'Final',
         lastBoard && lastBoard.rows, name);
       if (left.rows.length) cols.push(left);
       if (todayBoard) {
@@ -522,7 +554,7 @@ export default function StageWelcome({ capRef }) {
     // RESUME. They have played today and come back, so the news is what moved
     // while they were away: other people played the day and their place on the
     // combined board went with it.
-    if (data.playedToday) {
+    if (data.playedToday && !preview) {
       const rank = num(data.dayRank);
       // PLACES MOVED TODAY, not the best-improved game (owner, live, 2026-08-31:
       // "i can't tell what the third stat is... four ten?"). The old figure put a
@@ -596,7 +628,7 @@ export default function StageWelcome({ capRef }) {
     }
 
     return { figs: [] };
-  }, [data, recap, cold, lastBoard, todayBoard, name]);
+  }, [data, recap, cold, lastBoard, todayBoard, name, preview, lastDay]);
 
   // ── the two edges of the hold, anchored to mount ─────────────────────────
   useEffect(() => {
