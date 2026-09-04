@@ -1,64 +1,115 @@
+'use client';
+
 // Source of Truths masthead, used only by the Sports Ranking pages.
 //
 // These pages are a Source of Truths property rather than a Mind Loft one
-// (owner rule, 2026-08-28), so they lead with that wordmark instead of the
-// site-wide SiteHeader. The Mind Loft footer still runs at the bottom: it
-// carries the legal links and is the site's real internal-link registry, and a
-// sub-brand sitting inside a parent site is the normal shape for that.
+// (owner rule, 2026-08-28, reaffirmed 2026-09-04), so they lead with that
+// wordmark instead of the site-wide SiteHeader. The Mind Loft footer still runs
+// at the bottom: it carries the legal links and is the site's real internal-link
+// registry, and a sub-brand sitting inside a parent site is the normal shape for
+// that.
 //
-// Server component, like the pages that use it, so the ranking still ships as
-// HTML with no client JS.
+// IT IS BUILT OUT OF THE STAGE CAP'S OWN PARTS (2026-09-04), not out of a
+// palette of its own: the ground, the mono eyebrow at 9px / .15em, the nav as
+// `.stg-cx` pills, and the active tab as an --stg-acc fill carrying
+// --stg-onramp, which is exactly what the cap's own Rankings chip does. So the
+// sub-brand survives and the page still reads as part of the site.
+//
+// It became a CLIENT component in the same pass, for one reason: these pages
+// have no site header to hang a register switch from, so the switch has to live
+// here. Nothing else about it needs the client, and the ranking itself is
+// untouched by this: GridironTable is still a server component rendered as a
+// child of RankingsStage, so the board is still in the server HTML.
 import Link from 'next/link';
-import { T } from '@/lib/theme';
-
-const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
+import { useStageTheme, useThemeHint } from '@/lib/stage-theme';
 
 export default function SotHeader({ active }) {
+  const [theme, setTheme] = useStageTheme();
+  const hint = useThemeHint();
   return (
     <header className="soth">
-      <style dangerouslySetInnerHTML={{ __html: `
-.soth{width:100vw;margin-left:calc(50% - 50vw);background:var(--ground);color:#fff;
-  border-bottom:none;position:relative;}
-/* The brand rule is the site's own navy-to-blue gradient (the same device
-   app/sporcle-alternative uses), not a gold bar. Gold is reserved for medals. */
-.soth::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;
-  background:linear-gradient(90deg,var(--accent),var(--blue) 55%,var(--blue-400));}
-.soth-in{max-width:1180px;margin:0 auto;padding:13px clamp(14px,2vw,24px);
-  display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-.soth-brand{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:inherit;margin-right:auto;}
-.soth-wm{font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1;color:#fff;}
-.soth-wm b{color:var(--blue-400);font-weight:800;}
-.soth-tag{font-size:9.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#9fb0cc;}
-.soth-nav{display:flex;gap:6px;flex-wrap:wrap;}
-.soth-nav a{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:8px;
-  text-decoration:none;color:#c3d1e8;border:1px solid rgba(255,255,255,.16);white-space:nowrap;}
-.soth-nav a.on{background:var(--cta);border-color:var(--cta);color:#fff;}
-.soth-back{font-size:11px;font-weight:700;color:#8fa3c2;text-decoration:none;white-space:nowrap;}
-.soth-back:hover{color:#fff;}
-@media(max-width:560px){
-  .soth-in{padding:11px 12px;gap:10px;}
-  .soth-wm{font-size:17px;}
-  .soth-brand{margin-right:0;width:100%;}
-  .soth-nav a{font-size:12px;padding:6px 11px;}
-}
-      ` }} />
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
       <div className="soth-in">
         <Link href="/collegefootballrankings" className="soth-brand">
           <span className="soth-wm">Source of <b>Truths</b></span>
           <span className="soth-tag">Sports Rankings</span>
         </Link>
         <nav className="soth-nav">
-          <Link href="/collegefootballrankings" className={active === 'cfb' ? 'on' : undefined}>
+          <Link href="/collegefootballrankings" className={'stg-cx' + (active === 'cfb' ? ' on' : '')}>
             College Football
           </Link>
-          <Link href="/nflrankings" className={active === 'nfl' ? 'on' : undefined}>
+          <Link href="/nflrankings" className={'stg-cx' + (active === 'nfl' ? ' on' : '')}>
             NFL
           </Link>
         </nav>
-        <Link href="/" className="soth-back" style={{ fontFamily: FONT, color: T.blue200 }}>
-          Mind&nbsp;Loft&nbsp;&rsaquo;
-        </Link>
+        <button
+          type="button"
+          className={'stg-cx soth-th' + (hint ? ' hint' : '')}
+          onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+          aria-label={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+          title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+        >
+          {theme === 'light' ? (
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor"
+              strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" />
+            </svg>
+          )}
+        </button>
+        <Link href="/" className="soth-back">Mind&nbsp;Loft&nbsp;&rsaquo;</Link>
       </div>
     </header>
   );
 }
+
+// No backtick anywhere in this string, comments included.
+const SANS = "'Manrope',system-ui,-apple-system,sans-serif";
+const MONO = "'DM Mono',ui-monospace,SFMono-Regular,Menlo,monospace";
+
+const CSS = `
+.soth{background:var(--stg-ground,#0b0f1a);color:var(--stg-ink,#e9edf4);font-family:${SANS};
+  border-bottom:1px solid var(--stg-line);}
+.soth-in{max-width:1440px;margin:0 auto;padding:12px 20px;
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+/* The wordmark is a LINK, not a chip, and the rule to its right is what
+   separates the sub-brand from the boards. Same shape as the stage cap. */
+.soth-brand{display:flex;flex-direction:column;gap:2px;text-decoration:none;
+  color:var(--stg-ink);flex:none;padding-right:15px;border-right:1px solid var(--stg-line);}
+.soth-wm{font-size:13.5px;font-weight:800;letter-spacing:-.01em;line-height:1.15;white-space:nowrap;}
+.soth-wm b{color:var(--stg-acc-ink);font-weight:800;}
+.soth-tag{font-family:${MONO};font-size:9px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--stg-mute2);}
+.soth-nav{display:flex;gap:7px;flex-wrap:wrap;margin-right:auto;}
+.soth .stg-cx{display:inline-flex;align-items:center;gap:6px;font-family:${MONO};font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--stg-ink2);
+  border:1px solid var(--stg-line);border-radius:99px;padding:5px 11px;background:none;
+  cursor:pointer;text-decoration:none;white-space:nowrap;}
+.soth .stg-cx:hover{border-color:var(--stg-line2);color:var(--stg-ink);}
+.soth .stg-cx:focus-visible{outline:2px solid var(--stg-acc);outline-offset:2px;}
+.soth-nav .stg-cx.on{color:var(--stg-onramp);background:var(--stg-acc);border-color:var(--stg-acc);}
+.soth-th{padding:5px 8px;}
+/* The first-visit pointer at the switch, the same three pulses the stage cap
+   draws. It is the only control on these pages a reader has not seen before. */
+.soth-th.hint{border-color:var(--stg-acc);color:var(--stg-acc-ink);animation:soth-ring 1.9s ease-out 3;}
+@keyframes soth-ring{
+  0%{box-shadow:0 0 0 0 var(--stg-acc);}
+  70%{box-shadow:0 0 0 10px transparent;}
+  100%{box-shadow:0 0 0 0 transparent;}
+}
+@media (prefers-reduced-motion: reduce){ .soth-th.hint{animation:none;} }
+.soth-back{font-family:${MONO};font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--stg-mute2);text-decoration:none;white-space:nowrap;}
+.soth-back:hover{color:var(--stg-ink);}
+@media(max-width:560px){
+  .soth-in{padding:10px 13px;gap:10px;}
+  .soth-brand{padding-right:11px;}
+  .soth-wm{font-size:12.5px;}
+  .soth-nav{gap:6px;}
+}
+`;

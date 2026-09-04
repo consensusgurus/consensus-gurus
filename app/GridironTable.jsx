@@ -20,9 +20,9 @@ import { computeComposite, MAX_AGE_DAYS, PILLAR_LABEL, PILLAR_ORDER, RAMP_WEEKS,
 // and a chip has to say which pillar it came from on its own. Descending the
 // site's own blue ramp in weight order. No gold: the theme reserves that for medals.
 const TIER_COLOR = {
-  results: 'var(--accent)',
-  market: 'var(--blue)',
-  model: 'var(--blue-400)',
+  results: 'var(--t-results)',
+  market: 'var(--t-market)',
+  model: 'var(--t-model)',
 };
 const MEDAL = ['#e8b43a', '#aeb4bd', '#c88a55'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -126,22 +126,54 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
   return (
     <div className="gr">
       <style dangerouslySetInnerHTML={{ __html: `
-.gr{font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--ink);}
-.gr-console{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;}
-.gr-chead{padding:14px 18px;background:var(--surface-alt);border-bottom:1px solid var(--border);
+.gr{font-family:'Manrope',system-ui,-apple-system,sans-serif;color:var(--stg-ink,#e9edf4);
+/* THE THREE PILLARS ARE THREE RAMP STEPS, and this is the one place on the site
+   where a surface with no category takes ramp colours (owner, 2026-09-04). The
+   board's own accent is sky, and the pillars used to run down the blue ramp, so
+   on the stage all four would have been the same colour. Mint / gold / violet
+   are well separated in hue, each has a light twin, and nothing new is invented.
+   Same bend the Crux categories got: the three pillars ARE the board's
+   structure, so they have to be three tellable things. */
+  --t-results:#6ee7b7;--t-results-ink:#6ee7b7;
+  --t-market:#e8b43a;--t-market-ink:#e8b43a;
+  --t-model:#c084fc;--t-model-ink:#c084fc;
+/* The legend swatches are inline styles in the JSX, so they read these. */
+  --sw-up:color-mix(in srgb,var(--stg-cool) 26%,var(--stg-raise));
+  --sw-dn:color-mix(in srgb,var(--stg-warn) 29%,var(--stg-raise));
+  --sw-hot:var(--stg-acc);}
+/* Guarded by the boot stamp, like every other light-register rule on the site:
+   through the frame before React resolves, the root div's attribute is a guess
+   and <html> holds the answer. See app/layout.js. */
+html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
+  --t-results:#047857;--t-results-ink:#046c4e;
+  --t-market:#e8b43a;--t-market-ink:#7c5104;
+  --t-model:#6d28d9;--t-model-ink:#6d28d9;}
+[data-tier="results"]{--t:var(--t-results);--t-ink:var(--t-results-ink);}
+[data-tier="market"]{--t:var(--t-market);--t-ink:var(--t-market-ink);}
+[data-tier="model"]{--t:var(--t-model);--t-ink:var(--t-model-ink);}
+.gr-console{background:var(--stg-raise);border:1px solid var(--stg-line);border-radius:14px;overflow:hidden;}
+.gr-chead{padding:14px 18px;background:var(--stg-panel);border-bottom:1px solid var(--stg-line);
   display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;}
-.gr-eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--slate);}
-.gr-chead h2{margin:3px 0 0;font-size:17px;font-weight:800;letter-spacing:-.01em;}
-.gr-stamp{font-size:11.5px;color:var(--muted);text-align:right;line-height:1.6;}
-.gr-stamp b{color:var(--ink);}
-.gr-warn{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#fdf3f2;
-  border:1px solid #f2d5d1;color:#8d2f24;font-size:12px;line-height:1.55;}
-/* Informational, not a fault: the board is between weekly rebuilds. Blue rather
-   than the warn red, because nothing here is broken or excluded. */
-.gr-note{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#f1f5fd;
-  border:1px solid #d3e0f7;border-left:3px solid var(--blue);color:#274a86;
+.gr-eyebrow{font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--stg-mute2);}
+.gr-chead h2{margin:4px 0 0;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--stg-ink);}
+.gr-stamp{font-family:'DM Mono',ui-monospace,monospace;font-size:11px;color:var(--stg-mute);
+  text-align:right;line-height:1.65;}
+.gr-stamp b{color:var(--stg-ink);font-weight:500;}
+/* A MEANING CHIP GIVES UP ITS FILL ON THE STAGE and keeps its border and its
+   ink, which is what --stg-chip is for: a warning stops being the brightest
+   thing on a near-black page without stopping being a warning. */
+.gr-warn{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:var(--stg-chip);
+  border:1px solid color-mix(in srgb,var(--stg-warn) 42%,transparent);
+  color:var(--stg-warn);font-size:12px;line-height:1.55;}
+.gr-warn b{color:var(--stg-warn);}
+/* Informational, not a fault: the board is between weekly rebuilds. It takes
+   the page accent rather than the warn colour, because nothing here is broken
+   or excluded. */
+.gr-note{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:var(--stg-chip);
+  border:1px solid var(--stg-line);border-left:3px solid var(--stg-acc);color:var(--stg-ink2);
   font-size:12px;line-height:1.55;}
-.gr-note b{color:#16305e;}
+.gr-note b{color:var(--stg-ink);}
 .gr-scroll{overflow-x:auto;}
 .gr table{border-collapse:separate;border-spacing:0;width:100%;min-width:1260px;font-size:13px;}
 /* Column widths are FIXED so the three sticky columns (rank 46 + team 224 +
@@ -149,72 +181,101 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
    columns the browser was shrinking the team column and the sticky rating box
    sat on top of the results column. Below the table's min-width the console
    scrolls sideways; the page container is 1440px on desktop so it fits on a
-   wide screen without scrolling at all. */
+   wide screen without scrolling at all.
+   ⚠️ EVERY ONE OF THE THREE NEEDS A min-width, NOT ONLY A width. A width on a
+   table cell is a hint, not a rule: at the table's own min-width the browser
+   squeezed the rank column to 25px, so the sticky rating box (pinned at
+   left:270 = 46 + 224) was pushed 21px past the team column and sat on top of
+   the first source column, clipping it. cTeam and cScore already carried one
+   and cRank did not, which is why only that end of the row went wrong. */
 .gr td.tm,.gr th.cTeam{width:224px;min-width:224px;max-width:224px;}
 .gr td.cScore,.gr th.cScore{width:74px;min-width:74px;}
 .gr td.cell,.gr thead .gr-srcs th:not(.cRank):not(.cTeam):not(.cScore){min-width:66px;}
 .gr th,.gr td{padding:0;text-align:center;white-space:nowrap;}
-.gr thead .gr-tiers th{padding:9px 8px 5px;font-size:9.5px;font-weight:800;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--slate);border-bottom:1px solid var(--border);background:var(--surface);}
-.gr thead .gr-srcs th{padding:8px 8px 10px;font-size:11px;font-weight:700;color:var(--muted);
-  background:var(--surface);border-bottom:2px solid var(--accent);vertical-align:bottom;}
-.gr thead th.tg,.gr td.tg{border-left:1px solid var(--border);}
-.gr-w{display:block;font-size:9.5px;font-weight:800;color:var(--blue);margin-top:2px;letter-spacing:.04em;}
-.gr-asof{display:block;font-size:9.5px;font-weight:700;color:var(--slate);margin-top:3px;letter-spacing:.02em;}
-.gr-asof.bad{color:var(--danger);font-weight:800;}
+/* The pillar band names its pillar in that pillar's own ink, with the fill as a
+   small mark beside it. Separate TEXT from FILL, per the stage rule. */
+.gr thead .gr-tiers th{padding:10px 8px 6px;font-family:'DM Mono',ui-monospace,monospace;
+  font-size:9.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--t-ink,var(--stg-mute2));border-bottom:1px solid var(--stg-line);background:var(--stg-panel);}
+.gr thead .gr-tiers th[data-tier]::before{content:'';display:inline-block;width:7px;height:7px;
+  border-radius:2px;background:var(--t,var(--stg-mute2));margin-right:7px;vertical-align:baseline;}
+.gr thead .gr-srcs th{padding:8px 8px 10px;font-size:11px;font-weight:700;color:var(--stg-ink2);
+  background:var(--stg-panel);border-bottom:2px solid var(--stg-acc);vertical-align:bottom;}
+.gr thead th.tg,.gr td.tg{border-left:1px solid var(--stg-line);}
+.gr-w{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;
+  color:var(--stg-acc-ink);margin-top:3px;letter-spacing:.04em;}
+.gr-asof{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;
+  color:var(--stg-mute2);margin-top:3px;letter-spacing:.02em;}
+.gr-asof.bad{color:var(--stg-bad);}
 .gr-asof.bad::before{content:'\\25B2 ';font-size:8px;}
-.gr thead .gr-srcs th.out{background:repeating-linear-gradient(135deg,#f7f8fa,#f7f8fa 6px,#f1f3f6 6px,#f1f3f6 12px);
-  color:#9aa2b1;text-decoration:line-through;text-decoration-thickness:1px;}
-.gr thead .gr-srcs th.out .gr-w{color:var(--danger);text-decoration:none;display:inline-block;
+/* An excluded source keeps its column, hatched out of the surface ladder rather
+   than out of a pair of greys that only exist on a white page. */
+.gr thead .gr-srcs th.out{
+  background-image:repeating-linear-gradient(135deg,var(--stg-b1),var(--stg-b1) 6px,var(--stg-b2) 6px,var(--stg-b2) 12px);
+  color:var(--stg-mute2);text-decoration:line-through;text-decoration-thickness:1px;}
+.gr thead .gr-srcs th.out .gr-w{color:var(--stg-bad);text-decoration:none;display:inline-block;
   text-transform:uppercase;letter-spacing:.08em;font-size:8.5px;}
 .gr thead .gr-srcs th.out .gr-asof{text-decoration:none;}
-.gr td.cell.out{color:#c3c9d4;font-weight:600;
-  background:repeating-linear-gradient(135deg,#fcfcfd,#fcfcfd 6px,#f7f8fa 6px,#f7f8fa 12px)!important;}
-.gr .cRank,.gr .cTeam,.gr .cScore{position:sticky;background:var(--white);z-index:2;}
-.gr .cRank{left:0;width:46px;}
+.gr td.cell.out{color:var(--stg-mute2);font-weight:600;
+  background-image:repeating-linear-gradient(135deg,transparent,transparent 6px,var(--stg-b1) 6px,var(--stg-b1) 12px);}
+/* THE THREE STICKY COLUMNS MUST BE OPAQUE, so they take the console's own
+   surface as a background-COLOR and the zebra rides on top as a background
+   IMAGE. A translucent lift here would let every scrolling column through the
+   rating box. */
+.gr .cRank,.gr .cTeam,.gr .cScore{position:sticky;background-color:var(--stg-raise);z-index:2;}
+.gr .cRank{left:0;width:46px;min-width:46px;}
 .gr .cTeam{left:46px;text-align:left;}
-.gr .cScore{left:270px;box-shadow:1px 0 0 var(--border);}
-.gr thead .cRank,.gr thead .cTeam,.gr thead .cScore{background:var(--surface);z-index:3;}
-.gr tbody tr:nth-child(even) .cRank,.gr tbody tr:nth-child(even) .cTeam,
-.gr tbody tr:nth-child(even) .cScore,.gr tbody tr:nth-child(even) td{background:#fbfcfe;}
-.gr tbody tr:hover td,.gr tbody tr:hover .cRank,.gr tbody tr:hover .cTeam,
-.gr tbody tr:hover .cScore{background:var(--accent-soft);}
-.gr td.rk{font-size:15px;font-weight:800;color:var(--ink);padding:9px 0;}
+.gr .cScore{left:270px;box-shadow:1px 0 0 var(--stg-line);}
+.gr thead .cRank,.gr thead .cTeam,.gr thead .cScore{background-color:var(--stg-panel);z-index:3;}
+.gr tbody tr:nth-child(even) td{background-image:linear-gradient(var(--stg-b1),var(--stg-b1));}
+.gr tbody tr:hover td{background-image:linear-gradient(var(--stg-acc-tint),var(--stg-acc-tint));}
+.gr td.rk{font-size:15px;font-weight:800;color:var(--stg-ink);padding:9px 0;}
+/* The medals keep their metals and take the ramp's dark ink. White on gold is
+   1.9:1 and was failing on the light page too; this is the same fix the
+   category ramp made for its three warm steps. */
 .gr-medal{display:inline-flex;align-items:center;justify-content:center;width:25px;height:25px;
-  border-radius:50%;color:#fff;font-size:12.5px;font-weight:800;}
+  border-radius:50%;color:#08222e;font-size:12.5px;font-weight:800;}
 .gr td.tm{padding:7px 14px 7px 8px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;width:224px;}
 .gr-tmw{display:flex;align-items:center;gap:9px;}
 .gr-lg{width:26px;height:26px;flex:none;object-fit:contain;}
-.gr-mono{width:26px;height:26px;flex:none;border-radius:6px;background:var(--surface-alt);
-  color:var(--slate);font-size:9.5px;font-weight:800;display:flex;align-items:center;
-  justify-content:center;letter-spacing:.02em;}
+.gr-mono{width:26px;height:26px;flex:none;border-radius:6px;background:var(--stg-b2);
+  color:var(--stg-ink2);font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;letter-spacing:.02em;}
 .gr-tmn{overflow:hidden;text-overflow:ellipsis;}
-.gr-apps{display:block;font-size:10px;font-weight:600;color:var(--slate);letter-spacing:.02em;}
+.gr-apps{display:block;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;
+  font-weight:400;color:var(--stg-mute2);letter-spacing:.02em;}
 .gr td.cScore{padding:7px 12px 7px 4px;width:74px;}
 .gr-score{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
-  min-width:56px;padding:4px 8px 5px;border-radius:8px;background:var(--accent);color:#fff;}
+  min-width:56px;padding:4px 8px 5px;border-radius:8px;background:var(--stg-acc);color:var(--stg-onramp);}
 .gr-score b{font-size:15px;font-weight:800;letter-spacing:-.01em;line-height:1;font-variant-numeric:tabular-nums;}
 .gr-score i{font-style:normal;font-size:8px;font-weight:800;letter-spacing:.1em;
   text-transform:uppercase;opacity:.72;margin-top:2px;}
-.gr thead th.cScore{color:var(--accent);}
-.gr td.cell{font-size:13px;font-weight:700;color:var(--muted);padding:9px 6px;border-left:1px solid transparent;}
-.gr td.cell.nr{color:#c3c9d4;font-weight:600;}
-.gr td.cell.rv{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--slate);}
-.gr td.cell.up1{background:#eff5ff!important;color:var(--blue-deep);}
-.gr td.cell.up2{background:#dbe9fe!important;color:var(--blue-deep);}
-.gr td.cell.dn1{background:#fdf4e8!important;color:#9a6212;}
-.gr td.cell.dn2{background:#fbe8cf!important;color:#8a5410;}
+.gr thead th.cScore{color:var(--stg-acc-ink);}
+.gr td.cell{font-size:13px;font-weight:700;color:var(--stg-ink2);padding:9px 6px;
+  border-left:1px solid transparent;font-variant-numeric:tabular-nums;}
+.gr td.cell.nr{color:var(--stg-mute2);font-weight:600;}
+.gr td.cell.rv{font-family:'DM Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;
+  letter-spacing:.04em;color:var(--stg-mute);}
+/* Deviation: one hue up, one hue down, two steps each, mixed into whatever
+   surface the row is already carrying rather than replacing it. */
+.gr td.cell.up1{background-image:linear-gradient(color-mix(in srgb,var(--stg-cool) 13%,transparent),color-mix(in srgb,var(--stg-cool) 13%,transparent));color:var(--stg-cool);}
+.gr td.cell.up2{background-image:linear-gradient(color-mix(in srgb,var(--stg-cool) 26%,transparent),color-mix(in srgb,var(--stg-cool) 26%,transparent));color:var(--stg-cool);}
+.gr td.cell.dn1{background-image:linear-gradient(color-mix(in srgb,var(--stg-warn) 15%,transparent),color-mix(in srgb,var(--stg-warn) 15%,transparent));color:var(--stg-warn);}
+.gr td.cell.dn2{background-image:linear-gradient(color-mix(in srgb,var(--stg-warn) 29%,transparent),color-mix(in srgb,var(--stg-warn) 29%,transparent));color:var(--stg-warn);}
 .gr td.sp{padding:9px 10px;width:112px;}
 .gr-spbar{display:flex;align-items:center;gap:7px;justify-content:flex-end;}
-.gr-spbar i{display:block;height:5px;border-radius:3px;background:var(--blue-200);}
-.gr-spbar i.hot{background:var(--blue-deep);}
-.gr-spbar span{font-size:11.5px;font-weight:800;color:var(--muted);width:20px;text-align:right;}
+.gr-spbar i{display:block;height:5px;border-radius:3px;
+  background:color-mix(in srgb,var(--stg-acc) 42%,var(--stg-b2));}
+.gr-spbar i.hot{background:var(--stg-acc);}
+.gr-spbar span{font-family:'DM Mono',ui-monospace,monospace;font-size:11px;font-weight:500;
+  color:var(--stg-ink2);width:22px;text-align:right;font-variant-numeric:tabular-nums;}
 .gr-legend{display:flex;gap:20px;flex-wrap:wrap;align-items:center;padding:12px 18px;
-  background:var(--surface);border-top:1px solid var(--border);font-size:11.5px;color:var(--muted);}
+  background:var(--stg-panel);border-top:1px solid var(--stg-line);font-size:11.5px;color:var(--stg-ink2);}
 .gr-k{display:inline-flex;align-items:center;gap:6px;}
-.gr-sw{width:15px;height:15px;border-radius:4px;border:1px solid var(--border);}
-.gr-notes{padding:14px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.65;}
-.gr-notes b{color:var(--ink);}
+.gr-sw{width:15px;height:15px;border-radius:4px;border:1px solid var(--stg-line);}
+.gr-notes{padding:15px 18px;border-top:1px solid var(--stg-line);font-size:12.5px;
+  color:var(--stg-ink2);line-height:1.7;}
+.gr-notes b{color:var(--stg-ink);}
 /* ---- mobile: one card per team ----
    A ten-column table behind a horizontal scrollbar is not a mobile layout: the
    whole point of this page is comparing sources, and on a phone every source
@@ -227,43 +288,45 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
 @media(max-width:760px){
   .gr-scroll{display:none;}
   .gr-cards{display:block;list-style:none;margin:0;padding:0;}
-  .gr-tierkey{display:flex;flex-wrap:wrap;gap:10px 14px;padding:10px 14px;
-    border-bottom:1px solid var(--border);background:var(--surface);}
-  .gr-tk{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;
-    letter-spacing:.06em;text-transform:uppercase;color:var(--slate);}
+  .gr-tierkey{display:flex;flex-wrap:wrap;gap:8px 13px;padding:9px 13px;
+    border-bottom:1px solid var(--stg-line);background:var(--stg-panel);}
+  .gr-tk{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',ui-monospace,monospace;
+    font-size:9.5px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--stg-mute);}
   .gr-tk i{width:9px;height:9px;border-radius:3px;display:block;}
   .gr-chead{padding:10px 13px;}
   .gr-chead h2{font-size:15px;}
   .gr-stamp{font-size:10.5px;line-height:1.45;text-align:left;}
   .gr-warn{margin:8px 13px 0;padding:8px 10px;font-size:11px;line-height:1.45;}
   .gr-note{margin:8px 13px 0;padding:8px 10px;font-size:11px;line-height:1.45;}
-  .gr-tierkey{padding:8px 13px;gap:7px 12px;}
-  .gr-card{padding:11px 14px 12px;border-bottom:1px solid var(--border);}
+  .gr-card{padding:11px 14px 12px;border-bottom:1px solid var(--stg-line);}
   .gr-card:last-child{border-bottom:0;}
   .gr-chead2{display:flex;align-items:center;gap:9px;}
-  .gr-crank{font-size:15px;font-weight:800;color:var(--ink);min-width:22px;text-align:center;flex:none;}
+  .gr-crank{font-size:15px;font-weight:800;color:var(--stg-ink);min-width:22px;text-align:center;flex:none;}
   .gr-card .gr-lg,.gr-card .gr-mono{width:28px;height:28px;}
   .gr-cname{flex:1;min-width:0;font-size:15px;font-weight:800;letter-spacing:-.01em;
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--stg-ink);}
   .gr-cscore{flex:none;display:inline-flex;flex-direction:column;align-items:center;
-    min-width:56px;padding:4px 9px 5px;border-radius:8px;background:var(--accent);color:#fff;}
+    min-width:56px;padding:4px 9px 5px;border-radius:8px;background:var(--stg-acc);color:var(--stg-onramp);}
   .gr-cscore b{font-size:15px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;}
   .gr-cscore i{font-style:normal;font-size:7.5px;font-weight:800;letter-spacing:.1em;
     text-transform:uppercase;opacity:.72;margin-top:2px;}
   .gr-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;}
   .gr-chip{display:inline-flex;align-items:baseline;gap:5px;padding:3px 8px 3px 6px;
-    border:1px solid var(--border);border-left-width:3px;border-radius:6px;background:var(--white);}
-  .gr-chip s{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
-    color:var(--slate);text-decoration:none;}
-  .gr-chip b{font-size:12.5px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;}
-  .gr-chip.up{background:#eff5ff;}   .gr-chip.up b{color:var(--blue-deep);}
-  .gr-chip.dn{background:#fdf4e8;}   .gr-chip.dn b{color:#9a6212;}
+    border:1px solid var(--stg-line);border-left-width:3px;border-radius:6px;background:var(--stg-b1);}
+  .gr-chip s{font-family:'DM Mono',ui-monospace,monospace;font-size:9px;font-weight:500;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--stg-mute);text-decoration:none;}
+  .gr-chip b{font-size:12.5px;font-weight:800;color:var(--stg-ink2);font-variant-numeric:tabular-nums;}
+  .gr-chip.up{background:color-mix(in srgb,var(--stg-cool) 16%,transparent);}
+  .gr-chip.up b{color:var(--stg-cool);}
+  .gr-chip.dn{background:color-mix(in srgb,var(--stg-warn) 18%,transparent);}
+  .gr-chip.dn b{color:var(--stg-warn);}
   .gr-chip.rvc b{font-size:10px;letter-spacing:.06em;}
-  .gr-chip.gone{background:repeating-linear-gradient(135deg,#fcfcfd,#fcfcfd 5px,#f5f6f8 5px,#f5f6f8 10px);
-    border-left-color:#d7dbe2!important;}
-  .gr-chip.gone s,.gr-chip.gone b{color:#b9bfc9;text-decoration:line-through;}
-  .gr-crange{margin-top:8px;font-size:10.5px;font-weight:700;color:var(--slate);letter-spacing:.02em;}
-  .gr-crange em{font-style:normal;color:var(--muted);}
+  .gr-chip.gone{background-image:repeating-linear-gradient(135deg,transparent,transparent 5px,var(--stg-b1) 5px,var(--stg-b1) 10px);
+    border-left-color:var(--stg-line2)!important;}
+  .gr-chip.gone s,.gr-chip.gone b{color:var(--stg-mute2);text-decoration:line-through;}
+  .gr-crange{margin-top:8px;font-family:'DM Mono',ui-monospace,monospace;font-size:10px;
+    color:var(--stg-mute);letter-spacing:.03em;}
+  .gr-crange em{font-style:normal;color:var(--stg-ink2);}
 }
       ` }} />
       <div className="gr-console">
@@ -321,7 +384,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
               <tr className="gr-tiers">
                 <th className="cRank" /><th className="cTeam" /><th className="cScore" />
                 {groups.map((g, i) => (
-                  <th key={g.tier} colSpan={g.n} className={i ? 'tg' : undefined}>
+                  <th key={g.tier} colSpan={g.n} className={i ? 'tg' : undefined} data-tier={g.tier}>
                     {PILLAR_LABEL[g.tier]} &middot; {pct(tierShare[g.tier] || 0)}%
                   </th>
                 ))}
@@ -452,9 +515,9 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
         </ul>
 
         <div className="gr-legend">
-          <span className="gr-k"><i className="gr-sw" style={{ background: '#dbe9fe' }} /> column ranks them higher than the composite</span>
-          <span className="gr-k"><i className="gr-sw" style={{ background: '#fbe8cf' }} /> lower than the composite</span>
-          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--blue-deep)' }} /> widest résumé-versus-market gap</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--sw-up)' }} /> column ranks them higher than the composite</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--sw-dn)' }} /> lower than the composite</span>
+          <span className="gr-k"><i className="gr-sw" style={{ background: 'var(--sw-hot)' }} /> widest résumé-versus-market gap</span>
           <span className="gr-k">{'—'} not ranked by that column</span>
         </div>
 

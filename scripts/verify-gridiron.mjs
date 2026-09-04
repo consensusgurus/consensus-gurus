@@ -8,7 +8,9 @@
 //   1. every game and line resolves to a registered team (CFB: or the FCS pool)
 //   2. no game or line references a team id the registry does not know AND
 //      names an FBS-looking opponent twice (a duplicate id, a copy-paste slip)
-//   3. the composite runs, the board is full depth, ranks are 1..depth, unique
+//   3. the composite runs, the board is full depth, unique, and its ranks are
+//      the COMPETITION RANKING (a tie group shares the lower rank, the next
+//      rank skips past it) with the tied flag set on exactly the shared rows
 //   4. pillar shares sum to 1 and follow the ramp for the snapshot's week
 //   5. every pillar is centred (mean 0 over the board) and the analytics pillar
 //      is on the market's scale
@@ -90,7 +92,28 @@ for (const sport of ['cfb', 'nfl']) {
   if (r.problems.length) r.problems.forEach((p) => fail(`${sport}: ${p}`));
   if (r.ranked.length !== depth) fail(`${sport}: board has ${r.ranked.length} rows, expected ${depth}`);
   const ranks = r.ranked.map((x) => x.rank);
-  if (ranks.some((v, i) => v !== i + 1)) fail(`${sport}: ranks are not 1..${depth}`);
+  // 1..N stopped being the rule on 2026-09-04, when teams the composite cannot
+  // separate started SHARING a rank and being marked T7 rather than being handed
+  // an alphabetical order the data never supported. The rule is now COMPETITION
+  // RANKING: a row's rank is one more than the number of rows strictly ahead of
+  // it, so a tie group shares the lower rank and the next rank skips past it.
+  // That is stricter than the check it replaces rather than looser, because it
+  // also pins where a group has to restart; the old one simply went red on every
+  // tied board and would have been ignored inside a week.
+  let groupStart = 0;
+  r.ranked.forEach((x, i) => {
+    if (i > 0 && x.rank !== ranks[i - 1]) groupStart = i;
+    if (x.rank !== groupStart + 1) {
+      fail(`${sport}: row ${i + 1} ranks ${x.rank}, competition ranking says ${groupStart + 1}`);
+    }
+  });
+  // And the flag cannot lie in either direction: a row marked tied must share
+  // its rank with a neighbour, and a row that shares one must be marked.
+  const sharesRank = (i) => (i > 0 && ranks[i - 1] === ranks[i]) || (i + 1 < ranks.length && ranks[i + 1] === ranks[i]);
+  const liar = r.ranked.findIndex((x, i) => !!x.tied !== sharesRank(i));
+  if (liar !== -1) {
+    fail(`${sport}: row ${liar + 1} (${r.ranked[liar].team}) is marked tied=${!!r.ranked[liar].tied} and shares its rank with ${sharesRank(liar) ? 'somebody' : 'nobody'}`);
+  }
   if (new Set(r.ranked.map((x) => x.team)).size !== r.ranked.length) fail(`${sport}: duplicate team on the board`);
   for (let i = 1; i < r.ranked.length; i++) {
     if (r.ranked[i].score > r.ranked[i - 1].score + 1e-9) fail(`${sport}: board not sorted at ${i}`);

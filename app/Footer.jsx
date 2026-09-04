@@ -51,7 +51,7 @@ export const FOOTER_COLS = [
   {
     head: 'Sports Rankings',
     links: [
-      { label: 'College Football Top 50', href: '/collegefootballrankings' },
+      { label: 'College Football, Every FBS Team', href: '/collegefootballrankings' },
       { label: 'NFL Power Rankings', href: '/nflrankings' },
     ],
   },

@@ -10,16 +10,14 @@
 // membership most years, and a number typed into a title goes stale silently
 // while a number computed from the board cannot.
 
+import RankingsStage from '@/app/RankingsStage';
 import SotHeader from '@/app/SotHeader';
-import Footer from '@/app/Footer';
+import StageFooter from '@/app/StageFooter';
 import GridironTable from '@/app/GridironTable';
 import PageViewBeacon from '@/app/PageViewBeacon';
 import { GRIDIRON } from '@/lib/gridiron-data';
 import { computeComposite } from '@/lib/gridiron';
 import { SOT_URL } from '@/lib/site';
-import { T } from '@/lib/theme';
-
-const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 const TITLE = 'College Football Consensus Rankings: Every FBS Team | Source of Truths';
 const DESCRIPTION =
@@ -80,24 +78,26 @@ export default function CollegeFootballRankingsPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: T.white, color: T.ink, fontFamily: FONT }}>
+    <RankingsStage>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <PageViewBeacon id="cfb-rankings" />
       <SotHeader active="cfb" />
-      <div style={{ maxWidth: 1440, margin: '0 auto', padding: '10px 20px 40px' }}>
-        <div style={{ paddingBottom: 13, marginBottom: 14, borderBottom: `1px solid rgba(20,22,28,0.30)` }}>
-          <h1 style={{
-            fontFamily: FONT, fontWeight: 800, fontSize: 'clamp(25px, 4.6vw, 40px)',
-            lineHeight: 1.03, letterSpacing: '-0.03em', margin: 0, color: T.ink,
-          }}>
-            College football <span style={{ color: T.accent }}>consensus, all {N} bowl teams</span>
-          </h1>
-          <p style={{ marginTop: 10, maxWidth: 660, fontSize: 15, lineHeight: 1.55, color: T.muted }}>
+      <div className="rk-col">
+        <div className="rk-head">
+          <h1>College football <span>consensus, all {N} bowl teams</span></h1>
+          <p className="rk-lede">
             Results, betting markets and analytics models, scored into one rating in points. No
             polls: a score, a price and a measurement each answer to something real, while poll
             voters lean on reputation and preseason expectation. Every team that can play in a bowl
             is rated, not just the ones already being talked about.
+          </p>
+          <p className="rk-stamp">
+            <i>Updated</i>
+            <span>
+              <b>This board now rates every FBS team</b>, where it used to stop at 50, and the NFL
+              consensus is current for the season too. MLB rankings are on the way.
+            </span>
           </p>
         </div>
 
@@ -109,44 +109,24 @@ export default function CollegeFootballRankingsPage() {
           boardTitle={`Consensus, all ${N} FBS teams`}
         />
 
-        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
-          <a
-            href="/collegefootballrankings/breakdown"
-            target="_blank"
-            rel="noopener"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700,
-              padding: '9px 15px', borderRadius: 9, textDecoration: 'none',
-              background: T.accent, color: T.white,
-            }}
-          >
+        <div className="rk-acts">
+          <a className="rk-btn p" href="/collegefootballrankings/breakdown" target="_blank" rel="noopener">
             Download the breakdown (PDF)
           </a>
-          <a
-            href="/collegefootballrankings/poster-image"
-            target="_blank"
-            rel="noopener"
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 700,
-              padding: '9px 15px', borderRadius: 9, textDecoration: 'none',
-              background: T.white, color: T.accent, border: `1px solid ${T.border}`,
-            }}
-          >
+          <a className="rk-btn s" href="/collegefootballrankings/poster-image" target="_blank" rel="noopener">
             Share image
           </a>
-          <span style={{ fontSize: 11.5, color: T.slate }}>
+          <span className="rk-fine">
             All {N} teams, every source column. The share image is the ranking only.
           </span>
         </div>
 
-        <p style={{ marginTop: 18, fontSize: 12.5, lineHeight: 1.65, color: T.muted, maxWidth: 760 }}>
+        <p className="rk-cross">
           Looking for the pros? See the{' '}
-          <a href="/nflrankings" style={{ color: T.blue, fontWeight: 700 }}>
-            NFL power rankings consensus
-          </a>.
+          <a href="/nflrankings">NFL power rankings consensus</a>.
         </p>
       </div>
-      <Footer />
-    </div>
+      <StageFooter />
+    </RankingsStage>
   );
 }
