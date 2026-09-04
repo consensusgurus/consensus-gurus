@@ -451,6 +451,9 @@ if (MARQUEE.trophy && MARQUEE.trophy.tier !== 'gold') {
 // share that pointed there would hand a recipient somebody else's scorecard
 // instead of the run.
 const EM_DASH = /[\u2014\u2013]/;
+// The retired Wordle-idiom row: coloured squares, circles, and the variation
+// selector that trails them. None of these may appear in share copy.
+const EMOJI_GRID = /[\u{1F7E5}-\u{1F7EB}\u2B1B\u2B1C\u26AA\u26AB\u{1F534}-\u{1F7E3}\u25A0-\u25FF]/u;
 const INVITE_MAX = 150;   // fits beside a link in a message without being cut
 const RESULT_MAX = 60;    // one line under the figures
 const seenInvite = new Map();
@@ -495,17 +498,35 @@ for (const c of ALL_CIRCUITS) {
   const invite = circuitShareInvite(c.id);
   const result = circuitShareResult(c.id, {
     points: 40, maxTotal: 75, rank: 3, field: 20, done: 4, total: 5,
-    pips: ['top', 'on', 'on', 'on', ''],
   });
   for (const [kind, txt] of [['invite', invite], ['result', result]]) {
     if (!txt.includes(url)) fails.push(`${c.id}: built ${kind} does not carry its own link`);
     if (txt.includes('/daily-five')) fails.push(`${c.id}: built ${kind} links the run summary instead of the landing page`);
     if (!txt.includes(c.name)) fails.push(`${c.id}: built ${kind} does not name the circuit`);
   }
-  // A grid that renders one pip per game, and nothing that could leak an answer.
-  const grid = result.split('\n')[1] || '';
-  if ([...grid].length !== 5) fails.push(`${c.id}: result grid drew ${[...grid].length} pips for 5 games`);
-  if (/[a-z0-9]/i.test(grid)) fails.push(`${c.id}: result grid contains characters, which could leak an answer`);
+  // THE SHARE RESULT IS THREE LINES OF TEXT AND NO EMOJI GRID (owner,
+  // 2026-08-30). This check used to assert the opposite, that line two was a
+  // row of five coloured squares, and it kept asserting it for five days after
+  // the ruling landed, which is the "the check must follow the ruling" failure
+  // CLAUDE.md already names once for verify-listed. What the shape is now:
+  // a stats line, the circuit's own result tag line, then the bare link.
+  const lines = result.split('\n');
+  if (lines.length !== 3) fails.push(`${c.id}: share result is ${lines.length} lines, want a stats line, a tag line and the link`);
+  if (lines.at(-1) !== url) fails.push(`${c.id}: share result does not end on its bare link`);
+  if (lines[1] !== s.result) fails.push(`${c.id}: share result line two is not the circuit's own tag line`);
+  if (EMOJI_GRID.test(result)) fails.push(`${c.id}: share result carries an emoji grid, retired by owner ruling 2026-08-30`);
+  if (EM_DASH.test(result)) fails.push(`${c.id}: built result contains an em or en dash, which the house copy rule bans`);
+  // Every figure is optional, so a partial run must still read as honest text.
+  const bare = circuitShareResult(c.id, {});
+  if (/undefined|NaN|\bnull\b/.test(bare)) fails.push(`${c.id}: share result with no stats reads "${bare.split('\n')[0]}"`);
+  if (bare.split('\n').length !== 3) fails.push(`${c.id}: share result with no stats is ${bare.split('\n').length} lines`);
+  // A caller still passing the retired `pips` field must be IGNORED, not
+  // rejected and not rendered, which is what lib/circuits.js promises.
+  const withPips = circuitShareResult(c.id, {
+    points: 40, maxTotal: 75, rank: 3, field: 20, done: 4, total: 5,
+    pips: ['top', 'on', 'on', 'on', ''],
+  });
+  if (withPips !== result) fails.push(`${c.id}: an older caller's pips field still changes the share text`);
 }
 
 // A SPELLED COUNT IN THE COPY MUST MATCH THE ROSTER, TODAY AND AFTER EVERY

@@ -872,7 +872,11 @@ export default function SumsClient({ puzzles = [], forceNum = null }) {
         />
       )}
       <div className="su-wrap" style={{ position: 'relative', zIndex: 2, maxWidth: 1180, margin: '0 auto', padding: '18px 38px 80px', fontFamily: SANS }}>
-        <style>{`
+        {/* dangerouslySetInnerHTML, not <style>{CSS}: React escapes text children and
+            <style> is raw-text, so an apostrophe ships as &#x27; and the CSS parser
+            drops the whole declaration. `content:''` on .su-clue::after is exactly
+            that case, and the diagonal divider never draws on a server render. */}
+        <style dangerouslySetInnerHTML={{ __html: `
           @media(max-width:560px){.su-wrap{padding-left:12px !important;padding-right:12px !important;}}
           .su-btn{font-family:${SANS};font-weight:800;font-size:14px;border:2px solid ${STAGE ? 'var(--stg-line2)' : 'var(--blue-deep)'};background:${STAGE ? 'transparent' : 'var(--white)'};color:${STAGE ? 'var(--stg-ink)' : 'var(--blue-deep)'};border-radius:8px;padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
           .su-btn:hover{background:var(--stg-surf2, ${COLORS.accentSoft});}
@@ -902,7 +906,7 @@ export default function SumsClient({ puzzles = [], forceNum = null }) {
           .su-pad .su-pad-n{position:absolute;bottom:2px;right:4px;font-size:8px;color:${STAGE ? 'var(--stg-mute2,#aab0bb)' : '#aab0bb'};font-weight:500;}
           .su-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .su-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
-        `}</style>
+        ` }} />
 
         <div style={{ maxWidth: 620, margin: '0 auto' }}>
 

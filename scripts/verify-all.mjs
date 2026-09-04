@@ -4,9 +4,17 @@
 // This is the gate. No bank extension, no rule change, and no new game ships
 // until this is green. See "Daily puzzle authoring standard" in CLAUDE.md.
 //
-//   node scripts/verify-all.mjs            run everything
-//   node scripts/verify-all.mjs rung glyph run only the named games
-//   node scripts/verify-all.mjs --quiet    summary table only
+//   node scripts/verify-all.mjs             run everything
+//   node scripts/verify-all.mjs rung glyph  run only the named games
+//   node scripts/verify-all.mjs --changed   run every checker the working tree
+//                                           reaches, computed by blast-radius
+//   node scripts/verify-all.mjs --quiet     summary table only
+//
+// ⚠ A NAMED SUBSET IS NOT THE GATE. It is for iterating. The checker a change
+// breaks is very often a checker for a game the change did not touch: on
+// 2026-09-04, widening scripts/emcee-wordbank.txt turned verify-encore red on
+// 226 boards while every game that actually changed stayed green, and it
+// shipped. Use --changed while iterating and the FULL run before pushing.
 //
 // It discovers checkers on its own: every scripts/verify-<game>.mjs plus every
 // game handled inside verify-daily-banks.mjs. A game with a puzzle bank and no
@@ -21,7 +29,20 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, '..');
 const args = process.argv.slice(2);
 const quiet = args.includes('--quiet');
-const only = args.filter((a) => !a.startsWith('--'));
+let only = args.filter((a) => !a.startsWith('--'));
+
+// --changed: ask blast-radius which checkers this working tree reaches, rather
+// than guessing a subset by hand. Safe in the direction that matters, because
+// blast-radius over-approximates.
+if (args.includes('--changed')) {
+  const ref = only[0] || 'origin/main';
+  const r = spawnSync(process.execPath, [join(here, 'blast-radius.mjs'), ref, '--quiet'],
+    { cwd: root, encoding: 'utf8' });
+  if (r.status !== 0) { console.error(r.stderr || 'blast-radius failed'); process.exit(1); }
+  only = (r.stdout || '').trim().split(/\s+/).filter(Boolean);
+  if (!only.length) { console.log('verify-all --changed: nothing changed, nothing to check'); process.exit(0); }
+  console.log(`verify-all --changed: ${only.length} checker(s) reached from ${ref}\n`);
+}
 
 // games covered by the shared multi-game checker
 const banksSrc = readFileSync(join(here, 'verify-daily-banks.mjs'), 'utf8');
@@ -40,8 +61,9 @@ const unverified = registered.filter((g) => !covered.has(g) && !covered.has(dirF
   && existsSync(join(root, 'app', dirFor(g), 'puzzles.js')));
 
 const jobs = [];
-if (!only.length || only.some((o) => bankGames.includes(o))) {
-  const pick = only.length ? only.filter((o) => bankGames.includes(o)) : [];
+const wantAllBanks = only.includes('daily-banks');
+if (!only.length || wantAllBanks || only.some((o) => bankGames.includes(o))) {
+  const pick = only.length && !wantAllBanks ? only.filter((o) => bankGames.includes(o)) : [];
   jobs.push({ name: pick.length ? `daily-banks (${pick.join(',')})` : 'daily-banks (14 games)', argv: ['scripts/verify-daily-banks.mjs', ...pick] });
 }
 for (const s of solo) {
