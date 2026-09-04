@@ -226,6 +226,48 @@ edit(
 `,
 );
 
+/* -- 5b. My games speaks to a reader who has none ------------------------- */
+// The section rendered only once a reader had starred something, so the one
+// person who does not know starring exists was the one person never told. It now
+// also renders for a reader with NO NAME, carrying the same Choose a Name offer
+// the cap makes, at the size of the cards above it.
+//
+// GATED ON THE NAME, not on `returning`. A returning guest has no account and no
+// pins either, and the row is exactly as true for them; a reader who HAS a name
+// and has pinned nothing still sees nothing, because the offer would be spent.
+edit(
+  'My games empty state',
+  `        {mineTot ? (
+          <section className="sty-cat sty-mine sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
+            <div className="sty-cathead" onClick={headClick(MINE_ID)}>
+              <h2>My games</h2>
+              <b>{mineDone}<i>/{mineTot}</i></b>
+              {cav(MINE_ID)}
+            </div>
+`,
+  () => `        {(mineTot || !who) ? (
+          <section className="sty-cat sty-mine sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
+            {/* An empty section has nothing to collapse and no fraction to
+                print, so the head keeps its title and drops both. */}
+            <div className="sty-cathead" onClick={mineTot ? headClick(MINE_ID) : undefined}>
+              <h2>My games</h2>
+              {mineTot ? <b>{mineDone}<i>/{mineTot}</i></b> : null}
+              {mineTot ? cav(MINE_ID) : null}
+            </div>
+            {!mineTot ? (
+              <a className="sty-join" href="/quizzes?signup=1">
+                <div className="sty-newl">
+                  <div className="sty-eb">Nothing pinned yet</div>
+                  <div className="sty-jn">Choose a Name</div>
+                  <div className="sty-tag">Keep your stats, take a rank on the daily
+                    boards, and star any game to pin it here.</div>
+                </div>
+                <span className="sty-go">Choose</span>
+              </a>
+            ) : null}
+`,
+);
+
 /* ── 6. the slate heading sits closer to what it names ──────────────────── */
 // It is a LABEL for everything below it, not a peer of the sections, but as a
 // flex child of .sty-wrap it was spending a full inter-section gap (26px, 22 on
@@ -284,6 +326,16 @@ edit(
    drawn on top of. */
 .sty-new .sty-pop .sty-g:focus-visible,.sty-new .sty-two .sty-next:focus-visible{
   outline:2px solid currentColor;outline-offset:2px;}
+/* MY GAMES, TO A READER WHO HAS NONE. The same offer the cap makes, at the size
+   of the cards above it, and on the same tokens the cap button already proved in
+   both registers: the accent as the fill and the ink published for it. */
+.sty-join{display:flex;align-items:center;gap:18px;text-decoration:none;
+  background:var(--stg-acc);color:var(--stg-onramp);border-radius:12px;padding:18px 20px;}
+.sty-join .sty-eb{color:inherit;margin-bottom:5px;}
+.sty-join .sty-jn{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
+.sty-join .sty-tag{font-size:13.5px;font-weight:600;margin-top:4px;}
+.sty-join:hover .sty-go{background:currentColor;color:var(--stg-acc);}
+.sty-join:focus-visible{outline:2px solid currentColor;outline-offset:2px;}
 /* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. */
 .sty-pcat{display:block;font-family:\${MONO};font-size:8.5px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;
@@ -292,9 +344,10 @@ edit(
   .sty-pop{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
   /* A name, a blurb and a button do not share a 390px line, so a circuit card
      stacks and the control keeps the left edge the copy above it has. */
-  .sty-next{flex-direction:column;align-items:flex-start;}
+  .sty-next,.sty-join{flex-direction:column;align-items:flex-start;}
   .sty-two .sty-nm{font-size:19px;}
-  .sty-next .sty-go{margin-left:0;}
+  .sty-join .sty-jn{font-size:21px;}
+  .sty-next .sty-go,.sty-join .sty-go{margin-left:0;}
 }
 `,
 );

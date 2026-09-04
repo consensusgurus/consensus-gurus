@@ -1460,13 +1460,26 @@ export default function StageToday() {
             to be filled. */}
         {/* The SECTION's rule is neutral because this row is not a category:
             the cards inside it carry their own categories' colours. */}
-        {mineTot ? (
+        {(mineTot || !who) ? (
           <section className="sty-cat sty-mine sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
-            <div className="sty-cathead" onClick={headClick(MINE_ID)}>
+            {/* An empty section has nothing to collapse and no fraction to
+                print, so the head keeps its title and drops both. */}
+            <div className="sty-cathead" onClick={mineTot ? headClick(MINE_ID) : undefined}>
               <h2>My games</h2>
-              <b>{mineDone}<i>/{mineTot}</i></b>
-              {cav(MINE_ID)}
+              {mineTot ? <b>{mineDone}<i>/{mineTot}</i></b> : null}
+              {mineTot ? cav(MINE_ID) : null}
             </div>
+            {!mineTot ? (
+              <a className="sty-join" href="/quizzes?signup=1">
+                <div className="sty-newl">
+                  <div className="sty-eb">Nothing pinned yet</div>
+                  <div className="sty-jn">Choose a Name</div>
+                  <div className="sty-tag">Keep your stats, take a rank on the daily
+                    boards, and star any game to pin it here.</div>
+                </div>
+                <span className="sty-go">Choose</span>
+              </a>
+            ) : null}
             {pinned.length ? (
               <div className={'sty-games' + (isOpen(MINE_ID) ? '' : ' shut')}>
                 {playedLast(pinned, done).map((g) => (
@@ -2338,6 +2351,16 @@ ${PATCH_CSS}
    drawn on top of. */
 .sty-new .sty-pop .sty-g:focus-visible,.sty-new .sty-two .sty-next:focus-visible{
   outline:2px solid currentColor;outline-offset:2px;}
+/* MY GAMES, TO A READER WHO HAS NONE. The same offer the cap makes, at the size
+   of the cards above it, and on the same tokens the cap button already proved in
+   both registers: the accent as the fill and the ink published for it. */
+.sty-join{display:flex;align-items:center;gap:18px;text-decoration:none;
+  background:var(--stg-acc);color:var(--stg-onramp);border-radius:12px;padding:18px 20px;}
+.sty-join .sty-eb{color:inherit;margin-bottom:5px;}
+.sty-join .sty-jn{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
+.sty-join .sty-tag{font-size:13.5px;font-weight:600;margin-top:4px;}
+.sty-join:hover .sty-go{background:currentColor;color:var(--stg-acc);}
+.sty-join:focus-visible{outline:2px solid currentColor;outline-offset:2px;}
 /* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. */
 .sty-pcat{display:block;font-family:${MONO};font-size:8.5px;font-weight:700;
   letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;
@@ -2346,9 +2369,10 @@ ${PATCH_CSS}
   .sty-pop{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
   /* A name, a blurb and a button do not share a 390px line, so a circuit card
      stacks and the control keeps the left edge the copy above it has. */
-  .sty-next{flex-direction:column;align-items:flex-start;}
+  .sty-next,.sty-join{flex-direction:column;align-items:flex-start;}
   .sty-two .sty-nm{font-size:19px;}
-  .sty-next .sty-go{margin-left:0;}
+  .sty-join .sty-jn{font-size:21px;}
+  .sty-next .sty-go,.sty-join .sty-go{margin-left:0;}
 }
 
 /* NOTE: this block is a JS template literal, so no backticks in comments. */
