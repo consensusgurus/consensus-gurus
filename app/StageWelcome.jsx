@@ -54,6 +54,24 @@
 // as the reads take, so the hold is a loading state rather than a freeze, and
 // the collapse onto the cap is unchanged.
 //
+// THE TWO BOARDS (owner, 2026-09-04). On a cross-day arrival the screen now
+// carries the reader's last day out beside today, five rows each, in place of
+// the per-game recap it used to list. The recap answered "where did I come in
+// each game"; the cap two rows down already answers the reader's own standing,
+// and what no surface says on the way in is how the day is going. Direction A of
+// three mocked; the other two were a swap between the boards, which does not fit
+// the backstop, and yesterday plus a single line of counts.
+//
+//   * IT IS ONE QUEUE ITEM, NOT TEN. At FLOOD_ROW a ten-row queue is 4.2s on its
+//     own, past FLOOD_MAX before a figure has landed, so the block stamps whole.
+//   * THE LEFT COLUMN IS NOT "YESTERDAY". It is the reader's own last day out,
+//     which is what this arrival already fetches, so it is headed with that date.
+//   * Final beside So far, because one board is frozen and crowned and the other
+//     is an hour old, and unlabelled they read as the same kind of thing.
+//   * Today is a SECOND read and it is the cold path, so it can miss: past
+//     RECAP_WAIT the screen goes with one column rather than waiting.
+//   * The recap rows are still here, behind RECAP_ROWS, one line from coming back.
+//
 // It is ONCE PER ET DAY and it now ALWAYS PLAYS on that first visit: the
 // warm-cache floor that used to let it stand down is gone, because the opening
 // is the brand moment and a return from a daily is not this screen's problem
@@ -66,6 +84,7 @@ import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { RAMP_ORDER, CATEGORY_RAMP, RAMP_INK } from '@/lib/category-ramp';
 import MindLoftMark from './MindLoftMark';
 import { fetchDayStatus, etToday } from './useDayStats';
+import { fetchDailyBoard, dailyBoardQuery, dailyBoardIdentity } from './dailyBoardClient';
 
 // ── the ending's constants, not a new set ──────────────────────────────────
 // THE OPENING: bands up by ~1.05s, the wipe from 1.15s, the words at 1.6s.
@@ -98,6 +117,14 @@ const FLOOD_ROW = 420;
 // too fast, from the other end. Past this the arrival proceeds with the figures
 // it has and the recap simply does not appear.
 const RECAP_WAIT = 2400 + RAMP_WORDS;
+// THE BOARDS ARE ONE ITEM AND GET ONE DWELL. Ten rows queued at FLOOD_ROW is
+// 4.2 seconds before anything else on the screen has happened, so they land as a
+// block on a 60ms stagger and this is the beat afterwards. Shorter than a
+// figure's because FLOOD_SETTLE already holds the finished screen for 1200ms and
+// the block is the last thing on it.
+const FLOOD_BOARDS = 700;
+// Five, which is what the owner asked for. `overall` carries ten.
+const BOARD_ROWS = 5;
 const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
@@ -182,6 +209,48 @@ function rowsOf(recap) {
   }));
 }
 
+// THE RECAP ROWS, replaced by the boards on 2026-09-04 and kept behind this so
+// putting them back is one word. They are still fetched either way: they come off
+// the same payload the left board does, so keeping them costs nothing.
+const RECAP_ROWS = false;
+
+// A short day for a column head, from either shape of date this screen holds:
+// M-D-YY (a quizId's suffix, which is what lastPlayed is) or YYYY-MM-DD (what
+// etToday returns).
+//
+// ⚠️ THE FOUR-DIGIT YEAR IS TESTED FIRST, AND THE OTHER PATTERN IS BOUNDED.
+// `(\d+)-(\d+)-(\d{2})` also matches 2026-09-04, taking 2026 as the month and
+// 04 as the year, so an unbounded M-D-YY tried first rendered today as Fri, Oct 9.
+function dayLabel(v) {
+  const s = String(v || '');
+  let y, m, d;
+  let x = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s);
+  if (x) { y = Number(x[1]); m = Number(x[2]); d = Number(x[3]); }
+  else {
+    x = /^(\d{1,2})-(\d{1,2})-(\d{2})$/.exec(s);
+    if (!x) return '';
+    y = 2000 + Number(x[3]); m = Number(x[1]); d = Number(x[2]);
+  }
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US',
+    { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
+// ONE COLUMN OF A BOARD. `overall` on the daily-combined payload is already the
+// top ten named and rank-eligible rows in order, so this is a slice rather than a
+// computation, and it can never disagree with the board the home renders from the
+// same field. The reader's own row is picked out by name, which is the only thing
+// this screen knows about them.
+function colOf(k, eyebrow, day, state, rows, me) {
+  const out = (rows || []).slice(0, BOARD_ROWS).map((r, i) => ({
+    k: k + ':' + (r.userKey || r.username || i),
+    pos: r.rank || i + 1,
+    who: r.username,
+    score: typeof r.total === 'number' ? Math.round(r.total) : null,
+    me: !!me && String(r.username || '').toLowerCase() === String(me).toLowerCase(),
+  }));
+  return { k, eyebrow, day, state, rows: out };
+}
+
 // WITHOUT THIS THE RECAP READS AS TODAY. A screen that says "Welcome back" over
 // a date, then prints a row of placements, is claiming those are current unless
 // something says otherwise.
@@ -232,6 +301,12 @@ export default function StageWelcome({ capRef }) {
   // not treat "still fetching the recap" as "this reader has no figures".
   const [recap, setRecap] = useState(null);
   const [recapDone, setRecapDone] = useState(false);
+  // THE TWO BOARDS. `lastBoard` rides the recap's own response; `todayBoard` is a
+  // second read with its own done flag, for the same reason the recap has one:
+  // the queue must not read "still fetching" as "this reader has no figures".
+  const [lastBoard, setLastBoard] = useState(null);
+  const [todayBoard, setTodayBoard] = useState(null);
+  const [todayDone, setTodayDone] = useState(false);
   const [name, setName] = useState('');
   const [cold, setCold] = useState(false);  // no name: the mark and the three lines
   const today = useMemo(() => {
@@ -348,13 +423,18 @@ export default function StageWelcome({ capRef }) {
       const id = JSON.parse(localStorage.getItem('sot_quiz_identity') || 'null');
       if (id && id.email) p.set('email', id.email);
     } catch (e) {}
-    fetch('/api/quiz/daily-combined?' + p.toString())
-      .then((r) => r.json())
+    fetchDailyBoard(p.toString())
       .then((d) => {
         // Late is the same as never once the collapse is scheduled: adding rows
         // behind a screen that is already leaving would reopen a queue nobody
         // is watching.
         if (!alive || goneRef.current) return;
+        // THE LEFT COLUMN, off the response the recap was already making. It is
+        // the top five of `overall`, which the route has already filtered to the
+        // named and rank-eligible, so nothing here re-derives a standing.
+        if (d && Array.isArray(d.overall) && d.overall.length) {
+          setLastBoard({ date: last, rows: d.overall });
+        }
         const per = d && d.me && d.me.perGame;
         if (!per) { setRecapDone(true); return; }
         const fieldOf = new Map();
@@ -385,6 +465,33 @@ export default function StageWelcome({ capRef }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on, data, settled]);
 
+  // ── today's board, the right column ──────────────────────────────────────
+  // THE SAME AUDIENCE AS THE RECAP (owner, 2026-09-04): a cross-day arrival by
+  // someone who has not played today. Anyone else keeps the screen they had.
+  //
+  // It costs NO REQUEST OF ITS OWN. app/today/StageToday.jsx fires this exact
+  // question on mount for the home's own board, and both go through
+  // dailyBoardClient, so whichever asks first is the one request and the other
+  // joins it. Whether that is warm or cold is out of our hands, which is why the
+  // ceiling below matters: this is the cold path (3 to 4s measured), so it can
+  // and will sometimes miss, and the screen then shows one column.
+  useEffect(() => {
+    if (!on) return;
+    if (!data) { if (settled) setTodayDone(true); return; }
+    const gap = daysBetween(data.lastPlayed, etToday());
+    if (data.playedToday || gap == null || gap < 1) { setTodayDone(true); return; }
+    let alive = true;
+    fetchDailyBoard(dailyBoardQuery(dailyBoardIdentity()))
+      .then((d) => {
+        if (!alive || goneRef.current) return;
+        if (d && Array.isArray(d.overall) && d.overall.length) setTodayBoard(d.overall);
+        setTodayDone(true);
+      })
+      .catch(() => { if (alive) setTodayDone(true); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [on, data, settled]);
+
   // ── the case, and its figures ────────────────────────────────────────────
   const view = useMemo(() => {
     const today = etToday();
@@ -392,6 +499,25 @@ export default function StageWelcome({ capRef }) {
     if (!data) return { figs: [] };
     const gap = daysBetween(data.lastPlayed, today);
     const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
+
+    // THE TWO BOARDS AS ONE QUEUE ITEM, or the recap rows they replaced. A column
+    // with no rows is dropped rather than printed empty, so a reader whose last
+    // day nobody else played, or who arrives before anyone has finished today,
+    // gets one column instead of a half-empty pair. Both empty is no item at all
+    // and the case falls back to its own standing figures.
+    const listOf = () => {
+      if (RECAP_ROWS) return rowsOf(recap);
+      const cols = [];
+      const left = colOf('lb', 'Last time out', dayLabel(data.lastPlayed), 'Final',
+        lastBoard && lastBoard.rows, name);
+      if (left.rows.length) cols.push(left);
+      if (todayBoard) {
+        const right = colOf('tb', 'Today', dayLabel(today), 'So far', todayBoard, name);
+        if (right.rows.length) cols.push(right);
+      }
+      if (!cols.length) return [];
+      return [{ k: 'boards', boards: true, one: cols.length === 1, cols }];
+    };
 
     // RESUME. They have played today and come back, so the news is what moved
     // while they were away: other people played the day and their place on the
@@ -437,10 +563,11 @@ export default function StageWelcome({ capRef }) {
     if (gap === 1) {
       const st = num(data.streak);
       return {
-        caption: capOf(data.lastPlayed),
+        // The boards carry their own heads, so the caption is the recap's alone.
+        caption: RECAP_ROWS ? capOf(data.lastPlayed) : null,
         figs: [
           st ? { k: 'streak', lead: true, count: st, lab: 'day streak' } : null,
-          ...rowsOf(recap),
+          ...listOf(),
         ].filter(Boolean),
       };
     }
@@ -449,9 +576,9 @@ export default function StageWelcome({ capRef }) {
     // and never as a verdict: no scolding, and the spent streak is reported as
     // the best it reached rather than as something lost.
     if (gap != null && gap >= 2) {
-      const rows = rowsOf(recap);
+      const rows = listOf();
       return {
-        caption: rows.length ? capOf(data.lastPlayed) : null,
+        caption: RECAP_ROWS && rows.length ? capOf(data.lastPlayed) : null,
         figs: [
           { k: 'away', lead: true, count: gap, lab: gap === 1 ? 'day away' : 'days away' },
           // A long absence often has no recap worth showing (the last day was
@@ -469,7 +596,7 @@ export default function StageWelcome({ capRef }) {
     }
 
     return { figs: [] };
-  }, [data, recap, cold]);
+  }, [data, recap, cold, lastBoard, todayBoard, name]);
 
   // ── the two edges of the hold, anchored to mount ─────────────────────────
   useEffect(() => {
@@ -478,7 +605,7 @@ export default function StageWelcome({ capRef }) {
     at(FLOOD_MIN, () => setHeld(true));
     at(FLOOD_MAX, () => setExpired(true));
     at(FLOOD_HARD, () => setHard(true));
-    at(RECAP_WAIT, () => setRecapDone(true));
+    at(RECAP_WAIT, () => { setRecapDone(true); setTodayDone(true); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [on]);
 
@@ -489,7 +616,7 @@ export default function StageWelcome({ capRef }) {
     // Still reading and nothing to show yet: hold here. That is the wait. The
     // recap is a second read, so a cross-day arrival is not "settled" until it
     // has answered, or the whole list would be skipped as an empty one.
-    const ready = settled && recapDone;
+    const ready = settled && recapDone && todayDone;
     if (!ready && !expired && shown >= figs.length) return;
     if (shown >= figs.length) return;
     // ONE DWELL PER STEP, guarded by a ref: this effect re-runs whenever the
@@ -499,9 +626,11 @@ export default function StageWelcome({ capRef }) {
     stepRef.current = shown;
     const next = figs[shown];
     // ITS DWELL IS ITS COUNT, so the screen cannot leave mid-climb.
-    at(next.lead ? FLOOD_COUNT + 180 : (next.row ? FLOOD_ROW : FLOOD_STAMP), () => setShown((s) => s + 1));
+    at(next.lead ? FLOOD_COUNT + 180
+      : (next.boards ? FLOOD_BOARDS : (next.row ? FLOOD_ROW : FLOOD_STAMP)),
+      () => setShown((s) => s + 1));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, held, shown, view, settled, recapDone, expired]);
+  }, [on, held, shown, view, settled, recapDone, todayDone, expired]);
 
   // ── the collapse, once the queue has run out ─────────────────────────────
   useEffect(() => {
@@ -510,10 +639,10 @@ export default function StageWelcome({ capRef }) {
     // The figures are on screen and walking: let them finish (FLOOD_HARD is
     // the only thing that cuts a started queue). Only a screen still WAITING
     // for its reads leaves at FLOOD_MAX.
-    const walking = settled && recapDone && view.figs.length > 0;
+    const walking = settled && recapDone && todayDone && view.figs.length > 0;
     // A settled read with no figures at all is not an arrival worth holding.
     if (!ran && !hard && (!expired || walking)) return;
-    if ((!settled || !recapDone) && !expired && !hard) return;
+    if ((!settled || !recapDone || !todayDone) && !expired && !hard) return;
     goneRef.current = true;
     at(FLOOD_SETTLE, () => {
       const el = capRef && capRef.current;
@@ -534,7 +663,7 @@ export default function StageWelcome({ capRef }) {
       at(FLOOD_SHRINK + 40 + FLOOD_FADE, finish);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [on, held, shown, view, settled, recapDone, expired, hard]);
+  }, [on, held, shown, view, settled, recapDone, todayDone, expired, hard]);
 
   // Any key skips, exactly as any tap does.
   useEffect(() => {
@@ -607,15 +736,36 @@ export default function StageWelcome({ capRef }) {
           {view.caption && shown > 0 && view.figs.some((f, i) => f.row && i < shown)
             ? <div className="stw-cap">{view.caption}</div> : null}
           {view.figs.map((f, i) => (i < shown ? (
-            <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.row ? ' row' : '') + (f.good ? ' good' : '') + (f.line ? ' line' : '')}>
-              <b>
-                {f.count != null
-                  ? <>{f.pre || ''}<Count to={f.count} ms={FLOOD_COUNT} /></>
-                  : f.v}
-                {f.sub ? <i className={f.bad ? 'dn' : 'up'}>{f.sub}</i> : null}
-              </b>
-              {f.lab ? <i className="cl">{f.lab}</i> : null}
-            </div>
+            f.boards ? (
+              <div key={f.k} className={'stw-bds' + (f.one ? ' one' : '')}>
+                {f.cols.map((c) => (
+                  <div key={c.k} className="stw-bd">
+                    <div className="stw-bdh">
+                      <i>{c.eyebrow}</i>
+                      <b>{c.day}</b>
+                      <em className={c.state === 'Final' ? 'fin' : 'liv'}>{c.state}</em>
+                    </div>
+                    {c.rows.map((r) => (
+                      <div key={r.k} className={'stw-bdr' + (r.me ? ' me' : '')}>
+                        <i>{r.pos}</i>
+                        <b>{r.who}</b>
+                        {r.score != null ? <em>{r.score}</em> : null}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div key={f.k} className={'stw-fig' + (f.lead ? ' lead' : '') + (f.row ? ' row' : '') + (f.good ? ' good' : '') + (f.line ? ' line' : '')}>
+                <b>
+                  {f.count != null
+                    ? <>{f.pre || ''}<Count to={f.count} ms={FLOOD_COUNT} /></>
+                    : f.v}
+                  {f.sub ? <i className={f.bad ? 'dn' : 'up'}>{f.sub}</i> : null}
+                </b>
+                {f.lab ? <i className="cl">{f.lab}</i> : null}
+              </div>
+            )
           ) : null))}
         </div>
       </div>
@@ -735,8 +885,37 @@ const CSS = `
   to{opacity:1;transform:none;}
 }
 
+/* THE TWO BOARDS. One block, five rows a side, landing on a 60ms stagger rather
+   than queueing: ten rows at FLOOD_ROW is 4.2s on its own. Left aligned, because
+   a leaderboard read down a centred column is a different shape from the figures
+   above it and reads as a list rather than as a headline. */
+.stw-bds{flex-basis:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px 38px;
+  max-width:660px;margin:4px auto 0;text-align:left;
+  animation:stw-stamp 300ms cubic-bezier(.2,.9,.3,1.3) both;}
+.stw-bds.one{grid-template-columns:1fr;max-width:320px;}
+.stw-bd{min-width:0;}
+.stw-bdh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.16);padding-bottom:7px;margin-bottom:5px;}
+.stw-bdh i{flex-basis:100%;font-style:normal;font-family:${MONO};font-size:9px;
+  letter-spacing:.16em;text-transform:uppercase;opacity:.5;margin-bottom:3px;}
+.stw-bdh b{font-size:13px;font-weight:800;letter-spacing:-.01em;}
+.stw-bdh em{font-style:normal;margin-left:auto;font-family:${MONO};font-size:10px;}
+.stw-bdh em.fin{color:#e8b43a;}
+.stw-bdh em.liv{color:#6ee7b7;}
+.stw-bdr{display:grid;grid-template-columns:16px 1fr auto;gap:9px;align-items:baseline;padding:3px 0;}
+.stw-bdr i{font-style:normal;font-family:${MONO};font-size:11px;opacity:.5;
+  font-variant-numeric:tabular-nums;}
+.stw-bdr b{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stw-bdr em{font-style:normal;font-family:${MONO};font-size:12px;opacity:.62;
+  font-variant-numeric:tabular-nums;}
+/* The reader's own row, in the same sky the mark wears. */
+.stw-bdr.me b,.stw-bdr.me em{color:#7dd3fc;opacity:1;}
+
 @media (max-width:640px){
   .stw{padding:clamp(56px,13vh,120px) 16px 20px;}
+  /* Two boards will not sit side by side on a 390px screen, so they stack and
+     the pair reads as one list of two days. */
+  .stw-bds{grid-template-columns:1fr;gap:12px;max-width:320px;}
   /* Larger and heavier on a phone, where the bands are 39px wide and the
      label is the only thing telling them apart. */
   .stw-b i{font-size:12px;font-weight:900;letter-spacing:.1em;bottom:12px;}
@@ -744,7 +923,7 @@ const CSS = `
   .stw-fig i.cl{margin-top:7px;}
 }
 @media (prefers-reduced-motion: reduce){
-  .stw,.stw-in,.stw-fig,.stw-b,.stw-b i,.stw-wipe,.stw-lad i,.stw-mark{transition:none !important;animation:none !important;}
+  .stw,.stw-in,.stw-fig,.stw-bds,.stw-b,.stw-b i,.stw-wipe,.stw-lad i,.stw-mark{transition:none !important;animation:none !important;}
   .stw-b{transform:none;} .stw-wipe{transform:none;} .stw-b i{opacity:1;}
 }
 `;

@@ -48,6 +48,7 @@ import { RAMP_ORDER, categoryColor, categoryColorLight, categoryOnrampLight, RAM
 // — which is the whole reason Your standing can be one column instead of six.
 import { gameStats } from '@/lib/daily-row-stats';
 import useDayStats, { fetchDayStatus, etToday } from '../useDayStats';
+import { fetchDailyBoard } from '../dailyBoardClient';
 import useMyGames from '../useMyGames';
 import { savedIdentity } from '@/lib/saved-identity';
 import { useStageTheme, useThemeQs, useThemeHint, useThemeIntro } from '@/lib/stage-theme';
@@ -602,9 +603,12 @@ export default function StageToday() {
   }, []);
   useEffect(() => {
     let alive = true;
-    const qs = identityQs();
-    fetch('/api/quiz/daily-combined' + (qs ? `?${qs}` : ''))
-      .then((r) => r.json())
+    // THROUGH THE SHARED CLIENT (2026-09-04). The arrival asks for this same
+    // board for its Today column, and the two mount together, so without the
+    // client one home load made the identical request twice. `identityQs`
+    // produces the string `dailyBoardQuery` produces, which is what makes the
+    // two the same key rather than two questions that happen to have one answer.
+    fetchDailyBoard(identityQs())
       .then((d) => { if (alive && d && Array.isArray(d.overall)) setBoard(d); })
       .catch(() => {});
     return () => { alive = false; };
