@@ -85,9 +85,97 @@ function weekdayShapes() {
     for (const r of runs) rec(i + 1, [...cur, r]);
   };
   rec(0, []);
+  // Widen the pool: every 180-symmetric, fully-checked, connected 5x5 with 17+
+  // open cells and 10 to 12 slots. The row-run family above yields only 19
+  // shapes, and the bank-wide cap of 4 uses per shape caps the bank at 76
+  // weekday boards, which is exactly where the bank stalled.
+  const seenPat = new Set(out.map((g) => g.join('|')));
+  const fullyChecked = (g) => {
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+      if (g[r][c] === '#') continue;
+      let a = 1, b = 1, cc = c - 1;
+      while (cc >= 0 && g[r][cc] !== '#') { a++; cc--; }
+      cc = c + 1; while (cc < N && g[r][cc] !== '#') { a++; cc++; }
+      let rr = r - 1; while (rr >= 0 && g[rr][c] !== '#') { b++; rr--; }
+      rr = r + 1; while (rr < N && g[rr][c] !== '#') { b++; rr++; }
+      if (a < 2 || b < 2) return false;
+    }
+    return true;
+  };
+  const connected = (g) => {
+    const cells = [];
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (g[r][c] === '.') cells.push(r * N + c);
+    if (!cells.length) return false;
+    const seen = new Set([cells[0]]), st = [cells[0]];
+    while (st.length) {
+      const x = st.pop(), r = (x / N) | 0, c = x % N;
+      for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nc < 0 || nr >= N || nc >= N || g[nr][nc] !== '.') continue;
+        const k = nr * N + nc;
+        if (!seen.has(k)) { seen.add(k); st.push(k); }
+      }
+    }
+    return seen.size === cells.length;
+  };
+  for (let m = 0; m < (1 << 25); m++) {
+    let bits = 0, x = m;
+    while (x) { bits += x & 1; x >>= 1; }
+    if (25 - bits < 17) continue;
+    const g = [];
+    for (let r = 0; r < N; r++) { let s = ''; for (let c = 0; c < N; c++) s += (m >> (r * N + c)) & 1 ? '#' : '.'; g.push(s); }
+    let sym = true;
+    for (let r = 0; r < N && sym; r++) for (let c = 0; c < N; c++) if (g[r][c] !== g[N - 1 - r][N - 1 - c]) { sym = false; break; }
+    if (!sym || !fullyChecked(g) || !connected(g)) continue;
+    const n = slotsOf(g).length;
+    if (n < 10 || n > 12) continue;
+    const k = g.join('|');
+    if (!seenPat.has(k)) { seenPat.add(k); out.push(g); }
+  }
   return out;
 }
 const SUNDAY = ['...#...', '...#...', '.......', '##...##', '.......', '...#...', '...#...'];
+// One fixed Sunday shape put the whole 7x7 load on the same slots every week,
+// which is what exhausted the 3-use answer cap and stalled the bank. These are
+// hand-picked 180-symmetric 7x7s, each fully checked and connected, so the
+// Sunday boards vary their word lengths as well as their words.
+const SUNDAYS = [
+  SUNDAY,
+  ['####...', '...#...', '.......', '.......', '.......', '...#...', '...####'],
+  ['#######', '...#...', '.......', '.......', '.......', '...#...', '#######'],
+  ['###...#', '#.....#', '.......', '.......', '.......', '#.....#', '#...###'],
+  ['##...##', '#.....#', '.......', '.......', '.......', '#.....#', '##...##'],
+  ['###...#', '##....#', '.......', '.......', '.......', '#....##', '#...###'],
+  ['##...##', '##....#', '.......', '.......', '.......', '#....##', '##...##'],
+  ['###...#', '###...#', '.......', '.......', '.......', '#...###', '#...###'],
+  ['##...##', '##...##', '.......', '.......', '.......', '##...##', '##...##'],
+  ['###...#', '#......', '#......', '.......', '......#', '......#', '#...###'],
+  ['###...#', '##.....', '#......', '.......', '......#', '.....##', '#...###'],
+  ['###...#', '###....', '#......', '.......', '......#', '....###', '#...###'],
+  ['####...', '####...', '#......', '.......', '......#', '...####', '...####'],
+  ['###...#', '###....', '##.....', '.......', '.....##', '....###', '#...###'],
+  ['####...', '#......', '#......', '#.....#', '......#', '......#', '...####'],
+];
+const okSunday = (g) => {
+  const N = 7;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (g[r][c] === '#') continue;
+    let a = 1, b = 1, cc = c - 1;
+    while (cc >= 0 && g[r][cc] !== '#') { a++; cc--; }
+    cc = c + 1; while (cc < N && g[r][cc] !== '#') { a++; cc++; }
+    let rr = r - 1; while (rr >= 0 && g[rr][c] !== '#') { b++; rr--; }
+    rr = r + 1; while (rr < N && g[rr][c] !== '#') { b++; rr++; }
+    if (a < 2 || b < 2) return false;
+  }
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (g[r][c] !== g[N - 1 - r][N - 1 - c]) return false;
+  return true;
+};
+// Every slot length must be one the clue bank actually stocks (3 to 7); a
+// shape carrying a 2-letter slot can never be filled.
+const STOCKED = new Set([...CLUE.keys()].map((w) => w.length));
+const SUNDAY_POOL = SUNDAYS.filter((g) => okSunday(g) && slotsOf(g).every((sl) => STOCKED.has(sl.len)));
+if (!SUNDAY_POOL.length) throw new Error('no usable Sunday shape');
+console.error(`Sunday shapes usable: ${SUNDAY_POOL.length} of ${SUNDAYS.length}`);
 
 // ── fill ───────────────────────────────────────────────────────────────────
 function fill(pat, { banned = new Set(), score = new Map(), budget = 400000 } = {}) {
@@ -168,7 +256,32 @@ for (const p of PUZZLES) {                       // soft-avoid answers the froze
   }
 }
 const CAP = 3;
+
 const uses = new Map(), banned = new Set(), results = [], recent = [];
+// The verifier's pairwise-overlap rule spans the WHOLE live bank, so the frozen
+// boards have to be in the overlap check too, not just the ones we build here.
+for (const p of PUZZLES) {
+  if (p.num >= first || !p.grid || !p.grid.length) continue;
+  const words = [...p.across.map((x) => ({ ...x, d: 'A' })), ...p.down.map((x) => ({ ...x, d: 'D' }))]
+    .map((w) => answerOf(p, w, w.d));
+  results.push({ p, made: { words }, frozen: true });
+  // and the 3-use answer cap is bank-wide too, so seed it from them as well
+  for (const w of words) {
+    const n = (uses.get(w) || 0) + 1;
+    uses.set(w, n);
+    if (n >= CAP) banned.add(w);
+  }
+}
+// The verifier caps any weekday grid shape at 4 uses across the whole live
+// bank, so the frozen boards' shapes have to be counted before we start.
+const SHAPE_CAP = 4;
+const shapeUse = new Map();
+for (const p of PUZZLES) {
+  if (p.num >= first || p.sunday || !p.grid || !p.grid.length) continue;
+  const pat = p.grid.map((row) => row.split('').map((ch) => (ch === '#' ? '#' : '.')).join(''));
+  const k = JSON.stringify(pat);
+  shapeUse.set(k, (shapeUse.get(k) || 0) + 1);
+}
 for (const p of targets) {
   const okOverlap = (words) => {
     const s = new Set(words);
@@ -179,16 +292,22 @@ for (const p of targets) {
     return true;
   };
   let made = null, shape = null;
-  const pool = p.sunday ? [SUNDAY] : shuffle(WEEK).filter((x) => !recent.includes(JSON.stringify(x)));
+  const pool = p.sunday ? shuffle(SUNDAY_POOL) : shuffle(WEEK)
+    .filter((x) => (shapeUse.get(JSON.stringify(x)) || 0) < SHAPE_CAP)
+    .filter((x) => !recent.includes(JSON.stringify(x)));
   outer: for (const pat of pool) {
-    for (let k = 0; k < 8; k++) {
-      const cand = fill(pat, { banned, score });
+    for (let k = 0; k < (p.sunday ? 24 : 8); k++) {
+      const cand = fill(pat, { banned, score, budget: p.sunday ? 1600000 : 400000 });
       if (!cand) break;
       if (okOverlap(cand.words)) { made = cand; shape = pat; break outer; }
     }
   }
   if (!made) { console.error(`FAILED to fill ${p.quizId} — widen scripts/emcee-wordbank.txt`); process.exit(1); }
-  if (!p.sunday) { recent.push(JSON.stringify(shape)); if (recent.length > 6) recent.shift(); }
+  if (!p.sunday) {
+    const k = JSON.stringify(shape);
+    shapeUse.set(k, (shapeUse.get(k) || 0) + 1);
+    recent.push(k); if (recent.length > 6) recent.shift();
+  }
   for (const w of made.words) {
     const n = (uses.get(w) || 0) + 1;
     uses.set(w, n);
@@ -197,10 +316,11 @@ for (const p of targets) {
   }
   results.push({ p, made });
 }
-console.error(`built ${results.length} boards from #${first}, ${uses.size} distinct answers`);
+const fresh = results.filter((r) => !r.frozen);
+console.error(`built ${fresh.length} boards from #${first}, ${uses.size} distinct answers`);
 
 const esc = (s) => "'" + s.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
-console.log(results.map(({ p, made }) => {
+console.log(fresh.map(({ p, made }) => {
   const L = (w) => `      { n: ${w.n}, r: ${w.r}, c: ${w.c}, len: ${w.len}, clue: ${esc(w.clue)} },`;
   return `  {
     num: ${p.num},
