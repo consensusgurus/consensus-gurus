@@ -15,9 +15,9 @@ import { GRIDIRON } from '@/lib/gridiron-data';
 import { computeComposite } from '@/lib/gridiron';
 import { SOT_URL } from '@/lib/site';
 
-const TITLE = 'MLB Consensus Power Rankings: All 30 Teams | Source of Truths';
+const TITLE = 'MLB Consensus Rankings: All 30 Teams | Source of Truths';
 const DESCRIPTION =
-  'All 30 teams rated on results, betting markets and analytics models, with no media polls: what happened, what money says and what the models say, each in runs and shown side by side.';
+  'All 30 teams rated on results, betting markets and analytics models, with no media polls: what happened, what money says and what the models say, each in runs and shown side by side. Power rankings without the voters.';
 
 const SHARE_TITLE = 'The MLB Consensus, All 30 Teams';
 // Kept under ~200 characters: Twitter truncates a card description around there.
@@ -49,7 +49,7 @@ export default function MlbRankingsPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'MLB Power Rankings Consensus',
+    name: 'MLB Consensus Rankings',
     url: `${SOT_URL}/mlbrankings`,
     description: DESCRIPTION,
     numberOfItems: ranked.length,
@@ -62,7 +62,7 @@ export default function MlbRankingsPage() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SOT_URL}/collegefootballrankings` },
-      { '@type': 'ListItem', position: 2, name: 'MLB Power Rankings Consensus' },
+      { '@type': 'ListItem', position: 2, name: 'MLB Consensus Rankings' },
     ],
   };
 
@@ -74,7 +74,7 @@ export default function MlbRankingsPage() {
       <SotHeader active="mlb" />
       <div className="rk-col">
         <div className="rk-head">
-          <h1>MLB <span>consensus power rankings</span></h1>
+          <h1>MLB <span>consensus rankings</span></h1>
           <p className="rk-lede">
             Results, betting markets and analytics models, scored into one rating in runs. No media
             polls: a score, a price and a measurement each answer to something real, while media

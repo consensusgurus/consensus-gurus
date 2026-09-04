@@ -21,7 +21,7 @@ import { SOT_URL } from '@/lib/site';
 
 const TITLE = 'College Football Consensus Rankings: Every FBS Team | Source of Truths';
 const DESCRIPTION =
-  'All 138 FBS teams rated on results, betting markets and analytics models, with no polls: what happened, what money says and what the models say, each in points and shown side by side.';
+  'All 138 FBS teams rated on results, betting markets and analytics models, with no polls: what happened, what money says and what the models say, each in points and shown side by side. Power rankings without the voters.';
 
 // Share copy is written for the moment someone sees it in a feed, so it leads
 // with what makes the page different (the consensus, and that the disagreement
@@ -73,7 +73,7 @@ export default function CollegeFootballRankingsPage() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SOT_URL}/collegefootballrankings` },
-      { '@type': 'ListItem', position: 2, name: 'College Football Rankings Consensus' },
+      { '@type': 'ListItem', position: 2, name: 'College Football Consensus Rankings' },
     ],
   };
 
@@ -124,7 +124,7 @@ export default function CollegeFootballRankingsPage() {
 
         <p className="rk-cross">
           Looking for the pros? See the{' '}
-          <a href="/nflrankings">NFL power rankings consensus</a>.
+          <a href="/nflrankings">NFL consensus rankings</a>.
         </p>
       </div>
       <StageFooter />

@@ -17,7 +17,7 @@ export async function GET() {
   const bytes = buildGridironPdf({
     ranked, sources, tierShare, depth,
     fetchedAt: GRIDIRON.fetchedAt,
-    title: 'NFL Consensus Power Rankings',
+    title: 'NFL Consensus Rankings',
     eyebrow: '2026 season',
     url: `${SOT_URL.replace(/^https?:\/\//, '')}/nflrankings`,
   });

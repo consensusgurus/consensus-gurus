@@ -10,7 +10,7 @@ export async function GET() {
     block: GRIDIRON.nfl,
     sport: 'nfl',
     fetchedAt: GRIDIRON.fetchedAt,
-    title: 'NFL Consensus Power Rankings',
+    title: 'NFL Consensus Rankings',
     eyebrow: '2026 season',
     url: 'sourceoftruths.com/nflrankings',
   });

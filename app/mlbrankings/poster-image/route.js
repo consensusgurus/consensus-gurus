@@ -13,7 +13,7 @@ export async function GET() {
     block: GRIDIRON.mlb,
     sport: 'mlb',
     fetchedAt: GRIDIRON.fetchedAt,
-    title: 'MLB Consensus Power Rankings',
+    title: 'MLB Consensus Rankings',
     eyebrow: '2026 season',
     url: 'sourceoftruths.com/mlbrankings',
   });

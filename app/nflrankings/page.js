@@ -13,9 +13,9 @@ import { GRIDIRON } from '@/lib/gridiron-data';
 import { computeComposite } from '@/lib/gridiron';
 import { SOT_URL } from '@/lib/site';
 
-const TITLE = 'NFL Consensus Power Rankings: All 32 Teams | Source of Truths';
+const TITLE = 'NFL Consensus Rankings: All 32 Teams | Source of Truths';
 const DESCRIPTION =
-  'All 32 teams rated on results, betting markets and analytics models, with no media polls: what happened, what money says and what the models say, each in points and shown side by side.';
+  'All 32 teams rated on results, betting markets and analytics models, with no media polls: what happened, what money says and what the models say, each in points and shown side by side. Power rankings without the voters.';
 
 // Share copy is written for the moment someone sees it in a feed, so it leads
 // with what makes the page different (the consensus, and that the disagreement
@@ -51,7 +51,7 @@ export default function NflRankingsPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'NFL Power Rankings Consensus',
+    name: 'NFL Consensus Rankings',
     url: `${SOT_URL}/nflrankings`,
     description: DESCRIPTION,
     numberOfItems: ranked.length,
@@ -64,7 +64,7 @@ export default function NflRankingsPage() {
     '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'Source of Truths Sports Rankings', item: `${SOT_URL}/collegefootballrankings` },
-      { '@type': 'ListItem', position: 2, name: 'NFL Power Rankings Consensus' },
+      { '@type': 'ListItem', position: 2, name: 'NFL Consensus Rankings' },
     ],
   };
 
@@ -76,7 +76,7 @@ export default function NflRankingsPage() {
       <SotHeader active="nfl" />
       <div className="rk-col">
         <div className="rk-head">
-          <h1>NFL <span>consensus power rankings</span></h1>
+          <h1>NFL <span>consensus rankings</span></h1>
           <p className="rk-lede">
             Results, betting markets and analytics models, scored into one rating in points. No
             media polls: a score, a price and a measurement each answer to something real, while
