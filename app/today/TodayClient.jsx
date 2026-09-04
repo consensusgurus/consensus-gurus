@@ -266,7 +266,13 @@ export default function TodayClient({ onSignup = null } = {}) {
     const poolSet = new Set(pool);
     return CAT_ORDER.map((name) => {
       let games;
-      if (name === 'Sudoku') games = pool.map((k) => DAILY_GAME_MAP[k]).filter(Boolean);
+      // THE POOL IS NOT THE CATEGORY. The shelf used to render the sudoku circuit
+      // pool and nothing else, so a game carrying cat: 'Sudoku' but sitting outside
+      // the pool matched this shelf and was excluded from it, and no other shelf
+      // claimed it either: Whittle launched invisible on this page (2026-09-04).
+      // Pool first, so the rotation keeps its order, then any other live sudoku.
+      if (name === 'Sudoku') games = pool.map((k) => DAILY_GAME_MAP[k]).filter(Boolean)
+        .concat(DAILY_GAMES.filter((g) => live.has(g.key) && g.cat === 'Sudoku' && !poolSet.has(g.key)));
       else games = DAILY_GAMES.filter((g) => live.has(g.key) && g.cat === name && !poolSet.has(g.key));
       // Alphabetical within each shelf (owner, 2026-08-24).
       games = games.slice().sort((a, b) => a.name.localeCompare(b.name));
