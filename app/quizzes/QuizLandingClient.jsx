@@ -34,7 +34,7 @@ import MindLoftMark from '../MindLoftMark';
 import StageFooter from '../StageFooter';
 import { useStageTheme, useThemeQs } from '@/lib/stage-theme';
 import { CATEGORY_RAMP, CATEGORY_RAMP_LIGHT } from '@/lib/category-ramp';
-import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
+import { QUIZ_HEROES, DEPT_HERO, qotdIdFor } from '@/lib/quiz-heroes';
 import { easternYmd } from '@/lib/challenges';
 
 const MONO = "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace";
@@ -69,6 +69,18 @@ function tagOf(q) {
   const t = clock(q.t);
   if (t) bits.push(t);
   return bits.join(' · ');
+}
+
+// THE PHOTO FOR A FEATURED TILE: the quiz own entry in the hero registry, else
+// its department photo. Never a colour block -- a slot with no picture is a
+// slot this page does not draw at all, which is the honest version of "only
+// when real".
+function heroFor(q) {
+  if (!q) return null;
+  const own = QUIZ_HEROES[q.id];
+  if (own && own.src) return { src: own.src, pos: own.pos };
+  const dept = DEPT_HERO[q.dept];
+  return dept ? { src: dept, pos: undefined } : null;
 }
 
 // The same identity every other surface sends, so this page cannot disagree
@@ -165,28 +177,42 @@ export default function QuizLandingClient() {
     if (!byId.size) return null;
     const ids = new Set(byId.keys());
     const qotd = qotdIdFor(easternYmd(), ids);
-    const heroed = (id) => !!(id && QUIZ_HEROES[id] && byId.has(id));
+    const src = (id) => { const h = heroFor(byId.get(id)); return h && h.src; };
+    const qsrc = qotd ? src(qotd) : null;
 
-    // Most played: the top row of popular-by-category that has a photo and is
-    // not already the quiz of the day.
+    // MOST PLAYED, and it takes the DEPARTMENT hero when the quiz has none of
+    // its own. The first build required a registry entry and the slot came up
+    // empty on the live page: the top row was already the quiz of the day and
+    // not one of the eight behind it is heroed, which is the normal case rather
+    // than the unlucky one. A photo that says Geography is a true thing to put
+    // on a geography quiz, and it is what the old hub did. Two tiles never
+    // share an image, because the fallback would happily hand the same
+    // department photo to both.
     let top = null;
     if (Array.isArray(popular)) {
       for (const row of popular) {
-        if (row && row.id !== qotd && heroed(row.id)) { top = row.id; break; }
+        if (!row || row.id === qotd || !byId.has(row.id)) continue;
+        const s = src(row.id);
+        if (!s || s === qsrc) continue;
+        top = row.id;
+        break;
       }
     }
+    const tsrc = top ? src(top) : null;
 
     // A geo guesser, newest first. The catalogue arrives newest-first inside a
-    // topic, so the first match IS the newest one with a photo.
+    // topic, so the first match IS the newest one.
     let geo = null;
     for (const q of byId.values()) {
       if (geo) break;
       if (!/geo guesser/i.test(q.title || '')) continue;
-      if (q.id === qotd || q.id === top || !heroed(q.id)) continue;
+      if (q.id === qotd || q.id === top) continue;
+      const s = src(q.id);
+      if (!s || s === qsrc || s === tsrc) continue;
       geo = q.id;
     }
 
-    return { qotd: heroed(qotd) ? qotd : null, top, geo, waiting: !popular };
+    return { qotd: qsrc ? qotd : null, top, geo, waiting: !popular };
   }, [byId, popular]);
 
   // ── search ─────────────────────────────────────────────────────────────
@@ -227,12 +253,15 @@ export default function QuizLandingClient() {
     </a>
   );
 
-  const feat = (id, kind, lead) => {
+  const feat = (id, kind, lead, waiting) => {
     const q = id ? byId.get(id) : null;
-    const hero = id ? QUIZ_HEROES[id] : null;
+    const hero = heroFor(q);
+    // THE FOOTPRINT ONLY WHILE THE READ IS OUT. Once it has landed and there is
+    // still no pick, the slot is not drawn: the row is auto-fit, so two tiles
+    // simply take the width. An empty plate held forever is a white slab on the
+    // light register, which is what the first build shipped.
     if (!q || !hero) {
-      // The footprint, held rather than guessed. See rule 4.
-      return <span className="qzh-feat qzh-wait" aria-hidden="true" />;
+      return waiting ? <span className="qzh-feat qzh-wait" aria-hidden="true" /> : null;
     }
     return (
       <a className="qzh-feat" href={withTq('/quiz/' + encodeURIComponent(q.id))}>
@@ -359,9 +388,9 @@ export default function QuizLandingClient() {
         {/* 2. THE FEATURED ROW: the only art on the page. */}
         {!hits && feature ? (
           <div className="qzh-three qzh-rev">
-            {feat(feature.qotd, 'Quiz of the day', true)}
-            {feat(feature.top, 'Most played', false)}
-            {feat(feature.geo, 'Geo guesser', false)}
+            {feat(feature.qotd, 'Quiz of the day', true, false)}
+            {feat(feature.top, 'Most played', false, feature.waiting)}
+            {feat(feature.geo, 'Geo guesser', false, false)}
           </div>
         ) : null}
 
@@ -518,14 +547,16 @@ const CSS = `
 /* MATCHED TILES, not a lead and two extras: equal columns, one height, one
    label each, and no button, because the whole tile is the control exactly as
    a game tile on the daily home is. */
-.qzh-three{display:grid;gap:9px;grid-template-columns:repeat(3,minmax(0,1fr));}
+.qzh-three{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));}
 /* THE ANCHOR RESET OUT-SPECIFIES A PLAIN CLASS on any page that also styles
    bare anchors, and a tile carrying its own photo owes its own ink in both
    registers. Named on the element, and the title states its colour again. */
 a.qzh-feat,.qzh-feat{position:relative;display:flex;flex-direction:column;justify-content:flex-end;
   height:176px;border-radius:10px;overflow:hidden;text-decoration:none;color:#e9edf4;
   border:1px solid var(--stg-line);padding:14px 16px;isolation:isolate;}
-.qzh-wait{background:var(--stg-surf);}
+/* The waiting plate is a HAIRLINE, not a fill: on the pale register a filled
+   one is a white slab in the middle of a row of photographs. */
+.qzh-wait{background:none;border-style:dashed;}
 .qzh-fimg{position:absolute;inset:0;z-index:-2;background-size:cover;background-color:#101827;}
 .qzh-fscrim{position:absolute;inset:0;z-index:-1;
   background:linear-gradient(180deg,rgba(11,15,26,0.22) 0%,rgba(11,15,26,0.80) 54%,rgba(11,15,26,0.95) 100%);}

@@ -31,7 +31,7 @@ import TodayClient from '../today/TodayClient';
 const MARQUEE_HOME = true;
 import HomeRails from '../HomeRails';
 import XpTile from './XpTile';
-import { QUIZ_HEROES, qotdIdFor } from '@/lib/quiz-heroes';
+import { QUIZ_HEROES, DEPT_HERO, qotdIdFor } from '@/lib/quiz-heroes';
 import { DAILY_GAMES, CAT_META } from '@/app/DailyEndCard';
 import {
   quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV,
@@ -79,21 +79,6 @@ function lbNameSize(s) {
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 const STATUS_LABEL = { unplayed: 'Unplayed', played: 'Played', completed: 'Completed' };
 // Quiz of the Day is computed per render from the hero registry + rotation (see the qotd useMemo).
-const DEPT_HERO = {
-  movies: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Hollywood_sign_%288485145044%29.jpg/1280px-Hollywood_sign_%288485145044%29.jpg',
-  music: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg/960px-D%C3%BClmen%2C_D%C3%BClmener_Sommer%2C_Open-Air-Konzert%2C_%22Bounce%22_--_2018_--_0051.jpg',
-  gaming: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Universum_TV_Multispiel_2006.jpg/960px-Universum_TV_Multispiel_2006.jpg',
-  travel: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Beach_at_Fort_Lauderdale.jpg/960px-Beach_at_Fort_Lauderdale.jpg',
-  sports: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Michigan_Stadium_Aerial.jpg/960px-Michigan_Stadium_Aerial.jpg',
-  geography: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Meteosat-12-fci-march-equinox-2025-noon.jpg/960px-Meteosat-12-fci-march-equinox-2025-noon.jpg',
-  food: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Barbieri_-_ViaSophia25668.jpg/960px-Barbieri_-_ViaSophia25668.jpg',
-  business: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/NYC_Downtown_Manhattan_Skyline_seen_from_Paulus_Hook_2019-12-20_IMG_7347_FRD.jpg/960px-NYC_Downtown_Manhattan_Skyline_seen_from_Paulus_Hook_2019-12-20_IMG_7347_FRD.jpg',
-  science: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Startrails_above_Gunung_Bromo_-_Indonesia.jpg/960px-Startrails_above_Gunung_Bromo_-_Indonesia.jpg',
-  entertainment: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/%ED%8F%AC%EC%8B%9C%EC%A6%8C%EC%8A%A4_%EC%82%B0%EB%A6%AC%EC%98%A4%EB%8C%84%EC%8A%A4%ED%83%80%EC%9E%84_2025.jpg/960px-%ED%8F%AC%EC%8B%9C%EC%A6%8C%EC%8A%A4_%EC%82%B0%EB%A6%AC%EC%98%A4%EB%8C%84%EC%8A%A4%ED%83%80%EC%9E%84_2025.jpg',
-  literature: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/SanDiegoCityCollegeLearningResource_-_bookshelf.jpg/960px-SanDiegoCityCollegeLearningResource_-_bookshelf.jpg',
-  history: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/960px-Colosseo_2020.jpg',
-  arts: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg/960px-Museo_Chileno_de_Arte_Precolombino_-_2020_-_10.jpg',
-};
 
 // Alternate department heroes, used ONLY when the Trending tile would repeat
 // the Newest tile's image (both quizzes falling back to the same DEPT_HERO,
