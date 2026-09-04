@@ -1,2 +1,1 @@
-// The X/Twitter share card reuses the quizzes hub OG card exactly.
-export { default, runtime, alt, size, contentType } from './opengraph-image'
+export { default, alt, size, contentType, runtime, revalidate } from './opengraph-image'

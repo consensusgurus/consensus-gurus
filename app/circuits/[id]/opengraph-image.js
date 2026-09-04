@@ -1,11 +1,11 @@
-import { renderGauntletCard, renderQuizCard } from '@/lib/og-brand-card';
+import { renderGauntletCard, renderQuizCard } from '@/lib/og-stage-cards';
 import { circuitById, isMarquee } from '@/lib/circuits';
 import { gauntletBanks, gauntletCardProps, etTodayServer } from './gauntlet-card';
 
 export const runtime = 'nodejs';
 // Static per route, so it covers every circuit rather than naming one.
 export const alt = 'A Mind Loft circuit: several daily puzzles played back to back as one run';
-export { size, contentType } from '@/lib/og-brand-card';
+export { size, contentType } from '@/lib/og-stage-cards';
 
 // THE LANDING'S SHARE CARD (owner, 2026-08-30, "it currently defaults to main
 // page view").
@@ -35,5 +35,5 @@ export default async function Image({ params }) {
     });
   }
 
-  return renderGauntletCard(gauntletCardProps(c, banks));
+  return renderGauntletCard({ ...gauntletCardProps(c, banks), id });
 }

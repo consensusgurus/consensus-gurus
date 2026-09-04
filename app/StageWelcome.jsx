@@ -48,8 +48,8 @@
 // leaves them as a ladder along the foot, and only then do the words land.
 // The words are chosen by footprint: a reader with a name gets the welcome
 // and the gap-branched figures exactly as before; a reader without one gets
-// the mark, the wordmark and the three lines (Gain IQ Points / Keep a Sharp
-// Mind / Elevate Your Thinking), which is the one moment the brand explains
+// the mark, the wordmark and the three lines (Gain IQ Points / Climb the
+// Board / Sharpen Your Mind), which is the one moment the brand explains
 // itself to someone who has not met it. The ladder keeps looping for as long
 // as the reads take, so the hold is a loading state rather than a freeze, and
 // the collapse onto the cap is unchanged.
@@ -164,8 +164,8 @@ const HELLO = 'Welcome back, ';
 const LINES = [
   // Title case, and in THIS order (owner, 2026-09-02).
   { k: 'l1', line: true, v: 'Gain IQ Points' },
-  { k: 'l2', line: true, v: 'Keep a Sharp Mind' },
-  { k: 'l3', line: true, v: 'Elevate Your Thinking' },
+  { k: 'l2', line: true, v: 'Climb the Board' },
+  { k: 'l3', line: true, v: 'Sharpen Your Mind' },
 ];
 // Short names for the bands: the ramp's own order, two words at most.
 const BAND_NAMES = { 'Crowd Psychology': 'Crowd' };

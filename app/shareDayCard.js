@@ -2,9 +2,9 @@
 
 // Shared "Share my day" action.
 //
-// Fetches the viewer's 1080x1080 day card from /api/quiz/day-card (brain meter
-// filled by how much of today's slate they cleared, the day's IQ Points gain,
-// and their standing tiles), hands it to the native share sheet where the
+// Fetches the viewer's 1080x1080 day card from /api/quiz/day-card (the day's IQ
+// Points gain, a ladder showing how much of today's slate they cleared, and
+// their standing rows), hands it to the native share sheet where the
 // browser accepts files, downloads it everywhere else, then opens the
 // share-credit pop-up so the player has their referral link to post with it.
 //

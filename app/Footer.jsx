@@ -105,7 +105,7 @@ export default function Footer() {
         <div style={{ maxWidth: 250 }}>
           <div style={{ fontSize: 15, fontWeight: 800 }}>Mind Loft</div>
           <div style={{ fontSize: 12, color: NEUTRAL.muted, marginTop: 5, lineHeight: 1.5 }}>
-            Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.
+            Sharpen your mind: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.
           </div>
           {/* The crawl path to /about. It sits under the brand blurb rather than in
               the Legal column because it is not a legal page: it is the page that

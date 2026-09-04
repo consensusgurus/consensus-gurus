@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 // The one-pager: the whole consensus board as a single shareable PNG.
 //
 // Rendered by next/og (Satori), which is flex-only and does NOT resolve CSS
@@ -23,12 +25,14 @@ const MEDAL = [PAL.gold, PAL.silver, PAL.bronze];
 const TIER_LABEL = { results: 'Results', market: 'Betting markets', model: 'Analytics models' };
 const TIER_ORDER = ['results', 'market', 'model'];
 
-async function loadFont(url) {
+// Fonts come off disk, not the network (2026-09-04). Fetching a woff from a CDN
+// inside an image route means Satori throws "No fonts are loaded" the moment
+// that CDN is unreachable, which turns a hiccup into a 500. @fontsource/manrope
+// is a dependency; read it.
+function loadFont(rel) {
   try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return await res.arrayBuffer();
-  } catch {
+    return fs.readFileSync(path.join(process.cwd(), 'node_modules', rel));
+  } catch (e) {
     return null;
   }
 }
@@ -79,9 +83,9 @@ export async function renderGridironPoster({ block, sport, fetchedAt, title, eye
   const { ranked, tierShare, depth } = computeComposite(block, sport);
 
   const [w800, w700, w600] = await Promise.all([
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-800-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-700-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-600-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-800-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-700-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-600-normal.woff'),
   ]);
   const fonts = [];
   if (w800) fonts.push({ name: 'Manrope', data: w800, weight: 800, style: 'normal' });

@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "bake:og": "node scripts/bake-og.mjs --site"
   },
   "dependencies": {
+    "@fontsource/dm-mono": "^5.1.0",
+    "@fontsource/manrope": "^5.1.0",
     "@supabase/supabase-js": "^2.38.0",
     "@vercel/analytics": "^2.0.1",
     "html-to-image": "^1.11.11",

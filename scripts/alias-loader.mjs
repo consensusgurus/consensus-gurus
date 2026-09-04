@@ -32,5 +32,14 @@ export function resolve(specifier, context, next) {
     const guess = withJs(join(dirname(fileURLToPath(context.parentURL)), specifier));
     if (existsSync(guess)) return next(pathToFileURL(guess).href, context);
   }
+  // A SUBPATH OF A PACKAGE THAT PUBLISHES NO EXPORTS MAP (added 2026-09-03).
+  // next@14 ships next/og.js as a plain file with no './og' entry in its
+  // exports, so bundlers resolve `next/og` and plain node does not. Only
+  // reached for a bare specifier that node itself could not resolve to a
+  // directory, so a package with a real exports map is never intercepted.
+  if (!/^[./]/.test(specifier) && !hasExt(specifier) && specifier.includes('/')) {
+    const guess = withJs(join(root, 'node_modules', specifier));
+    if (existsSync(guess)) return next(pathToFileURL(guess).href, context);
+  }
   return next(specifier, context);
 }

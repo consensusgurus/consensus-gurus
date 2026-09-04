@@ -1,11 +1,13 @@
-import { renderSpanCard } from '@/lib/og-brand-card'
+import { renderGameCard, gameCardAlt } from '@/lib/og-stage-cards'
 
 export const runtime = 'nodejs'
-export const alt = 'Span — a daily border-hopping geography puzzle from Mind Loft'
-export { size, contentType } from '@/lib/og-brand-card'
+export const alt = gameCardAlt('span')
+export { size, contentType } from '@/lib/og-stage-cards'
 
-// Static route (one puzzle a day, same board look): render the Span snapshot
-// card once. Satori draws it from a neutral demo route so it never spoils today.
+// The card is a hue and a glyph off this game's row in lib/daily-games.js, so
+// there is nothing here to keep in step with the board. Every other game is
+// baked to public/og/ by scripts/bake-og.mjs and pointed at from page.js
+// metadata; these four kept live routes and can stay that way.
 export default async function Image() {
-  return renderSpanCard()
+  return renderGameCard('span')
 }

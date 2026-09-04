@@ -6,9 +6,9 @@ const SOURCE_COUNT = getAllSources().length;
 
 export function generateMetadata() {
   const count = Array.isArray(QUIZZES) ? QUIZZES.filter((q) => !q.unlisted).length : 0;
-  const title = 'Mind Loft | Elevate Your Thinking';
+  const title = 'Mind Loft | Sharpen Your Mind';
   const description = `Daily puzzles and quizzes to sharpen your brain. Word, number and logic games, plus ${count}+ timed quizzes across films, music, geography, sports, and brands, from name-them-all and matching to map and multiple-choice. Then browse consensus Top 10 Lists where ${SOURCE_COUNT} experts and aggregators agree.`;
-  const ogTitle = 'Mind Loft: Elevate Your Thinking';
+  const ogTitle = 'Mind Loft: Sharpen Your Mind';
 
   return {
     title,

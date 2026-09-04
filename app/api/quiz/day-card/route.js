@@ -5,33 +5,50 @@ import { findQuizIdentity } from '@/lib/quiz-identity';
 import { rankPlayers } from '@/lib/quiz-xp';
 import { computeXpCached } from '@/lib/quiz-derived-cache';
 import { dailyGameName } from '@/lib/daily-games';
+import { categoryColor } from '@/lib/category-ramp';
 import { SHARE_HOST } from '@/lib/site';
+import { D, markURI, stageFonts } from '@/lib/og-stage-card';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Downloadable "my day" share card (1080x1080 PNG). One brain meter filled by
-// how much of today's slate the player has cleared, the day's IQ Points gain as
-// the hero number, and four stat tiles down the right.
+// Downloadable "my day" share card (1080x1080 PNG). The day's IQ Points gain as
+// the hero number, a ladder showing how much of today's slate is cleared, and
+// four figures underneath.
 // GET /api/quiz/day-card?anonId=&email=[&date=M-D-YY]
 //
 // Data comes from the same two places the daily end card already reads, so this
 // adds no new queries and no new tables:
 //   IQ + global rank -> computeXp/rankPlayers over quiz_results (as /api/quiz/iq-standing)
 //   the day's slate  -> /api/quiz/daily-combined on this same deployment
-// The brain is two flat PNGs in /public/day-card (pale + solid). The fill is the
-// solid one inside an overflow-hidden box anchored to the bottom, because Satori
-// does not honor SVG masks the way a browser does. Do not "simplify" this back
-// into an inline <svg mask>: it renders as a full brain at every score.
-
+//
+// -- THE REGISTER -----------------------------------------------------------
+// Dark, and every colour comes from lib/og-stage-card.js. Same chrome as the
+// 1200x630 cards: a full-bleed band in the accent, the mark plus wordmark with
+// "Loft" in the accent, a mono cap label, and a footer split between the URL
+// and one instruction. No opacity on ink anywhere; hierarchy is size and
+// weight, and a fill in the accent carries D.onramp as its ink.
+//
+// -- THE LADDER REPLACED THE BRAIN METER ------------------------------------
+// The meter used to be two flat PNGs from /public/day-card (a pale brain and a
+// solid one), the solid one clipped inside an overflow-hidden box anchored to
+// the bottom. That trick existed only because Satori ignores SVG masks, so an
+// inline <svg mask> rendered as a full brain at every score and the fill had to
+// be faked with two images and a clip.
+//
+// The Stage's own object for "a countable thing you get through" is the LADDER,
+// and it needs neither a mask nor an image: it is a flex row of one rung per
+// game, lit rungs full height in the accent and unlit ones short in D.line. It
+// says how many games as well as how far, which the brain never did, and it
+// scales to any slate size. The PNGs, BRAIN_W/BRAIN_H and the no-image fallback
+// box are gone with it.
 const SZ = 1080;
-const PAL = {
-  bg: '#ffffff', text: '#0b0d12', navy: '#233a63', slate: '#646c7a',
-  soft: '#6b7280', cell: '#f1f3f6', line: 'rgba(20,22,28,0.10)',
-  blue: '#2563eb', green: '#15803d', gold: '#b7791f', goldBg: '#fdf6e4',
-};
-const BRAIN_W = 430;
-const BRAIN_H = 387; // matches the 640x576 source art
+const SANS = 'Manrope';
+const MONO = 'DM Mono';
+
+// The card's own step. The daily slate crosses every category, so it takes no
+// game's colour; sky is the ramp's first step and the Stage's brand blue.
+const ACCENT = categoryColor('Word');
 
 const ET = 'America/New_York';
 function etToday() {
@@ -52,22 +69,123 @@ function prettyDay(suffix) {
   } catch (e) { return suffix; }
 }
 
-async function loadBin(url) {
-  try { const r = await fetch(url); if (r.ok) return await r.arrayBuffer(); } catch (e) { /* */ }
-  return null;
-}
-function dataUri(buf) {
-  return buf ? `data:image/png;base64,${Buffer.from(buf).toString('base64')}` : null;
+function mono(extra) {
+  return { display: 'flex', fontFamily: MONO, fontWeight: 400, ...(extra || {}) };
 }
 
-function textImage(msg, fonts, sans) {
+function textImage(msg) {
   return new ImageResponse(
     (
-      <div style={{ width: SZ, height: SZ, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, textAlign: 'center' }}>
+      <div style={{ width: SZ, height: SZ, background: D.ground, color: D.ink, fontFamily: SANS, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 80, textAlign: 'center' }}>
         <div style={{ display: 'flex', fontSize: 40, fontWeight: 800 }}>{msg}</div>
       </div>
     ),
-    { width: SZ, height: SZ, fonts }
+    { width: SZ, height: SZ, fonts: stageFonts() }
+  );
+}
+
+/**
+ * THE DRAWING, as a pure function of plain data. Split out from GET so the card
+ * can be rendered and looked at without a database or a live slate: everything
+ * above this line loads data, everything below only draws.
+ *
+ * d = { iqToday, gameCount, gamesPlayed, dayLabel, rows: [{label, value, sub,
+ *       accent}], url }
+ */
+export function dayCardElement(d) {
+  const gameCount = Math.max(0, Number(d.gameCount) || 0);
+  const played = Math.max(0, Math.min(gameCount, Number(d.gamesPlayed) || 0));
+  // A cleared slate is the one thing on this card that is not the accent: the
+  // figure and the footer instruction go to D.good, and the band stays sky so
+  // the card is still recognisably the same object.
+  const full = gameCount > 0 && played >= gameCount;
+  const hero = full ? D.good : ACCENT;
+  const rungs = [];
+  for (let i = 0; i < gameCount; i += 1) rungs.push(i < played);
+
+  return (
+    <div style={{ width: SZ, height: SZ, background: D.ground, color: D.ink, fontFamily: SANS, display: 'flex', flexDirection: 'column' }}>
+      {/* the band */}
+      <div style={{ display: 'flex', width: SZ, height: 14, background: ACCENT, flex: 'none' }} />
+
+      <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, justifyContent: 'space-between', padding: '48px 56px 44px' }}>
+        {/* the cap */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src={markURI(ACCENT)} width={46} height={46} alt="" />
+            <div style={{ display: 'flex', alignItems: 'center', fontSize: 32, fontWeight: 800, letterSpacing: '-0.3px', marginLeft: 14 }}>
+              <span style={{ display: 'flex' }}>Mind</span>
+              <span style={{ display: 'flex', color: ACCENT, marginLeft: 11 }}>Loft</span>
+            </div>
+          </div>
+          <span style={mono({ fontSize: 22, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.mute })}>
+            {d.dayLabel ? `Daily slate · ${d.dayLabel}` : 'Daily slate'}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {/* the hero figure */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ display: 'flex', fontWeight: 800, fontSize: 196, letterSpacing: '-0.055em', lineHeight: 1, color: hero }}>
+              {`+${Number(d.iqToday || 0).toLocaleString()}`}
+            </span>
+            <span style={mono({ fontSize: 24, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.mute, marginTop: 8 })}>IQ points today</span>
+          </div>
+
+          {/* the slate, as a ladder. A slate the route could not read has no
+              rungs to draw, so the block goes rather than leaving a bare band. */}
+          {gameCount > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 22 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+              <span style={mono({ fontSize: 20, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.mute })}>Today&apos;s slate</span>
+              <div style={mono({ fontSize: 26, color: D.ink })}>
+                <span style={{ display: 'flex' }}>{String(played)}</span>
+                <span style={{ display: 'flex', color: D.mute2, marginLeft: 9 }}>/</span>
+                <span style={{ display: 'flex', color: D.mute2, marginLeft: 9 }}>{String(gameCount)}</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'flex-end', height: 72, marginTop: 16 }}>
+              {rungs.map((lit, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex', flex: '1 1 0', minWidth: 2, marginLeft: i ? 3 : 0,
+                    height: lit ? '100%' : '34%', borderRadius: 3,
+                    background: lit ? ACCENT : D.line,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          ) : null}
+
+          {/* the four figures */}
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 18 }}>
+            {(d.rows || []).map((row, i) => (
+              <div
+                key={row.label}
+                style={{
+                  display: 'flex', alignItems: 'baseline',
+                  background: D.surf, border: `1px solid ${D.line}`,
+                  borderLeft: `8px solid ${row.accent ? ACCENT : D.line2}`,
+                  borderRadius: 18, padding: '16px 28px', marginTop: i ? 8 : 0,
+                }}
+              >
+                <span style={{ display: 'flex', flex: 'none', width: 250, fontFamily: MONO, fontWeight: 400, fontSize: 19, letterSpacing: '0.16em', textTransform: 'uppercase', color: D.mute2 }}>{row.label}</span>
+                <span style={{ display: 'flex', fontWeight: 800, fontSize: 46, letterSpacing: '-0.02em' }}>{row.value}</span>
+                {row.sub ? <span style={{ display: 'flex', fontWeight: 600, fontSize: 24, color: D.ink2, marginLeft: 14 }}>{row.sub}</span> : null}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* the footer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${D.line}`, paddingTop: 24 }}>
+          <span style={mono({ fontSize: 22, letterSpacing: '0.04em', color: D.ink2 })}>{d.url}</span>
+          <span style={mono({ fontSize: 20, letterSpacing: '0.16em', textTransform: 'uppercase', color: hero })}>Beat my score</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -76,23 +194,6 @@ export async function GET(request) {
   const anonId = (searchParams.get('anonId') || '').trim() || null;
   const email = (searchParams.get('email') || '').trim() || null;
   const date = (searchParams.get('date') || '').trim() || null;
-
-  const [f800, f600, f500, bEmpty, bBlue, bGreen] = await Promise.all([
-    loadBin('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-800-normal.woff'),
-    loadBin('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-600-normal.woff'),
-    loadBin('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-500-normal.woff'),
-    loadBin(`${origin}/day-card/brain-empty.png`),
-    loadBin(`${origin}/day-card/brain-blue.png`),
-    loadBin(`${origin}/day-card/brain-green.png`),
-  ]);
-  const fonts = [];
-  if (f800) fonts.push({ name: 'Manrope', data: f800, weight: 800, style: 'normal' });
-  if (f600) fonts.push({ name: 'Manrope', data: f600, weight: 600, style: 'normal' });
-  if (f500) fonts.push({ name: 'Manrope', data: f500, weight: 500, style: 'normal' });
-  const sans = f800 ? 'Manrope' : 'sans-serif';
-  const imgEmpty = dataUri(bEmpty);
-  const imgBlue = dataUri(bBlue);
-  const imgGreen = dataUri(bGreen);
 
   // --- the day's slate: games played, combined rank, best finish -------------
   let daily = null;
@@ -145,76 +246,27 @@ export async function GET(request) {
     }
   } catch (e) { /* the card still renders without the IQ figures */ }
 
-  if (!gamesPlayed && !iqToday) return textImage('No games played yet today', fonts, sans);
-
-  const full = gameCount > 0 && gamesPlayed >= gameCount;
-  const frac = gameCount > 0 ? Math.max(0, Math.min(1, gamesPlayed / gameCount)) : 0;
-  const fillH = Math.round(BRAIN_H * frac);
-  const fillImg = full ? imgGreen : imgBlue;
-  const hero = full ? PAL.green : PAL.blue;
-  const dayLabel = prettyDay((daily && daily.date) || date || '');
-
-  const tile = (label, value, sub, accent) => (
-    <div style={{ display: 'flex', flexDirection: 'column', background: accent ? PAL.goldBg : PAL.cell, borderRadius: 20, padding: '20px 24px 22px' }}>
-      <div style={{ display: 'flex', fontWeight: 800, fontSize: 20, letterSpacing: '0.14em', textTransform: 'uppercase', color: accent ? PAL.gold : PAL.soft }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'baseline', marginTop: 8 }}>
-        <span style={{ display: 'flex', fontWeight: 800, fontSize: 46, letterSpacing: '-0.02em' }}>{value}</span>
-        {sub ? <span style={{ display: 'flex', fontWeight: 600, fontSize: 22, color: PAL.slate, marginLeft: 12 }}>{sub}</span> : null}
-      </div>
-    </div>
-  );
+  if (!gamesPlayed && !iqToday) return textImage('No games played yet today');
 
   try {
     return new ImageResponse(
-      (
-        <div style={{ width: SZ, height: SZ, background: PAL.bg, color: PAL.text, fontFamily: sans, display: 'flex', flexDirection: 'column', padding: '54px 60px 44px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 30, letterSpacing: '0.14em', textTransform: 'uppercase', color: PAL.navy }}>Mind Loft</span>
-            <span style={{ display: 'flex', fontWeight: 600, fontSize: 24, color: PAL.slate }}>{dayLabel ? `Daily slate · ${dayLabel}` : 'Daily slate'}</span>
-          </div>
-
-          <div style={{ display: 'flex', flexGrow: 1, alignItems: 'center', marginTop: 26 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 460 }}>
-              {imgEmpty ? (
-                <div style={{ display: 'flex', position: 'relative', width: BRAIN_W, height: BRAIN_H }}>
-                  <img src={imgEmpty} width={BRAIN_W} height={BRAIN_H} alt="" />
-                  {fillH > 0 && fillImg ? (
-                    <div style={{ display: 'flex', position: 'absolute', left: 0, bottom: 0, width: BRAIN_W, height: fillH, overflow: 'hidden', alignItems: 'flex-end' }}>
-                      <img src={fillImg} width={BRAIN_W} height={BRAIN_H} alt="" />
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', width: BRAIN_W, height: BRAIN_H, background: PAL.cell, borderRadius: 30, alignItems: 'flex-end' }}>
-                  <div style={{ display: 'flex', width: BRAIN_W, height: fillH, background: hero, borderRadius: 30 }} />
-                </div>
-              )}
-              <span style={{ display: 'flex', fontWeight: 800, fontSize: 118, letterSpacing: '-0.03em', lineHeight: 1, color: hero, marginTop: 18 }}>
-                {`+${Number(iqToday || 0).toLocaleString()}`}
-              </span>
-              <span style={{ display: 'flex', fontWeight: 800, fontSize: 22, letterSpacing: '0.16em', textTransform: 'uppercase', color: PAL.slate, marginTop: 12 }}>IQ points today</span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, marginLeft: 34 }}>
-              {tile('Games played', String(gamesPlayed), gameCount ? `of ${gameCount} today` : '', false)}
-              <div style={{ display: 'flex', height: 14 }} />
-              {tile('Daily rank', dailyRank ? `#${Number(dailyRank).toLocaleString()}` : '—', dailyField ? `of ${Number(dailyField).toLocaleString()} players` : '', false)}
-              <div style={{ display: 'flex', height: 14 }} />
-              {tile('Best finish', bestRank ? `#${bestRank}` : '—', bestKey ? `in ${dailyGameName(bestKey)}` : '', false)}
-              <div style={{ display: 'flex', height: 14 }} />
-              {tile('Global IQ', iqRank ? `#${Number(iqRank).toLocaleString()}` : '—', iqTotal ? `of ${Number(iqTotal).toLocaleString()}` : '', true)}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: `1px solid ${PAL.line}`, paddingTop: 26, marginTop: 10 }}>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 28, color: PAL.navy }}>{SHARE_HOST}</span>
-            <span style={{ display: 'flex', fontWeight: 800, fontSize: 24, color: '#ffffff', background: hero, borderRadius: 12, padding: '12px 22px' }}>Beat my score</span>
-          </div>
-        </div>
-      ),
-      { width: SZ, height: SZ, fonts, headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
+      dayCardElement({
+        iqToday,
+        gameCount,
+        gamesPlayed,
+        dayLabel: prettyDay((daily && daily.date) || date || ''),
+        rows: [
+          { label: 'Games played', value: String(gamesPlayed), sub: gameCount ? `of ${gameCount} today` : '' },
+          { label: 'Daily rank', value: dailyRank ? `#${Number(dailyRank).toLocaleString()}` : '—', sub: dailyField ? `of ${Number(dailyField).toLocaleString()} players` : '' },
+          { label: 'Best finish', value: bestRank ? `#${bestRank}` : '—', sub: bestKey ? `in ${dailyGameName(bestKey)}` : '' },
+          // The one accented rule on the card: the figure that is not about today.
+          { label: 'Global IQ', value: iqRank ? `#${Number(iqRank).toLocaleString()}` : '—', sub: iqTotal ? `of ${Number(iqTotal).toLocaleString()}` : '', accent: true },
+        ],
+        url: `${SHARE_HOST}/daily`,
+      }),
+      { width: SZ, height: SZ, fonts: stageFonts(), headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' } }
     );
   } catch (e) {
-    return textImage('Mind Loft', fonts, sans);
+    return textImage('Mind Loft');
   }
 }

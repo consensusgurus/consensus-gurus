@@ -1,10 +1,10 @@
-import { renderGauntletCard, renderQuizCard } from '@/lib/og-brand-card';
+import { renderGauntletCard, renderQuizCard } from '@/lib/og-stage-cards';
 import { circuitById } from '@/lib/circuits';
 import { gauntletBanks, gauntletCardProps, etTodayServer } from '../gauntlet-card';
 
 export const runtime = 'nodejs';
 export const alt = 'The Trivia Gauntlet: every daily trivia quiz played back to back, one life in each, from Mind Loft';
-export { size, contentType } from '@/lib/og-brand-card';
+export { size, contentType } from '@/lib/og-stage-cards';
 
 // THE RUN'S OWN SHARE CARD. Without it this page inherited the root layout's
 // card, so a link to the run shared as the generic site image over the site's
@@ -38,11 +38,12 @@ export default async function Image({ params }) {
   // an empty ladder.
   if (!banks.length) {
     return renderQuizCard({
+      id: 'circuits/' + id,
       category: 'Trivia',
       title: `The ${(c && c.name) || 'Run'} circuit`,
       blurb: 'Every quiz in the circuit, played back to back as one long run.',
     });
   }
 
-  return renderGauntletCard(gauntletCardProps(c, banks));
+  return renderGauntletCard({ ...gauntletCardProps(c, banks), id });
 }

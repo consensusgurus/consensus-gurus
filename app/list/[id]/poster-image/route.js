@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { ImageResponse } from 'next/og';
 import { LISTS } from '@/lib/data';
 import { SITE_HOST } from '@/lib/site';
@@ -77,12 +79,17 @@ function heroSrcFor(list, item) {
   return typeof entry === 'string' ? entry : entry.src;
 }
 
-async function loadFont(url) {
+// Fonts come off disk, not the network (2026-09-04). This route used to fetch
+// three Manrope weights from jsdelivr on every render, inside an image route,
+// and Satori throws "No fonts are loaded" the moment that fetch fails, so one
+// CDN hiccup turned the poster into a 500 rather than into a slightly wrong
+// weight. @fontsource/manrope is a dependency; read it.
+function loadFont(rel) {
   try {
-    const res = await fetch(url);
-    if (res.ok) return await res.arrayBuffer();
-  } catch (e) { /* fall through */ }
-  return null;
+    return fs.readFileSync(path.join(process.cwd(), 'node_modules', rel));
+  } catch (e) {
+    return null;
+  }
 }
 
 // Pre-fetch a hero image URL from the Edge runtime with a tight timeout, and
@@ -234,9 +241,9 @@ export async function GET(request, { params }) {
     : '';
 
   const [sans900, sans600, mono500] = await Promise.all([
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-800-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-600-normal.woff'),
-    loadFont('https://cdn.jsdelivr.net/npm/@fontsource/manrope@5/files/manrope-latin-500-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-800-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-600-normal.woff'),
+    loadFont('@fontsource/manrope/files/manrope-latin-500-normal.woff'),
   ]);
   const fonts = [];
   if (sans900) fonts.push({ name: 'Manrope', data: sans900, weight: 800, style: 'normal' });

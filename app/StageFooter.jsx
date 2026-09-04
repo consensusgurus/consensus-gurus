@@ -71,7 +71,7 @@ export default function StageFooter({ visitors: given }) {
             <MindLoftMark size={19} ink="var(--stg-ink)" accent="var(--stg-brand,#7dd3fc)" />
             <b>Mind <em>Loft</em></b>
           </span>
-          <p>Elevate your thinking: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.</p>
+          <p>Sharpen your mind: daily puzzles, quizzes, and consensus Top 10 Lists for everything worth knowing.</p>
           <a className="stgf-about" href="/about">About Mind Loft</a>
           {visitors != null ? (
             <div className="stgf-vis">{visitors.toLocaleString()}<i>visitors</i></div>

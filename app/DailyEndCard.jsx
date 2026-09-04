@@ -357,13 +357,13 @@ const REVEAL_CAP_MS = 3000; // hard cap: pop even if data is slow (usually pops 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-// The IQ hero's brain art, shared with the downloadable day card
-// (/api/quiz/day-card) so the two read as the same object. 640x576 source.
+// The IQ hero's brain art. 640x576 source. It used to be shared with the
+// downloadable day card; that card's meter is a flex ladder now, so this art is
+// the end card's and QuizStandings' alone.
 // The unfilled state of the meter. Deliberately an OUTLINED brain (stroke +
 // interior detail lines, same silhouette as the filled art so the meter lines
 // up), not the solid silhouette faded down: at 20% opacity that art read as an
-// unrecognizable blob on the navy panel (owner 2026-08-01). brain-empty.png is
-// still used by the shareable day card.
+// unrecognizable blob on the navy panel (owner 2026-08-01).
 const BRAIN_EMPTY = '/day-card/brain-outline.png';
 const BRAIN_BLUE = '/day-card/brain-blue.png';
 const BRAIN_GREEN = '/day-card/brain-green.png';

@@ -460,7 +460,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
             <MindLoftMark size={30} ink="#ffffff" accent="#7dd3fc" />
             <span className="qchm-wm">Mind <em>Loft</em></span>
           </Link>
-          <span className="qchm-tag">Elevate Your Thinking</span>
+          <span className="qchm-tag">Sharpen Your Mind</span>
           <nav className="qchm-nav">
             {/* On the homepage Today IS this page and Quizzes is a scroll, so one
                 is marked active and the other is a button. On an inner surface
@@ -772,7 +772,7 @@ export default function QuizCommandHeader({ me, onSignup, ticker = [], variant =
       <div className={`qch-bar ${found ? 'is-user' : 'is-guest'}`} ref={barRef}>
         <Link href="/" className="qch-brandlogo" ref={logoRef} style={{ flex: 'none', display: 'flex' }} aria-label="Mind Loft home"><Logo size={30} /></Link>
         <Link href="/" className="qch-word"><span className="qch-wl">Mind <em>Loft</em></span><span className="qch-ws"><MindLoftMark size={32} /></span></Link>
-        <span className="qch-src">Elevate Your Thinking</span>
+        <span className="qch-src">Sharpen Your Mind</span>
         <button type="button" className="qch-searchbtn" ref={btnRef} onClick={focusListSearch} aria-label="Search quizzes"><SearchIcon /></button>
         <div className="qch-me">
           {found ? (

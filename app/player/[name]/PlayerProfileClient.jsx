@@ -1,36 +1,36 @@
 'use client';
-// The public player profile page (/player/<name>): header identity card,
-// trophy case, and the same category / IQ / activity views the Stat Hub's
-// Player tab renders, from the shared components in app/player/ProfileShared.
-// Data: /api/quiz/player?username=<name> (full profile + trophies + duels).
+// The public player profile (/player/<name>), on the Stage.
+//
+// Was: four pill tabs over white cards, with rank, IQ, level and streak each
+// behind a different pill. Now: cap, curtain, figures, bands — the shape the
+// finish card already uses, with nothing behind a click. The band bodies live
+// in app/player/ProfileStage.jsx; see its header for why that is a fork of
+// ProfileShared rather than an edit to it.
+//
+// Data is unchanged: /api/quiz/player?username=<name>.
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Share2, Trophy, ListChecks, FunctionSquare, Clock, BarChart3 } from 'lucide-react';
 import { QUIZZES } from '@/lib/quizzes';
-import { quizDept as deptOf, DEPT_COLOR, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
-import QuizNavHeader from '../../quizzes/QuizNavHeader';
-import Grain from '../../Grain';
-import Footer from '../../Footer';
+import MindLoftMark from '../../MindLoftMark';
+import StageFooter from '../../StageFooter';
 import { notifyShareCredit } from '../../ShareCreditPop';
+import { useStageTheme } from '@/lib/stage-theme';
+import { crownCategory, crownAccent } from '@/lib/crown';
 import {
-  C, FONT, Avatar, RankChip, TrophyCase, CategoryView, ActivityFeed, XpPanel, profileCss,
-} from '../ProfileShared';
-import { T } from '@/lib/theme';
+  Band, Figs, Curtain, Standing, Trophies, Categories, Activity, GameLog, profileStageCss,
+} from '../ProfileStage';
 
 function cleanTitle(t) { return (t || '').replace(/^Name (the )?/i, '').trim(); }
-function getIdentity() { if (typeof window === 'undefined') return null; try { return JSON.parse(localStorage.getItem('sot_quiz_identity')); } catch (e) { return null; } }
-
-const PILLS = [
-  ['trophies', 'Trophies', Trophy],
-  ['category', 'Categories', ListChecks],
-  ['rating', 'IQ & Level', FunctionSquare],
-  ['activity', 'Activity', Clock],
-];
+function getIdentity() {
+  if (typeof window === 'undefined') return null;
+  try { return JSON.parse(localStorage.getItem('sot_quiz_identity')); } catch (e) { return null; }
+}
 
 export default function PlayerProfileClient({ name }) {
   const [prof, setProf] = useState(null);
-  const [pview, setPview] = useState('trophies');
   const [copied, setCopied] = useState(false);
+  const [stageTheme, setStageTheme] = useStageTheme();
+  const light = stageTheme === 'light';
 
   useEffect(() => {
     if (!name) { setProf({ found: false }); return undefined; }
@@ -47,117 +47,158 @@ export default function PlayerProfileClient({ name }) {
     return !!(id && id.username && name && id.username.toLowerCase() === name.toLowerCase());
   }, [name]);
 
-  const catalog = useMemo(() => (QUIZZES || []).filter((q) => q && q.id).map((q) => ({
-    id: q.id, title: q.navTitle || cleanTitle(q.title) || q.id, dept: deptOf(q),
-  })), []);
-  const titleById = useMemo(() => Object.fromEntries(catalog.map((q) => [q.id, q.title])), [catalog]);
-  const cats = useMemo(() => {
-    const byDept = new Map();
-    for (const q of catalog) { if (!byDept.has(q.dept)) byDept.set(q.dept, []); byDept.get(q.dept).push(q); }
-    const list = [];
-    for (const { id } of DEPT_NAV) if (byDept.has(id)) list.push(id);
-    for (const k of byDept.keys()) if (!list.includes(k)) list.push(k);
-    return list.map((key) => ({ key, label: DEPT_LABEL[key] || 'Quiz', c: (DEPT_COLOR[key] || DEPT_COLOR.misc).c, count: byDept.get(key).length }))
-      .sort((a, b) => b.count - a.count);
-  }, [catalog]);
+  const titleById = useMemo(() => Object.fromEntries(
+    (QUIZZES || []).filter((q) => q && q.id).map((q) => [q.id, q.navTitle || cleanTitle(q.title) || q.id]),
+  ), []);
 
   const found = prof && prof.found;
   const loading = prof == null;
-  // First played = the oldest game in the (full) history.
+  const recent = found && Array.isArray(prof.recent) ? prof.recent : [];
+
+  // ONE COLOUR: the crown category, the same function the share card calls, so
+  // the card and this page can never disagree about a player's colour.
+  const crown = useMemo(() => (found ? crownCategory(recent) : null), [found, recent]);
+  const accent = useMemo(() => crownAccent(crown), [crown]);
+
   const memberSince = useMemo(() => {
-    if (!found || !Array.isArray(prof.recent) || !prof.recent.length) return null;
-    const oldest = prof.recent[prof.recent.length - 1];
+    if (!recent.length) return null;
+    const oldest = recent[recent.length - 1];
     if (!oldest || !oldest.createdAt) return null;
     try { return new Date(oldest.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); } catch (e) { return null; }
-  }, [prof, found]);
+  }, [recent]);
 
   const trophies = found ? prof.trophies : null;
-  const tierBg = found && prof.tierBg ? prof.tierBg : T.paper;
-  const tierFg = found && prof.tierFg ? prof.tierFg : C.muted;
+  const act = (found && prof.activity) || {};
+  const prog = (found && prof.progress) || {};
+  const levelPct = prog.stepSize ? Math.round((prog.intoLevel / prog.stepSize) * 100) : 0;
 
   function share() {
-    const url = typeof window !== 'undefined' ? window.location.origin + `/player/${encodeURIComponent(name)}` : '';
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/player/${encodeURIComponent(name)}` : '';
     const line = found
       ? `${mine ? 'My' : `${prof.name}'s`} Mind Loft player card: Level ${prof.level || 1}, ${(prof.xp || 0).toLocaleString()} IQ, rank #${prof.rank || '?'}${trophies ? `, ${trophies.earnedCount} trophies` : ''}.`
       : `Mind Loft player profile: ${name}`;
     if (!notifyShareCredit(line, url)) {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        navigator.clipboard.writeText(`${line} ${url}`).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); }).catch(() => {});
+        navigator.clipboard.writeText(`${line} ${url}`)
+          .then(() => { setCopied(true); setTimeout(() => setCopied(false), 1600); })
+          .catch(() => {});
       }
     }
   }
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', position: 'relative' }}>
-      <Grain />
-      <style>{profileCss}</style>
-      <QuizNavHeader />
-      <div className="qzhub qzf-w" style={{ maxWidth: 1180, margin: '0 auto', padding: '12px 38px 70px', position: 'relative', fontFamily: FONT }}>
-        <div style={{ marginTop: 6 }}>
-          <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: C.muted, textDecoration: 'none', fontSize: 13 }}><ArrowLeft size={15} /> Stat Hub</Link>
-        </div>
+    <div className="pf stage-page" data-stage-theme={stageTheme} style={accent.vars}>
+      <style>{profileStageCss}</style>
 
-        {loading ? (
-          <div className="card" style={{ marginTop: 14, padding: '30px 20px', fontSize: 13.5, color: C.soft, textAlign: 'center' }}>Loading player profile…</div>
-        ) : !found ? (
-          <div className="card" style={{ marginTop: 14, padding: '34px 22px', textAlign: 'center' }}>
-            <div style={{ fontSize: 19, fontWeight: 800 }}>No player named &ldquo;{name}&rdquo;</div>
-            <p style={{ fontSize: 13.5, color: C.muted, lineHeight: 1.6, margin: '10px auto 16px', maxWidth: 420 }}>Profiles exist for registered display names. The name may be spelled differently, or this player may not have claimed a name yet.</p>
-            <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, borderRadius: 10, padding: '11px 18px', fontWeight: 700, fontSize: 13.5, textDecoration: 'none' }}><BarChart3 size={15} /> Open the Stat Hub</Link>
-          </div>
-        ) : (
-          <>
-            <div className="card" style={{ marginTop: 14, padding: '18px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-                <Avatar name={prof.name} size={58} bg={tierBg} fg={tierFg} />
-                <div style={{ minWidth: 0, flex: '1 1 220px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{prof.name}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 800, background: tierBg, color: tierFg, borderRadius: 999, padding: '3px 9px', textTransform: 'uppercase', letterSpacing: '.03em' }}>{(prof.tier || 'Bronze Tier').replace(/ Tier$/, '')}</span>
-                    {mine ? <span style={{ fontSize: 10, fontWeight: 800, color: C.accent, background: C.accsoft, borderRadius: 999, padding: '3px 8px' }}>YOU</span> : null}
-                  </div>
-                  <div style={{ fontSize: 12.5, color: C.muted, fontWeight: 600, marginTop: 4 }}>
-                    Level {prof.level || 1} · {(prof.xp || 0).toLocaleString()} IQ
-                    {memberSince ? ` · Playing since ${memberSince}` : ''}
-                    {prof.activity ? ` · ${(prof.activity.daysPlayed || 0).toLocaleString()} days played` : ''}
-                  </div>
-                  {trophies ? (
-                    <div style={{ fontSize: 12.5, color: C.muted, fontWeight: 600, marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <Trophy size={13} style={{ color: '#a97b12' }} /> {trophies.earnedCount} of {trophies.total} trophies
-                    </div>
-                  ) : null}
-                </div>
-                <div style={{ textAlign: 'right', flex: 'none' }}>
-                  <div className="lbl">Overall rank</div>
-                  <div style={{ fontSize: 36, fontWeight: 800, color: C.accent, lineHeight: 1 }}>{prof.rank ? `#${prof.rank}` : '—'}</div>
-                  <div style={{ fontSize: 11, color: C.muted, fontWeight: 600 }}>{prof.totalPlayers ? `of ${prof.totalPlayers.toLocaleString()} players` : ''}</div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 'none' }}>
-                  <button onClick={share} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: C.accent, color: T.white, border: 'none', borderRadius: 10, padding: '10px 15px', fontFamily: FONT, fontWeight: 700, fontSize: 13, cursor: 'pointer' }}><Share2 size={14} /> {copied ? 'Copied!' : 'Share profile (for credit)'}</button>
-                  {mine ? <Link href="/quizzes/hub" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, border: `1px solid ${C.line}`, background: T.white, color: C.ink, borderRadius: 10, padding: '9px 15px', fontWeight: 700, fontSize: 12.5, textDecoration: 'none' }}><BarChart3 size={14} /> Open Stat Hub</Link> : null}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0 12px' }}>
-              {PILLS.map(([v, lbl, Ic]) => (
-                <button key={v} className={`pill${pview === v ? ' on' : ''}`} onClick={() => setPview(v)}><Ic size={14} /> {lbl}</button>
-              ))}
-            </div>
-
-            {pview === 'trophies' ? (
-              <TrophyCase trophies={trophies} viewing={!mine} />
-            ) : pview === 'category' ? (
-              <CategoryView me={prof} scope="all" cats={cats} totalQuizzes={catalog.length} viewing={!mine} />
-            ) : pview === 'rating' ? (
-              <XpPanel me={prof} titleById={titleById} viewing={!mine} />
-            ) : (
-              <ActivityFeed recent={prof.recent || []} titleById={titleById} viewing={!mine} />
-            )}
-          </>
-        )}
+      <div className="pf-cap">
+        <Link className="pf-brand" href="/" aria-label="Mind Loft home">
+          <MindLoftMark size={19} ink="var(--stg-ink,#e9edf4)" accent="var(--stg-acc,#7dd3fc)" />
+          <b>Mind <em>Loft</em></b>
+        </Link>
+        <span className="pf-id">
+          <i>
+            Player profile
+            {memberSince ? ` · playing since ${memberSince}` : ''}
+            {crown ? ` · ${crown}` : ''}
+          </i>
+          <h1>
+            <span>{found ? prof.name : name}</span>
+            {found && prof.tier ? <u>{prof.tier.replace(/ Tier$/, '')}</u> : null}
+          </h1>
+        </span>
+        {found && prof.rank ? (
+          <span className="pf-cx pf-rank">
+            #{prof.rank}{prof.totalPlayers ? ` of ${prof.totalPlayers.toLocaleString()}` : ''}
+          </span>
+        ) : null}
+        <button
+          type="button"
+          className="pf-cx"
+          style={found && prof.rank ? undefined : { marginLeft: 'auto' }}
+          onClick={() => setStageTheme(light ? 'dark' : 'light')}
+          aria-label={light ? 'Switch to dark' : 'Switch to light'}
+          title={light ? 'Switch to dark' : 'Switch to light'}
+        >
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true">
+            {light
+              ? <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />
+              : <><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" /></>}
+          </svg>
+        </button>
       </div>
-      <Footer />
+
+      {loading ? (
+        <div className="pf-wrap"><p className="pf-empty">Loading player profile…</p></div>
+      ) : !found ? (
+        <div className="pf-wrap">
+          <Band title="No such player">
+            <p className="pf-empty" style={{ maxWidth: '46ch', lineHeight: 1.6 }}>
+              There is no player named &ldquo;{name}&rdquo;. Profiles exist for registered display
+              names, so the spelling may differ, or this player may not have claimed a name yet.
+            </p>
+            <div className="pf-act" style={{ marginTop: 14 }}>
+              <Link className="pf-btn" href="/quizzes/hub">Open the Stat Hub</Link>
+              <Link className="pf-btn ghost" href="/daily">Play today&rsquo;s slate</Link>
+            </div>
+          </Band>
+        </div>
+      ) : (
+        <>
+          <Curtain
+            level={prof.level}
+            xp={prof.xp}
+            toNext={prog.toNext}
+            accuracy={act.accuracy != null ? act.accuracy : null}
+            pct={levelPct}
+          />
+
+          <div className="pf-fg">
+            <div><b>{(act.played || 0).toLocaleString()}</b><i>games</i></div>
+            <div><b>{(act.correct || 0).toLocaleString()}</b><i>correct</i></div>
+            <div><b>{(act.completed || 0).toLocaleString()}</b><i>perfect</i></div>
+            <div><b>{(act.daysPlayed || 0).toLocaleString()}</b><i>days played</i></div>
+            {trophies ? <div><b>{trophies.earnedCount}/{trophies.total}</b><i>trophies</i></div> : null}
+          </div>
+
+          <div className="pf-wrap">
+            <div className="pf-pair">
+              <Band title="Standing" count={prof.rank ? `#${prof.rank}` : null}>
+                <Standing
+                  recent={recent}
+                  rank={prof.rank}
+                  totalPlayers={prof.totalPlayers}
+                  ranks={prof.ranks}
+                  nextAt={prog.levelNext}
+                />
+              </Band>
+              <Band title="Trophy case" count={trophies ? `${trophies.earnedCount} of ${trophies.total}` : null}>
+                <Trophies trophies={trophies} />
+              </Band>
+            </div>
+
+            <Band title="Categories">
+              <Categories recent={recent} light={light} />
+            </Band>
+
+            <Band title="Activity" count={act.daysPlayed ? `${act.daysPlayed.toLocaleString()} days` : null}>
+              <Activity recent={recent} />
+            </Band>
+
+            <Band title="Game log" count={recent.length ? `${recent.length.toLocaleString()} on record` : null}>
+              <GameLog recent={recent} titleById={titleById} light={light} />
+            </Band>
+
+            <div className="pf-act">
+              <button type="button" className="pf-btn" onClick={share}>
+                {copied ? 'Copied' : 'Share this profile'}
+              </button>
+              <Link className="pf-btn ghost" href="/quizzes/hub">Open the Stat Hub</Link>
+            </div>
+          </div>
+        </>
+      )}
+
+      <StageFooter />
     </div>
   );
 }

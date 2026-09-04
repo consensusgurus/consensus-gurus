@@ -1,17 +1,24 @@
 import { getQuiz } from '@/lib/quizzes';
-import { renderQuizPromoCard, renderQuizQuestionCard } from '@/lib/og-brand-card';
-import { companyDomainForQuiz } from '@/lib/company-quiz-meta';
+import { renderQuizPromoCard } from '@/lib/og-stage-cards';
 
 export const runtime = 'nodejs';
 
-// Standalone promo image for a quiz (post as an image, not a link).
-// /quiz/<id>/share-image
+// The promo card, posted AS AN IMAGE with no link (better reach on X), so the
+// URL is printed on the card rather than carried by the post.
+//
+// This used to render renderQuizQuestionCard for company quizzes: the first
+// question plus its four choices, with the company's favicon fetched from
+// Google at render time. Both are gone. The favicon was a network round trip
+// inside an image route for a 60px decoration, and at the ~600px a timeline
+// actually renders, four 26px choice chips are unreadable — the whole card
+// spent on content that gives nothing away. The title, set large, does more.
 export async function GET(req, { params }) {
   const id = decodeURIComponent(params.id);
   const quiz = getQuiz(id);
-  if (!quiz) return renderQuizPromoCard({ title: 'Mind Loft Quiz', blurb: '', category: 'Quiz', id });
-  if (quiz.category === 'Business' && quiz.format === 'timed-mcq' && Array.isArray(quiz.questions) && quiz.questions.length) {
-    return renderQuizQuestionCard({ title: quiz.title, category: quiz.category, question: quiz.questions[0], qIndex: 1, total: quiz.questions.length, id, faviconDomain: companyDomainForQuiz(id) });
-  }
-  return renderQuizPromoCard({ title: quiz.title, blurb: quiz.blurb, category: quiz.category, id });
+  return renderQuizPromoCard({
+    id,
+    title: quiz ? quiz.title : 'Mind Loft Quiz',
+    blurb: quiz ? quiz.blurb : '',
+    category: quiz ? quiz.category : 'Quiz',
+  });
 }

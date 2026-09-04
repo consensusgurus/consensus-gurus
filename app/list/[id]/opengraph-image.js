@@ -1,4 +1,4 @@
-import { renderListCard } from '@/lib/og-brand-card'
+import { renderListCard } from '@/lib/og-stage-cards'
 import { LISTS } from '@/lib/data'
 
 export const runtime = 'nodejs';
@@ -141,12 +141,12 @@ function computeConsensus(list) {
 export default async function Image({ params }) {
   const list = LISTS.find(l => l.id === params.id)
   if (!list) {
-    return renderListCard({ title: 'Mind Loft', category: 'Mind Loft', previewItems: [], startPosition: 10, isUnranked: false })
+    return renderListCard({ id: params.id, title: 'Mind Loft', category: 'Mind Loft', previewItems: [], startPosition: 10, isUnranked: false })
   }
   const isUnranked = (list.mode || 'both') === 'unranked'
   const consensusItems = computeConsensus(list)
   const sliced = isUnranked ? consensusItems.slice(0, 5) : consensusItems.slice(5, 10)
   const previewItems = (isUnranked ? sliced : sliced.slice().reverse()).map(getItemName)
   const startPosition = isUnranked ? 5 : 5 + sliced.length
-  return renderListCard({ title: list.title, category: list.category || 'Top 10', previewItems, startPosition, isUnranked })
+  return renderListCard({ id: list.id, title: list.title, category: list.category || 'Top 10', previewItems, startPosition, isUnranked })
 }

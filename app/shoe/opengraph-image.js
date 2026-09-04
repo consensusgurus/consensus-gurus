@@ -1,11 +1,13 @@
-import { renderShoeCard } from '@/lib/og-brand-card'
+import { renderGameCard, gameCardAlt } from '@/lib/og-stage-cards'
 
 export const runtime = 'nodejs'
-export const alt = 'Shoe — the daily blackjack shoe from Mind Loft'
-export { size, contentType } from '@/lib/og-brand-card'
+export const alt = gameCardAlt('shoe')
+export { size, contentType } from '@/lib/og-stage-cards'
 
-// Static route (one shoe a day, same look): render the Shoe snapshot card
-// once. Satori draws it from a demo hand of its own so it never spoils today.
+// The card is a hue and a glyph off this game's row in lib/daily-games.js, so
+// there is nothing here to keep in step with the board. Every other game is
+// baked to public/og/ by scripts/bake-og.mjs and pointed at from page.js
+// metadata; these four kept live routes and can stay that way.
 export default async function Image() {
-  return renderShoeCard()
+  return renderGameCard('shoe')
 }
