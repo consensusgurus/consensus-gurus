@@ -2062,7 +2062,11 @@ ${PATCH_CSS}
 .sty-tag{font-size:13.5px;font-weight:600;opacity:.8;margin-top:3px;}
 .sty-go{margin-left:auto;flex:none;font-size:14px;font-weight:800;
   border:1.5px solid currentColor;border-radius:9px;padding:9px 18px;}
-.sty-next:hover .sty-go{background:currentColor;color:var(--cc);}
+/* THE INVERSION HAS TO NAME ITS OWN INK. Do NOT write background:currentColor
+   beside a color: in one rule: currentColor is the COMPUTED color, which that
+   same rule has already changed, so chip and card come out the same colour and
+   the control vanishes under the pointer. */
+.sty-next:hover .sty-go{background:var(--stg-onramp);color:var(--cc);border-color:var(--stg-onramp);}
 .sty-allin{cursor:default;}
 
 /* ── today's board ─────────────────────────────────────────────────────── */
@@ -2376,7 +2380,7 @@ ${PATCH_CSS}
 .sty-join .sty-eb{color:inherit;margin-bottom:5px;}
 .sty-join .sty-jn{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
 .sty-join .sty-tag{font-size:13.5px;font-weight:600;margin-top:4px;}
-.sty-join:hover .sty-go{background:currentColor;color:var(--stg-acc);}
+.sty-join:hover .sty-go{background:var(--stg-onramp);color:var(--stg-acc);border-color:var(--stg-onramp);}
 .sty-join:focus-visible{outline:2px solid currentColor;outline-offset:2px;}
 /* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. */
 .sty-pcat{display:block;font-family:${MONO};font-size:8.5px;font-weight:700;

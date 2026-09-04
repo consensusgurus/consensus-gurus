@@ -285,6 +285,27 @@ edit(
 `,
 );
 
+/* -- 5c. the CTA chip does not vanish under the pointer ------------------- */
+// `background:currentColor` alongside `color:var(--cc)` in the SAME rule paints
+// the chip in the card it sits on, so it disappears on hover. currentColor in
+// any property OTHER than color resolves to that element's COMPUTED color, and
+// the computed color here is whatever the same rule just set, so the fill, the
+// ink and the border all land on --cc. Measured on the Trivia step: all three
+// come back rgb(251,146,60) against a card of exactly that colour.
+//
+// The rule is original and predates this row -- it was written for the Up Next
+// card, and when that card came off nothing rendered .sty-next any more, so the
+// bug sat unseen until this row revived the object.
+edit(
+  'CTA chip hover',
+  '.sty-next:hover .sty-go{background:currentColor;color:var(--cc);}',
+  () => `/* THE INVERSION HAS TO NAME ITS OWN INK. Do NOT write background:currentColor
+   beside a color: in one rule: currentColor is the COMPUTED color, which that
+   same rule has already changed, so chip and card come out the same colour and
+   the control vanishes under the pointer. */
+.sty-next:hover .sty-go{background:var(--stg-onramp);color:var(--cc);border-color:var(--stg-onramp);}`,
+);
+
 /* ── 6. the slate heading sits closer to what it names ──────────────────── */
 // It is a LABEL for everything below it, not a peer of the sections, but as a
 // flex child of .sty-wrap it was spending a full inter-section gap (26px, 22 on
@@ -351,7 +372,7 @@ edit(
 .sty-join .sty-eb{color:inherit;margin-bottom:5px;}
 .sty-join .sty-jn{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1;}
 .sty-join .sty-tag{font-size:13.5px;font-weight:600;margin-top:4px;}
-.sty-join:hover .sty-go{background:currentColor;color:var(--stg-acc);}
+.sty-join:hover .sty-go{background:var(--stg-onramp);color:var(--stg-acc);border-color:var(--stg-onramp);}
 .sty-join:focus-visible{outline:2px solid currentColor;outline-offset:2px;}
 /* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. */
 .sty-pcat{display:block;font-family:\${MONO};font-size:8.5px;font-weight:700;
