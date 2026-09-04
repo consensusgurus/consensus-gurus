@@ -25,10 +25,11 @@ function edit(label, anchor, build) {
 }
 
 /* ── 1. the import ──────────────────────────────────────────────────────── */
-// categoryOnrampLight is the ink that carries ON a light-register step. The
-// Gauntlet bar is a filled control and Trivia is a WARM step, so it keeps its
-// value in the light register and flips its INK rather than darkening; without
-// this the bar paints white on orange at about 2:1.
+// categoryOnrampLight is the ink that carries ON a light-register step. Every
+// object in this row is a FILLED control, and a WARM step keeps its value in the
+// light register and flips its INK rather than darkening, so the ink has to be
+// resolved per category per register. Without it the light default is white,
+// which on the Trivia step is white on orange at about 2:1.
 edit(
   'import categoryOnrampLight',
   "import { RAMP_ORDER, categoryColor, categoryColorLight, RAMP_INK } from '@/lib/category-ramp';",
@@ -38,34 +39,58 @@ edit(
   ),
 );
 
+/* ── 1b. RUN_GAMES, the site's own name for the timed multiple-choice set ── */
+edit(
+  'import RUN_GAMES',
+  "import { DISPLAY_CIRCUITS, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';",
+  (a) => a.replace(
+    '{ DISPLAY_CIRCUITS,',
+    '{ DISPLAY_CIRCUITS, RUN_GAMES,',
+  ),
+);
+
 /* ── 2. the constants ───────────────────────────────────────────────────── */
 edit(
   'newcomer constants',
   "const CIRC_LEAD = ['gauntlet', 'five', 'sudoku'];\n",
   (a) => a + `
-// THE NEWCOMER'S ROW (owner, 2026-09-04). A reader with NO footprint at all
-// gets one row above everything else: the Trivia Gauntlet on the filled bar,
-// and the busiest daily in each of the ten categories under it as tiles.
+// THE NEWCOMER'S ROW (owner, 2026-09-04). A reader with NO footprint at all gets
+// one row above everything else: two circuits sharing a line, then the busiest
+// daily in each of the ten categories. EVERY object in it is FILLED with its
+// category step and carries that step's own ink, which is the treatment the
+// circuit CTA already had and which nothing else on this page wears. That is the
+// whole point of the row: a first-time reader meets ten colours that mean the
+// ten categories, and meets them before the page asks them to read anything.
 //
-// WHY THE GAUNTLET AND NOT THE BUSIEST GAME. It is already the site's lead --
-// CIRC_LEAD pins it first on the shelf below and /trivia pops its door for
-// exactly this visitor -- so the bar says one screen earlier what the page was
-// going to say anyway, and it answers the question a first-time reader actually
-// has, which is where to start. The ten tiles then say the site is far wider
-// than one run without asking anyone to choose between ten things they have
-// never heard of.
-const NEWCOMER_LEAD = 'gauntlet';
-// Its category, for the bar's hue and its ink. Fixed rather than read off the
-// circuit's lead game, because that membership needs the day and this bar has
-// to paint on the first frame it renders.
-const NEWCOMER_LEAD_CAT = 'Trivia';
+// WHY THESE TWO CIRCUITS. The Gauntlet is already the site's lead (CIRC_LEAD
+// pins it first on the shelf below and /trivia pops its door for exactly this
+// visitor) and the Five is the marquee. They are the two runs the rest of the
+// page leads with, said one screen earlier.
+const NEWCOMER_CIRCS = ['gauntlet', 'five'];
+
+// NO TILE MAY NAME A GAME THE GAUNTLET ALREADY HOLDS (owner, 2026-09-04).
+// RUN_GAMES is the site's own name for the seven one-life, twenty-second,
+// four-choice quizzes, and it is exactly the Gauntlet's roster, so reading it
+// rather than hand-listing keys keeps this correct when that roster next moves.
+// Two reasons the row skips them. The Gauntlet is already the first card on it,
+// so a tile naming one of its members says the same thing twice. And they are
+// structurally ONE game over seven banks, which is why they dominate their two
+// categories on plays alone (measured 2026-09-04: the six run-shaped Trivia
+// games took 26 to 41 plays and every other Trivia game 12 or fewer, and Atlas
+// took 35 against 12 to 15 for the rest of Geography). Ranking on the raw count
+// would therefore hand Trivia and Geography to the quiz shape every day and the
+// row would never show what else those two categories contain.
+//
+// Only Trivia and Geography are affected, since those are the only categories
+// RUN_GAMES draws from. A category left with nothing keeps its whole roster.
+const NEWCOMER_SKIP = new Set(RUN_GAMES);
 
 // THE EDITORIAL FLOOR (owner ruling, 2026-09-04). Today's plays are the real
-// ordering and they cost nothing, since board.games carries them already. But
-// at 6am ET every category is on single digits, so the ten picks would be noise
-// and eight of ten tiles would read "4 playing", which sells the row backwards.
-// So a category keeps its hand-picked default until its busiest game clears
-// NEWCOMER_FLOOR, and the crowd figure renders only above that line.
+// ordering and they cost nothing, since board.games carries them already. But at
+// 6am ET every category is on single digits, so the ten picks would be noise. A
+// category therefore keeps its hand-picked default until its busiest game clears
+// NEWCOMER_FLOOR. The COUNT itself is never printed (owner, same day): the floor
+// decides which game the tile names and nothing else.
 //
 // ONE KEY PER RAMP_ORDER CATEGORY. A key that has retired, or that has been
 // moved to another category, falls through to that category's first game rather
@@ -75,8 +100,9 @@ const NEWCOMER_PICKS = {
   Numbers: 'crunch',
   Logic: 'alibi',
   'End Game': 'mate',
-  Trivia: 'streak',
-  Geography: 'ping',
+  // Trivia and Geography name their busiest NON-run game, measured 2026-09-04.
+  Trivia: 'dating',
+  Geography: 'span',
   Cards: 'taire',
   'Crowd Psychology': 'feud',
   Arcade: 'sweep',
@@ -101,31 +127,46 @@ edit(
   // reader's own (a reader with no footprint has not ordered anything, and the
   // ramp is the order the categories are numbered in). The busiest daily in the
   // category once its leader has cleared the floor, the editorial default until
-  // then; \`crowd\` is null below the floor so no tile prints a figure that reads
-  // as an empty room. Costs no request: playsBy is already on the page.
+  // then. Costs no request: playsBy is already on the page.
   const newcomerPicks = useMemo(() => cats.map(({ cat, games }) => {
+    // The run-shaped quizzes come out FIRST, so they can win neither the count
+    // nor the fallback. A category they would empty keeps its whole roster.
+    const open = games.filter((g) => !NEWCOMER_SKIP.has(g.key));
+    const pool = open.length ? open : games;
     let best = null; let bn = -1;
-    for (const g of games) {
+    for (const g of pool) {
       const p = playsBy.get(g.key) || 0;
       if (p > bn) { bn = p; best = g; }
     }
-    if (best && bn >= NEWCOMER_FLOOR) return { cat, game: best, crowd: bn };
+    if (best && bn >= NEWCOMER_FLOOR) return { cat, game: best };
     const pick = DAILY_GAME_MAP[NEWCOMER_PICKS[cat]];
-    const ok = pick && pick.cat === cat && LIVE_KEYS.has(pick.key);
-    return { cat, game: ok ? pick : games[0], crowd: null };
+    const ok = pick && pick.cat === cat && LIVE_KEYS.has(pick.key) && !NEWCOMER_SKIP.has(pick.key);
+    return { cat, game: ok ? pick : pool[0] };
   }), [cats, playsBy]);
-
-  // The bar's copy comes from the circuit registry, so the name and the blurb
-  // cannot disagree with the shelf below. Static, so it paints on the first
-  // frame rather than waiting on the day.
-  const newcomerLead = useMemo(
-    () => DISPLAY_CIRCUITS.find((c) => c.id === NEWCOMER_LEAD) || null,
-    [],
-  );
 `,
 );
 
-/* ── 4. the JSX ─────────────────────────────────────────────────────────── */
+/* ── 4. the two circuit cards ───────────────────────────────────────────── */
+// Declared AFTER the circuits memo, not beside newcomerPicks: a useMemo body
+// runs during render, so reading \`circuits\` from above its own declaration is a
+// temporal dead zone, which has taken this page down before.
+edit(
+  'newcomerCircs memo',
+  '  }, [day, done, light, playsBy]);   // eslint-disable-line react-hooks/exhaustive-deps\n',
+  (a) => a + `
+  // THE TWO CIRCUITS ON THE NEWCOMER ROW, read out of the shelf's own memo so
+  // the name, the blurb and the hue cannot disagree with the shelf below, and so
+  // the Five's hue follows its rotating lead game rather than being guessed. It
+  // needs the day, so both cards arrive with the rest of the day's data; the ten
+  // tiles under them do not wait on it.
+  const newcomerCircs = useMemo(() => NEWCOMER_CIRCS
+    .map((id) => circuits.find((c) => c.id === id))
+    .filter((c) => c && c.games.length)
+    .map((c) => ({ ...c, cat: c.games[0].cat })), [circuits]);
+`,
+);
+
+/* ── 5. the JSX ─────────────────────────────────────────────────────────── */
 edit(
   'newcomer row JSX',
   '        <h2 className="sty-slate">Today&rsquo;s fresh slate of puzzles</h2>\n',
@@ -136,7 +177,11 @@ edit(
             save), and it is null until its effect runs. So the server and the
             first client paint render NOTHING and the row arrives after mount:
             a returning reader, who is the far commoner case, never sees it
-            flicker in and back out. */}
+            flicker in and back out.
+
+            EVERY CARD HERE IS FILLED, and each one publishes its own
+            --stg-onramp, because the ink that carries on a step is a property of
+            the STEP and of the register, not of the page. */}
         {returning === false ? (
           <section className="sty-cat sty-new sty-rev" style={{ '--cc': 'var(--stg-ink2)' }}>
             <div className="sty-cathead">
@@ -144,32 +189,34 @@ edit(
               <b>{newcomerPicks.length}<i>&nbsp;categories</i></b>
             </div>
             <div className="sty-one">
-              {/* THE ONE FILLED CONTROL on this page, as Up Next was. A WARM
-                  ramp step keeps its value on the light register and flips its
-                  ink, so --stg-onramp is published here per register rather
-                  than left to the light default, which is white. */}
-              {newcomerLead ? (
-                <a className="sty-next" href={withTq(circuitEntryHref(newcomerLead.id))}
-                  style={{
-                    '--cc': hueFor(NEWCOMER_LEAD_CAT),
-                    '--stg-onramp': light ? categoryOnrampLight(NEWCOMER_LEAD_CAT) : RAMP_INK,
-                  }}>
-                  <div className="sty-newl">
-                    <div className="sty-eb">Start here &middot; Circuit</div>
-                    <div className="sty-nm">{newcomerLead.name}</div>
-                    {newcomerLead.blurb ? <div className="sty-tag">{newcomerLead.blurb}</div> : null}
-                  </div>
-                  <span className="sty-go">Play</span>
-                </a>
+              {newcomerCircs.length ? (
+                <div className="sty-two">
+                  {newcomerCircs.map((c) => (
+                    <a key={c.id} className="sty-next" href={withTq(circuitEntryHref(c.id))}
+                      style={{
+                        '--cc': c.hue,
+                        '--stg-onramp': light ? categoryOnrampLight(c.cat) : RAMP_INK,
+                      }}>
+                      <div className="sty-newl">
+                        <div className="sty-eb">Circuit</div>
+                        <div className="sty-nm">{c.name}</div>
+                        {c.blurb ? <div className="sty-tag">{c.blurb}</div> : null}
+                      </div>
+                      <span className="sty-go">Play</span>
+                    </a>
+                  ))}
+                </div>
               ) : null}
               <div className="sty-pop">
-                {newcomerPicks.map(({ cat, game, crowd }) => (
+                {newcomerPicks.map(({ cat, game }) => (
                   <a key={cat} className="sty-g" href={\`\${routeOf(game)}\${tq ? '?' + tq.slice(1) : ''}\`}
-                    style={{ '--cc': hueFor(cat) }}>
+                    style={{
+                      '--cc': hueFor(cat),
+                      '--stg-onramp': light ? categoryOnrampLight(cat) : RAMP_INK,
+                    }}>
                     <span className="sty-pcat">{cat}</span>
                     <span className="sty-gn"><Glyph k={game.key} size={17} />{game.name}</span>
                     <span className="sty-gt">{game.tag}</span>
-                    {crowd ? <span className="sty-pn">{crowd.toLocaleString()} playing</span> : null}
                   </a>
                 ))}
               </div>
@@ -179,7 +226,24 @@ edit(
 `,
 );
 
-/* ── 5. the stylesheet ──────────────────────────────────────────────────── */
+/* ── 6. the slate heading sits closer to what it names ──────────────────── */
+// It is a LABEL for everything below it, not a peer of the sections, but as a
+// flex child of .sty-wrap it was spending a full inter-section gap (26px, 22 on
+// a phone) PLUS its own 14px bottom margin: 40px of air under a one-line
+// heading. The negative margin gives most of that gap back, landing on 14px and
+// 10px, which is what a .sty-cathead already sits above its own grid.
+edit(
+  'slate heading gap',
+  '.sty-slate{margin:4px 0 14px;',
+  () => `/* A LABEL, NOT A PEER. .sty-wrap is a flex column with a 26px gap (22 on a
+   phone), so this heading was spending a whole section gap plus its own margin,
+   40px of air under one line of type. The negative bottom margin hands most of
+   that back: 14px here and 10px on a phone, the same distance a category head
+   already sits above its own grid. */
+.sty-slate{margin:4px 0 -12px;`,
+);
+
+/* ── 7. the stylesheet ──────────────────────────────────────────────────── */
 // NO APOSTROPHES and NO BACKTICKS in this block: it is a text child of a style
 // element (React escapes them) inside a JS template literal.
 edit(
@@ -187,38 +251,49 @@ edit(
   '@media (max-width:380px){\n  .sty-figs{gap:12px;}\n}\n',
   (a) => a + `
 /* -- the newcomer row ---------------------------------------------------- */
-/* The bar and the tiles are one stack, so the shelf below keeps the wrap gap
-   it has rather than the row spending two of them. */
+/* The circuits and the tiles are one stack, so the shelf below keeps the wrap
+   gap it has rather than the row spending two of them. */
 .sty-one{display:flex;flex-direction:column;gap:9px;}
+/* TWO CIRCUITS SHARE A LINE, and the line breaks itself: auto-fit against a
+   300px floor gives two across on a desktop and one on a phone with no media
+   query to keep in step with the others. */
+.sty-two{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));}
+/* Half the width takes the name down a step. The bar was written as the one
+   full-width control on the page. */
+.sty-two .sty-nm{font-size:21px;}
+.sty-newl{min-width:0;}
+/* NO OPACITY ON A FILLED CARD. Its two quiet lines inherit the fill ink and then
+   dim it, which on this ground composites TOWARD the fill: measured on the
+   Trivia step the eyebrow lands at 3.85:1 and the blurb at 4.47, both under the
+   4.5 they owe at their sizes. Hierarchy comes from size and weight, which is
+   the same ruling the category bands carry. */
+.sty-new .sty-next .sty-eb,.sty-new .sty-next .sty-tag{opacity:1;}
 /* The same 184px track the category shelves deal on, so the tiles line up with
    the rows underneath instead of forming a second grid. */
 .sty-pop{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(184px,1fr));}
-/* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. In the
-   category hue, because the tile is standing in for that whole shelf and the
-   glyph is the only other thing on it wearing the colour. */
+/* THE TILES ARE INVERTED (owner, 2026-09-04): the category step is the FILL
+   rather than a hairline and a glyph, and everything on the tile takes that
+   ink that step carries. Elsewhere on this page a hue is an edge; here it is
+   the subject, because the row exists to say what the ten categories ARE. */
+.sty-new .sty-pop .sty-g{background:var(--cc);border-color:transparent;color:var(--stg-onramp);}
+.sty-new .sty-pop .sty-gi,.sty-new .sty-pop .sty-pcat,.sty-new .sty-pop .sty-gt{color:currentColor;}
+/* A border cannot mark a hover on a card whose border is its own fill, so the
+   ring goes inside and is drawn in the ink the tile already carries. */
+.sty-new .sty-pop .sty-g:hover{border-color:transparent;box-shadow:inset 0 0 0 2px currentColor;}
+/* And the focus ring cannot be --cc here either: that is the fill it would be
+   drawn on top of. */
+.sty-new .sty-pop .sty-g:focus-visible,.sty-new .sty-two .sty-next:focus-visible{
+  outline:2px solid currentColor;outline-offset:2px;}
+/* ONE LINE IS ALL THE ROW ADDS TO A TILE: which category it speaks for. */
 .sty-pcat{display:block;font-family:\${MONO};font-size:8.5px;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--cc);margin-bottom:4px;
+  letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* ON A PALE GROUND A CATEGORY HUE IS A RULE, NOT INK: the warm steps are around
-   2:1 as text on white, so the light register deepens the hue rather than
-   dropping it, exactly as the circuit count does. */
-[data-stage-theme=light] .sty-pcat{color:color-mix(in srgb, var(--cc) 70%, #0b0d12);}
-/* The crowd figure, and it renders only above NEWCOMER_FLOOR. */
-.sty-pn{display:block;font-family:\${MONO};font-size:10px;font-weight:700;
-  font-variant-numeric:tabular-nums;color:var(--stg-mute);margin-top:5px;}
-.sty-newl{min-width:0;}
-/* NO OPACITY ON THE FILLED BAR. Its two quiet lines inherit the fill ink and
-   then dim it, which on this ground composites TOWARD the fill: measured on the
-   Trivia step, the eyebrow lands at 3.85:1 and the blurb at 4.47, both under
-   the 4.5 they owe at 9.5px and 13.5px. Same ruling the category bands carry --
-   hierarchy comes from size and weight, never from opacity. */
-.sty-new .sty-next .sty-eb,.sty-new .sty-next .sty-tag{opacity:1;}
 @media (max-width:560px){
   .sty-pop{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
-  /* A 26px name, a blurb and a button do not share a 390px line, so the bar
+  /* A name, a blurb and a button do not share a 390px line, so a circuit card
      stacks and the control keeps the left edge the copy above it has. */
   .sty-next{flex-direction:column;align-items:flex-start;}
-  .sty-next .sty-nm{font-size:22px;}
+  .sty-two .sty-nm{font-size:19px;}
   .sty-next .sty-go{margin-left:0;}
 }
 `,
