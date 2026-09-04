@@ -99,6 +99,7 @@ import { PUZZLES as SCRIPT_FULL } from '../script/puzzles';
 import { PUZZLES as QUOTES_FULL } from '../quotes/puzzles';
 import { PUZZLES as FOCUS_FULL } from '../focus/puzzles';
 import { PUZZLES as THREAD_FULL } from '../thread/puzzles';
+import { PUZZLES as SLOT_FULL } from '../slot/puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
@@ -172,6 +173,7 @@ const SCRIPT = SCRIPT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const QUOTES = QUOTES_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const FOCUS = FOCUS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const THREAD = THREAD_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const SLOT = SLOT_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const HANDS = HANDS_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const FINESSE = FINESSE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 
@@ -306,6 +308,7 @@ const GAMES = [
   { key: 'quotes', name: 'Quotes', path: '/quotes', tag: 'Who said it, one life', accent: '#3d4f7c', bg: '#eef1f8', border: 'rgba(61,79,124,0.4)', src: QUOTES },
   { key: 'focus', name: 'Focus', path: '/focus', tag: 'Name the zoomed-in photo', accent: '#8a4b08', bg: '#fdf3e6', border: 'rgba(138,75,8,0.4)', src: FOCUS },
   { key: 'thread', name: 'Thread', path: '/thread', tag: 'Nine films described badly, one thread', accent: '#8b2c6b', bg: '#f7e9f2', border: 'rgba(139,44,107,0.4)', src: THREAD },
+  { key: 'slot', name: 'Slot', path: '/slot', tag: 'Ten things, one at a time', accent: '#4a5d23', bg: '#eef2e3', border: 'rgba(74,93,35,0.4)', src: SLOT },
 ];
 
 const breadcrumbJsonLd = {

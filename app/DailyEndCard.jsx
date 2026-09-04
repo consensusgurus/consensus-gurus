@@ -88,7 +88,7 @@ import {
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
   ArrowLeftRight, Gem, Map as MapIcon, Divide, TableProperties, TrendingUp, Milestone, CornerUpRight,
-  Clapperboard, Quote, ZoomIn, Axe, Truck,
+  Clapperboard, Quote, ZoomIn, Axe, Truck, Rows3,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -115,7 +115,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['impound', 'whittle', 'finesse', 'sums', 'hinge', 'blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['slot', 'impound', 'whittle', 'finesse', 'sums', 'hinge', 'blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -207,6 +207,7 @@ export const GAME_META = {
   quotes: { accent: '#3d4f7c', badgeBg: '#3d4f7c', badgeInk: T.white, Fin: Quote },
   focus: { accent: '#8a4b08', badgeBg: '#8a4b08', badgeInk: T.white, Fin: ZoomIn },
   thread: { accent: '#8b2c6b', badgeBg: '#8b2c6b', badgeInk: T.white, Fin: Waypoints },
+  slot: { accent: '#4a5d23', badgeBg: '#4a5d23', badgeInk: T.white, Fin: Rows3 },
   race:  { accent: '#1d4ed8', badgeBg: '#1d4ed8', badgeInk: T.white, Fin: FlagTriangleRight },
   barter: { accent: '#be123c', badgeBg: '#be123c', badgeInk: T.white, Fin: ArrowLeftRight },
   defend: { accent: '#2f4f4f', badgeBg: '#2f4f4f', badgeInk: T.white, Fin: Shield },
@@ -323,6 +324,7 @@ const ALL_DAILY_GAMES = [
   { key: 'calc',  cat: 'numbers',   name: 'Calc',  tag: 'Walk the calculator',      blurb: 'Step across a grid of numbers and operators, one touching button at a time, and land on exactly the target. Reads left to right, like a calculator.', href: '/calc' },
   { key: 'script', cat: 'trivia',   name: 'Script', tag: 'Movies and TV, one life', blurb: 'Twenty-five film and television questions, gimme to expert, five lanes a round from the movies themselves to the awards, the money and what happened behind the camera. One wrong answer ends the run.', href: '/script' },
   { key: 'thread', cat: 'trivia',   name: 'Thread', tag: 'Nine films described badly, one thread', blurb: 'Nine films described by someone who missed the point, and one thing they all share. Name the films, then call the thread, early if you dare.', href: '/thread' },
+  { key: 'slot', cat: 'trivia',   name: 'Slot', tag: 'Ten things, one at a time', blurb: 'Ten things on one axis, dealt one at a time. Drop each into a slot before you see the next; nothing moves once it is down, and the reveal shows the true order beside yours.', href: '/slot' },
   { key: 'focus', cat: 'trivia',   name: 'Focus', tag: 'Name the zoomed-in photo', blurb: 'One photo a day, zoomed in close. Name it before six frames pull the camera all the way back; the earlier the frame, the more it pays.', href: '/focus' },
   { key: 'quotes', cat: 'trivia',   name: 'Quotes', tag: 'Who said it, one life', blurb: 'Twenty-five famous lines, gimme to expert, five lanes a round from presidents and generals to scientists, writers and the odd film character. One wrong attribution ends the run.', href: '/quotes' },
   { key: 'biz',   cat: 'trivia',    name: 'Biz',   tag: 'Business, one life', blurb: 'Twenty-five business questions, gimme to expert, five lanes a round from brands and markets to founders, deals and business history. One wrong answer ends the run.', href: '/biz' },

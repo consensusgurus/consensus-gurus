@@ -1,0 +1,576 @@
+// scripts/slot-pool.mjs — the vocabulary for Slot, the daily blind ranking.
+//
+// Every entry is one BOARD SUBJECT: a real thing with a hard numeric axis and
+// ten or more items on it, in TRUE order (index 0 is slot 1). The generator
+// (scripts/gen-slot.mjs) picks the subject for each day, picks the REVEAL
+// ORDER by simulation, and writes app/slot/puzzles.js; the verifier
+// (scripts/verify-slot.mjs) re-proves every board against this file.
+//
+// SHAPE
+//   id      stable slug, never reused across the bank
+//   axis    the question the board asks, reader-facing ("Countries by population")
+//   top     what slot 1 means ("Most people"), bottom what the last slot means
+//   unit    how `d` reads ("people", "meters")
+//   dir     'desc' when slot 1 is the LARGEST value, 'asc' when it is the
+//           smallest (years: earliest first)
+//   fam     a family for the variety check (geo, science, history, sport, pop)
+//   exact   the values are exact counts (years, ages, a scale), so the only
+//           gap rule is no ties; measured subjects need 1.5% between neighbours
+//   source  where the figures come from, reader-facing on the reveal
+//   items   [name, value, display] in true order. Display is the figure as
+//           the reveal prints it; value is what the verifier sorts on.
+//
+// AUTHORING RULES (all enforced by scripts/verify-slot.mjs):
+//   * ten items at least, twelve for a subject that can carry a Sunday;
+//   * values strictly monotonic in `dir`, no ties (a tie makes a slot
+//     unanswerable), and on a measured subject adjacent items at least 1.5% apart so a rounding
+//     difference in a source cannot flip a rank;
+//   * every fact FROZEN: a completed measurement, a founding year, a retired
+//     player's final total. Nothing that a news story can move. Where a figure
+//     is an estimate the source says so and the spread between neighbours is
+//     wide enough that the estimate cannot reorder them;
+//   * US spellings, no em dashes, no answer word in the axis line.
+//
+// The craft is the SPREAD. A board plays best when the items span two or
+// three orders of magnitude and the middle band is crowded, because the
+// middle is where a blind placement breaks.
+
+export const POOL = [
+  {
+    id: 'countries-population', axis: 'Countries by population', top: 'Most people', bottom: 'Fewest', unit: 'people', dir: 'desc', fam: 'geo',
+    source: 'UN World Population Prospects, 2024 estimates',
+    items: [
+      ['India', 1451, '1.45 billion'], ['China', 1419, '1.42 billion'], ['United States', 345, '345 million'], ['Indonesia', 283, '283 million'],
+      ['Pakistan', 251, '251 million'], ['Nigeria', 233, '233 million'], ['Brazil', 212, '212 million'], ['Bangladesh', 174, '174 million'],
+      ['Russia', 144, '144 million'], ['Mexico', 131, '131 million'], ['Japan', 124, '124 million'], ['Philippines', 116, '116 million'],
+    ],
+  },
+  {
+    id: 'countries-area', axis: 'Countries by area', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'geo',
+    source: 'Total area including inland water, UN Statistics Division',
+    items: [
+      ['Russia', 17098, '17.1 million km²'], ['Canada', 9985, '9.98 million km²'], ['Brazil', 8516, '8.52 million km²'], ['Australia', 7692, '7.69 million km²'],
+      ['India', 3287, '3.29 million km²'], ['Argentina', 2780, '2.78 million km²'], ['Algeria', 2382, '2.38 million km²'], ['Mexico', 1964, '1.96 million km²'],
+      ['Peru', 1285, '1.29 million km²'], ['Egypt', 1002, '1.00 million km²'],
+    ],
+  },
+  {
+    id: 'tallest-buildings', axis: 'Buildings by height', top: 'Tallest', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Architectural height, Council on Tall Buildings and Urban Habitat',
+    items: [
+      ['Burj Khalifa, Dubai', 828, '828 m'], ['Merdeka 118, Kuala Lumpur', 679, '679 m'], ['Shanghai Tower', 632, '632 m'], ['Makkah Royal Clock Tower', 601, '601 m'],
+      ['Lotte World Tower, Seoul', 555, '555 m'], ['One World Trade Center, New York', 541, '541 m'], ['Taipei 101', 508, '508 m'], ['Petronas Tower 1, Kuala Lumpur', 452, '452 m'],
+      ['Willis Tower, Chicago', 442, '442 m'], ['Empire State Building, New York', 381, '381 m'], ['Chrysler Building, New York', 319, '319 m'], ['Big Ben clock tower, London', 96, '96 m'],
+    ],
+  },
+  {
+    id: 'planets-diameter', axis: 'Bodies of the solar system by diameter', top: 'Widest', bottom: 'Narrowest', unit: 'km', dir: 'desc', fam: 'science',
+    source: 'NASA planetary fact sheets, equatorial diameter',
+    items: [
+      ['Jupiter', 139820, '139,820 km'], ['Saturn', 116460, '116,460 km'], ['Uranus', 50724, '50,724 km'], ['Neptune', 49244, '49,244 km'],
+      ['Earth', 12742, '12,742 km'], ['Venus', 12104, '12,104 km'], ['Mars', 6779, '6,779 km'], ['Mercury', 4879, '4,879 km'],
+      ['The Moon', 3474, '3,474 km'], ['Pluto', 2377, '2,377 km'],
+    ],
+  },
+  {
+    id: 'rivers-length', axis: 'Rivers by length', top: 'Longest', bottom: 'Shortest', unit: 'km', dir: 'desc', fam: 'geo',
+    source: 'Commonly cited lengths, main stem, Encyclopaedia Britannica',
+    items: [
+      ['Nile', 6650, '6,650 km'], ['Yangtze', 6300, '6,300 km'], ['Yellow River', 5464, '5,464 km'], ['Congo', 4700, '4,700 km'],
+      ['Mekong', 4350, '4,350 km'], ['Niger', 4180, '4,180 km'], ['Volga', 3530, '3,530 km'], ['Danube', 2850, '2,850 km'],
+      ['Ganges', 2525, '2,525 km'], ['Rhine', 1230, '1,230 km'],
+    ],
+  },
+  {
+    id: 'mountains-height', axis: 'Mountains by height', top: 'Highest', bottom: 'Lowest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Summit elevation above sea level',
+    items: [
+      ['Everest', 8849, '8,849 m'], ['K2', 8611, '8,611 m'], ['Aconcagua', 6961, '6,961 m'], ['Denali', 6190, '6,190 m'],
+      ['Kilimanjaro', 5895, '5,895 m'], ['Elbrus', 5642, '5,642 m'], ['Mont Blanc', 4808, '4,808 m'], ['Mount Fuji', 3776, '3,776 m'],
+      ['Mount Olympus', 2918, '2,918 m'], ['Ben Nevis', 1345, '1,345 m'],
+    ],
+  },
+  {
+    id: 'us-states-area', axis: 'US states by area', top: 'Largest', bottom: 'Smallest', unit: 'sq mi', dir: 'desc', fam: 'geo',
+    source: 'Total area, US Census Bureau',
+    items: [
+      ['Alaska', 665384, '665,384 sq mi'], ['Texas', 268596, '268,596 sq mi'], ['California', 163695, '163,695 sq mi'], ['Montana', 147040, '147,040 sq mi'],
+      ['New Mexico', 121590, '121,590 sq mi'], ['Arizona', 113990, '113,990 sq mi'], ['Colorado', 104094, '104,094 sq mi'], ['Minnesota', 86936, '86,936 sq mi'],
+      ['Florida', 65758, '65,758 sq mi'], ['Pennsylvania', 46054, '46,054 sq mi'],
+    ],
+  },
+  {
+    id: 'us-states-population', axis: 'US states by population', top: 'Most people', bottom: 'Fewest', unit: 'people', dir: 'desc', fam: 'geo',
+    source: 'US Census Bureau, July 2024 estimates',
+    items: [
+      ['California', 39.4, '39.4 million'], ['Texas', 31.3, '31.3 million'], ['Florida', 23.4, '23.4 million'], ['New York', 19.9, '19.9 million'],
+      ['Pennsylvania', 13.1, '13.1 million'], ['Ohio', 11.9, '11.9 million'], ['Michigan', 10.1, '10.1 million'], ['Virginia', 8.8, '8.8 million'],
+      ['Massachusetts', 7.1, '7.1 million'], ['Minnesota', 5.8, '5.8 million'],
+    ],
+  },
+  {
+    id: 'oceans-seas-area', axis: 'Oceans and seas by area', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'geo',
+    source: 'Surface area, International Hydrographic Organization figures',
+    items: [
+      ['Pacific Ocean', 165.2, '165 million km²'], ['Atlantic Ocean', 106.5, '106 million km²'], ['Indian Ocean', 70.6, '70.6 million km²'], ['Southern Ocean', 20.3, '20.3 million km²'],
+      ['Arctic Ocean', 14.1, '14.1 million km²'], ['South China Sea', 3.5, '3.5 million km²'], ['Caribbean Sea', 2.75, '2.75 million km²'], ['Mediterranean Sea', 2.5, '2.5 million km²'],
+      ['Gulf of Mexico', 1.55, '1.55 million km²'], ['Black Sea', 0.436, '436,000 km²'],
+    ],
+  },
+  {
+    id: 'animals-speed', axis: 'Animals by top speed', top: 'Fastest', bottom: 'Slowest', unit: 'km/h', dir: 'desc', fam: 'science',
+    source: 'Commonly cited top speeds on land',
+    items: [
+      ['Cheetah', 120, '120 km/h'], ['Pronghorn', 88, '88 km/h'], ['Lion', 80, '80 km/h'], ['Greyhound', 72, '72 km/h'],
+      ['House cat', 48, '48 km/h'], ['African elephant', 40, '40 km/h'], ['Black mamba', 20, '20 km/h'], ['Chicken', 14, '14 km/h'],
+      ['Three-toed sloth', 0.27, '0.27 km/h'], ['Garden snail', 0.05, '0.05 km/h'],
+    ],
+  },
+  {
+    id: 'animals-weight', axis: 'Animals by weight', top: 'Heaviest', bottom: 'Lightest', unit: 'kg', dir: 'desc', fam: 'science',
+    source: 'Typical adult weight',
+    items: [
+      ['Blue whale', 150000, '150,000 kg'], ['African elephant', 6000, '6,000 kg'], ['White rhinoceros', 2300, '2,300 kg'], ['Hippopotamus', 1500, '1,500 kg'],
+      ['Polar bear', 450, '450 kg'], ['Gorilla', 160, '160 kg'], ['Ostrich', 100, '100 kg'], ['Gray wolf', 40, '40 kg'],
+      ['House cat', 4.5, '4.5 kg'], ['Hamster', 0.1, '100 g'],
+    ],
+  },
+  {
+    id: 'films-box-office', axis: 'Films by worldwide box office', top: 'Highest grossing', bottom: 'Lowest', unit: 'US dollars', dir: 'desc', fam: 'pop',
+    source: 'Lifetime worldwide gross, Box Office Mojo, not adjusted for inflation',
+    items: [
+      ['Avatar (2009)', 2.92, '$2.92 billion'], ['Titanic (1997)', 2.26, '$2.26 billion'], ['Spider-Man: No Way Home (2021)', 1.92, '$1.92 billion'], ['Inside Out 2 (2024)', 1.70, '$1.70 billion'],
+      ['Frozen II (2019)', 1.45, '$1.45 billion'], ['Minions (2015)', 1.16, '$1.16 billion'], ['Joker (2019)', 1.08, '$1.08 billion'], ['Finding Nemo (2003)', 0.94, '$940 million'],
+      ['Shrek (2001)', 0.49, '$490 million'], ['Toy Story (1995)', 0.39, '$390 million'],
+    ],
+  },
+  {
+    id: 'us-cities-population', axis: 'US cities by population', top: 'Most people', bottom: 'Fewest', unit: 'people', dir: 'desc', fam: 'geo',
+    source: 'City proper, US Census Bureau 2023 estimates',
+    items: [
+      ['New York', 8.26, '8.26 million'], ['Los Angeles', 3.82, '3.82 million'], ['Chicago', 2.66, '2.66 million'], ['Houston', 2.31, '2.31 million'],
+      ['Phoenix', 1.65, '1.65 million'], ['San Diego', 1.39, '1.39 million'], ['Dallas', 1.30, '1.30 million'], ['Jacksonville', 0.99, '985,000'],
+      ['Seattle', 0.76, '755,000'], ['Boston', 0.65, '653,000'],
+    ],
+  },
+  {
+    id: 'countries-gdp', axis: 'Economies by size', top: 'Largest', bottom: 'Smallest', unit: 'US dollars', dir: 'desc', fam: 'geo',
+    source: 'Nominal GDP, IMF World Economic Outlook, 2024',
+    items: [
+      ['United States', 29.2, '$29.2 trillion'], ['China', 18.7, '$18.7 trillion'], ['Germany', 4.66, '$4.66 trillion'], ['United Kingdom', 3.64, '$3.64 trillion'],
+      ['France', 3.16, '$3.16 trillion'], ['Italy', 2.37, '$2.37 trillion'], ['Australia', 1.80, '$1.80 trillion'], ['Netherlands', 1.22, '$1.22 trillion'],
+      ['Switzerland', 0.94, '$940 billion'], ['Sweden', 0.61, '$610 billion'],
+    ],
+  },
+  {
+    id: 'elements-atomic-number', exact: true, axis: 'Elements by atomic number', top: 'Lowest number', bottom: 'Highest', unit: 'protons', dir: 'asc', fam: 'science',
+    source: 'The periodic table',
+    items: [
+      ['Hydrogen', 1, '1'], ['Helium', 2, '2'], ['Carbon', 6, '6'], ['Oxygen', 8, '8'], ['Sodium', 11, '11'], ['Calcium', 20, '20'],
+      ['Iron', 26, '26'], ['Copper', 29, '29'], ['Silver', 47, '47'], ['Gold', 79, '79'], ['Lead', 82, '82'], ['Uranium', 92, '92'],
+    ],
+  },
+  {
+    id: 'elements-density', axis: 'Metals by density', top: 'Densest', bottom: 'Lightest', unit: 'g/cm³', dir: 'desc', fam: 'science',
+    source: 'Density at room temperature',
+    items: [
+      ['Osmium', 22.59, '22.59 g/cm³'], ['Platinum', 21.45, '21.45 g/cm³'], ['Gold', 19.32, '19.32 g/cm³'], ['Mercury', 13.53, '13.53 g/cm³'],
+      ['Lead', 11.34, '11.34 g/cm³'], ['Silver', 10.49, '10.49 g/cm³'], ['Copper', 8.96, '8.96 g/cm³'], ['Iron', 7.87, '7.87 g/cm³'],
+      ['Titanium', 4.51, '4.51 g/cm³'], ['Aluminum', 2.70, '2.70 g/cm³'], ['Magnesium', 1.74, '1.74 g/cm³'], ['Lithium', 0.53, '0.53 g/cm³'],
+    ],
+  },
+  {
+    id: 'metals-melting', axis: 'Metals by melting point', top: 'Highest', bottom: 'Lowest', unit: '°C', dir: 'desc', fam: 'science',
+    source: 'Melting point at standard pressure',
+    items: [
+      ['Tungsten', 3422, '3,422 °C'], ['Iron', 1538, '1,538 °C'], ['Gold', 1064, '1,064 °C'], ['Silver', 962, '962 °C'],
+      ['Aluminum', 660, '660 °C'], ['Lead', 327, '327 °C'], ['Tin', 232, '232 °C'], ['Sodium', 98, '98 °C'],
+      ['Gallium', 30, '30 °C'], ['Mercury', -39, '-39 °C'],
+    ],
+  },
+  {
+    id: 'solar-system-distance', axis: 'Bodies of the solar system by distance from the Sun', top: 'Closest', bottom: 'Farthest', unit: 'AU', dir: 'asc', fam: 'science',
+    source: 'Average distance, NASA',
+    items: [
+      ['Mercury', 0.39, '0.39 AU'], ['Venus', 0.72, '0.72 AU'], ['Earth', 1.0, '1.00 AU'], ['Mars', 1.52, '1.52 AU'], ['Ceres', 2.77, '2.77 AU'],
+      ['Jupiter', 5.2, '5.2 AU'], ['Saturn', 9.5, '9.5 AU'], ['Uranus', 19.2, '19.2 AU'], ['Neptune', 30.1, '30.1 AU'], ['Pluto', 39.5, '39.5 AU'],
+    ],
+  },
+  {
+    id: 'inventions-year', exact: true, axis: 'Inventions by year', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'history',
+    source: 'Year of the first working demonstration or patent',
+    items: [
+      ['Printing press', 1440, '1440'], ['Steam engine', 1712, '1712'], ['Telephone', 1876, '1876'], ['Light bulb', 1879, '1879'], ['Radio', 1895, '1895'],
+      ['Airplane', 1903, '1903'], ['Television', 1927, '1927'], ['Transistor', 1947, '1947'], ['Laser', 1960, '1960'], ['Internet (ARPANET)', 1969, '1969'],
+      ['World Wide Web', 1989, '1989'], ['iPhone', 2007, '2007'],
+    ],
+  },
+  {
+    id: 'presidents-age', exact: true, axis: 'US presidents by age when first sworn in', top: 'Oldest', bottom: 'Youngest', unit: 'years', dir: 'desc', fam: 'history',
+    source: 'Age on the day of the first inauguration',
+    items: [
+      ['Joe Biden', 78, '78'], ['Ronald Reagan', 69, '69'], ['William Henry Harrison', 68, '68'], ['Dwight Eisenhower', 62, '62'],
+      ['Richard Nixon', 56, '56'], ['Abraham Lincoln', 52, '52'], ['Barack Obama', 47, '47'], ['Bill Clinton', 46, '46'],
+      ['John F. Kennedy', 43, '43'], ['Theodore Roosevelt', 42, '42'],
+    ],
+  },
+  {
+    id: 'languages-speakers', axis: 'Languages by native speakers', top: 'Most speakers', bottom: 'Fewest', unit: 'people', dir: 'desc', fam: 'geo',
+    source: 'First-language speakers, Ethnologue 2024',
+    items: [
+      ['Mandarin Chinese', 940, '940 million'], ['Spanish', 485, '485 million'], ['English', 380, '380 million'], ['Hindi', 345, '345 million'],
+      ['Bengali', 237, '237 million'], ['Russian', 148, '148 million'], ['Japanese', 123, '123 million'], ['German', 76, '76 million'],
+      ['Italian', 65, '65 million'], ['Dutch', 24, '24 million'],
+    ],
+  },
+  {
+    id: 'countries-coastline', axis: 'Countries by coastline', top: 'Longest', bottom: 'Shortest', unit: 'km', dir: 'desc', fam: 'geo',
+    source: 'CIA World Factbook',
+    items: [
+      ['Canada', 202080, '202,080 km'], ['Indonesia', 54716, '54,716 km'], ['Russia', 37653, '37,653 km'], ['Philippines', 36289, '36,289 km'],
+      ['Japan', 29751, '29,751 km'], ['Australia', 25760, '25,760 km'], ['United States', 19924, '19,924 km'], ['New Zealand', 15134, '15,134 km'],
+      ['China', 14500, '14,500 km'], ['United Kingdom', 12429, '12,429 km'],
+    ],
+  },
+  {
+    id: 'deserts-area', axis: 'Deserts by area', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'geo',
+    source: 'Commonly cited extents',
+    items: [
+      ['Antarctic', 14.2, '14.2 million km²'], ['Sahara', 9.2, '9.2 million km²'], ['Arabian', 2.33, '2.33 million km²'], ['Gobi', 1.3, '1.3 million km²'],
+      ['Kalahari', 0.9, '900,000 km²'], ['Patagonian', 0.67, '670,000 km²'], ['Great Basin', 0.49, '490,000 km²'], ['Chihuahuan', 0.36, '360,000 km²'],
+      ['Thar', 0.2, '200,000 km²'], ['Mojave', 0.12, '120,000 km²'],
+    ],
+  },
+  {
+    id: 'lakes-area', axis: 'Lakes by surface area', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'geo',
+    source: 'Surface area, Encyclopaedia Britannica',
+    items: [
+      ['Caspian Sea', 371000, '371,000 km²'], ['Lake Superior', 82100, '82,100 km²'], ['Lake Victoria', 68870, '68,870 km²'], ['Lake Huron', 59600, '59,600 km²'],
+      ['Lake Tanganyika', 32900, '32,900 km²'], ['Lake Malawi', 29600, '29,600 km²'], ['Lake Erie', 25700, '25,700 km²'], ['Lake Ontario', 18960, '18,960 km²'],
+      ['Lake Titicaca', 8372, '8,372 km²'], ['Lake Tahoe', 496, '496 km²'],
+    ],
+  },
+  {
+    id: 'islands-area', axis: 'Islands by area', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'geo',
+    source: 'Land area',
+    items: [
+      ['Greenland', 2130800, '2.13 million km²'], ['New Guinea', 785753, '786,000 km²'], ['Borneo', 748168, '748,000 km²'], ['Madagascar', 587041, '587,000 km²'],
+      ['Baffin Island', 507451, '507,000 km²'], ['Sumatra', 443066, '443,000 km²'], ['Honshu', 225800, '226,000 km²'], ['Great Britain', 209331, '209,000 km²'],
+      ['Cuba', 105806, '106,000 km²'], ['Ireland', 84421, '84,400 km²'],
+    ],
+  },
+  {
+    id: 'stadiums-capacity', axis: 'Stadiums by capacity', top: 'Biggest crowd', bottom: 'Smallest', unit: 'seats', dir: 'desc', fam: 'sport',
+    source: 'Official seated capacity',
+    items: [
+      ['Narendra Modi Stadium, Ahmedabad', 132000, '132,000'], ['Rungrado 1st of May Stadium, Pyongyang', 114000, '114,000'], ['Michigan Stadium, Ann Arbor', 107601, '107,601'], ['Melbourne Cricket Ground', 100024, '100,024'],
+      ['Wembley Stadium, London', 90000, '90,000'], ['Maracanã, Rio de Janeiro', 78838, '78,838'], ['Old Trafford, Manchester', 74310, '74,310'], ['Yankee Stadium, New York', 46537, '46,537'],
+      ['Fenway Park, Boston', 37755, '37,755'], ["Lord's, London", 31100, '31,100'],
+    ],
+  },
+  {
+    id: 'nba-career-points', axis: 'Retired NBA players by career points', top: 'Most points', bottom: 'Fewest', unit: 'points', dir: 'desc', fam: 'sport',
+    source: 'Regular season career totals, retired players only',
+    items: [
+      ['Kareem Abdul-Jabbar', 38387, '38,387'], ['Karl Malone', 36928, '36,928'], ['Kobe Bryant', 33643, '33,643'], ['Michael Jordan', 32292, '32,292'],
+      ['Dirk Nowitzki', 31560, '31,560'], ["Shaquille O'Neal", 28596, '28,596'], ['Moses Malone', 27409, '27,409'], ['Tim Duncan', 26496, '26,496'],
+      ['Larry Bird', 21791, '21,791'], ['Magic Johnson', 17707, '17,707'],
+    ],
+  },
+  {
+    id: 'mlb-home-runs', axis: 'Retired MLB players by career home runs', top: 'Most homers', bottom: 'Fewest', unit: 'home runs', dir: 'desc', fam: 'sport',
+    source: 'Career regular season totals, retired players only',
+    items: [
+      ['Barry Bonds', 762, '762'], ['Babe Ruth', 714, '714'], ['Alex Rodriguez', 696, '696'], ['Willie Mays', 660, '660'],
+      ['Ken Griffey Jr.', 630, '630'], ['Jim Thome', 612, '612'], ['Frank Robinson', 586, '586'], ['Mickey Mantle', 536, '536'],
+      ['Ted Williams', 521, '521'], ['Jackie Robinson', 137, '137'],
+    ],
+  },
+  {
+    id: 'nfl-passing-yards', axis: 'Retired NFL quarterbacks by career passing yards', top: 'Most yards', bottom: 'Fewest', unit: 'yards', dir: 'desc', fam: 'sport',
+    source: 'Regular season career totals, retired players only',
+    items: [
+      ['Tom Brady', 89214, '89,214'], ['Drew Brees', 80358, '80,358'], ['Peyton Manning', 71940, '71,940'], ['Philip Rivers', 63440, '63,440'],
+      ['Dan Marino', 61361, '61,361'], ['Eli Manning', 57023, '57,023'], ['John Elway', 51475, '51,475'], ['Warren Moon', 49325, '49,325'],
+      ['Joe Montana', 40551, '40,551'], ['Joe Namath', 27663, '27,663'],
+    ],
+  },
+  {
+    id: 'ph-scale', exact: true, axis: 'Everyday substances by acidity', top: 'Most acidic', bottom: 'Most alkaline', unit: 'pH', dir: 'asc', fam: 'science',
+    source: 'Typical pH values',
+    items: [
+      ['Battery acid', 0.5, 'pH 0.5'], ['Lemon juice', 2.0, 'pH 2'], ['Vinegar', 2.5, 'pH 2.5'], ['Black coffee', 5.0, 'pH 5'], ['Milk', 6.5, 'pH 6.5'],
+      ['Pure water', 7.0, 'pH 7'], ['Seawater', 8.0, 'pH 8'], ['Baking soda solution', 9.0, 'pH 9'], ['Household ammonia', 11.0, 'pH 11'], ['Bleach', 12.5, 'pH 12.5'],
+    ],
+  },
+  {
+    id: 'things-speed', axis: 'Things by speed', top: 'Fastest', bottom: 'Slowest', unit: 'm/s', dir: 'desc', fam: 'science',
+    source: 'Typical speeds',
+    items: [
+      ['Light', 299792458, '300,000 km/s'], ['International Space Station', 7660, '7.66 km/s'], ['Rifle bullet', 900, '900 m/s'], ['Sound in air', 343, '343 m/s'],
+      ['Airliner at cruise', 250, '250 m/s'], ['Formula 1 car, top speed', 100, '100 m/s'], ['Cheetah', 33, '33 m/s'], ['Usain Bolt, top speed', 12.4, '12.4 m/s'],
+      ['Person walking', 1.4, '1.4 m/s'], ['Garden snail', 0.013, '1.3 cm/s'],
+    ],
+  },
+  {
+    id: 'temperatures', axis: 'Things by temperature', top: 'Hottest', bottom: 'Coldest', unit: '°C', dir: 'desc', fam: 'science',
+    source: 'Typical figures',
+    items: [
+      ['Surface of the Sun', 5500, '5,500 °C'], ['Lava', 1200, '1,200 °C'], ['Kitchen oven, full', 260, '260 °C'], ['Boiling water', 100, '100 °C'], ['Hot coffee', 65, '65 °C'],
+      ['Human body', 37, '37 °C'], ['Room temperature', 20, '20 °C'], ['Home freezer', -18, '-18 °C'], ['Dry ice', -78, '-78 °C'], ['Liquid nitrogen', -196, '-196 °C'],
+      ['Liquid helium', -269, '-269 °C'], ['Absolute zero', -273.15, '-273.15 °C'],
+    ],
+  },
+  {
+    id: 'animals-lifespan', axis: 'Animals by lifespan', top: 'Longest lived', bottom: 'Shortest', unit: 'years', dir: 'desc', fam: 'science',
+    source: 'Typical lifespan',
+    items: [
+      ['Greenland shark', 400, '400 years'], ['Bowhead whale', 200, '200 years'], ['Galápagos tortoise', 150, '150 years'], ['Human', 80, '80 years'],
+      ['African elephant', 65, '65 years'], ['Horse', 30, '30 years'], ['Dog', 13, '13 years'], ['House mouse', 2, '2 years'],
+      ['Worker honeybee', 0.12, '6 weeks'], ['Mayfly', 0.003, '1 day'],
+    ],
+  },
+  {
+    id: 'gestation', axis: 'Animals by length of pregnancy', top: 'Longest', bottom: 'Shortest', unit: 'days', dir: 'desc', fam: 'science',
+    source: 'Typical gestation',
+    items: [
+      ['African elephant', 660, '22 months'], ['Rhinoceros', 480, '16 months'], ['Giraffe', 450, '15 months'], ['Blue whale', 345, '11.5 months'],
+      ['Horse', 335, '11 months'], ['Human', 270, '9 months'], ['Dog', 63, '63 days'], ['Rabbit', 31, '31 days'],
+      ['House mouse', 20, '20 days'], ['Opossum', 12, '12 days'],
+    ],
+  },
+  {
+    id: 'companies-founded', exact: true, axis: 'Companies by founding year', top: 'Oldest', bottom: 'Newest', unit: 'year', dir: 'asc', fam: 'history',
+    source: 'Year founded',
+    items: [
+      ['Coca-Cola', 1886, '1886'], ['Ford', 1903, '1903'], ['Disney', 1923, '1923'], ["McDonald's", 1955, '1955'], ['Walmart', 1962, '1962'],
+      ['Microsoft', 1975, '1975'], ['Apple', 1976, '1976'], ['Amazon', 1994, '1994'], ['Google', 1998, '1998'], ['Facebook', 2004, '2004'],
+    ],
+  },
+  {
+    id: 'novels-published', exact: true, axis: 'Novels by year published', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'pop',
+    source: 'First publication',
+    items: [
+      ['Don Quixote', 1605, '1605'], ['Robinson Crusoe', 1719, '1719'], ['Pride and Prejudice', 1813, '1813'], ['Oliver Twist', 1838, '1838'], ['Moby-Dick', 1851, '1851'],
+      ['War and Peace', 1869, '1869'], ['Dracula', 1897, '1897'], ['The Great Gatsby', 1925, '1925'], ['The Hobbit', 1937, '1937'], ['Nineteen Eighty-Four', 1949, '1949'],
+      ['To Kill a Mockingbird', 1960, '1960'], ["Harry Potter and the Philosopher's Stone", 1997, '1997'],
+    ],
+  },
+  {
+    id: 'landmarks-completed', exact: true, axis: 'Landmarks by year completed', top: 'Oldest', bottom: 'Newest', unit: 'year', dir: 'asc', fam: 'history',
+    source: 'Year of completion',
+    items: [
+      ['Great Pyramid of Giza', -2560, '2560 BC'], ['Parthenon', -432, '432 BC'], ['Colosseum', 80, 'AD 80'], ['Hagia Sophia', 537, '537'], ['Notre-Dame de Paris', 1345, '1345'],
+      ['Taj Mahal', 1653, '1653'], ['Statue of Liberty', 1886, '1886'], ['Empire State Building', 1931, '1931'], ['Sydney Opera House', 1973, '1973'], ['Burj Khalifa', 2010, '2010'],
+    ],
+  },
+  {
+    id: 'video-games-released', exact: true, axis: 'Video games by release year', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'pop',
+    source: 'First release',
+    items: [
+      ['Pong', 1972, '1972'], ['Pac-Man', 1980, '1980'], ['Tetris', 1984, '1984'], ['Super Mario Bros.', 1985, '1985'], ['Doom', 1993, '1993'],
+      ['GoldenEye 007', 1997, '1997'], ['The Sims', 2000, '2000'], ['Wii Sports', 2006, '2006'], ['Angry Birds', 2009, '2009'], ['Fortnite', 2017, '2017'],
+    ],
+  },
+  {
+    id: 'capitals-elevation', axis: 'Capital cities by elevation', top: 'Highest', bottom: 'Lowest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Elevation above sea level',
+    items: [
+      ['La Paz', 3640, '3,640 m'], ['Quito', 2850, '2,850 m'], ['Bogotá', 2640, '2,640 m'], ['Addis Ababa', 2355, '2,355 m'],
+      ['Mexico City', 2240, '2,240 m'], ['Nairobi', 1795, '1,795 m'], ['Kathmandu', 1400, '1,400 m'], ['Madrid', 667, '667 m'],
+      ['Paris', 35, '35 m'], ['Amsterdam', -2, '-2 m'],
+    ],
+  },
+  {
+    id: 'us-states-admitted', exact: true, axis: 'US states by year of statehood', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'history',
+    source: 'Year admitted to the Union',
+    items: [
+      ['Delaware', 1787, '1787'], ['New York', 1788, '1788'], ['Vermont', 1791, '1791'], ['Ohio', 1803, '1803'], ['Louisiana', 1812, '1812'], ['Illinois', 1818, '1818'],
+      ['Texas', 1845, '1845'], ['California', 1850, '1850'], ['Colorado', 1876, '1876'], ['Utah', 1896, '1896'], ['Arizona', 1912, '1912'], ['Hawaii', 1959, '1959'],
+    ],
+  },
+  {
+    id: 'deepest-points', axis: 'Bodies of water by depth', top: 'Deepest', bottom: 'Shallowest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Maximum depth',
+    items: [
+      ['Pacific Ocean (Mariana Trench)', 10935, '10,935 m'], ['Atlantic Ocean (Puerto Rico Trench)', 8376, '8,376 m'], ['Mediterranean Sea', 5267, '5,267 m'], ['Black Sea', 2212, '2,212 m'],
+      ['Lake Baikal', 1642, '1,642 m'], ['Caspian Sea', 1025, '1,025 m'], ['Lake Superior', 406, '406 m'], ['Dead Sea', 304, '304 m'],
+      ['Loch Ness', 230, '230 m'], ['English Channel', 174, '174 m'],
+    ],
+  },
+  {
+    id: 'population-density', axis: 'Countries by population density', top: 'Most crowded', bottom: 'Emptiest', unit: 'people per km²', dir: 'desc', fam: 'geo',
+    source: 'People per square kilometer, UN 2024',
+    items: [
+      ['Monaco', 19000, '19,000 /km²'], ['Singapore', 8400, '8,400 /km²'], ['Bangladesh', 1330, '1,330 /km²'], ['India', 481, '481 /km²'],
+      ['Japan', 330, '330 /km²'], ['United Kingdom', 280, '280 /km²'], ['China', 150, '150 /km²'], ['United States', 37, '37 /km²'],
+      ['Russia', 9, '9 /km²'], ['Canada', 4, '4 /km²'],
+    ],
+  },
+  {
+    id: 'foods-calories', axis: 'Foods by calories', top: 'Most calories', bottom: 'Fewest', unit: 'kcal per 100 g', dir: 'desc', fam: 'science',
+    source: 'Per 100 g, USDA FoodData Central',
+    items: [
+      ['Butter', 717, '717 kcal'], ['Peanuts', 567, '567 kcal'], ['Cheddar cheese', 403, '403 kcal'], ['White bread', 265, '265 kcal'],
+      ['Chicken breast, cooked', 165, '165 kcal'], ['Egg', 155, '155 kcal'], ['Banana', 89, '89 kcal'], ['Apple', 52, '52 kcal'],
+      ['Broccoli', 34, '34 kcal'], ['Cucumber', 15, '15 kcal'],
+    ],
+  },
+  {
+    id: 'aircraft-wingspan', axis: 'Aircraft by wingspan', top: 'Widest', bottom: 'Narrowest', unit: 'meters', dir: 'desc', fam: 'science',
+    source: 'Manufacturer specifications',
+    items: [
+      ['Stratolaunch Roc', 117, '117 m'], ['Antonov An-225', 88, '88 m'], ['Airbus A380', 80, '80 m'], ['Boeing 747-8', 68, '68 m'],
+      ['Boeing 787', 60, '60 m'], ['Douglas DC-3', 29, '29 m'], ['Concorde', 25.6, '25.6 m'], ['MQ-9 Reaper drone', 20, '20 m'],
+      ['Wright Flyer', 12.3, '12.3 m'], ['F-16 Fighting Falcon', 9.96, '9.96 m'],
+    ],
+  },
+  {
+    id: 'ships-length', axis: 'Ships by length', top: 'Longest', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'history',
+    source: 'Overall length',
+    items: [
+      ['Seawise Giant (supertanker)', 458, '458 m'], ['Icon of the Seas (cruise ship)', 365, '365 m'], ['USS Gerald R. Ford (carrier)', 337, '337 m'], ['RMS Titanic', 269, '269 m'],
+      ['Bismarck', 251, '251 m'], ['Cutty Sark', 85, '85 m'], ['HMS Victory', 69, '69 m'], ['USS Constitution', 62, '62 m'],
+      ['Mayflower', 30, '30 m'], ['Santa María', 19, '19 m'],
+    ],
+  },
+  {
+    id: 'light-travel', axis: 'How long light takes to reach Earth', top: 'Quickest', bottom: 'Longest', unit: 'time', dir: 'asc', fam: 'science',
+    source: 'Light travel time, average distance',
+    items: [
+      ['The Moon', 1.3, '1.3 seconds'], ['The Sun', 500, '8.3 minutes'], ['Mars', 760, '12.7 minutes'], ['Jupiter', 2580, '43 minutes'], ['Saturn', 4800, '80 minutes'],
+      ['Neptune', 14760, '4.1 hours'], ['Voyager 1', 82800, '23 hours'], ['Proxima Centauri', 132500000, '4.2 years'], ['Sirius', 271000000, '8.6 years'], ['Vega', 788000000, '25 years'],
+      ['Polaris', 13660000000, '433 years'], ['Andromeda Galaxy', 78900000000000, '2.5 million years'],
+    ],
+  },
+  {
+    id: 'dinosaurs-length', axis: 'Dinosaurs by length', top: 'Longest', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'science',
+    source: 'Estimated adult length, nose to tail',
+    items: [
+      ['Argentinosaurus', 35, '35 m'], ['Diplodocus', 26, '26 m'], ['Spinosaurus', 15, '15 m'], ['Tyrannosaurus rex', 12.5, '12.5 m'],
+      ['Triceratops', 9, '9 m'], ['Ankylosaurus', 6.5, '6.5 m'], ['Pachycephalosaurus', 4.5, '4.5 m'], ['Deinonychus', 3.4, '3.4 m'],
+      ['Velociraptor', 2, '2 m'], ['Compsognathus', 1, '1 m'],
+    ],
+  },
+  {
+    id: 'birds-wingspan', axis: 'Birds by wingspan', top: 'Widest', bottom: 'Narrowest', unit: 'meters', dir: 'desc', fam: 'science',
+    source: 'Typical adult wingspan',
+    items: [
+      ['Wandering albatross', 3.5, '3.5 m'], ['Andean condor', 3.2, '3.2 m'], ['Bald eagle', 2.3, '2.3 m'], ['Snowy owl', 1.5, '1.5 m'],
+      ['Red-tailed hawk', 1.3, '1.3 m'], ['Peregrine falcon', 1.0, '1.0 m'], ['Pigeon', 0.7, '70 cm'], ['American robin', 0.4, '40 cm'],
+      ['House sparrow', 0.24, '24 cm'], ['Ruby-throated hummingbird', 0.1, '10 cm'],
+    ],
+  },
+  {
+    id: 'womens-suffrage', exact: true, axis: 'Countries by the year women won the vote', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'history',
+    source: 'Year of full national voting rights for women',
+    items: [
+      ['New Zealand', 1893, '1893'], ['Finland', 1906, '1906'], ['Norway', 1913, '1913'], ['United States', 1920, '1920'], ['United Kingdom', 1928, '1928'],
+      ['Brazil', 1932, '1932'], ['France', 1944, '1944'], ['Mexico', 1953, '1953'], ['Switzerland', 1971, '1971'], ['Saudi Arabia', 2015, '2015'],
+    ],
+  },
+  {
+    id: 'empires-area', axis: 'Empires by land area at their peak', top: 'Largest', bottom: 'Smallest', unit: 'km²', dir: 'desc', fam: 'history',
+    source: 'Peak territorial extent, commonly cited estimates',
+    items: [
+      ['British Empire', 35.5, '35.5 million km²'], ['Mongol Empire', 24.0, '24 million km²'], ['Russian Empire', 22.8, '22.8 million km²'], ['Qing dynasty', 14.7, '14.7 million km²'],
+      ['Spanish Empire', 13.7, '13.7 million km²'], ['Umayyad Caliphate', 11.1, '11.1 million km²'], ['Roman Empire', 5.0, '5 million km²'], ['Byzantine Empire', 2.8, '2.8 million km²'],
+      ['Inca Empire', 2.0, '2 million km²'], ['Aztec Empire', 0.22, '220,000 km²'],
+    ],
+  },
+  {
+    id: 'volcanoes-height', axis: 'Volcanoes by height', top: 'Tallest', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Summit elevation above sea level',
+    items: [
+      ['Ojos del Salado', 6893, '6,893 m'], ['Kilimanjaro', 5895, '5,895 m'], ['Popocatépetl', 5426, '5,426 m'], ['Mauna Loa', 4169, '4,169 m'],
+      ['Mount Fuji', 3776, '3,776 m'], ['Mount Etna', 3357, '3,357 m'], ['Mount St. Helens', 2549, '2,549 m'], ['Vesuvius', 1281, '1,281 m'],
+      ['Stromboli', 926, '926 m'], ['Krakatoa', 813, '813 m'],
+    ],
+  },
+  {
+    id: 'novels-length', axis: 'Novels by length', top: 'Longest', bottom: 'Shortest', unit: 'words', dir: 'desc', fam: 'pop',
+    source: 'Approximate word count of the standard English text',
+    items: [
+      ['Les Misérables', 655000, '655,000 words'], ['War and Peace', 587000, '587,000 words'], ['Gone with the Wind', 418000, '418,000 words'], ['Middlemarch', 316000, '316,000 words'],
+      ['Ulysses', 265000, '265,000 words'], ['Moby-Dick', 206000, '206,000 words'], ['Pride and Prejudice', 122000, '122,000 words'], ["Harry Potter and the Philosopher's Stone", 77000, '77,000 words'],
+      ['The Great Gatsby', 47000, '47,000 words'], ['Of Mice and Men', 30000, '30,000 words'],
+    ],
+  },
+  {
+    id: 'films-runtime', axis: 'Films by running time', top: 'Longest', bottom: 'Shortest', unit: 'minutes', dir: 'desc', fam: 'pop',
+    source: 'Theatrical running time',
+    items: [
+      ['Gone with the Wind', 238, '238 min'], ['Lawrence of Arabia', 227, '227 min'], ['The Lord of the Rings: The Return of the King', 201, '201 min'], ['Titanic', 194, '194 min'],
+      ['Avengers: Endgame', 181, '181 min'], ['The Godfather', 175, '175 min'], ['Inception', 148, '148 min'], ['Jaws', 124, '124 min'],
+      ['Toy Story', 81, '81 min'], ['Dumbo', 64, '64 min'],
+    ],
+  },
+  {
+    id: 'bridges-span', axis: 'Bridges by longest span', top: 'Longest span', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'geo',
+    source: 'Main span between supports',
+    items: [
+      ['1915 Çanakkale Bridge, Turkey', 2023, '2,023 m'], ['Great Belt Bridge, Denmark', 1624, '1,624 m'], ['Humber Bridge, England', 1410, '1,410 m'], ['Golden Gate Bridge, San Francisco', 1280, '1,280 m'],
+      ['Forth Road Bridge, Scotland', 1006, '1,006 m'], ['Brooklyn Bridge, New York', 486, '486 m'], ['Millau Viaduct, France', 342, '342 m'], ['Tower Bridge, London', 61, '61 m'],
+      ['Ponte Vecchio, Florence', 30, '30 m'], ['Pont du Gard, France', 24.5, '24.5 m'],
+    ],
+  },
+  {
+    id: 'things-weight', axis: 'Things by weight', top: 'Heaviest', bottom: 'Lightest', unit: 'kg', dir: 'desc', fam: 'science',
+    source: 'Typical or official figures',
+    items: [
+      ['Great Pyramid of Giza', 6e9, '6 million tonnes'], ['Titanic', 5.2e7, '52,000 tonnes'], ['Eiffel Tower', 1.01e7, '10,100 tonnes'], ['Boeing 747 at takeoff', 4e5, '400 tonnes'],
+      ['Statue of Liberty', 2.04e5, '204 tonnes'], ['Blue whale', 1.5e5, '150 tonnes'], ['African elephant', 6000, '6 tonnes'], ['Family car', 1500, '1,500 kg'],
+      ['Grand piano', 500, '500 kg'], ['Bowling ball', 7, '7 kg'], ['Basketball', 0.62, '620 g'], ['Smartphone', 0.2, '200 g'],
+    ],
+  },
+  {
+    id: 'mohs-hardness', exact: true, axis: 'Materials by hardness', top: 'Hardest', bottom: 'Softest', unit: 'Mohs', dir: 'desc', fam: 'science',
+    source: 'Mohs scale of mineral hardness',
+    items: [
+      ['Diamond', 10, '10'], ['Sapphire', 9, '9'], ['Topaz', 8, '8'], ['Quartz', 7, '7'], ['Window glass', 5.5, '5.5'],
+      ['Apatite', 5, '5'], ['Copper penny', 3.5, '3.5'], ['Fingernail', 2.5, '2.5'], ['Gypsum', 2, '2'], ['Talc', 1, '1'],
+    ],
+  },
+  {
+    id: 'statues-height', axis: 'Statues by height', top: 'Tallest', bottom: 'Shortest', unit: 'meters', dir: 'desc', fam: 'history',
+    source: 'Height of the figure, without its pedestal',
+    items: [
+      ['Statue of Unity, India', 182, '182 m'], ['Spring Temple Buddha, China', 128, '128 m'], ['The Motherland Calls, Russia', 85, '85 m'], ['Statue of Liberty, New York', 46, '46 m'],
+      ['Christ the Redeemer, Rio de Janeiro', 30, '30 m'], ['Great Sphinx of Giza', 20, '20 m'], ['Lincoln Memorial statue, Washington', 5.8, '5.8 m'], ["Michelangelo's David, Florence", 5.2, '5.2 m'],
+      ['Venus de Milo, Paris', 2.0, '2.0 m'], ['Manneken Pis, Brussels', 0.61, '61 cm'],
+    ],
+  },
+  {
+    id: 'cars-introduced', exact: true, axis: 'Cars by the year they went on sale', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'pop',
+    source: 'Year of first production',
+    items: [
+      ['Ford Model T', 1908, '1908'], ['Volkswagen Beetle', 1938, '1938'], ['Chevrolet Corvette', 1953, '1953'], ['Mini', 1959, '1959'], ['Ford Mustang', 1964, '1964'],
+      ['Honda Civic', 1972, '1972'], ['Toyota Prius', 1997, '1997'], ['Tesla Roadster', 2008, '2008'], ['Nissan Leaf', 2010, '2010'], ['Tesla Cybertruck', 2023, '2023'],
+    ],
+  },
+  {
+    id: 'paintings-year', exact: true, axis: 'Paintings by the year they were finished', top: 'Earliest', bottom: 'Latest', unit: 'year', dir: 'asc', fam: 'pop',
+    source: 'Commonly cited completion date',
+    items: [
+      ['The Birth of Venus', 1485, '1485'], ['The Last Supper', 1498, '1498'], ['Mona Lisa', 1503, '1503'], ['The Night Watch', 1642, '1642'], ['Girl with a Pearl Earring', 1665, '1665'],
+      ["Whistler's Mother", 1871, '1871'], ['The Starry Night', 1889, '1889'], ['The Scream', 1893, '1893'], ['The Kiss (Klimt)', 1908, '1908'], ['American Gothic', 1930, '1930'],
+      ['Guernica', 1937, '1937'], ["Campbell's Soup Cans", 1962, '1962'],
+    ],
+  },
+  {
+    id: 'sports-leagues-founded', exact: true, axis: 'Sports leagues by founding year', top: 'Oldest', bottom: 'Newest', unit: 'year', dir: 'asc', fam: 'sport',
+    source: 'Year of the first season',
+    items: [
+      ['Major League Baseball (National League)', 1876, '1876'], ['NCAA', 1906, '1906'], ['NHL', 1917, '1917'], ['NFL', 1920, '1920'], ['NBA', 1946, '1946'],
+      ['NASCAR', 1948, '1948'], ['Bundesliga', 1963, '1963'], ['Premier League', 1992, '1992'], ['MLS', 1996, '1996'], ['Indian Premier League', 2008, '2008'],
+    ],
+  },
+  {
+    id: 'boiling-points', axis: 'Substances by boiling point', top: 'Highest', bottom: 'Lowest', unit: '°C', dir: 'desc', fam: 'science',
+    source: 'Boiling point at standard pressure',
+    items: [
+      ['Gold', 2970, '2,970 °C'], ['Sulfur', 445, '445 °C'], ['Mercury', 357, '357 °C'], ['Water', 100, '100 °C'], ['Ethanol', 78, '78 °C'], ['Acetone', 56, '56 °C'],
+      ['Ammonia', -33, '-33 °C'], ['Propane', -42, '-42 °C'], ['Oxygen', -183, '-183 °C'], ['Nitrogen', -196, '-196 °C'], ['Hydrogen', -253, '-253 °C'], ['Helium', -269, '-269 °C'],
+    ],
+  },
+];
