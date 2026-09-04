@@ -28,7 +28,8 @@ const tmp = `scripts/_ext_${game}.mjs`;
 fs.writeFileSync(tmp, patched);
 fs.mkdirSync('/tmp/build', { recursive: true });
 for (const f of fs.readdirSync('/tmp/build')) if (f.startsWith(game)) fs.unlinkSync(`/tmp/build/${f}`);
-const out = execFileSync('node', [tmp], { maxBuffer: 1 << 30, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+// keep the generator's stderr: it is where 'no candidate for <date>' is said
+const out = execFileSync('node', [tmp], { maxBuffer: 1 << 30, stdio: ['ignore', 'pipe', 'inherit'] }).toString();
 fs.unlinkSync(tmp);
 
 const marker = 'export const PUZZLES = [';

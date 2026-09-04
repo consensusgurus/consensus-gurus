@@ -763,6 +763,13 @@ if (RUN('span')) {
 // ─── DATING / CIRCA / EXTRA / OUTWIT ────────────────────────────────────────
 if (RUN('dating')) {
   const { PUZZLES } = await import('../app/dating/puzzles.js');
+  const { scanUS } = await import('./us-spellings.mjs');
+  // The past is frozen (authoring standard rule 10). These checks landed with
+  // the 2026-09-04 bank extension, so they are scoped to the boards that
+  // extension authored and everything after; boards before it are history.
+  const DATING_COPY_FROM = '2026-09-30';
+  const ALLOW = ["Ford's Theatre", 'Encyclopaedia Britannica', 'from Tyre'];
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   for (const p of PUZZLES) {
     const errs = [];
     // Sunday Editions run SIX events; weekdays run five.
@@ -770,8 +777,48 @@ if (RUN('dating')) {
     if (p.events.length !== wantEvents) errs.push(`${p.events.length} events (want ${wantEvents})`);
     for (let i = 1; i < p.events.length; i++) if (!(p.events[i].when > p.events[i - 1].when)) errs.push(`order not strictly ascending at #${i}`);
     if (new Set(p.events.map((e) => e.t)).size !== p.events.length) errs.push('duplicate event');
+    if (p.live >= DATING_COPY_FROM) {
+      // the calendar fields are derived, never authored, so re-derive them
+      const [y, m, d] = p.live.split('-').map(Number);
+      const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+      if (p.quizId !== `dating-${m}-${d}-${String(y).slice(2)}`) errs.push(`quizId ${p.quizId} does not match ${p.live}`);
+      if (p.dateLabel !== `${MONTHS[m - 1]} ${d}, ${y}`) errs.push(`dateLabel "${p.dateLabel}" does not match ${p.live}`);
+      if (!!p.sunday !== (dow === 0)) errs.push(`sunday=${!!p.sunday} but ${p.live} is dow ${dow}`);
+      if (!p.theme || !p.theme.trim()) errs.push('missing theme');
+      if (!p.note || !p.note.trim()) errs.push('missing note');
+      for (const e of p.events) {
+        // `y` is what the player is shown; `when` is what the order is proved
+        // against. A board where they disagree reveals a wrong year on reveal.
+        if (!e.d || !e.d.trim()) errs.push(`"${e.t}" has no timeline sentence`);
+        const raw = String(e.y).replace(/,/g, '');
+        const digits = raw.match(/\d+/);
+        const signed = digits ? (/BC/i.test(raw) ? -Number(digits[0]) : Number(digits[0])) : NaN;
+        if (signed !== e.when) errs.push(`"${e.t}" shows y=${e.y} but when=${e.when}`);
+      }
+      for (const [label, text] of [['theme', p.theme], ['note', p.note],
+        ...p.events.flatMap((e) => [['event', e.t], ['story', e.d]])]) {
+        if (/[\u2014\u2013]/.test(String(text || ''))) errs.push(`em dash in ${label}`);
+        for (const hit of scanUS(text, ALLOW)) errs.push(`British form "${hit.found}" in ${label} (US: ${hit.us})`);
+      }
+    }
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, 'strictly ascending, distinct');
   }
+  // Pool variety across the WHOLE future window, not per board (bulk rule 3).
+  // Per-board legality passes happily on a bank that says the same thing every
+  // week; this is what caught nothing in dating until it was measured.
+  const EVENT_CAP = 2, THEME_CAP = 1;
+  const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const evUse = new Map(), thUse = new Map();
+  for (const p of PUZZLES) {
+    if (p.live < DATING_COPY_FROM) continue;
+    thUse.set(norm(p.theme), (thUse.get(norm(p.theme)) || 0) + 1);
+    for (const e of p.events) evUse.set(norm(e.t), (evUse.get(norm(e.t)) || 0) + 1);
+  }
+  const hotEv = [...evUse].filter(([, c]) => c > EVENT_CAP);
+  const hotTh = [...thUse].filter(([, c]) => c > THEME_CAP);
+  if (hotEv.length) fail('dating-bank', `event over the ${EVENT_CAP}-use cap: ${hotEv.map(([k, c]) => `${k} (${c}x)`).join(', ')}`);
+  if (hotTh.length) fail('dating-bank', `theme over the ${THEME_CAP}-use cap: ${hotTh.map(([k, c]) => `${k} (${c}x)`).join(', ')}`);
+  if (!hotEv.length && !hotTh.length) ok('dating-bank', `${evUse.size} distinct events and ${thUse.size} distinct themes from ${DATING_COPY_FROM}`);
 }
 if (RUN('circa')) {
   const { PUZZLES } = await import('../app/circa/puzzles.js');

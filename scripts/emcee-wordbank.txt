@@ -2255,44 +2255,44 @@ ABOARD|On the ship
 ABROAD|Overseas
 ABSENT|Not here
 ABSORB|Soak up
-ACCEPT|Take willingly
+ACCEPT|Take what is offered
 ACCESS|Way in
 ACCUSE|Point the finger at
 ACROSS|From one side to the other
-ACTING|Stage craft
-ACTION|Deed
-ACTIVE|Not idle
-ACTUAL|Real
+ACTING|What the drama class teaches
+ACTION|Where all of it is, supposedly
+ACTIVE|Up and moving
+ACTUAL|Real, not supposed
 ADJUST|Fine-tune
 ADMIRE|Look up to
-ADVICE|Guidance
-ADVISE|Give counsel to
-AFFAIR|Event
+ADVICE|What you asked your uncle for
+ADVISE|Tell someone what you would do
+AFFAIR|Event, or a scandal
 AFFECT|Have an impact on
-AFFORD|Be able to pay for
+AFFORD|Have the money for
 AFRAID|Scared
 AGENCY|Bureau of representatives
-AGENDA|Meeting list
+AGENDA|List of what the meeting covers
 AIRWAY|Breathing passage
 ALMOND|Nut in marzipan
 ALMOST|Nearly
 ALWAYS|Every single time
-AMOUNT|Quantity
-ANCHOR|Boat's heavy hook
-ANIMAL|Living creature
-ANNUAL|Yearly
-ANSWER|Reply
-ANYONE|Whoever shows up
+AMOUNT|How much there is
+ANCHOR|Ship's holding weight
+ANIMAL|Creature of the kingdom
+ANNUAL|Once a year
+ANSWER|What the question wants
+ANYONE|No person in particular
 ANYWAY|Regardless
-APPEAL|Plea
+APPEAL|Plea, or charm
 APPEAR|Show up
-ARCADE|Game hall
+ARCADE|Row of games and tokens
 ARCHER|Bow user
 AROUND|On all sides
 ARREST|Take into custody
 ARRIVE|Get there
-ARTIST|Painter, say
-ASLEEP|Out cold
+ARTIST|Studio worker
+ASLEEP|Out for the night
 ASPECT|Facet
 ASSERT|State firmly
 ASSESS|Size up
@@ -2301,212 +2301,212 @@ ASSIST|Lend a hand
 ASSUME|Take for granted
 ASSURE|Promise to
 ATTACH|Fasten on
-ATTACK|Assault
+ATTACK|Go on the offensive
 ATTEND|Show up for
-ATTIRE|Clothing
-AUTHOR|Book writer
-AUTUMN|Fall
-AVENUE|Wide street
+ATTIRE|What you have on
+AUTHOR|Book's writer
+AUTUMN|Leaf-falling season
+AVENUE|Wide city street
 AWAKEN|Rouse from sleep
-BABIES|Newborns
+BABIES|Nursery occupants
 BACKUP|Spare copy
-BADGER|Pester
-BAKERY|Bread shop
-BALLET|Toe dance
-BALLOT|Voting slip
+BADGER|Striped burrower, or pester
+BAKERY|Where the bread is made
+BALLET|Dance on pointe
+BALLOT|What you cast
 BAMBOO|Panda's food
-BANANA|Yellow fruit
-BANDIT|Robber
+BANANA|Peel-and-eat yellow fruit
+BANDIT|Highway robber
 BANKER|Money manager
-BANNER|Hanging sign
+BANNER|Sign strung across the street
 BARBER|Haircut giver
 BARELY|Only just
 BARLEY|Grain in soup
-BARREL|Wooden cask
-BASKET|Woven carrier
+BARREL|Whiskey ages in one
+BASKET|Hoop score, or picnic carrier
 BATTER|Cake mix
-BATTLE|Fight
+BATTLE|Fight of some size
 BEACON|Guiding light
-BEAUTY|Loveliness
+BEAUTY|What the eye of the beholder sees
 BECAME|Turned into
 BECOME|Grow to be
 BEFORE|Prior to
-BEHALF|Interest, as in acting on someone's
-BEHAVE|Act properly
-BEHIND|In back of
-BELIEF|Conviction
-BELONG|Fit in
-BESIDE|Next to
-BETRAY|Turn on
+BEHALF|You act on someone's
+BEHAVE|Mind your manners
+BEHIND|To the rear
+BELIEF|What you hold to be true
+BELONG|Have a rightful place
+BESIDE|Right next to
+BETRAY|Sell out a friend
 BETTER|Improved
-BEWARE|Watch out
+BEWARE|Sign on the gate, with "of the dog"
 BEYOND|Farther than
-BIGGER|Of greater size
+BIGGER|More sizable
 BINARY|Ones and zeros
 BIRDIE|One under par
 BISHOP|Diagonal chess piece
 BISTRO|Small cafe
-BITTER|Sharp tasting
+BITTER|Like unsweetened chocolate
 BLADES|Knife edges
 BLAZER|Sport coat
-BLEACH|Whitening agent
+BLEACH|Laundry whitener
 BLINDS|Window slats
 BLONDE|Fair haired
 BLOODY|Gory
-BLOUSE|Woman's top
+BLOUSE|Buttoned top
 BOARDS|Planks
 BODIES|Torsos and limbs
 BOILER|Basement heater
 BOLDLY|Bravely
-BONNET|Tie-on hat
-BORDER|Edge
+BONNET|Tie-under-the-chin hat
+BORDER|Line between countries
 BORING|Dull
-BORROW|Take on loan
-BOTHER|Annoy
-BOTTLE|Glass container
-BOTTOM|Lowest part
+BORROW|Take with intent to return
+BOTHER|Trouble yourself
+BOTTLE|Milk container
+BOTTOM|The very lowest part
 BOUGHT|Purchased
-BOUNCE|Rebound
-BOWLER|Ten-pin player
+BOUNCE|What a ball does
+BOWLER|Cricket's pitcher, or a round hat
 BOXCAR|Freight train unit
 BRAIDS|Woven hair
-BRAINS|Smarts
-BRANCH|Tree limb
+BRAINS|Grey matter
+BRANCH|Tree limb, or a bank office
 BRANDS|Company names
-BREACH|Gap in a wall
+BREACH|Gap in the wall
 BREAKS|Rest periods
-BREATH|Lungful of air
+BREATH|What you hold underwater
 BREEDS|Dog types
-BREEZE|Light wind
+BREEZE|Light wind, or an easy job
 BRIDAL|Wedding related
-BRIDGE|River crossing
-BRIGHT|Shining
+BRIDGE|It spans the river
+BRIGHT|Well lit, or clever
 BRINGS|Carries over
 BROKEN|In pieces
 BROKER|Deal middleman
-BRONZE|Third place metal
-BROOCH|Lapel pin
+BRONZE|Third-place metal
+BROOCH|Pin worn on a lapel
 BROOMS|Sweeping tools
 BRUISE|Black and blue mark
-BRUNCH|Late morning meal
+BRUNCH|Late weekend meal
 BUBBLE|Soap sphere
-BUCKET|Pail
+BUCKET|Mop's partner
 BUCKLE|Belt fastener
-BUDGET|Spending plan
-BUFFET|Serve yourself meal
+BUDGET|What the spending has to fit
+BUFFET|Serve-yourself spread
 BUILDS|Constructs
 BULLET|Gun round
-BUNDLE|Tied package
+BUNDLE|Tied-up armful
 BUNKER|Sand trap
-BURDEN|Heavy load
-BUREAU|Chest of drawers
+BURDEN|Heavy load to bear
+BUREAU|Dresser, or a government office
 BURGER|Patty on a bun
 BURIAL|Funeral rite
 BURNER|Stove top ring
 BURROW|Rabbit hole
 BUSHEL|Apple measure
 BUSTLE|Hurry and noise
-BUTLER|Household servant
+BUTLER|The one who did it, traditionally
 BUTTER|Toast spread
 BUTTON|Shirt fastener
 BUYERS|Shoppers
 BYPASS|Route around town
-CABLES|Thick wires
-CACTUS|Desert plant
+CABLES|TV wires
+CACTUS|Prickly desert plant
 CALLER|Phone dialer
 CALMLY|Without panic
-CAMERA|Photo taker
+CAMERA|It takes the picture
 CAMPER|Tent user
 CAMPUS|College grounds
 CANDID|Frank
-CANDLE|Wax light
+CANDLE|Birthday cake topper
 CANINE|Dog, formally
 CANNON|Old artillery piece
 CANOPY|Overhead cover
 CANVAS|Painter's surface
-CANYON|Deep gorge
+CANYON|Deep river gorge
 CARBON|Element in diamonds
-CAREER|Life's work
-CARPET|Floor covering
-CARROT|Orange root vegetable
-CARTON|Milk container
-CARVED|Cut into shape
+CAREER|Your working life
+CARPET|Wall-to-wall flooring
+CARROT|Rabbit's favorite
+CARTON|Egg holder
+CARVED|Cut a shape into
 CASHEW|Curved nut
-CASINO|Gambling house
+CASINO|Where the chips are
 CASKET|Coffin
-CASTLE|Moated fortress
-CASUAL|Informal
-CATTLE|Ranch herd
-CAUGHT|Nabbed
+CASTLE|Moat surrounds it
+CASUAL|Not dressed up
+CATTLE|Herd on the ranch
+CAUGHT|Snagged
 CAUSED|Brought about
-CAVERN|Big hollow underground
+CAVERN|Big cave
 CAVITY|Tooth hole
 CELERY|Crunchy green stalk
-CELLAR|Basement
+CELLAR|Below the house
 CEMENT|Sidewalk stuff
-CENSUS|Population count
-CENTER|Middle
-CEREAL|Breakfast bowlful
-CHAINS|Linked metal
-CHAIRS|Seats
+CENSUS|Head count of the country
+CENTER|The middle
+CEREAL|Breakfast in a bowl
+CHAINS|Snow tire aid
+CHAIRS|Seats at the table
 CHALET|Ski lodge
-CHANCE|Odds
-CHANGE|Alter
-CHAPEL|Small place of worship
-CHARGE|Fee
+CHANCE|A shot at it
+CHANGE|Coins, or make different
+CHAPEL|Small church
+CHARGE|Fee, or a rush forward
 CHARMS|Bracelet danglers
-CHARTS|Graphs
+CHARTS|Where the hits are ranked
 CHEEKS|Face sides
 CHEERS|Shouts of support
-CHEESE|Cheddar or brie
+CHEESE|Say it for the camera
 CHERRY|Pie fruit with a pit
 CHIEFS|Leaders
-CHILLY|Cold
+CHILLY|Needing a jacket
 CHIMES|Doorbell bells
-CHOICE|Selection
-CHOOSE|Pick
+CHOICE|What you get to make
+CHOOSE|Pick one
 CHORDS|Guitar strums
-CHORUS|Song refrain
+CHORUS|The part everybody sings
 CHOSEN|Selected
-CHROME|Shiny plating
+CHROME|Shiny bumper finish
 CHUNKS|Big pieces
-CHURCH|Steepled building
+CHURCH|Sunday building
 CIGARS|Rolled tobacco
 CINEMA|Movie house
 CIRCLE|Round shape
 CIRCUS|Big top show
 CITIES|Urban areas
-CITRUS|Lemon family
+CITRUS|Orange or lemon
 CLAIMS|Assertions
-CLASSY|Elegant
-CLAUSE|Contract part
+CLASSY|With real style
+CLAUSE|Part of a contract
 CLERKS|Store staff
-CLEVER|Bright
+CLEVER|Quick-witted
 CLIENT|Customer
-CLIMAX|Peak moment
+CLIMAX|The high point
 CLIMBS|Goes up
-CLINIC|Medical office
+CLINIC|Walk-in medical office
 CLOCKS|Time tellers
 CLOSED|Shut
 CLOSER|Nearer
-CLOSET|Clothes nook
+CLOSET|Where the clothes hang
 CLOUDS|Sky puffs
 CLOUDY|Overcast
-CLOVER|Lucky plant
+CLOVER|Four-leaf luck
 CLUMSY|All thumbs
 CLUTCH|Grab tightly
 COARSE|Rough
 COBWEB|Attic strand
 COCOON|Caterpillar wrap
-COFFEE|Morning brew
-COFFIN|Burial box
+COFFEE|Morning cup
+COFFIN|Funeral box
 COLDER|More chilly
-COLLAR|Shirt neckband
+COLLAR|Shirt's neckband
 COLONY|Settlement
-COLUMN|Pillar
+COLUMN|Pillar, or a newspaper feature
 COMBAT|Fighting
-COMEDY|Funny genre
-COMICS|Newspaper funnies
+COMEDY|It should get laughs
+COMICS|Sunday funnies
 COMMON|Ordinary
 COMPLY|Go along with rules
 CONVEY|Get across
@@ -2515,406 +2515,406 @@ COOLER|Ice chest
 COPIED|Duplicated
 COPIES|Reproductions
 COPPER|Penny metal
-CORNER|Where two walls meet
+CORNER|Where two streets meet
 CORPSE|Dead body
-CORRAL|Horse pen
+CORRAL|Fenced pen for horses
 CORSET|Laced undergarment
-COSMIC|Of the universe
+COSMIC|Of the whole universe
 COSTLY|Expensive
 COTTON|Shirt fiber
 COUGAR|Mountain lion
 COUNTS|Tallies
 COUNTY|Region with a seat
 COUPLE|Two of them
-COUPON|Discount slip
-COURSE|Class
+COUPON|Clip it and save
+COURSE|Golf layout, or a class
 COURTS|Tennis venues
 COUSIN|Aunt's child
 COVERS|Blankets
 COWBOY|Rodeo rider
-COYOTE|Prairie howler
-CRADLE|Baby's bed
-CRATER|Moon dent
-CRAYON|Waxy color stick
-CREAMY|Smooth and rich
+COYOTE|Desert howler
+CRADLE|Baby's rocker
+CRATER|Hole a meteor makes
+CRAYON|Waxy colorer
+CREAMY|Smooth as custard
 CREASE|Fold line
-CREATE|Make
-CREDIT|Praise given
+CREATE|Make from nothing
+CREDIT|Where it is due
 CRISIS|Emergency
 CRISPY|Crunchy
-CRITIC|Reviewer
-CROUCH|Squat down
-CROWDS|Throngs
+CRITIC|The one who pans it
+CROUCH|Get low on the haunches
+CROWDS|Packed masses
 CROWNS|Royal headgear
-CRUISE|Ocean voyage
-CRUMBS|Bread bits
-CRUNCH|Sound of a bite
-CRUTCH|Walking aid
-CURFEW|Time to be home
-CURSOR|Screen pointer
+CRUISE|Ship holiday
+CRUMBS|What the toast leaves
+CRUNCH|Sound of a fresh apple
+CRUTCH|Sprained-ankle support
+CURFEW|Be home by then
+CURSOR|Blinking screen marker
 CURVED|Bent
-CUSTOM|Tradition
+CUSTOM|The way it is always done
 CUTTER|Sharp tool
-CYCLES|Repeating rounds
+CYCLES|Goes round again
 CYMBAL|Crashing disc
 DAGGER|Short blade
 DAINTY|Delicate
-DAMAGE|Harm
-DAMPEN|Make moist
-DANCER|Ballroom mover
-DANGER|Peril
+DAMAGE|Harm done
+DAMPEN|Make slightly wet
+DANCER|Ballroom performer
+DANGER|Watch out
 DARING|Bold
 DARKEN|Dim
 DATING|Seeing someone
-DEALER|Card giver
-DEBATE|Formal argument
+DEALER|Card handler
+DEBATE|Argument with rules
 DEBRIS|Wreckage
 DEBTOR|One who owes
 DECADE|Ten years
-DECEIT|Trickery
-DECENT|Fairly good
-DECIDE|Make up your mind
-DECODE|Figure out a cipher
+DECEIT|Deliberate lying
+DECENT|Good enough, and honest
+DECIDE|Make the call
+DECODE|Work out the secret message
 DECREE|Official order
 DEDUCT|Subtract
 DEEPEN|Make lower
-DEFEAT|Beat
+DEFEAT|A loss
 DEFECT|Flaw
-DEFEND|Protect
-DEFINE|Give the meaning of
-DEGREE|Diploma
-DELAYS|Holdups
-DELETE|Erase
-DELUXE|Top of the line
+DEFEND|Stand up for
+DEFINE|Say what it means
+DEGREE|Temperature unit, or a diploma
+DELAYS|Airport board bad news
+DELETE|Wipe it out
+DELUXE|The fancy version
 DEMAND|Insist on
-DENIAL|Refusal to admit
+DENIAL|Refusal to admit it
 DENOTE|Stand for
 DENTAL|Of the teeth
 DEPART|Leave
 DEPEND|Rely
 DEPICT|Portray
 DEPLOY|Send out
-DEPUTY|Sheriff's aide
-DESERT|Sandy expanse
-DESIGN|Blueprint
-DESIRE|Strong wish
-DETAIL|Small point
-DETECT|Notice
+DEPUTY|Sheriff's second
+DESERT|Sahara, for one
+DESIGN|Plan for how it looks
+DESIRE|Strong wanting
+DETAIL|Small particular
+DETECT|Pick up on
 DETEST|Loathe
 DEVICE|Gadget
 DEVISE|Think up
-DEVOUR|Eat greedily
+DEVOUR|Wolf down
 DIAPER|Baby's wrap
 DIESEL|Truck fuel
 DIFFER|Not agree
-DIGEST|Break down food
+DIGEST|Break down a meal
 DIGITS|Numerals
-DIMPLE|Cheek dent
+DIMPLE|Cheek indent
 DINERS|Roadside eateries
-DINNER|Evening meal
-DIRECT|Straight
-DISARM|Take weapons from
+DINNER|The evening meal
+DIRECT|Point the way, or straight
+DISARM|Take away the weapons
 DISHES|Plates and bowls
-DISMAY|Alarm
+DISMAY|Sinking feeling
 DIVERT|Turn aside
 DIVIDE|Split up
 DIVINE|Heavenly
-DOCTOR|Hospital pro
-DOLLAR|Buck
+DOCTOR|The one with the stethoscope
+DOLLAR|Hundred cents
 DOMAIN|Territory
 DONATE|Give to charity
-DONKEY|Braying beast
+DONKEY|Long-eared beast of burden
 DOODLE|Idle sketch
 DOTTED|Speckled
 DOUBLE|Twice as much
-DOUBTS|Misgivings
+DOUBTS|Second thoughts
 DOZENS|Many sets of twelve
 DRAFTS|Rough versions
-DRAGON|Fire breathing beast
+DRAGON|Fire-breather of legend
 DRAINS|Sink holes
-DRAPES|Curtains
-DRAWER|Desk slider
-DREAMS|Sleep visions
+DRAPES|Window hangings
+DRAWER|Pull-out compartment
+DREAMS|What sleep brings
 DREAMY|Like a reverie
 DRINKS|Beverages
 DRIVEN|Motivated
-DRIVER|One at the wheel
+DRIVER|Golf club, or the one at the wheel
 DROWSY|Sleepy
 DUGOUT|Bench area at a ballpark
-DUPLEX|Two family house
+DUPLEX|Two-home building
 DURING|Throughout
-EARNED|Worked for
+EARNED|Worked for it
 EARTHY|Like rich soil
-EASIER|Less tough
+EASIER|Less trouble
 EASILY|Without trouble
 EATERY|Diner
-EDIBLE|Fit to eat
-EDITOR|Copy chief
-EFFECT|Result
-EFFORT|Exertion
-EIGHTH|After seventh
+EDIBLE|Safe to eat
+EDITOR|The one with the red pen
+EFFECT|What the cause produces
+EFFORT|The trying part
+EIGHTH|Between seventh and ninth
 EIGHTY|Four score
 EITHER|One or the other
 ELAPSE|Go by, as time
 ELBOWS|Arm joints
-ELDEST|Firstborn
-ELEVEN|Soccer squad size
+ELDEST|First-born
+ELEVEN|Football team size
 ELIXIR|Magic potion
-EMBERS|Fire remnants
-EMBLEM|Symbol
+EMBERS|What the fire leaves
+EMBLEM|Badge or symbol
 EMERGE|Come out
-EMPIRE|Vast realm
-EMPLOY|Hire
-ENABLE|Make possible
+EMPIRE|What Rome had
+EMPLOY|Put on the payroll
+ENABLE|Make it possible
 ENAMEL|Tooth coating
 ENCASE|Surround completely
 ENCODE|Put into cipher
-ENCORE|Extra number
-ENDING|Final part
+ENCORE|One more song
+ENDING|How the story finishes
 ENDURE|Put up with
-ENERGY|Pep
-ENGAGE|Draw in
-ENGINE|Motor
+ENERGY|What the battery holds
+ENGAGE|Draw into it
+ENGINE|Under the hood
 ENIGMA|Riddle
 ENLIST|Sign up
-ENOUGH|Sufficient
+ENOUGH|No more needed
 ENRICH|Make fuller
 ENROLL|Register for class
-ENSURE|Make certain
+ENSURE|Make certain of
 ENTAIL|Involve
-ENTIRE|Whole
+ENTIRE|The whole thing
 EQUALS|Is the same as
 EQUATE|Treat as alike
 ERASER|Pencil end
-ERRAND|Quick trip
+ERRAND|Quick trip to the shop
 ERRORS|Mistakes
-ESCAPE|Get away
+ESCAPE|Get out
 ESCORT|Accompany
-ESTATE|Big property
+ESTATE|Grand house and grounds
 ETHICS|Moral code
 EULOGY|Funeral speech
-EVENLY|In equal parts
-EVENTS|Happenings
+EVENLY|Fair shares all round
+EVENTS|Things on the calendar
 EVOLVE|Develop slowly
-EXCEED|Go beyond
+EXCEED|Go over the limit
 EXCEPT|Other than
-EXCESS|Too much
-EXCITE|Stir up
-EXCUSE|Alibi
-EXEMPT|Not subject to
+EXCESS|More than needed
+EXCITE|Get someone worked up
+EXCUSE|The dog ate my homework, e.g.
+EXEMPT|Let off
 EXHALE|Breathe out
-EXOTIC|From far away
-EXPAND|Grow larger
-EXPECT|Anticipate
-EXPERT|Old hand
-EXPIRE|Run out
-EXPORT|Ship abroad
-EXPOSE|Uncover
-EXTEND|Stretch out
-EXTENT|Range
+EXOTIC|From somewhere far away
+EXPAND|Get bigger
+EXPECT|Count on it
+EXPERT|The one who knows
+EXPIRE|Run out of date
+EXPORT|Ship it abroad
+EXPOSE|Bring to light
+EXTEND|Stretch out further
+EXTENT|How far it goes
 EXTRAS|Bonus items
 EYELID|Blinking cover
-FABRIC|Cloth
+FABRIC|Bolt at the cloth shop
 FACIAL|Spa treatment
-FACTOR|Element
+FACTOR|Something that contributes
 FADING|Growing dim
-FAILED|Flunked
-FAIRLY|Rather
-FALCON|Swift bird of prey
+FAILED|Did not manage it
+FAIRLY|Justly, or moderately
+FALCON|Hunting bird
 FALLEN|Down on the ground
 FAMILY|Kin
 FAMINE|Widespread hunger
-FAMOUS|Well known
-FARMER|Crop grower
-FASTEN|Buckle up
+FAMOUS|Everybody knows them
+FARMER|Field worker
+FASTEN|Do up the seatbelt
 FASTER|Quicker
 FATHER|Dad
 FATHOM|Understand
-FAUCET|Tap
+FAUCET|Kitchen tap
 FAULTY|Not working right
 FAVORS|Party giveaways
 FEEBLE|Weak
 FEEDER|Bird's dining spot
-FELINE|Catlike
+FELINE|Of cats
 FELLOW|Chap
-FEMALE|Woman
-FENCES|Yard barriers
+FEMALE|Not male
+FENCES|Yard dividers
 FENDER|Car wing
 FERRET|Weasel relative
-FIASCO|Total flop
+FIASCO|Complete flop
 FIBERS|Threads
 FICKLE|Changeable
 FIDDLE|Country violin
 FIELDS|Meadows
 FIERCE|Ferocious
 FIESTA|Big party
-FIGURE|Number
+FIGURE|Number, or a shape
 FILING|Putting in order
 FILLET|Boneless cut
-FILTER|Screen out
+FILTER|Coffee maker part
 FILTHY|Very dirty
-FINALE|Last act
+FINALE|The last act
 FINEST|Best
-FINGER|Digit on a hand
-FINISH|Complete
-FIRMLY|Steadily
-FISCAL|Of finances
+FINGER|Thumb's neighbor
+FINISH|The line at the end of the race
+FIRMLY|With no give
+FISCAL|Of the budget year
 FIXING|Repairing
 FIZZLE|Peter out
 FLAKES|Snow bits
-FLAMES|Fire tongues
+FLAMES|What the fire throws
 FLASHY|Showy
-FLAVOR|Taste
-FLEECE|Sheep coat
-FLIGHT|Plane trip
-FLINCH|Wince
+FLAVOR|Vanilla or chocolate
+FLEECE|Sweatshirt fabric, or swindle
+FLIGHT|What you board at the gate
+FLINCH|React to the near miss
 FLOODS|Deluges
 FLOORS|Storeys
 FLOPPY|Limp
-FLORAL|Of blossoms
-FLOWER|Petal bearer
-FLUENT|Speaking with ease
+FLORAL|Patterned with flowers
+FLOWER|Rose or tulip
+FLUENT|Speaks it like a native
 FLUFFY|Soft and airy
 FLUIDS|Liquids
 FLURRY|Snow burst
 FLYERS|Handbills
 FODDER|Cattle feed
-FOLDER|File holder
+FOLDER|Where the papers go
 FOLLOW|Come after
-FONDLY|With affection
+FONDLY|With warm feeling
 FOODIE|Cuisine lover
 FORAGE|Hunt for food
 FORBID|Ban
 FORCED|Made to
-FOREST|Woods
-FORGET|Fail to recall
+FOREST|Woods on a big scale
+FORGET|Let it slip your mind
 FORGOT|Lost track of
 FORMAL|Black tie
-FORMAT|Layout
-FORMER|Previous
-FOSSIL|Ancient remains in rock
+FORMAT|How it is laid out
+FORMER|The earlier one
+FOSSIL|Rock with a print of an old bone
 FOSTER|Nurture
 FOUGHT|Battled
-FOURTH|After third
-FRAMED|Put in a border
+FOURTH|July holiday, in the States
+FRAMED|Put behind glass, or set up
 FRAMES|Picture borders
 FREELY|Without restraint
 FREEZE|Turn to ice
 FRENZY|Wild excitement
 FRESCO|Wall painting
 FRIDGE|Kitchen cooler
-FRIEND|Pal
-FRIGHT|Sudden scare
-FRINGE|Border of threads
+FRIEND|Someone you can call
+FRIGHT|A bad scare
+FRINGE|Edge of the crowd
 FRISKY|Playful
 FROSTY|Icy
-FROZEN|Solid with cold
+FROZEN|Solid as ice
 FRUGAL|Thrifty
 FRUITS|Apples and pears
 FUMBLE|Drop the ball
-FUNGUS|Mold or mushroom
-FUNNEL|Pouring cone
+FUNGUS|Mushroom's kind
+FUNNEL|Cone for pouring
 FURROW|Plow line
-FUTURE|Days to come
-GADGET|Handy device
-GALAXY|Star system
+FUTURE|What is still to come
+GADGET|Handy little device
+GALAXY|The Milky Way, for one
 GALLEY|Ship kitchen
 GALLON|Four quarts
 GALLOP|Horse's fast pace
 GAMBLE|Take a risk
-GARAGE|Car shelter
-GARDEN|Flower bed area
-GARLIC|Pungent bulb
-GATHER|Collect
+GARAGE|Where the car sleeps
+GARDEN|Where you grow things
+GARLIC|Bulb in the pasta sauce
+GATHER|Bring together
 GAZEBO|Park pavilion
 GENDER|Male or female
-GENIUS|Brilliant mind
-GENTLE|Mild
+GENIUS|Real brilliance
+GENTLE|Soft-handed
 GENTLY|Softly
-GERBIL|Small pet rodent
-GEYSER|Hot spring spout
+GERBIL|Small caged pet
+GEYSER|Old Faithful, for one
 GIFTED|Talented
-GIGGLE|Light laugh
-GINGER|Spicy root
+GIGGLE|Small laugh
+GINGER|Root in the biscuit
 GLADLY|Happily
 GLANCE|Quick look
-GLIDER|Engineless plane
+GLIDER|Engineless aircraft
 GLITCH|Small malfunction
 GLOBAL|Worldwide
-GLOOMY|Dreary
-GLOSSY|Shiny
-GLOVES|Hand warmers
+GLOOMY|Overcast and low
+GLOSSY|Like magazine paper
+GLOVES|Winter hand wear
 GOALIE|Net minder
-GOBLET|Stemmed cup
+GOBLET|Stemmed drinking cup
 GOBLIN|Storybook imp
-GOLDEN|Like rich yellow
+GOLDEN|Like a retriever, or the color
 GOLFER|Links player
 GOPHER|Burrowing rodent
-GOSPEL|Absolute truth
-GOSSIP|Idle talk
+GOSPEL|The absolute truth
+GOSSIP|Talk about the neighbors
 GOTTEN|Obtained
-GOVERN|Rule over
+GOVERN|Rule the country
 GRADES|Report card marks
-GRAINS|Wheat and rye
+GRAINS|Wheat and barley
 GRANNY|Nana
-GRAPES|Vine fruit
-GRAPHS|Data charts
+GRAPES|Vine bunch
+GRAPHS|Charts with axes
 GRASSY|Covered in lawn
 GRATER|Cheese shredder
 GRAVEL|Driveway stones
-GREASE|Slippery fat
+GREASE|Frying fat
 GREASY|Oily
-GREEDY|Wanting it all
+GREEDY|Wanting far too much
 GREENS|Salad leaves
 GRIEVE|Mourn
-GROOVE|Long narrow cut
-GROUND|Earth underfoot
-GROUPS|Clusters
-GROWTH|Increase
+GROOVE|Record's track
+GROUND|What you stand on
+GROUPS|Sets of people
+GROWTH|Getting bigger
 GRUDGE|Old resentment
-GRUMPY|Cranky
+GRUMPY|One of the seven dwarfs, and cranky
 GUARDS|Sentries
 GUESTS|Visitors
 GUIDES|Tour leaders
 GUILTY|Not innocent
-GUITAR|Six string instrument
-GUTTER|Roof channel
+GUITAR|Six-string instrument
+GUTTER|Roof's rain channel
 GUZZLE|Drink fast
 HABITS|Routines
 HAGGLE|Bargain over price
 HAIRDO|Coiffure
-HAMLET|Tiny village
+HAMLET|Small village, or the Dane
 HAMMER|Nail driver
-HAMPER|Laundry basket
-HANDLE|Grip
-HANGAR|Plane shed
-HANGER|Closet item
+HAMPER|Laundry basket, or hinder
+HANDLE|Door grip
+HANGAR|Where the plane parks
+HANGER|It holds the coat
 HAPPEN|Take place
-HARBOR|Port
+HARBOR|Where boats shelter
 HARDEN|Set firm
 HARDER|Tougher
-HARDLY|Barely
+HARDLY|Barely at all
 HATRED|Deep loathing
-HAZARD|Danger
-HEALTH|Well being
+HAZARD|Bunker, or a danger
+HEALTH|Drink to it
 HEARTH|Fireplace floor
 HEARTS|Card suit
-HEATED|Warmed up
+HEATED|Warmed, or angry
 HEATER|Radiator
-HEAVEN|Paradise
+HEAVEN|The other place
 HECTIC|Frantic
-HEDGES|Shrub rows
+HEDGES|Trimmed garden walls
 HEIGHT|How tall
-HELMET|Head protector
+HELMET|Bike safety gear
 HELPER|Assistant
-HERBAL|Made from plants
-HEREBY|By this means
+HERBAL|Like some teas
+HEREBY|By this act
 HERMIT|Recluse
-HEROES|Brave ones
+HEROES|Ones who run in
 HEROIC|Very brave
 HIATUS|Break in the action
 HIDDEN|Out of sight
-HIGHER|Above
+HIGHER|Farther up
 HIGHLY|Very much
 HIJACK|Seize a vehicle
 HINDER|Get in the way of
@@ -2923,20 +2923,20 @@ HIPPIE|Flower child
 HIRING|Taking on staff
 HITTER|Batter
 HOBBLE|Limp along
-HOCKEY|Rink sport
-HOLDER|Container
+HOCKEY|Puck sport
+HOLDER|Cup's carrier
 HOLLOW|Empty inside
-HOMAGE|Tribute
+HOMAGE|Tribute paid
 HONEST|Truthful
-HONORS|Awards
+HONORS|Graduation distinction
 HOOKED|Caught, as a fish
 HOOVES|Horse feet
 HOPING|Wishing
-HORNET|Stinging wasp
-HORROR|Scary genre
+HORNET|Nasty stinger
+HORROR|Scary movie genre
 HORSES|Stable dwellers
-HOSTEL|Cheap lodging
-HOTELS|Inns
+HOSTEL|Cheap traveler's bed
+HOTELS|Where you check in
 HOTTER|Less cool
 HOUNDS|Hunting dogs
 HOURLY|Every sixty minutes
@@ -2944,902 +2944,902 @@ HOUSES|Homes
 HUDDLE|Team gathering
 HUMANE|Kind
 HUMANS|People
-HUMBLE|Modest
-HUNGER|Need for food
-HUNGRY|Ready to eat
-HUNTER|Game seeker
-HURDLE|Track barrier
-HUSTLE|Rush around
-HYBRID|Crossbreed
-HYPHEN|Short dash
-ICICLE|Hanging spike of ice
+HUMBLE|Not full of yourself
+HUNGER|The empty feeling
+HUNGRY|Ready for dinner
+HUNTER|One who tracks
+HURDLE|Track barrier, or an obstacle
+HUSTLE|Get moving
+HYBRID|Part gas, part electric
+HYPHEN|Little joining dash
+ICICLE|Hanging winter spike
 ICONIC|Instantly recognized
 IGNITE|Set alight
 IGNORE|Pay no attention to
 IMAGES|Pictures
 IMMUNE|Not affected
-IMPACT|Collision
+IMPACT|The moment of collision
 IMPAIR|Weaken
 IMPORT|Bring in from abroad
-IMPOSE|Force upon
+IMPOSE|Force it on someone
 INCHES|Twelve to a foot
-INCOME|Earnings
-INDENT|Move in a margin
-INDIGO|Deep blue dye
-INDOOR|Not outside
+INCOME|What comes in
+INDENT|Start of the paragraph
+INDIGO|Between blue and violet
+INDOOR|Not out in the weather
 INDUCE|Bring about
-INFANT|Baby
+INFANT|The very young one
 INFECT|Pass a germ to
-INFORM|Tell
+INFORM|Let them know
 INHALE|Breathe in
 INJECT|Give a shot of
 INJURE|Hurt
-INJURY|Wound
+INJURY|Sideline cause
 INLAND|Away from the coast
 INMATE|Prisoner
 INNATE|Inborn
-INSANE|Mad
-INSECT|Six legged creature
-INSERT|Put in
-INSIDE|Within
-INSIST|Demand
+INSANE|Out of your mind
+INSECT|Six-legged crawler
+INSERT|Slip it in
+INSIDE|Indoors
+INSIST|Refuse to drop it
 INSULT|Slight
-INTACT|Unbroken
+INTACT|Not a scratch on it
 INTEND|Mean to
-INTENT|Purpose
+INTENT|What you meant to do
 INTERN|Trainee
-INVADE|Storm into
-INVENT|Dream up
+INVADE|March in uninvited
+INVENT|Come up with it first
 INVEST|Put money in
-INVITE|Ask over
+INVITE|Ask them along
 INVOKE|Call upon
 INWARD|Toward the middle
-IRONIC|Opposite of expected
-ISLAND|Land in the sea
-ISSUES|Magazine numbers
+IRONIC|The opposite of what you'd expect
+ISLAND|Land with water all round
+ISSUES|Problems, or magazine numbers
 ITALIC|Slanted type
 ITSELF|On its own
-JACKET|Light coat
+JACKET|Coat
 JAGGED|Saw toothed
 JARGON|Trade lingo
 JERSEY|Team shirt
 JESTER|Court fool
-JIGSAW|Puzzle with pieces
+JIGSAW|Puzzle of pieces
 JINGLE|Ad ditty
-JOCKEY|Race rider
-JOGGER|Runner
+JOCKEY|Horse rider in silks
+JOGGER|Park runner
 JOINTS|Knees and elbows
-JOKING|Kidding
-JOSTLE|Bump into
+JOKING|Not serious
+JOSTLE|Push through the crowd
 JOVIAL|Merry
-JUDGES|Bench sitters
-JUGGLE|Keep balls in the air
+JUDGES|The ones on the bench
+JUGGLE|Keep three in the air
 JUMBLE|Mix up
 JUMPER|Sleeveless dress
-JUNGLE|Dense rain forest
-JUNIOR|Third year student
+JUNGLE|Thick tropical forest
+JUNIOR|The younger one
 JUSTLY|Fairly
-KARATE|Martial art
-KEEPER|One who holds on
-KENNEL|Dog boarding place
-KERNEL|Corn bit
-KETTLE|Water boiler
-KEYPAD|Number buttons
+KARATE|Chopping martial art
+KEEPER|One worth holding on to
+KENNEL|Where the dog boards
+KERNEL|Corn's grain
+KETTLE|It whistles when it boils
+KEYPAD|Number entry panel
 KIDNAP|Abduct
-KIDNEY|Bean shaped organ
+KIDNEY|Bean, or the organ
 KILLER|Murderer
 KINDLE|Start a fire
 KINDLY|In a nice way
 KITTEN|Young cat
-KNIGHT|Armored rider
-KNIVES|Cutting blades
+KNIGHT|Chess horse, or Sir
+KNIVES|Cutlery drawer blades
 KOSHER|Fit to eat, in Jewish law
-LABELS|Tags
-LADDER|Rung climber
-LADIES|Women
-LAGOON|Shallow water by the sea
+LABELS|Jar stickers
+LADDER|Rungs to climb
+LADIES|Room sign
+LAGOON|Sheltered shallow water
 LAMENT|Mourn out loud
 LAPTOP|Portable computer
-LARGER|Of greater bulk
-LATELY|In recent days
+LARGER|More sizable
+LATELY|Of late
 LATEST|Most recent
 LATHER|Soap suds
-LATTER|The second one
+LATTER|The second of the two
 LAUGHS|Chuckles
-LAUNCH|Send off
+LAUNCH|Send the rocket up
 LAVISH|Extravagant
 LAWFUL|Legal
 LAWYER|Bar member
-LAYERS|Strata
+LAYERS|Onion has them
 LAZILY|Without hurry
-LEADER|One in charge
-LEAGUE|Sports group
-LEAVES|Tree foliage
-LEDGER|Account book
-LEGACY|What is left behind
-LEGEND|Old tale
+LEADER|The one out front
+LEAGUE|Where the teams play
+LEAVES|Rake target
+LEDGER|Book of accounts
+LEGACY|What you leave behind
+LEGEND|Map key, or a great
 LEGION|Vast number
-LEMONS|Sour citrus
+LEMONS|Sour yellow fruit
 LENDER|Loan giver
 LENGTH|How long
 LENSES|Glasses parts
-LESSEN|Reduce
-LESSON|Class period
-LETTER|Mailed note
+LESSEN|Cut down
+LESSON|What the teacher gives
+LETTER|A through Z, or mail
 LEVELS|Floors
 LIABLE|Responsible
 LIKELY|Probable
 LIKING|Fondness
-LIMBER|Flexible
+LIMBER|Loose and flexible
 LIMITS|Boundaries
 LINEAR|Along one dimension
-LINGER|Stay on
-LIQUID|Not solid or gas
+LINGER|Hang about
+LIQUID|Neither solid nor gas
 LIQUOR|Hard drink
-LISTEN|Pay attention
-LITTER|Trash on the ground
+LISTEN|Lend an ear
+LITTER|Roadside trash, or a batch of pups
 LITTLE|Small
-LIVELY|Full of energy
+LIVELY|Full of go
 LIVING|Alive
-LIZARD|Gecko, for one
+LIZARD|Sunbathing reptile
 LOAFER|Slip on shoe
 LOCALE|Setting
-LOCALS|Area residents
+LOCALS|The people who live there
 LOCATE|Find
-LOCKER|Gym storage
-LOCKET|Neck pendant
-LOOSEN|Slacken
+LOCKER|School hallway cubby
+LOCKET|Photo pendant
+LOOSEN|Slacken off
 LOTION|Skin cream
-LOUDER|More noisy
+LOUDER|Turn it up
 LOUDLY|Noisily
 LOUNGE|Sitting room
-LOVELY|Beautiful
-LOWEST|Bottom most
+LOVELY|Really rather nice
+LOWEST|Rock bottom
 LUMBER|Sawmill output
 LUNACY|Madness
-LUXURY|Great comfort
-LYRICS|Song words
-MAGNET|Iron attractor
-MAIDEN|Young woman
+LUXURY|The good life
+LYRICS|The words to the song
+MAGNET|Fridge sticker with a pull
+MAIDEN|First voyage
 MAINLY|For the most part
-MAKEUP|Cosmetics
+MAKEUP|Lipstick and mascara
 MALICE|Ill will
 MALLET|Croquet hammer
-MAMMAL|Warm blooded animal
-MANAGE|Run, as a store
-MANGLE|Wreck badly
+MAMMAL|Whale or human
+MANAGE|Get it done, or run the shop
+MANGLE|Wreck completely
 MANIAC|Wild one
-MANNER|Way of doing
+MANNER|The way you do it
 MANTLE|Fireplace shelf
-MANUAL|Instruction book
-MARBLE|Veined stone
-MARGIN|Page edge
+MANUAL|The book that came with it
+MARBLE|Kid's shooter, or the stone
+MARGIN|Page's blank edge
 MARINA|Boat basin
-MARINE|Of the sea
+MARINE|Of the sea, or a soldier
 MARKER|Felt tip pen
-MARKET|Grocery
-MARROW|Bone center
+MARKET|Where the stalls are
+MARROW|Inside the bone
 MARVEL|Wonder at
-MASCOT|Team symbol
-MASTER|Expert
-MATTER|Substance
+MASCOT|Sideline costume
+MASTER|The one in charge
+MATTER|Substance, or importance
 MATURE|Grown up
 MEADOW|Grassy field
 MEAGER|Scanty
-MEDALS|Olympic prizes
+MEDALS|Podium hardware
 MEDDLE|Butt in
 MEDIAN|Middle value
-MEDIUM|Neither large nor small
-MELODY|Tune
+MEDIUM|Between small and large
+MELODY|The tune
 MELONS|Cantaloupes
-MEMBER|Club joiner
+MEMBER|One of the club
 MEMOIR|Life story
-MEMORY|Recollection
+MEMORY|What you keep of it
 MENACE|Threat
 MENTAL|Of the mind
-MENTOR|Wise guide
+MENTOR|Guiding elder
 MERELY|Only
-MERGER|Corporate joining
-MERITS|Good points
+MERGER|Two companies become one
+MERITS|Deserves
 METALS|Iron and tin
 METEOR|Shooting star
 METERS|Parking devices
-METHOD|Way of doing things
+METHOD|The way it is done
 MIDDAY|Noon
 MIDDLE|Center
-MIDWAY|Halfway
-MIGHTY|Powerful
-MILDLY|Slightly
-MINGLE|Mix at a party
+MIDWAY|Fairground strip
+MIGHTY|Very powerful
+MILDLY|Not to put too fine a point on it
+MINGLE|Work the party
 MINING|Digging for ore
 MINNOW|Small bait fish
 MINUTE|Sixty seconds
 MIRAGE|Desert illusion
-MIRROR|Reflecting glass
-MISERY|Great distress
+MIRROR|What you check your hair in
+MISERY|Real wretchedness
 MISFIT|One who does not belong
 MISHAP|Small accident
-MISTER|Title for a man
+MISTER|Title before a surname
 MITTEN|Thumb only glove
 MIXING|Stirring together
-MOBILE|Able to move
+MOBILE|On the move, or a crib hanger
 MODELS|Runway walkers
-MODERN|Up to date
+MODERN|Of right now
 MODEST|Not boastful
 MODIFY|Change slightly
-MOLTEN|Melted, as rock
-MOMENT|Instant
-MONKEY|Zoo primate
+MOLTEN|Melted rock hot
+MOMENT|Just a
+MONKEY|Zoo swinger
 MONTHS|Twelve a year
 MORALS|Principles
 MORGUE|Body storage
 MOROSE|Gloomy
-MORTAL|Bound to die
+MORTAL|Not going to live forever
 MORTAR|Brick cement
-MOSAIC|Tile picture
-MOSQUE|Muslim house of worship
+MOSAIC|Picture in little tiles
+MOSQUE|Muslim place of worship
 MOSTLY|Chiefly
 MOTHER|Mom
 MOTION|Movement
-MOTIVE|Reason for a crime
+MOTIVE|Detective wants one
 MOTORS|Engines
 MOUSSE|Chocolate dessert
 MOVIES|Films
 MOVING|In motion
-MUFFIN|Breakfast bread
-MUFFLE|Deaden the sound of
+MUFFIN|Blueberry breakfast bake
+MUFFLE|Deaden the sound
 MUMBLE|Speak unclearly
-MURDER|Homicide
-MURMUR|Low sound
-MUSCLE|Bicep, for one
-MUSEUM|Exhibit hall
-MUSKET|Old rifle
-MUSTER|Gather up
+MURDER|Case for the detective
+MURMUR|Low steady sound
+MUSCLE|What the gym builds
+MUSEUM|Where the exhibits are
+MUSKET|Old long gun
+MUSTER|Round up the troops
 MUTINY|Crew revolt
-MUTTER|Grumble
-MUTUAL|Shared
+MUTTER|Grumble under your breath
+MUTUAL|Shared both ways
 MUZZLE|Dog's snout cover
 MYSELF|Yours truly
-MYSTIC|Spiritual seeker
+MYSTIC|Of the unexplainable
 NAMELY|That is to say
 NAPKIN|Lap cloth
 NARROW|Not wide
 NATION|Country
-NATIVE|Local born
-NATURE|The outdoors
-NEARBY|Close at hand
+NATIVE|Born there
+NATURE|The great outdoors
+NEARBY|Just around the corner
 NEARLY|Almost
 NEATLY|Tidily
 NEBULA|Space gas cloud
 NECTAR|Flower sweet
-NEEDLE|Sewing tool
-NEPHEW|Sibling's son
-NERVES|Body's wiring
-NEURAL|Of the brain
-NEWEST|Just out
-NIBBLE|Take small bites
-NICELY|Pleasantly
+NEEDLE|It has an eye
+NEPHEW|Sister's son
+NERVES|What the big night frays
+NEURAL|Of the nerves
+NEWEST|The latest one
+NIBBLE|Take a small bite
+NICELY|Well done
 NICKEL|Five cents
-NIMBLE|Quick and light
+NIMBLE|Light on the feet
 NINETY|A decade short of a century
 NOBODY|Not a soul
-NOODLE|Pasta strand
-NORMAL|Usual
-NOTICE|Spot
-NOTIFY|Let know
+NOODLE|Ramen strand
+NORMAL|The usual
+NOTICE|Spot it, or a posted sign
+NOTIFY|Send word to
 NOTION|Idea
-NOVELS|Long stories
+NOVELS|Fiction on the shelf
 NOZZLE|Hose tip
 NUANCE|Subtle shade
-NUGGET|Small lump of gold
-NUMBER|Digit
-NUTMEG|Baking spice
+NUGGET|Gold find, or a chicken bite
+NUMBER|One, two, three
+NUTMEG|Eggnog spice
 NUZZLE|Snuggle up to
-OBJECT|Thing
-OBLIGE|Do a favor for
+OBJECT|Thing, or protest
+OBLIGE|Do them the favor
 OBLONG|Longer than wide
-OBTAIN|Get
+OBTAIN|Get hold of
 OBTUSE|Wider than a right angle
-OCCUPY|Take up space in
+OCCUPY|Take up the space
 OCCURS|Happens
 OCEANS|Vast waters
-OCTAVE|Eight notes
+OCTAVE|Do to do
 ODDITY|Strange thing
-OFFEND|Insult
+OFFEND|Give someone a reason to be cross
 OFFERS|Bids
-OFFICE|Workplace
+OFFICE|Where the desk is
 OFFSET|Balance out
-OLDEST|Most senior
+OLDEST|First in line by years
 OMELET|Egg dish
-ONIONS|Tear inducing bulbs
-ONLINE|Connected to the web
-ONWARD|Forward
-OPENER|Can tool
+ONIONS|They make you cry
+ONLINE|On the internet
+ONWARD|Keep going
+OPENER|Bottle tool, or the first game
 OPENLY|Frankly
-OPPOSE|Be against
-OPTION|Choice
-ORACLE|Prophet
-ORANGE|Citrus fruit
+OPPOSE|Come out against
+OPTION|One of the choices
+ORACLE|Ancient teller of the future
+ORANGE|Citrus, and the color
 ORBITS|Circles a planet
-ORCHID|Exotic bloom
-ORDEAL|Trying experience
-ORDERS|Commands
+ORCHID|Elegant potted bloom
+ORDEAL|A rough time of it
+ORDERS|What the sergeant gives
 ORGANS|Heart and lungs
-ORIGIN|Starting point
+ORIGIN|Where it started
 ORNATE|Highly decorated
-ORPHAN|Parentless child
-OSPREY|Fish hawk
-OTHERS|The rest
+ORPHAN|Annie, famously
+OSPREY|Fish-hunting hawk
+OTHERS|The rest of them
 OUNCES|Sixteen to a pound
-OUTAGE|Power failure
+OUTAGE|The lights go out
 OUTCRY|Public protest
-OUTFIT|Ensemble
+OUTFIT|The whole ensemble
 OUTING|Day trip
-OUTLAW|Bandit
-OUTLET|Wall socket
-OUTPUT|Production
-OUTSET|Very beginning
+OUTLAW|Wanted poster subject
+OUTLET|Where you plug it in
+OUTPUT|What the factory turns out
+OUTSET|The very beginning
 OUTWIT|Get the better of
 OWNERS|Proprietors
-OXYGEN|Air we need
-OYSTER|Pearl maker
+OXYGEN|What you breathe in
+OYSTER|The world is your what
 PACKET|Small parcel
-PADDLE|Canoe oar
-PALACE|Royal home
+PADDLE|Canoe mover
+PALACE|Where the king lives
 PALATE|Sense of taste
 PAMPER|Spoil
-PANELS|Flat sections
-PANTRY|Food closet
+PANELS|Wall sections
+PANTRY|Where the tins are kept
 PAPERS|Documents
-PARADE|Marching procession
-PARCEL|Package
-PARDON|Forgive
-PARENT|Mom or dad
+PARADE|Marching bands down Main Street
+PARCEL|Package in the post
+PARDON|Beg yours
+PARENT|Mother or father
 PARISH|Church district
-PARLOR|Front room
+PARLOR|Front sitting room
 PARODY|Spoof
-PARROT|Talking bird
-PARTLY|To some degree
-PASTEL|Soft shade
+PARROT|It repeats what you say
+PARTLY|Not entirely
+PASTEL|Soft chalky color
 PASTOR|Church leader
-PASTRY|Bakery treat
+PASTRY|What the danish is made of
 PATENT|Inventor's protection
-PATROL|Make the rounds
+PATROL|Beat walk
 PATRON|Regular customer
-PAUPER|Poor person
+PAUPER|Prince's opposite
 PAYING|Settling the bill
-PEANUT|Ballpark snack
+PEANUT|Ballgame nut
 PEARLS|Oyster gems
-PEBBLE|Small stone
-PEDALS|Bike foot rests
+PEBBLE|Small smooth stone
+PEDALS|Bike parts you push
 PEDDLE|Sell door to door
 PELLET|Tiny ball
-PENCIL|Lead writer
+PENCIL|It has an eraser
 PEOPLE|Folks
 PEPPER|Salt's partner
 PERIOD|Full stop
 PERISH|Die out
-PERMIT|Allow
+PERMIT|Allow, or a license
 PERSON|Individual
 PESTER|Nag
 PETALS|Bloom parts
 PETITE|Small in size
 PHONES|Handsets
 PHOTOS|Snapshots
-PHRASE|Group of words
+PHRASE|Turn of one
 PIANOS|Keyboard instruments
-PICKLE|Brined cucumber
-PICNIC|Outdoor meal
+PICKLE|Deli spear, or a jam
+PICNIC|Basket and a blanket
 PIECES|Bits
 PIERCE|Poke through
-PIGEON|City bird
-PILLAR|Support post
+PIGEON|Park bird
+PILLAR|Supporting column
 PILLOW|Head rest
-PILOTS|Fliers
+PILOTS|Cockpit crew
 PIMPLE|Skin blemish
-PIRATE|Buccaneer
+PIRATE|Jolly Roger flier
 PISTOL|Handgun
-PISTON|Engine plunger
-PLACES|Spots
+PISTON|It moves in the cylinder
+PLACES|Everyone to their own, on set
 PLACID|Calm
-PLAGUE|Widespread disease
+PLAGUE|Sweeping sickness
 PLAINS|Flat lands
-PLANET|Body orbiting a sun
-PLANKS|Boards
-PLANTS|Greenery
+PLANET|Mars, for one
+PLANKS|Deck boards
+PLANTS|Green things in pots
 PLAQUE|Wall tablet
-PLASMA|Blood liquid
-PLATES|Dinnerware
-PLAYER|Team member
-PLEDGE|Solemn promise
-PLENTY|Lots
+PLASMA|Blood's liquid part
+PLATES|Dinner service pieces
+PLAYER|One on the team
+PLEDGE|A solemn promise
+PLENTY|More than enough
 PLIERS|Gripping tool
-PLUNGE|Dive in
+PLUNGE|Take the
 PLURAL|More than one
-POCKET|Pants pouch
+POCKET|Where the keys go
 PODIUM|Speaker's stand
 POETIC|Like verse
 POETRY|Verse
-POINTS|Tallies in a game
-POISON|Deadly substance
-POLICE|Law officers
-POLICY|Set rule
-POLISH|Shine up
+POINTS|Score, or sharp ends
+POISON|Skull and crossbones warning
+POLICE|Nine-one-one responders
+POLICY|The rule of the house
+POLISH|Shoe shine
 POLITE|Well mannered
-POLLEN|Allergy dust
-PONDER|Think over
+POLLEN|Hay fever cause
+PONDER|Turn it over in your mind
 PONIES|Small horses
 POODLE|Curly haired dog
-PORTAL|Doorway
-PORTER|Baggage carrier
+PORTAL|Grand doorway
+PORTER|Station bag carrier
 POSTAL|Of the mail
 POSTER|Wall print
-POTATO|Spud
+POTATO|Chip's source
 POTENT|Powerful
 POTION|Magic drink
-POTTER|Clay worker
-POWDER|Fine dust
+POTTER|Wheel worker
+POWDER|Fresh snow, or talc
 PRAISE|Kind words
 PRANCE|Strut about
-PRAYER|Words to a deity
-PREACH|Sermonize
+PRAYER|Words said with eyes closed
+PREACH|Give the sermon
 PREFER|Like better
 PREFIX|Word start
-PRETTY|Attractive
-PRICES|Costs
+PRETTY|Good-looking
+PRICES|Tags on the shelf
 PRICEY|On the steep side
-PRIEST|Clergy member
+PRIEST|Confession hearer
 PRIMAL|Basic and deep
-PRIMER|Base coat
+PRIMER|Paint's first coat
 PRINCE|King's son
-PRINTS|Copies made
-PRISON|Jail
-PRIZES|Awards
-PROFIT|Gain
-PROMPT|On time
+PRINTS|Fingertip evidence
+PRISON|Where the sentence is served
+PRIZES|Fair booth rewards
+PROFIT|What is left after costs
+PROMPT|On time, or a nudge
 PROPEL|Push forward
-PROPER|Correct
-PROVEN|Shown to be true
-PUBLIC|Open to all
-PUDDLE|Rain pool
-PULPIT|Preacher's platform
-PUNISH|Discipline
-PUPILS|Students
-PUPPET|Hand toy
-PURELY|Simply
+PROPER|As it should be
+PROVEN|Shown beyond doubt
+PUBLIC|Everybody
+PUDDLE|Rain leaves it
+PULPIT|Where the sermon comes from
+PUNISH|Make them pay for it
+PUPILS|Class members, or eye parts
+PUPPET|String-worked figure
+PURELY|Only and entirely
 PURITY|Cleanness
-PURPLE|Violet shade
-PURSUE|Chase
-PUZZLE|Brain teaser
+PURPLE|Grape color
+PURSUE|Chase after
+PUZZLE|What you are doing right now
 QUAINT|Charmingly old fashioned
-QUARRY|Stone pit
-QUARTZ|Clear crystal
+QUARRY|Stone pit, or the hunted
+QUARTZ|Watch crystal
 QUEASY|Sick to the stomach
 QUENCH|Satisfy a thirst
 QUIRKY|Offbeat
-QUIVER|Shake
-RABBIT|Hopping pet
+QUIVER|Arrow holder, or tremble
+RABBIT|Hat dweller
 RACIAL|Of ethnicity
-RACING|Speeding along
-RACKET|Tennis bat
+RACING|Flat out
+RACKET|Tennis gear, or a din
 RADIAL|Spoke like
-RADIOS|Broadcast receivers
+RADIOS|Dial sets
 RADISH|Peppery root
 RAFFLE|Ticket drawing
 RAFTER|Roof beam
 RAGGED|Tattered
 RAISIN|Dried grape
-RAMBLE|Wander in talk
+RAMBLE|Wander on and on
 RANCID|Gone bad, as butter
 RANDOM|By chance
-RANGER|Park officer
-RANSOM|Kidnapper's demand
-RAPIDS|Rough river stretch
-RARELY|Seldom
+RANGER|Park warden
+RANSOM|Kidnapper's price
+RAPIDS|White water
+RARELY|Hardly ever
 RASCAL|Mischief maker
-RATHER|Somewhat
-RATING|Score given
-RATTLE|Baby's noisemaker
-RAVINE|Deep gully
-READER|Book lover
+RATHER|Somewhat, or preferably
+RATING|Star score
+RATTLE|Baby's shaker
+RAVINE|Steep narrow valley
+READER|One with a book
 REALLY|Truly
-REASON|Cause
+REASON|The why of it
 REBATE|Money back
-REBELS|Uprising members
-RECALL|Remember
+REBELS|Ones who rise up
+RECALL|Bring to mind
 RECENT|Not long ago
 RECESS|School break
-RECIPE|Cooking directions
+RECIPE|Cook's instructions
 RECITE|Say from memory
-RECKON|Figure
-RECORD|Vinyl disc
-REDUCE|Cut down
+RECKON|Figure it to be so
+RECORD|Vinyl disc, or the best ever
+REDUCE|Bring down
 REFILL|Top up
 REFINE|Polish up
-REFORM|Make better
-REFUGE|Safe haven
-REFUND|Money returned
+REFORM|Change for the better
+REFUGE|A safe place
+REFUND|Money back
 REFUSE|Say no
-REGARD|Esteem
+REGARD|High esteem
 REGIME|Ruling system
-REGION|Area
-REGRET|Wish undone
-REHEAT|Warm again
-REJECT|Turn down
-RELATE|Connect
-RELIEF|Ease after pain
-RELISH|Hot dog topping
+REGION|Part of the country
+REGRET|Wish you hadn't
+REHEAT|Put it back in the microwave
+REJECT|Turn it down
+RELATE|Connect with
+RELIEF|What the aspirin brings
+RELISH|Hot dog topping, or enjoy
 RELIVE|Experience again
 REMAIN|Stay put
-REMARK|Comment
-REMEDY|Cure
-REMIND|Jog the memory of
-REMOTE|Far off
+REMARK|Passing comment
+REMEDY|The cure
+REMIND|Jog the memory
+REMOTE|Far off, or the clicker
 REMOVE|Take away
-RENDER|Make into
-RENTAL|Leased place
+RENDER|Give, or draw
+RENTAL|What you hire
 REPAIR|Fix
 REPEAL|Undo a law
-REPEAT|Say again
+REPEAT|Say it again
 REPENT|Feel sorry for sin
-REPLAY|Show again
-REPORT|Written account
-RESCUE|Save
-RESENT|Feel bitter about
-RESIDE|Live
-RESIGN|Quit a post
-RESIST|Fight off
-RESORT|Vacation spot
-RESULT|Outcome
-RESUME|Start up again
+REPLAY|Roll the tape back
+REPORT|Card sent home
+RESCUE|Save from danger
+RESENT|Hold it against them
+RESIDE|Live at
+RESIGN|Hand in your notice
+RESIST|Push back against
+RESORT|Holiday spot, or last option
+RESULT|What comes of it
+RESUME|Pick it back up
 RETAIL|Shop selling
-RETAIN|Keep
-RETIRE|Stop working
+RETAIN|Hold on to
+RETIRE|Hang up the boots
 RETORT|Sharp reply
 RETURN|Come back
-REVEAL|Show
-REVIEW|Look over
-REVISE|Edit
+REVEAL|Show at last
+REVIEW|Look it over again
+REVISE|Go over the draft
 REVIVE|Bring back to life
 REVOLT|Rise up
-REWARD|Prize for a deed
+REWARD|What the poster offers
 REWIND|Roll back
-RHYMES|Sound alikes
+RHYMES|Moon and June do
 RHYTHM|Beat
-RIBBON|Gift bow strip
-RIDDLE|Brain teasing question
+RIBBON|Prize strip
+RIDDLE|Puzzling question
 RIDING|On horseback
-RIGHTS|Freedoms
-RIPPLE|Small wave
-RISING|Going up
-RITUAL|Ceremony
-RIVALS|Competitors
+RIGHTS|What you have by law
+RIPPLE|Small water ring
+RISING|On the way up
+RITUAL|The same thing every time
+RIVALS|The other side
 RIVERS|Flowing waters
-ROBBER|Thief
+ROBBER|Bank thief
 ROBUST|Strong and healthy
-ROCKET|Space vehicle
-RODENT|Mouse or rat
+ROCKET|It goes to the moon
+RODENT|Rat or mouse
 ROLLER|Paint tool
-ROOKIE|First year player
-ROSTER|Team list
-ROTATE|Spin
-ROTTEN|Spoiled
+ROOKIE|First-year player
+ROSTER|The team list
+ROTATE|Turn on the spot
+ROTTEN|Spoiled through
 ROUTER|Network box
-ROUTES|Paths
+ROUTES|Ways to get there
 ROWING|Using oars
 ROYALS|Kings and queens
 RUBBER|Eraser material
-RUBBLE|Broken bricks
+RUBBLE|What is left of the wall
 RUBIES|Red gems
 RUDDER|Steering fin
-RUFFLE|Fabric frill
-RUGGED|Rough and sturdy
-RULERS|Measuring sticks
-RUMBLE|Low thunder sound
+RUFFLE|Frilly trim, or upset
+RUGGED|Tough terrain
+RULERS|Kings and queens, or measuring sticks
+RUMBLE|Distant thunder sound
 RUMORS|Unverified talk
-RUNNER|Jogger
-RUNWAY|Landing strip
-RUSTIC|Country style
+RUNNER|Marathon entrant
+RUNWAY|Where the plane lands
+RUSTIC|Charmingly countryish
 RUSTLE|Leaf sound
 SADDEN|Make blue
 SADDLE|Horse seat
-SAFARI|African trek
-SAFELY|Without harm
+SAFARI|Game drive
+SAFELY|Without a scratch
 SAFETY|Being out of danger
 SAILOR|Deck hand
 SALADS|Greens dishes
-SALARY|Regular pay
+SALARY|Monthly pay
 SALMON|Pink fish
-SALOON|Old west bar
-SALUTE|Soldier's greeting
-SAMPLE|Small taste
+SALOON|Western bar
+SALUTE|Hand to the brow
+SAMPLE|Free taste
 SANDAL|Summer shoe
 SANITY|Soundness of mind
 SATIRE|Biting humor
-SAUCER|Cup's mate
-SAVAGE|Wild and fierce
-SAVING|Setting aside
+SAUCER|What the cup sits on
+SAVAGE|Fierce
+SAVING|Putting it by
 SAVORY|Not sweet
-SAYING|Old adage
-SCALES|Weighing device
-SCARCE|In short supply
+SAYING|Old proverb
+SCALES|Bathroom weigher, or fish coat
+SCARCE|Hard to come by
 SCARED|Frightened
-SCENIC|With lovely views
-SCHEME|Plot
-SCHOOL|Learning place
-SCORCH|Singe
+SCENIC|The pretty route
+SCHEME|Plan, often shady
+SCHOOL|Where the lessons are
+SCORCH|Burn the shirt with the iron
 SCORES|Game tallies
-SCOUTS|Badge earners
-SCRAPE|Graze the skin
+SCOUTS|Camp badge earners
+SCRAPE|Graze the knee
 SCRAPS|Leftover bits
-SCREAM|Loud shriek
-SCREEN|Display
+SCREAM|Horror movie sound
+SCREEN|What you watch it on
 SCRIBE|Copyist
-SCRIPT|Actor's lines
-SCROLL|Rolled parchment
-SEARCH|Look for
-SEASON|Spring, say
-SECOND|After first
-SECRET|Hush hush matter
-SECTOR|Part of an economy
-SECURE|Safe
+SCRIPT|The actor's lines
+SCROLL|Roll of parchment
+SEARCH|Look high and low
+SEASON|Spring, for one
+SECOND|Runner-up
+SECRET|Don't tell
+SECTOR|Slice of the economy
+SECURE|Locked down
 SEDATE|Calm and dignified
-SEEING|Viewing
-SEEKER|One who hunts around
+SEEING|Believing, they say
+SEEKER|One who looks
 SELDOM|Not often
 SELECT|Pick out
-SELLER|Vendor
-SENATE|Upper house
-SENDER|Mailer
-SENIOR|Older one
-SEQUEL|Follow up film
-SERENE|Peaceful
-SERIAL|In episodes
-SERIES|Set in order
-SERMON|Church talk
-SERVER|Waiter
-SETTLE|Come to rest
-SEVERE|Harsh
-SEWAGE|Waste water
-SEWING|Needlework
-SHABBY|Worn out
-SHADOW|Dark outline
-SHAKEN|Rattled
+SELLER|The one with the goods
+SENATE|Upper chamber
+SENDER|Return address name
+SENIOR|Twelfth grader
+SEQUEL|The follow-up film
+SERENE|Perfectly calm
+SERIAL|Weekly episode, or a number
+SERIES|The whole run of episodes
+SERMON|Sunday message
+SERVER|Waiter, or a computer
+SETTLE|Come to terms
+SEVERE|Very bad indeed
+SEWAGE|What the drains carry
+SEWING|Needle work
+SHABBY|Worn and tired
+SHADOW|What follows you in the sun
+SHAKEN|Not stirred
 SHAKER|Salt dispenser
 SHAPES|Circles and squares
 SHARKS|Ocean predators
-SHEARS|Big scissors
+SHEARS|Garden clippers
 SHEATH|Knife holder
-SHEETS|Bed linens
+SHEETS|Bed linen
 SHELLS|Beach finds
-SHIELD|Protective plate
+SHIELD|Knight's guard
 SHIFTS|Work stints
-SHIVER|Tremble from cold
+SHIVER|Cold tremble
 SHORTS|Summer pants
 SHOULD|Ought to
-SHOVEL|Digging tool
+SHOVEL|Snow clearer
 SHOWER|Morning wash
-SHRIMP|Small shellfish
+SHRIMP|Cocktail crustacean
 SHRINE|Sacred spot
 SHRINK|Get smaller
 SHRUBS|Bushes
 SIDING|House cladding
-SIGNAL|Traffic light
-SILENT|Making no sound
-SILVER|Second place metal
+SIGNAL|Traffic light, or a wave
+SILENT|Not a peep
+SILVER|Second-place metal
 SIMMER|Cook gently
-SIMPLE|Easy
+SIMPLE|No trouble at all
 SIMPLY|Merely
-SINGER|Vocalist
-SINGLE|Just one
-SISTER|Female sibling
-SITTER|Child minder
-SIZZLE|Fry noisily
+SINGER|The one at the mic
+SINGLE|Just one, or a hit record
+SISTER|Brother's sibling
+SITTER|Evening childminder
+SIZZLE|Steak sound
 SKATER|Rink glider
 SKATES|Ice blades
-SKETCH|Rough drawing
+SKETCH|Quick pencil drawing
 SKEWER|Kebab stick
-SKIING|Slope sport
+SKIING|Downhill sport
 SKILLS|Abilities
-SKINNY|Very thin
+SKINNY|Thin, or the inside story
 SKIRTS|Pleated garments
-SLALOM|Zigzag race
+SLALOM|Zigzag ski race
 SLEDGE|Snow runner
 SLEEPY|Drowsy
-SLEEVE|Arm covering
-SLEIGH|Horse drawn snow ride
+SLEEVE|Arm of the shirt
+SLEIGH|Runner-borne winter ride
 SLICES|Pie portions
-SLIGHT|Small
-SLOGAN|Catchphrase
+SLIGHT|Very small, or a snub
+SLOGAN|Advertising line
 SLOPPY|Careless
-SLOWLY|At a crawl
+SLOWLY|Take your time
 SLUDGE|Thick muck
 SMOKER|One who lights up
-SMOOTH|Not rough
+SMOOTH|Like glass
 SMUDGE|Dirty mark
-SNACKS|Between meal bites
-SNAKES|Slithering reptiles
-SNAPPY|Quick and sharp
+SNACKS|Between-meal bites
+SNAKES|Ladders' partners
+SNAPPY|Quick about it
 SNEEZE|Achoo
-SOCCER|Goal sport
-SOCIAL|Of company
-SOCKET|Plug hole
-SODIUM|Salt element
-SOFTEN|Make less hard
+SOCCER|The world's game
+SOCIAL|Of company and parties
+SOCKET|Where the bulb goes
+SODIUM|Salt's metal
+SOFTEN|Take the edge off
 SOFTER|Less firm
 SOFTLY|Quietly
-SOLEMN|Grave
-SONNET|Fourteen line poem
+SOLEMN|Very serious indeed
+SONNET|Fourteen-line poem
 SOONER|Earlier
 SORBET|Fruit ice
 SORROW|Deep sadness
 SOUGHT|Looked for
 SOUNDS|Noises
-SOURCE|Origin
-SPARKS|Fire bits
-SPARSE|Thinly spread
-SPEECH|Talk to a crowd
+SOURCE|Where it came from
+SPARKS|Fire's first flecks
+SPARSE|Thin on the ground
+SPEECH|What the best man gives
 SPEEDY|Fast
 SPHERE|Ball shape
-SPICES|Seasonings
+SPICES|Rack in the kitchen
 SPIDER|Web spinner
-SPIRAL|Coil
-SPIRIT|Soul
-SPLASH|Water sound
+SPIRAL|Staircase shape
+SPIRIT|The soul of it
+SPLASH|Cannonball result
 SPLICE|Join two ends
-SPLINT|Broken bone brace
+SPLINT|Broken finger support
 SPOKEN|Said aloud
 SPONGE|Bath scrubber
-SPOOKY|Eerie
-SPORTS|Athletic games
+SPOOKY|Ghost-story eerie
+SPORTS|Games section
 SPOUSE|Husband or wife
-SPRAIN|Twisted ankle injury
+SPRAIN|Twisted ankle
 SPRAWL|Stretch out
-SPREAD|Butter, say
-SPRING|Season after winter
-SPRINT|Short dash
+SPREAD|Butter, or lay out
+SPRING|The season after winter
+SPRINT|All-out dash
 SPROUT|Begin to grow
-SPRUCE|Evergreen tree
+SPRUCE|Christmas tree, or tidy up
 SQUARE|Four equal sides
-SQUASH|Zucchini, for one
+SQUASH|Racquet sport, or a gourd
 SQUEAK|Mouse sound
 SQUEAL|High pitched cry
-SQUIRM|Wriggle
-STABLE|Horse barn
-STAIRS|Steps
+SQUIRM|Wriggle uncomfortably
+STABLE|Steady, or the horse's home
+STAIRS|Up to the second floor
 STAMPS|Postage bits
-STANCE|Posture
+STANCE|How you stand on it
 STANDS|Bleachers
 STAPLE|Paper fastener
-STARCH|Laundry stiffener
+STARCH|Potato's main stuff
 STARRY|Full of night lights
-STARVE|Go hungry
-STATES|Union members
+STARVE|Go without food
+STATES|Fifty of them
 STATIC|Radio hiss
-STATUE|Carved figure
-STATUS|Standing
+STATUE|Bronze figure on a plinth
+STATUS|Where things stand
 STEADY|Not wobbling
 STEAMY|Full of vapor
-STEREO|Sound system
+STEREO|Two-speaker sound
 STICKS|Twigs
-STICKY|Tacky
+STICKY|Like syrup
 STIFLE|Hold back
-STIGMA|Mark of shame
-STITCH|Sewing loop
+STIGMA|The shame attached
+STITCH|A single pass of the needle
 STOCKS|Market shares
-STOLEN|Swiped
+STOLEN|Taken
 STONES|Rocks
 STORES|Shops
-STORMS|Tempests
+STORMS|Thunder and lightning
 STORMY|Wild, as weather
-STRAIN|Excess effort
+STRAIN|Pull a muscle, or filter
 STRAIT|Narrow channel
-STRAND|Single hair
-STRAPS|Backpack bands
-STREAK|Long stripe
+STRAND|Hair, or leave stuck
+STRAPS|Backpack shoulder bands
+STREAK|Winning run
 STREAM|Small creek
-STREET|City road
-STRESS|Pressure
-STRICT|Firm about rules
+STREET|Where you live
+STRESS|What the deadline brings
+STRICT|Allowing no slack
 STRIDE|Long step
 STRIFE|Conflict
-STRIKE|Perfect bowling frame
-STRING|Twine
+STRIKE|Bowling perfect, or a walkout
+STRING|Bit of twine
 STRIPE|Band of color
 STRIPS|Long thin pieces
-STROKE|Brush pass
+STROKE|Swimmer's style
 STROLL|Leisurely walk
 STRONG|Powerful
 STRUCK|Hit
-STUDIO|Artist's workspace
-STUPID|Not smart
-STURDY|Solidly built
+STUDIO|Where the album is recorded
+STUPID|Not clever at all
+STURDY|Built to take it
 STYLES|Fashions
 SUBDUE|Bring under control
 SUBMIT|Turn in
 SUBTLE|Not obvious
-SUBURB|Town outside a city
+SUBURB|Outside the city proper
 SUBWAY|Underground train
-SUDDEN|Out of the blue
-SUFFER|Endure pain
+SUDDEN|All at once
+SUFFER|Go through it
 SUFFIX|Word ending
 SUGARY|Very sweet
 SULLEN|Silently grumpy
-SUMMER|Warm season
-SUMMIT|Mountain top
+SUMMER|Beach season
+SUMMIT|The top, or a big meeting
 SUMMON|Call for
 SUNDAE|Ice cream treat
 SUNKEN|Below the surface
-SUNSET|Dusk sight
-SUPPER|Late meal
-SUPPLY|Stock
-SURELY|Certainly
+SUNSET|End-of-day sky
+SUPPER|Evening meal
+SUPPLY|What meets demand
+SURELY|Without a doubt
 SURFER|Wave rider
-SURVEY|Poll
+SURVEY|Questionnaire
 SWEETS|Candies
 SWERVE|Veer suddenly
-SWITCH|Light flipper
+SWITCH|Flip it for light
 SWIVEL|Turn on a pivot
 SWORDS|Blades of knights
-SYMBOL|Sign standing for something
-SYNTAX|Sentence structure
-SYSTEM|Organized whole
+SYMBOL|What stands for it
+SYNTAX|How the sentence is built
+SYSTEM|The whole works
 TABLES|Dining surfaces
-TACKLE|Bring down
+TACKLE|Bring down, or fishing gear
 TACTIC|Move in a plan
-TAILOR|Suit maker
-TAKING|Grabbing
-TALENT|Natural gift
+TAILOR|Suit fitter
+TAKING|Helping yourself to
+TALENT|What the show hunts for
 TALLER|Higher up
 TAMPER|Meddle with
 TANDEM|Bike for two
-TANGLE|Snarl
+TANGLE|Knot of hair
 TANKER|Oil ship
-TARGET|Bullseye holder
+TARGET|What the arrow aims at
 TARIFF|Import tax
-TASSEL|Cap dangler
-TATTOO|Skin ink
-TAUGHT|Instructed
-TAVERN|Village pub
-TAXING|Demanding
-TEAPOT|Brewing vessel
+TASSEL|Graduation cap dangler
+TATTOO|Ink on the arm
+TAUGHT|Passed on the lesson
+TAVERN|Old-fashioned pub
+TAXING|Really demanding
+TEAPOT|Short and stout
 TEDIUM|Boredom
-TEMPER|Short fuse
-TEMPLE|House of worship
-TENANT|Renter
-TENDER|Gentle
+TEMPER|What you lose
+TEMPLE|Place of worship
+TENANT|The one who rents
+TENDER|Gentle, or sore
 TENDON|Muscle cord
-TENNIS|Court game
+TENNIS|Love means nothing here
 TENURE|Time in office
-TERROR|Great fear
+TERROR|Absolute fear
 TETHER|Rope for tying
 THANKS|Gratitude
-THEORY|Untested idea
-THIRST|Need for a drink
-THIRTY|Three times ten
-THOUGH|Even if
-THREAD|Sewing strand
-THREAT|Warning of harm
-THRIFT|Careful spending
-THRIVE|Flourish
-THROAT|Gullet
-THRONE|King's chair
-THRUST|Sharp push
-THUMBS|Opposable digits
-TICKET|Admission stub
-TICKLE|Make giggle
+THEORY|Not yet proved
+THIRST|Water wanted
+THIRTY|Half of sixty
+THOUGH|Even so
+THREAD|Needle's partner
+THREAT|Menace
+THRIFT|Careful with money
+THRIVE|Do really well
+THROAT|Where the sore is
+THRONE|Royal seat
+THRUST|Sharp push forward
+THUMBS|Up or down
+TICKET|Get in with it
+TICKLE|Make them squirm and laugh
 TIDBIT|Small morsel
-TIGERS|Striped cats
-TIMBER|Cut wood
+TIGERS|Striped big cats
+TIMBER|Shout before the tree falls
 TIMELY|Right on cue
-TIMING|Sense of the right moment
+TIMING|Comedy's secret
 TINDER|Fire starter
-TINGLE|Prickly feeling
+TINGLE|Pins and needles
 TIPTOE|Walk quietly
-TIRING|Wearying
-TISSUE|Nose wipe
+TIRING|Wearing you out
+TISSUE|What you reach for when you sneeze
 TITLES|Book names
-TOFFEE|Chewy candy
+TOFFEE|Chewy caramel sweet
 TOILET|Bathroom fixture
 TOKENS|Arcade coins
 TOMATO|Salad red
@@ -3849,502 +3849,502 @@ TOPPLE|Knock over
 TORQUE|Twisting force
 TOUCHY|Easily offended
 TOWARD|In the direction of
-TOWELS|Bath linens
+TOWELS|Beach or bath
 TOWERS|Tall structures
-TRACKS|Rails
-TRADER|Market dealer
+TRACKS|Rails, or footprints
+TRADER|One on the floor
 TRADES|Swaps
-TRAGIC|Very sad
-TRAILS|Hiking paths
-TRAINS|Locomotives
-TRAITS|Characteristics
+TRAGIC|Ending badly
+TRAILS|Hiking routes
+TRAINS|Platform arrivals
+TRAITS|Family characteristics
 TRAUMA|Deep shock
-TRAVEL|Journey
-TREATY|Peace pact
+TRAVEL|Get about
+TREATY|Signed peace deal
 TREBLE|High pitched
-TREMOR|Slight shake
-TRENCH|Long ditch
+TREMOR|Small quake
+TRENCH|Long dug channel
 TRENDS|Current fashions
 TRIALS|Court cases
-TRIBAL|Of a clan
-TRIBES|Clans
-TRICKS|Sly moves
+TRIBAL|Of the clan
+TRIBES|Ancient groups
+TRICKS|Halloween's other option
 TRICKY|Hard to handle
-TRIPLE|Three base hit
-TRIVIA|Bits of knowledge
+TRIPLE|Three times over
+TRIVIA|Pub quiz stuff
 TROOPS|Soldiers
-TROPHY|Winner's cup
+TROPHY|Cabinet silverware
 TROPIC|Near the equator
-TROUGH|Feeding box
+TROUGH|Farm feeder
 TRUANT|School skipper
-TRUCKS|Big rigs
-TRUDGE|Plod along
+TRUCKS|Eighteen-wheelers
+TRUDGE|Plod along wearily
 TRUNKS|Elephant noses
-TUMBLE|Fall over
+TUMBLE|Take a fall
 TUNDRA|Arctic plain
-TUNNEL|Underground passage
+TUNNEL|Under the mountain
 TURBAN|Wrapped headgear
-TURKEY|Roast holiday bird
+TURKEY|Thanksgiving bird
 TURNIP|Root vegetable
 TURTLE|Shelled reptile
 TWELVE|Dozen
 TWENTY|Score
 TWINGE|Sudden pang
 TYCOON|Business magnate
-TYPING|Keyboarding
+TYPING|At the keyboard
 TYPIST|Keyboard worker
 TYRANT|Cruel ruler
-UNABLE|Not up to it
-UNDONE|Not finished
-UNEASY|Nervous
+UNABLE|Can't manage it
+UNDONE|Not finished, or come loose
+UNEASY|A bit worried
 UNEVEN|Bumpy
-UNFAIR|Not just
-UNFOLD|Open out
+UNFAIR|Not right at all
+UNFOLD|Open it out
 UNIONS|Labor groups
 UNIQUE|One of a kind
-UNISON|All together
-UNITED|Joined
+UNISON|All together now
+UNITED|Brought together
 UNLESS|Except if
-UNLIKE|Different from
-UNLOAD|Take the cargo off
-UNLOCK|Open with a key
+UNLIKE|Not similar to
+UNLOAD|Empty the van
+UNLOCK|Turn the key
 UNPACK|Empty the suitcase
 UNREAL|Not to be believed
 UNROLL|Spread out flat
 UNSAFE|Risky
 UNSEEN|Not noticed
 UNSURE|Doubtful
-UNTIDY|Messy
+UNTIDY|In need of a clear-up
 UNTOLD|Never revealed
-UNUSED|Still new
-UNWIND|Relax
+UNUSED|Never touched
+UNWIND|Put your feet up
 UPBEAT|Cheerful
-UPDATE|Bring current
-UPHILL|Against the slope
+UPDATE|Bring it current
+UPHILL|The hard way
 UPHOLD|Support
-UPLIFT|Raise the spirits of
+UPLIFT|Raise the spirits
 UPLOAD|Send to a server
-UPROAR|Loud commotion
+UPROAR|A right commotion
 UPROOT|Pull out of the ground
 UPTOWN|Away from the city center
 UPWARD|Toward the sky
 URCHIN|Ragged street kid
-URGENT|Needing quick action
+URGENT|It cannot wait
 USABLE|Fit for use
-USEFUL|Handy
-UTMOST|Greatest possible
+USEFUL|Comes in handy
+UTMOST|The very best you can do
 UTOPIA|Perfect place
-VACANT|Empty
-VACUUM|Carpet cleaner
-VALLEY|Land between hills
-VALUES|Beliefs
+VACANT|No one home
+VACUUM|Carpet cleaner, or empty space
+VALLEY|Between the hills
+VALUES|What you stand for
 VANDAL|Property wrecker
 VANISH|Disappear
 VANITY|Excess pride
-VARIED|Assorted
+VARIED|Not all the same
 VASTLY|By a huge amount
 VECTOR|Arrow quantity
 VEGGIE|Carrot, informally
-VELVET|Plush fabric
+VELVET|Soft plush fabric
 VENDOR|Street seller
 VENEER|Thin surface layer
 VENUES|Event places
-VERBAL|Spoken
+VERBAL|In words
 VERIFY|Confirm
-VERSES|Poem stanzas
+VERSES|Song sections
 VERSUS|Against
-VESSEL|Ship
+VESSEL|Ship, or a container
 VIABLE|Workable
-VICTIM|One who is harmed
-VICTOR|Winner
-VIEWER|Watcher
-VIOLET|Purple flower
-VIOLIN|Fiddle
-VIRTUE|Moral goodness
-VISION|Eyesight
+VICTIM|The one it happened to
+VICTOR|The winner
+VIEWER|One watching
+VIOLET|Shy flower, or a purple
+VIOLIN|Bowed string instrument
+VIRTUE|Patience, for one
+VISION|Eyesight, or a big idea
 VISITS|Calls on
-VISUAL|Seen with the eyes
+VISUAL|To do with seeing
 VOCALS|Singing part
-VOICES|Speech sounds
+VOICES|Choir's instruments
 VOLLEY|Return before the bounce
-VOLUME|Loudness
-VOTERS|Ballot casters
+VOLUME|How loud, or a book
+VOTERS|Election deciders
 VOWELS|A, E, I, O and U
-VOYAGE|Long trip
+VOYAGE|Long sea trip
 WADDLE|Duck's walk
-WAFFLE|Griddle breakfast
-WAGONS|Pulled carts
-WAITER|Restaurant server
+WAFFLE|Breakfast grid, or waffle on
+WAGONS|Circle them
+WAITER|Order taker
 WAIVER|Signed release
-WAKING|Getting up
+WAKING|Coming to
 WALKER|Stroller
-WALLET|Billfold
+WALLET|Where the cash is
 WALLOW|Roll in mud
-WALNUT|Brain shaped nut
+WALNUT|Brain-shaped nut
 WALRUS|Tusked sea mammal
-WANDER|Roam
+WANDER|Roam about
 WARDEN|Prison boss
-WARMER|Less cold
+WARMER|Getting closer, in the game
 WARMLY|In a friendly way
-WARMTH|Cozy heat
-WASHER|Laundry machine
+WARMTH|What the fire gives
+WASHER|Laundry machine, or a little ring
 WATERS|Seas
 WATERY|Thin and diluted
 WAVING|Greeting with a hand
 WEAKEN|Sap the strength of
 WEAKER|Less strong
-WEALTH|Riches
-WEAPON|Arm
-WEASEL|Sneaky critter
+WEALTH|Serious money
+WEAPON|What the crime was done with
+WEASEL|Sneaky little animal
 WEAVER|Loom worker
-WEEKLY|Once every seven days
-WEIGHT|Heaviness
+WEEKLY|Every seven days
+WEIGHT|What the scale reads
 WELDER|Metal joiner
 WHALES|Ocean giants
-WHEELS|Rolling discs
+WHEELS|Four on a car
 WHIMSY|Playful fancy
 WHITEN|Bleach
 WHOLLY|Entirely
-WICKED|Evil
+WICKED|Wonderfully bad
 WICKER|Basket material
-WIDELY|Over a broad area
-WIDEST|Broadest
-WIGGLE|Squirm
+WIDELY|All over the place
+WIDEST|Broadest of all
+WIGGLE|Little wriggle
 WILDLY|In a frenzy
 WILLOW|Weeping tree
-WINDOW|Glass pane
+WINDOW|You look out of it
 WINERY|Vineyard business
-WINNER|Champ
-WINTER|Cold season
+WINNER|First across the line
+WINTER|Snow season
 WIPERS|Windshield blades
-WIRING|Electrical lines
-WISDOM|Deep knowledge
-WISELY|With good sense
+WIRING|What the electrician does
+WISDOM|What the years bring
+WISELY|With good judgment
 WISHES|Desires
 WITHER|Shrivel up
-WITHIN|Inside
-WIZARD|Sorcerer
+WITHIN|Inside of
+WIZARD|Robed spell caster
 WOBBLE|Rock unsteadily
 WOMBAT|Burrowing marsupial
-WONDER|Marvel
+WONDER|Marvel at
 WOODEN|Made of timber
-WOOLEN|Made of fleece
-WORKER|Employee
-WORSEN|Deteriorate
+WOOLEN|Like a winter jumper
+WORKER|One on the job
+WORSEN|Go downhill
 WORTHY|Deserving
 WOUNDS|Injuries
 WREATH|Round door decoration
-WRENCH|Bolt turner
-WRITER|Novelist
-YEARLY|Annual
+WRENCH|Nut turner
+WRITER|Author
+YEARLY|Once every twelve months
 YELLOW|Banana color
-YOGURT|Cultured dairy
+YOGURT|Cultured breakfast pot
 YONDER|Over there
 ZEBRAS|Striped animals
 ZIGZAG|Back and forth line
-ZIPPER|Jacket fastener
-ZODIAC|Twelve sign circle
+ZIPPER|Jacket closer
+ZODIAC|Twelve signs
 ZOMBIE|Walking dead one
 ABDOMEN|Belly
 ABSORBS|Soaks up
-ABSTAIN|Hold back from
-ACADEMY|School of higher learning
-ACCLAIM|Public praise
-ACHIEVE|Accomplish
-ACQUIRE|Come to own
+ABSTAIN|Sit the vote out
+ACADEMY|School of a special kind
+ACCLAIM|Loud praise
+ACHIEVE|Pull it off
+ACQUIRE|Get hold of
 ACROBAT|Circus tumbler
 ACRYLIC|Paint type
-ACTRESS|Female performer
-ADAMANT|Refusing to budge
+ACTRESS|Leading lady
+ADAMANT|Not budging
 ADAPTED|Adjusted to fit
-ADJOURN|Close a meeting
-ADMIRAL|Fleet commander
-ADMIRER|Fan
+ADJOURN|Break off the meeting
+ADMIRAL|Fleet's top rank
+ADMIRER|One with a crush
 ADOPTED|Taken in as family
-AILMENT|Minor illness
-AIRMAIL|Post sent by plane
-ALLERGY|Pollen reaction
+AILMENT|Minor complaint
+AIRMAIL|By plane, in the post
+ALLERGY|Hay fever cause
 ALMONDS|Marzipan nuts
 ALREADY|By this time
-AMAZING|Astonishing
-AMMONIA|Cleaning chemical
+AMAZING|Really something
+AMMONIA|Sharp cleaning smell
 AMONGST|In the middle of
-AMPLIFY|Make louder
-AMUSING|Funny
+AMPLIFY|Turn it up
+AMUSING|Good for a smile
 ANALOGY|Comparison
-ANALYST|One who studies data
-ANATOMY|Body structure
+ANALYST|One who studies the numbers
+ANATOMY|Body's structure
 ANGUISH|Deep pain
 ANNOYED|Irritated
 ANTENNA|Signal rod
 ANTIQUE|Old collectible
-ANXIETY|Worry
-APOLOGY|Words of regret
-APPAREL|Clothing line
-APPLIED|Put to use
-APPOINT|Name to a post
-APPROVE|Give the nod to
-APRICOT|Small orange fruit
-AQUATIC|Living in water
-ARCHERY|Bow and arrow sport
-ARCHIVE|Records store
-ARRANGE|Put in order
+ANXIETY|Nervous worry
+APOLOGY|The word sorry
+APPAREL|Clothing
+APPLIED|Put in for it
+APPOINT|Name to the post
+APPROVE|Give the nod
+APRICOT|Small orange stone fruit
+AQUATIC|Of the water
+ARCHERY|Bow sport
+ARCHIVE|Old records store
+ARRANGE|Set it up
 ARRIVAL|Coming in
 ARSENAL|Weapons store
 ARTWORK|Gallery pieces
-ASHTRAY|Smoker's dish
+ASHTRAY|Where the stub goes
 ASPHALT|Road surface
-ASSAULT|Violent attack
-ASSURED|Made certain
-ATHLETE|Sports competitor
+ASSAULT|Attack
+ASSURED|Made certain of
+ATHLETE|Track star
 ATTRACT|Draw in
 AUDIBLE|Loud enough to hear
-AVIATOR|Old time flier
+AVIATOR|Old-time pilot
 AWKWARD|Clumsy
 BACKING|Support
-BALANCE|Equal weighting
+BALANCE|What's left in the account
 BALLOON|Party inflatable
 BANANAS|Bunch fruit
-BAPTISM|Church rite
-BARRIER|Blocking wall
-BASHFUL|Shy
-BATHTUB|Soaking basin
-BEACHES|Sandy shores
+BAPTISM|Font ceremony
+BARRIER|Something in the way
+BASHFUL|One of the seven dwarfs, and shy
+BATHTUB|Where you soak
+BEACHES|Sandy stretches
 BEARDED|Having facial hair
-BEATING|Steady thumping
-BECAUSE|Since
+BEATING|A thrashing
+BECAUSE|For the reason that
 BECOMES|Turns into
-BEEHIVE|Buzzing home
-BELIEVE|Have faith in
+BEEHIVE|Where the honey is
+BELIEVE|Take as true
 BENDING|Curving
 BERRIES|Small juicy fruits
 BESIDES|In addition
-BIGGEST|Largest
+BIGGEST|The largest of all
 BILLION|Thousand million
-BIOLOGY|Study of life
-BISCUIT|Gravy go with
+BIOLOGY|Study of living things
+BISCUIT|Gravy's partner
 BLENDER|Smoothie maker
-BLESSED|Given a benediction
-BLINDLY|Without looking
-BLISTER|Skin bubble
-BLOCKED|Obstructed
+BLESSED|Fortunate
+BLINDLY|With no idea where
+BLISTER|Heel's complaint
+BLOCKED|Stopped up
 BLOOMED|Flowered
 BLUNDER|Big mistake
 BOASTED|Bragged
-BOATING|Sailing about
+BOATING|On the lake
 BOILING|At a rolling heat
-BOLDEST|Most daring
-BONFIRE|Outdoor blaze
-BOOKLET|Thin pamphlet
-BOOSTER|Rocket stage
+BOLDEST|Most daring of all
+BONFIRE|Garden blaze
+BOOKLET|Little pamphlet
+BOOSTER|Rocket stage, or a shot
 BOREDOM|Lack of interest
 BOUQUET|Bunch of flowers
 BOYCOTT|Refuse to buy
 BRACKET|Shelf support
 BRAIDED|Plaited
-BRAVERY|Courage
-BREADTH|Width
+BRAVERY|Facing the danger
+BREADTH|How wide
 BREAKUP|Split of a couple
-BREWERY|Beer plant
-BRIBERY|Paying off officials
-BRIEFLY|For a short time
-BRIGADE|Army unit
+BREWERY|Where the beer is made
+BRIBERY|Money under the table
+BRIEFLY|In short
+BRIGADE|Fire team
 BRISTLE|Brush hair
 BRITTLE|Easily snapped
 BROADLY|In general terms
-BROUGHT|Carried along
-BROWSER|Web program
-BUFFALO|Plains bison
-BULLETS|Ammo rounds
-BUNDLES|Tied packages
-BURGLAR|House thief
-BUSIEST|Most hectic
+BROUGHT|Fetched along
+BROWSER|Web window
+BUFFALO|Plains beast
+BULLETS|What the clip holds
+BUNDLES|Tied-up armfuls
+BURGLAR|Night intruder
+BUSIEST|Most rushed off their feet
 BUTCHER|Meat seller
 BUTTONS|Shirt fasteners
 BUZZING|Making a bee sound
 CALCIUM|Bone mineral
-CALMEST|Most serene
+CALMEST|Most serene of all
 CAMPERS|Tent dwellers
-CANNONS|Old guns
-CAPABLE|Able
-CAPITAL|Seat of government
+CANNONS|Old artillery
+CAPABLE|Up to the job
+CAPITAL|Paris, for France
 CAPSULE|Pill
-CAPTIVE|Held prisoner
-CAPTURE|Take hold of
-CARAVAN|Traveling group
+CAPTIVE|Prisoner
+CAPTURE|Take prisoner
+CARAVAN|Desert train
 CARDIAC|Of the heart
-CAREFUL|Cautious
-CARRIER|One who transports
-CARRIES|Totes
-CARROTS|Rabbit snacks
-CASCADE|Small waterfall
-CASHIER|Register worker
-CATCHER|Behind the plate player
-CAUTION|Care taken
-CAVERNS|Big hollows in rock
+CAREFUL|Taking no chances
+CARRIER|Aircraft ship, or a mail worker
+CARRIES|Takes along
+CARROTS|Rabbit food
+CASCADE|Tumbling waterfall
+CASHIER|Checkout worker
+CATCHER|Behind the plate
+CAUTION|Take care
+CAVERNS|Big caves
 CENTURY|Hundred years
-CERAMIC|Fired clay
-CEREALS|Breakfast grains
-CHAIRED|Ran a meeting
+CERAMIC|Pottery's material
+CEREALS|Breakfast boxes
+CHAIRED|Ran the meeting
 CHALICE|Ceremonial cup
 CHANGES|Alterations
-CHARGED|Billed
-CHARGER|Phone cord
+CHARGED|Rushed, or billed
+CHARGER|Phone's cable
 CHARIOT|Ancient racing cart
-CHARMED|Delighted
+CHARMED|Won over
 CHASING|Running after
 CHATTER|Idle talk
-CHEAPER|Less costly
+CHEAPER|Less dear
 CHECKED|Looked over
-CHEERED|Rooted loudly
+CHEERED|Roared support
 CHEESES|Brie and gouda
 CHEMIST|Lab worker
-CHEWING|Munching
+CHEWING|Working the jaw
 CHOICES|Options
-CHOPPED|Cut up small
+CHOPPED|Cut small
 CHUCKLE|Quiet laugh
 CIRCLED|Went around
-CLAIMED|Asserted
+CLAIMED|Said it was theirs
 CLAPPED|Applauded
 CLASSIC|Timeless
-CLEANED|Tidied
-CLEANER|Tidier
-CLEARLY|Plainly
+CLEANED|Tidied up
+CLEANER|One with the mop
+CLEARLY|Plain to see
 CLIMBED|Scaled
-CLIPPER|Fast old ship
-CLOSING|Shutting
+CLIPPER|Fast sailing ship
+CLOSING|Shutting up
 CLOTHED|Dressed
-CLOUDED|Made murky
-CLUSTER|Bunch
-COASTAL|By the shore
+CLOUDED|Overcast
+CLUSTER|Tight group
+COASTAL|By the sea
 COBBLER|Shoe mender
-COCKPIT|Pilot's seat area
-COCONUT|Palm fruit
-COLLARS|Neckbands
-COLONEL|Army rank
+COCKPIT|Where the pilot sits
+COCONUT|Hairy tropical nut
+COLLARS|Shirt necks
+COLONEL|Above a major
 COLORED|Tinted
 COLUMNS|Pillars
-COMBINE|Merge
-COMMUTE|Daily trip to work
-COMPOSE|Write music
-CONCEAL|Hide
+COMBINE|Put together
+COMMUTE|Daily journey to work
+COMPOSE|Write the music
+CONCEAL|Hide away
 CONCEDE|Admit defeat
 CONCISE|Brief and clear
 CONDUIT|Pipe for wires
 CONFESS|Own up
 CONFUSE|Muddle
-CONQUER|Overcome
+CONQUER|Take by force
 CONSIST|Be made up of
-CONSOLE|Comfort
-CONSUME|Use up
+CONSOLE|Comfort, or a games box
+CONSUME|Use it up
 CONTOUR|Outline shape
 CONVERT|Change over
-CONVICT|Find guilty
+CONVICT|One inside
 COOLING|Chilling down
-CORNERS|Angles of a room
+CORNERS|Where the streets meet
 COUGHED|Cleared the throat
-COUNSEL|Advise
+COUNSEL|Advice
 COUNTER|Kitchen surface
 CRACKED|Split open
-CRACKLE|Fire sound
+CRACKLE|Fire's sound
 CRADLES|Baby beds
-CRAMPED|Short on space
+CRAMPED|Not enough room
 CRAWLED|Moved on all fours
 CREATES|Makes
-CREATOR|Maker
+CREATOR|The maker
 CREVICE|Narrow crack
 CRIMSON|Deep red
-CRISPER|More crunchy
-CROCHET|Yarn craft
-CROOKED|Bent out of shape
-CROUTON|Salad crunch
-CROWDED|Packed tight
-CRUELTY|Meanness
-CRUMBLE|Fall apart
-CRUSADE|Big campaign
-CUPCAKE|Frosted small treat
-CURIOUS|Nosy
-CURRENT|Flow of a river
+CRISPER|Fridge drawer
+CROCHET|Hook and yarn craft
+CROOKED|Bent, or dishonest
+CROUTON|Salad's crunch
+CROWDED|Packed
+CRUELTY|Unkindness
+CRUMBLE|Fall to bits
+CRUSADE|Determined campaign
+CUPCAKE|Little iced sponge
+CURIOUS|Nosy, or odd
+CURRENT|Right now, or the flow
 CUSHION|Sofa pad
 CUTLERY|Knives and forks
-CYCLING|Riding a bike
-CYCLONE|Whirling storm
+CYCLING|On two wheels
+CYCLONE|Spinning storm
 DAMAGED|Harmed
-DANCING|Moving to music
-DANGERS|Perils
-DAZZLED|Blinded by brilliance
-DEALING|Doing business
-DEBATED|Argued formally
-DECADES|Ten year spans
+DANCING|On the floor
+DANGERS|Risks
+DAZZLED|Blinded by the light
+DEALING|Handing out
+DEBATED|Argued it out
+DECADES|Ten-year spans
 DECAYED|Rotted
-DECEIVE|Mislead
-DECIMAL|Point number
-DECLARE|State openly
+DECEIVE|Trick
+DECIMAL|Point in the number
+DECLARE|State outright
 DEFEATS|Losses
-DEFICIT|Shortfall
-DEFINED|Spelled out
+DEFICIT|What the books are short
+DEFINED|Said what it means
 DELAYED|Held up
-DELIGHT|Great pleasure
+DELIGHT|Real pleasure
 DENSITY|Compactness
 DENYING|Refusing to admit
 DEPARTS|Leaves
-DEPENDS|Relies
+DEPENDS|It all
 DEPICTS|Shows
 DESCEND|Go down
-DESERVE|Merit
-DESIRED|Wanted
-DESKTOP|Computer style
-DESPAIR|Hopelessness
-DESPISE|Hate
-DESTINY|Fate
-DESTROY|Wreck
-DETECTS|Notices
-DEVOTED|Loyal
+DESERVE|Have it coming
+DESIRED|Much wanted
+DESKTOP|Where the computer sits
+DESPAIR|Losing all hope
+DESPISE|Loathe
+DESTINY|What is fated
+DESTROY|Wreck utterly
+DETECTS|Picks up on
+DEVOTED|Absolutely loyal
 DIAGRAM|Labeled drawing
-DIALECT|Regional speech
-DIAPERS|Baby wraps
+DIALECT|Local way of speaking
+DIAPERS|Baby's wraps
 DICTATE|Say for writing down
 DIGGING|Making a hole
-DILEMMA|Tough choice
+DILEMMA|Rock and a hard place
 DILUTED|Watered down
-DIMPLES|Cheek dents
-DIRECTS|Guides
-DISABLE|Turn off
-DISCARD|Throw away
+DIMPLES|Cheek indents
+DIRECTS|Points the way
+DISABLE|Switch it off
+DISCARD|Throw it away
 DISEASE|Illness
 DISLIKE|Not care for
 DISMISS|Send away
 DISPOSE|Get rid of
-DISPUTE|Quarrel
+DISPUTE|Argue over
 DISTURB|Interrupt
-DIVIDES|Splits
-DIVORCE|Legal split
-DOCTORS|Physicians
-DOLLARS|Bucks
-DONATED|Gave freely
-DOORWAY|Entry frame
-DOUBLED|Made twice as big
-DOUBTED|Was unsure of
+DIVIDES|Splits up
+DIVORCE|Marriage's end
+DOCTORS|Ward staff
+DOLLARS|Greenbacks
+DONATED|Gave to the cause
+DOORWAY|The frame you walk through
+DOUBLED|Twice as much
+DOUBTED|Wasn't sure about
 DRAINED|Emptied out
-DREADED|Feared
-DREAMER|One lost in thought
+DREADED|Feared the worst of
+DREAMER|Head in the clouds
 DRESSER|Bedroom chest
 DRIFTED|Floated along
 DRILLED|Bored a hole
 DRIVING|At the wheel
-DROPLET|Tiny bead of water
+DROPLET|Little bead of water
 DROUGHT|Long dry spell
 DRUMMER|Beat keeper
 DURABLE|Built to last
 DYNAMIC|Full of energy
 EAGERLY|Keenly
-EARLIER|Before now
-EARNEST|Sincere
-EARRING|Lobe ornament
-EASIEST|Simplest
-ECLIPSE|Sun blocking event
+EARLIER|Before that
+EARNEST|Deadly serious
+EARRING|Lobe jewelry
+EASIEST|Least trouble of all
+ECLIPSE|Sun's blackout
 ECOLOGY|Study of habitats
-EDITING|Revising
+EDITING|Blue-pencilling
 EDUCATE|Teach
 ELASTIC|Stretchy
 ELECTED|Voted in
@@ -4352,1270 +4352,1270 @@ ELEVATE|Raise up
 ELUSIVE|Hard to pin down
 EMBRACE|Hug
 EMERALD|Green gem
-EMPEROR|Ruler of a realm
-EMPTIED|Cleared out
+EMPEROR|Empire's ruler
+EMPTIED|Poured out
 ENABLED|Made possible
-ENCHANT|Delight utterly
-ENCLOSE|Put a fence around
+ENCHANT|Cast a spell over
+ENCLOSE|Fence it in
 ENDLESS|Going on forever
-ENFORCE|Make people obey
-ENGAGED|Betrothed
-ENLARGE|Make bigger
-ENSURED|Made sure of
-ENTITLE|Give a right to
-ENVIOUS|Green with jealousy
-EQUATOR|Zero latitude line
-ERRANDS|Quick trips
+ENFORCE|Make them keep to it
+ENGAGED|About to marry
+ENLARGE|Blow it up
+ENSURED|Made certain of
+ENTITLE|Give the right to
+ENVIOUS|Green-eyed
+EQUATOR|The middle line
+ERRANDS|Little trips out
 ERUPTED|Blew its top
 ESCAPES|Gets away
-ESSENCE|Core nature
+ESSENCE|The heart of it
 ESTATES|Big properties
 ETERNAL|Everlasting
 EVIDENT|Plain to see
 EXACTLY|Precisely
-EXAMINE|Look at closely
-EXCERPT|Short passage
+EXAMINE|Look closely at
+EXCERPT|Passage taken from it
 EXCLAIM|Cry out
 EXCLUDE|Leave out
-EXHAUST|Tire out
+EXHAUST|Car's pipe, or wear out
 EXPANDS|Grows bigger
-EXPECTS|Anticipates
-EXPERTS|Old hands
-EXPIRED|Ran out
-EXPORTS|Goods sent abroad
-EXPOSED|Uncovered
-EXTINCT|No longer existing
-EXTRACT|Pull out
-FABRICS|Cloths
+EXPECTS|Counts on it
+EXPERTS|The ones who know
+EXPIRED|Out of date
+EXPORTS|What the country sells abroad
+EXPOSED|Brought to light
+EXTINCT|Gone for good
+EXTRACT|Pull it out
+FABRICS|Bolts at the cloth shop
 FACTUAL|Based on truth
 FACULTY|Teaching staff
-FAILING|Falling short
+FAILING|Not managing it
 FAINTED|Passed out
-FAIREST|Most just
-FALLING|Dropping
-FASTEST|Quickest
-FATIGUE|Weariness
+FAIREST|Most just of all
+FALLING|On the way down
+FASTEST|Quickest of all
+FATIGUE|Real tiredness
 FAUCETS|Taps
-FEARFUL|Frightened
+FEARFUL|In a fright
 FEEDING|Giving food to
-FEELING|Sensation
-FERTILE|Rich for growing
-FESTIVE|Merry
-FIGHTER|Boxer
-FILTERS|Strainers
+FEELING|Emotion
+FERTILE|Good for growing
+FESTIVE|In holiday spirits
+FIGHTER|One in the ring
+FILTERS|Coffee papers
 FINALLY|At long last
 FINANCE|Money matters
-FITTING|Suitable
-FIXTURE|Bathroom installation
+FITTING|Suitable, or a try-on
+FIXTURE|Match on the calendar
 FLAMING|On fire
-FLANNEL|Soft plaid cloth
-FLASHED|Blinked brightly
-FLATTEN|Make level
-FLATTER|Pay compliments to
+FLANNEL|Soft cloth
+FLASHED|Blinked bright
+FLATTEN|Level it out
+FLATTER|Butter them up
 FLEEING|Running away
-FLICKER|Waver, as a candle
-FLIGHTS|Plane trips
+FLICKER|Candle's waver
+FLIGHTS|Departures board list
 FLIPPED|Turned over
-FLOATED|Stayed on the surface
-FLOODED|Overwhelmed with water
-FLOWING|Streaming
+FLOATED|Stayed on top
+FLOODED|Under water
+FLOWING|Running along
 FLUENCY|Ease with a language
-FLUTTER|Beat wings quickly
-FOLDING|Creasing
-FOLIAGE|Leaves on a tree
-FOREARM|Elbow to wrist part
-FOREIGN|From another land
-FOREVER|Always
-FORGAVE|Pardoned
-FORGERY|Fake signature
-FORGIVE|Pardon
+FLUTTER|Butterfly's motion
+FOLDING|Creasing over
+FOLIAGE|The greenery
+FOREARM|Elbow to wrist
+FOREIGN|From abroad
+FOREVER|For all time
+FORGAVE|Let it go
+FORGERY|Faked signature
+FORGIVE|Let it go
 FORMING|Taking shape
-FORMULA|Recipe of symbols
-FOUNDER|One who starts a firm
-FRAMING|Bordering
-FRANTIC|In a panic
+FORMULA|The recipe for it
+FOUNDER|The one who started it
+FRAMING|Putting it behind glass
+FRANTIC|In a real state
 FREIGHT|Cargo
 FRESHLY|Newly
 FROSTED|Iced over
-FULFILL|Carry out
-FUNNIER|More amusing
-FURNACE|Big heating unit
-FURTHER|More distant
-GADGETS|Handy devices
-GALLONS|Four quart units
-GAMBLER|Bettor
-GARBAGE|Trash
+FULFILL|Carry it out
+FUNNIER|More of a laugh
+FURNACE|Basement heater
+FURTHER|Beyond that
+GADGETS|Handy little devices
+GALLONS|Four quarts each
+GAMBLER|One at the tables
+GARBAGE|Rubbish
 GARLAND|Flower chain
-GARMENT|Piece of clothing
-GARNISH|Plate decoration
-GATHERS|Collects
+GARMENT|Item of clothing
+GARNISH|Plate's finishing touch
+GATHERS|Brings together
 GAZELLE|Swift antelope
 GELATIN|Dessert thickener
 GENERIC|Off brand
-GINGHAM|Checked cloth
-GLACIER|Slow moving ice
+GINGHAM|Checked cotton
+GLACIER|Slow river of ice
 GLIDING|Soaring smoothly
-GLIMMER|Faint gleam
-GLISTEN|Sparkle when wet
-GLITTER|Sparkly craft bits
+GLIMMER|Faint light
+GLISTEN|Shine with wet
+GLITTER|Craft sparkle
 GOODBYE|Parting word
 GORILLA|Big ape
 GOURMET|Fine food lover
-GOVERNS|Rules over
+GOVERNS|Rules the country
 GRABBED|Snatched
 GRADUAL|Bit by bit
-GRANDPA|Family elder
-GRANTED|Given
-GRAPHIC|Vivid
+GRANDPA|Mother's father
+GRANTED|Taken for
+GRAPHIC|Vividly detailed
 GRAPPLE|Wrestle with
 GRASPED|Took hold of
-GRAZING|Feeding on grass
+GRAZING|Cattle's meal
 GREATLY|Very much
 GREETED|Said hello to
 GRENADE|Thrown explosive
-GRINDER|Coffee mill
+GRINDER|Coffee bean mill
 GRIPPED|Held tight
-GROOMED|Neatly tidied
-GROUNDS|Coffee remains
-GROUPED|Put in clusters
+GROOMED|Made presentable
+GROUNDS|Coffee's leavings, or the estate
+GROUPED|Put together
 GROWING|Getting bigger
-GRUMBLE|Complain
-GUARDED|Kept watch over
-GUESSED|Took a stab at
-GUIDING|Leading the way
-GUITARS|Strummed instruments
+GRUMBLE|Moan quietly
+GUARDED|Watched over
+GUESSED|Took a stab
+GUIDING|Showing the way
+GUITARS|Six-string instruments
 GYMNAST|Beam performer
-HAIRCUT|Trim at the salon
+HAIRCUT|Barber's work
 HALFWAY|Midpoint
 HAMMOCK|Hanging bed
-HANDFUL|Small amount
-HANDLES|Grips
+HANDFUL|As much as you can hold
+HANDLES|Door grips
 HANDOUT|Free giveaway
-HAPPIER|More content
-HARDEST|Toughest
-HARMFUL|Damaging
-HARMONY|Pleasing blend
-HARNESS|Strap rig
+HAPPIER|In better spirits
+HARDEST|Toughest of all
+HARMFUL|It does damage
+HARMONY|Singing in it
+HARNESS|Horse's straps
 HASTILY|In a rush
 HATCHED|Broke out of a shell
-HAUNTED|Full of ghosts
+HAUNTED|Ghost-ridden
 HAZARDS|Dangers
-HEADING|Section title
+HEADING|Title at the top
 HEALING|Getting better
 HEAPING|Piled high
-HEAVILY|With great weight
-HEIGHTS|High places
+HEAVILY|With real weight
+HEIGHTS|Tall places
 HELPERS|Assistants
-HEROINE|Female lead
-HERRING|Pickled fish
+HEROINE|The leading lady
+HERRING|Red one, in a mystery
 HIDEOUS|Very ugly
 HIGHEST|Topmost
-HILLTOP|Summit of a rise
+HILLTOP|Where the view is
 HINDERS|Gets in the way of
-HOBBIES|Pastimes
-HOLDING|Grasping
-HONORED|Given an award
-HOPEFUL|Optimistic
+HOBBIES|Spare-time pursuits
+HOLDING|Keeping hold of
+HONORED|Given the tribute
+HOPEFUL|Looking on the bright side
 HORIZON|Where sky meets land
-HOSTAGE|Captive held for ransom
-HOTTEST|Warmest
-HOWEVER|Nevertheless
-HUMBLED|Made modest
-HUNTERS|Game seekers
+HOSTAGE|One held for ransom
+HOTTEST|Warmest of all
+HOWEVER|Even so
+HUMBLED|Brought down a peg
+HUNTERS|Ones who track
 HURDLES|Track barriers
 HURRIED|Rushed
-HURTING|Causing pain
-HYGIENE|Cleanliness
-ICEBERG|Floating mass of ice
+HURTING|In pain
+HYGIENE|Keeping clean
+ICEBERG|Titanic's undoing
 IGNITED|Set alight
-IGNORED|Paid no heed to
-ILLNESS|Sickness
-IMAGERY|Vivid word pictures
+IGNORED|Paid no attention to
+ILLNESS|Being unwell
+IMAGERY|Pictures in the writing
 IMITATE|Copy
-IMMENSE|Huge
+IMMENSE|Absolutely vast
 IMPEACH|Charge an official
 IMPLIED|Hinted at
-IMPORTS|Foreign goods
-IMPOSED|Forced upon
-IMPRESS|Make an impact on
-IMPRINT|Stamped mark
+IMPORTS|What the country buys in
+IMPOSED|Forced it on them
+IMPRESS|Win them over
+IMPRINT|Mark left behind
 IMPULSE|Sudden urge
 INCLINE|Slope
 INDULGE|Treat yourself
-INFANTS|Babies
+INFANTS|The very young
 INFERNO|Raging fire
 INFIELD|Diamond area
-INFLATE|Pump up
-INFORMS|Tells
+INFLATE|Pump it up
+INFORMS|Lets them know
 INHALED|Breathed in
-INHERIT|Get from a will
+INHERIT|Get it from the will
 INJURED|Hurt
-INKWELL|Old desk holder
+INKWELL|Desk's old fitting
 INQUIRE|Ask about
-INSECTS|Bugs
+INSECTS|Six-legged crawlers
 INSIDER|One in the know
-INSIGHT|Deep understanding
-INSPECT|Look over closely
-INSPIRE|Motivate
-INSTALL|Set up
-INSULTS|Slights
-INSURED|Covered by a policy
+INSIGHT|Sharp understanding
+INSPECT|Look it over
+INSPIRE|Fire them up
+INSTALL|Fit it in place
+INSULTS|Rude remarks
+INSURED|Covered by the policy
 INTEGER|Whole number
-INVADED|Stormed into
-INVALID|Not valid
+INVADED|Marched in
+INVALID|Not good in law
 INVENTS|Dreams up
-INVERSE|Opposite
+INVERSE|The other way round
 INVOICE|Bill
-INVOLVE|Include
-IRONING|Pressing clothes
-ISOLATE|Set apart
-ITCHING|Wanting to scratch
+INVOLVE|Draw them in
+IRONING|Board's business
+ISOLATE|Keep it apart
+ITCHING|Wanting a scratch
 JACKPOT|Big prize pot
 JASMINE|Fragrant flower
 JAWBONE|Chin support
 JEWELRY|Rings and necklaces
-JOGGING|Running slowly
-JOINING|Linking up
-JUGGLER|One who tosses balls
-JUSTIFY|Give good reason for
-KERNELS|Corn bits
+JOGGING|Slow running
+JOINING|Becoming a member
+JUGGLER|Circus act
+JUSTIFY|Give a reason for
+KERNELS|Corn's grains
 KIDDING|Joking
-KIDNEYS|Filtering organs
-KINDEST|Most caring
-KNEELED|Genuflected
+KIDNEYS|Body's filters
+KINDEST|Most thoughtful of all
+KNEELED|Went down on one knee
 KNITTED|Made with needles
-KNOCKED|Rapped on a door
+KNOCKED|Rapped on the door
 KNOTTED|Tied up
 KNOWING|Aware
-LABELED|Tagged
-LACKING|Short of
+LABELED|Named with a sticker
+LACKING|Short of it
 LADYBUG|Spotted beetle
 LAGGING|Falling behind
-LANDING|Touchdown
+LANDING|Top of the stairs
 LAPTOPS|Portable computers
-LARGEST|Biggest
-LASTING|Enduring
-LATERAL|Sideways
-LATTICE|Crossed strips
-LAUGHED|Chortled
+LARGEST|The biggest of all
+LASTING|It will keep
+LATERAL|To the side
+LATTICE|Crossed garden frame
+LAUGHED|Got the joke
 LAWSUIT|Court action
-LAYERED|In strata
+LAYERED|In several thicknesses
 LEADING|Out in front
-LEAGUES|Sports groups
+LEAGUES|Where the teams play
 LEAKING|Dripping through
 LEANING|Tilting
 LEAPING|Bounding
 LEARNER|Beginner
 LEASING|Renting out
-LEGALLY|By the law
-LEGENDS|Old tales
+LEGALLY|In the eyes of the law
+LEGENDS|Great ones
 LENDING|Loaning out
-LENGTHS|Measurements
-LENIENT|Not strict
-LEOPARD|Spotted big cat
-LESSONS|Class periods
-LETTUCE|Salad green
-LIFTING|Hoisting
-LIGHTLY|Gently
+LENGTHS|Pool laps
+LENIENT|Going easy on them
+LEOPARD|Spotted cat
+LESSONS|What the teacher gives
+LETTUCE|Salad leaf
+LIFTING|Raising
+LIGHTLY|With a soft touch
 LIKABLE|Easy to get on with
-LINGERS|Stays on
-LIQUIDS|Fluids
-LISTING|Catalog entry
-LITERAL|Word for word
+LINGERS|Hangs about
+LIQUIDS|Neither solids nor gases
+LISTING|Property ad
+LITERAL|To the letter
 LOADING|Filling up
-LOAFERS|Slip on shoes
+LOAFERS|Slip-on shoes
 LOCATED|Found
 LOCKING|Securing
-LODGING|Overnight stay
+LODGING|Bed for the night
 LOGGING|Felling trees
-LONGEST|Most drawn out
+LONGEST|Least short of all
 LONGING|Deep yearning
-LOOKING|Searching
+LOOKING|Having a peek
 LOOSELY|Not tightly
 LOWERED|Brought down
-LUCKILY|As good fortune had it
+LUCKILY|As it happened
 LULLABY|Bedtime song
 LUNCHES|Midday meals
-LURKING|Waiting in the shadows
-MADNESS|Insanity
-MAGICAL|Enchanted
-MAGNETS|Iron attractors
+LURKING|Waiting unseen
+MADNESS|Sheer lunacy
+MAGICAL|Enchanting
+MAGNETS|Fridge stickers
 MAILING|Sending post
 MAMMOTH|Woolly extinct beast
-MANAGED|Ran, as a store
+MANAGED|Got it done
 MANATEE|Sea cow
 MANHOLE|Street cover
-MANKIND|Humanity
+MANKIND|All of us
 MARCHES|Parades along
-MARGINS|Page edges
+MARGINS|Page's blank edges
 MARKING|Making a spot
 MARRIED|Wed
-MARTIAL|Of warfare
-MASSAGE|Rubdown
+MARTIAL|Of the fighting arts
+MASSAGE|Rub down
 MATCHED|Paired up
-MATCHES|Fire sticks
+MATCHES|Fire starters
 MATURED|Grew up
 MEANEST|Nastiest
 MEASLES|Spotty illness
 MEDIATE|Help settle a dispute
-MELTING|Turning liquid
-MEMOIRS|Life stories
+MELTING|Turning to liquid
+MEMOIRS|Life story in print
 MENDING|Repairing
 MENTORS|Wise guides
 MERRILY|Cheerfully
-METHODS|Ways of doing things
-MIGRATE|Move with the seasons
-MILEAGE|Distance covered
-MINDFUL|Paying attention
+METHODS|Ways of doing it
+MIGRATE|Fly south
+MILEAGE|How far it goes
+MINDFUL|Keeping it in mind
 MINIMAL|As little as possible
-MINIMUM|Least possible
-MIRRORS|Reflecting glasses
-MISLEAD|Point the wrong way
+MINIMUM|The least there can be
+MIRRORS|Where you check your hair
+MISLEAD|Point them the wrong way
 MISSILE|Guided rocket
-MITTENS|Thumb only gloves
-MODESTY|Lack of boasting
-MOISTEN|Dampen
-MOLDING|Trim around a wall
-MONARCH|King or queen
+MITTENS|Thumb-only gloves
+MODESTY|Not blowing your own trumpet
+MOISTEN|Dampen slightly
+MOLDING|Trim round the ceiling
+MONARCH|Crown wearer
 MOTHERS|Moms
-MOTIVES|Reasons for a crime
-MOVABLE|Not fixed in place
-MUFFINS|Breakfast breads
-MUFFLED|Deadened, as sound
-MUSCLES|Biceps and triceps
-MUSEUMS|Exhibit halls
-MUSTANG|Wild horse
+MOTIVES|What the detective looks for
+MOVABLE|It can be shifted
+MUFFINS|Blueberry bakes
+MUFFLED|Sound-deadened
+MUSCLES|What the gym builds
+MUSEUMS|Where the exhibits are
+MUSTANG|Wild western horse
 NAPKINS|Lap cloths
-NARRATE|Tell a story aloud
-NAUGHTY|Badly behaved
-NEGLECT|Fail to look after
-NESTING|Building a home for eggs
-NETTING|Mesh fabric
+NARRATE|Tell the story over it
+NAUGHTY|Not behaving
+NEGLECT|Let it go to ruin
+NESTING|Building for the eggs
+NETTING|Fine mesh
 NEUTRON|Atom particle
-NEWBORN|Just arrived baby
+NEWBORN|Just arrived
 NIGHTLY|Every evening
-NOMINEE|Candidate put forward
-NOODLES|Pasta strands
-NOSTRIL|Nose opening
-NOTABLE|Worth mentioning
-NOTICED|Spotted
+NOMINEE|One put forward
+NOODLES|Ramen strands
+NOSTRIL|Nose's opening
+NOTABLE|Worth remarking on
+NOTICED|Took it in
 NOURISH|Feed well
 NOVELTY|Something new
 NUCLEAR|Of the atom
-NUGGETS|Small gold lumps
-NUMBERS|Digits
-NURSING|Caring for the sick
+NUGGETS|Gold finds
+NUMBERS|One, two, three
+NURSING|Ward work
 OATMEAL|Porridge grain
 OBEYING|Doing as told
 OBJECTS|Things
-OBLIGED|Made to feel thankful
+OBLIGED|Had to
 OBSCURE|Little known
 OBSERVE|Watch closely
-OBTAINS|Gets
-OFFENSE|Breaking of a rule
+OBTAINS|Gets hold of
+OFFENSE|The attacking side
 OFFERED|Put forward
-ONGOING|Still in progress
-OPERATE|Run a machine
+ONGOING|Still running
+OPERATE|Run it
 OPTICAL|Of the eye
-OPTIMAL|Best possible
+OPTIMAL|The best possible
 OPTIONS|Choices
-ORDERLY|Neat and tidy
+ORDERLY|In good order
 ORIGAMI|Paper folding art
-ORIGINS|Starting points
-OUTCOME|Result
-OUTFITS|Ensembles
-OUTLETS|Wall sockets
-OUTLINE|Rough sketch of a plan
+ORIGINS|Where it started
+OUTCOME|How it turned out
+OUTFITS|Whole ensembles
+OUTLETS|Where you plug in
+OUTLINE|Sketch the shape
 OUTLIVE|Survive longer than
-OUTRAGE|Fury
+OUTRAGE|Public fury
 OVATION|Standing applause
-OVERALL|On the whole
-OVERDUE|Past the deadline
-PACKETS|Small parcels
+OVERALL|All things considered
+OVERDUE|Should have been back
+PACKETS|Little parcels
 PADDING|Soft filling
-PADDOCK|Horse field
-PAINFUL|Sore
-PAJAMAS|Sleep suit
-PALACES|Royal homes
+PADDOCK|Horse's field
+PAINFUL|It hurts
+PAJAMAS|Bedtime wear
+PALACES|Where royalty lives
 PALETTE|Painter's board
-PANICKY|Full of alarm
-PARABLE|Teaching story
-PARADOX|Seeming contradiction
-PARCELS|Packages
-PARROTS|Talking birds
-PARSLEY|Green garnish herb
-PARTIAL|Only some of it
+PANICKY|In a flap
+PARABLE|Story with a moral
+PARADOX|It contradicts itself
+PARCELS|Post office packages
+PARROTS|They repeat what you say
+PARSLEY|Garnish herb
+PARTIAL|Only in part
 PARTIES|Celebrations
-PARTING|Saying farewell
-PASSION|Strong feeling
-PASSIVE|Not taking action
-PATCHES|Sewn on repairs
-PATRIOT|Lover of one's country
-PAYABLE|Due to be settled
-PEACOCK|Bird with a fanned tail
-PEASANT|Old rural worker
-PEBBLES|Small stones
-PEDDLER|Door to door seller
-PELICAN|Big billed bird
-PENALTY|Punishment
-PENDING|Still waiting
-PENSION|Retirement money
-PERCENT|Part of a hundred
+PARTING|Saying goodbye
+PASSION|Burning feeling
+PASSIVE|Not taking part
+PATCHES|Mends on the knees
+PATRIOT|Flag waver
+PAYABLE|Owed now
+PEACOCK|Fanned tail bird
+PEASANT|Old-time farm worker
+PEBBLES|Little smooth stones
+PEDDLER|Door-to-door seller
+PELICAN|Pouch-billed bird
+PENALTY|Referee's award
+PENDING|Still to be decided
+PENSION|Retirement income
+PERCENT|Out of a hundred
 PERCHED|Sat on a branch
 PERSIST|Keep at it
-PHANTOM|Ghost
-PHYSICS|Study of matter and force
+PHANTOM|Ghostly figure
+PHYSICS|Study of matter and energy
 PICKLED|Kept in brine
-PICKLES|Brined cucumbers
-PIERCED|Poked through
-PIGMENT|Coloring matter
-PILGRIM|Religious traveler
-PILLARS|Support posts
-PINCHED|Nipped between fingers
-PIRATES|Buccaneers
-PITCHER|Lemonade jug
-PLACING|Putting down
-PLAINLY|Simply put
-PLANNER|Datebook
-PLANTED|Put in the soil
+PICKLES|Deli spears
+PIERCED|Made a hole through
+PIGMENT|What gives paint its color
+PILGRIM|One on a holy journey
+PILLARS|Supporting columns
+PINCHED|Nipped, or stole
+PIRATES|Jolly Roger fliers
+PITCHER|Mound man, or a jug
+PLACING|Putting it down
+PLAINLY|Clear as day
+PLANNER|Diary
+PLANTED|Put in the ground
 PLASTER|Wall coating
-PLAYERS|Team members
-PLAYFUL|Frisky
+PLAYERS|Ones on the team
+PLAYFUL|Full of fun
 PLEADED|Begged
-PLIABLE|Easy to bend
+PLIABLE|Bends easily
 PLOTTED|Schemed
-PLUCKED|Pulled off
+PLUCKED|Picked it off
 PLUNGED|Dived in
-POINTER|Screen arrow
-POLLUTE|Foul the air
-PORCHES|Front steps areas
+POINTER|Hint, or a dog
+POLLUTE|Foul it up
+PORCHES|Front step covers
 POSTERS|Wall prints
 POSTURE|How you hold yourself
-POUNDED|Hammered
-POURING|Tipping out
+POUNDED|Hammered away
+POURING|Tipping it out
 POWERED|Given energy
 PRAIRIE|Grassy plain
 PREFERS|Likes better
-PREMISE|Starting assumption
-PREMIUM|Extra charge
-PRESIDE|Chair a meeting
-PRESUME|Take for granted
-PREVAIL|Win out
+PREMISE|What the argument rests on
+PREMIUM|Insurance payment
+PRESIDE|Chair the meeting
+PRESUME|Take it as read
+PREVAIL|Come out on top
 PREVIEW|Sneak look
 PRICING|Setting the cost
 PRIESTS|Clergy members
 PRINCES|Royal sons
 PRINTED|Put on paper
-PROCESS|Series of steps
-PRODUCT|Item for sale
-PROLONG|Draw out
-PROMPTS|Cues
-PRONOUN|He or she, say
+PROCESS|The steps of it
+PRODUCT|What is made
+PROLONG|Drag it out
+PROMPTS|Nudges
+PRONOUN|He, she or it
 PROPHET|Foreteller
-PROPOSE|Suggest
-PROSPER|Do well
-PROTEST|Public objection
-PROVERB|Wise old saying
-PRUDENT|Wise and careful
+PROPOSE|Put it forward
+PROSPER|Do very well
+PROTEST|March against it
+PROVERB|Old wise saying
+PRUDENT|Careful and wise
 PULLING|Tugging
-PUNCHED|Struck with a fist
-PURSUED|Chased
-PURSUIT|Chase
+PUNCHED|Hit with the fist
+PURSUED|Chased after
+PURSUIT|The chase
 PUSHING|Shoving
-PUTTING|Placing gently
-QUALIFY|Meet the standard
-QUARREL|Argument
+PUTTING|Placing, or on the green
+QUALIFY|Get through the heats
+QUARREL|Squabble
 QUERIES|Questions
 QUIETER|Less noisy
 QUIETLY|Without a sound
 QUILTED|Padded and stitched
 QUIZZES|Short tests
-QUOTING|Citing word for word
-RACCOON|Masked critter
-RADIANT|Glowing
+QUOTING|Citing the words
+RACCOON|Masked night raider
+RADIANT|Absolutely glowing
 RAFTERS|Roof beams
-RAILING|Stair banister
-RAINING|Coming down in drops
+RAILING|Balcony's barrier
+RAINING|Coming down
 RAISING|Bringing up
-RAMPAGE|Wild spree
+RAMPAGE|On the
 RANCHER|Cattle raiser
-RANKING|Position on a list
-RAPIDLY|Quickly
-RATIONS|Portions of food
-RATTLED|Unnerved
+RANKING|Where you stand
+RAPIDLY|Very quickly
+RATIONS|Wartime allowance
+RATTLED|Shook, or unnerved
 RAVIOLI|Stuffed pasta
-REACHED|Got to
+REACHED|Got there
 REACHES|Gets as far as
 REACTED|Responded
-READERS|Book lovers
+READERS|Ones with books
 READILY|Without hesitation
-REALISM|True to life style
+REALISM|True to life
 REALIZE|Come to see
-REASONS|Causes
-REBUILD|Put back together
-RECALLS|Remembers
-RECITAL|Music performance
-RECLINE|Lean back
-RECOUNT|Tell again
-RECRUIT|Sign up a newcomer
-RECYCLE|Reuse materials
-REDUCED|Cut down
-REFEREE|Match official
-REFINED|Polished up
-REFRAIN|Hold back
-REFUGEE|One fleeing danger
-REFUSAL|Saying no
+REASONS|The whys
+REBUILD|Put it up again
+RECALLS|Brings to mind
+RECITAL|Music school evening
+RECLINE|Lean right back
+RECOUNT|Tell it again
+RECRUIT|New joiner
+RECYCLE|Blue bin it
+REDUCED|Brought down
+REFEREE|Whistle blower
+REFINED|Well polished
+REFRAIN|Song's chorus, or hold back
+REFUGEE|One who fled
+REFUSAL|The no
 REGARDS|Best wishes
-REGIONS|Areas
-REGRETS|Wishes undone
+REGIONS|Parts of the country
+REGRETS|Wishes it hadn't been so
 REJOICE|Celebrate
-RELAPSE|Slip back
-RELATES|Connects
-RELIANT|Dependent
-RELIEVE|Ease
-REMARKS|Comments
-REMINDS|Jogs the memory of
-REMNANT|Leftover scrap
-RENEWAL|Fresh start
-REPEATS|Says again
+RELAPSE|Fall back into it
+RELATES|Connects with
+RELIANT|Depending on it
+RELIEVE|Take the pressure off
+REMARKS|Passing comments
+REMINDS|Jogs the memory
+REMNANT|Bit left over
+RENEWAL|Signing up again
+REPEATS|Says it again
 REPLIED|Answered
 REPLIES|Answers
-REPORTS|Written accounts
-REPTILE|Snake or lizard
-RESIDUE|What is left over
-RESOLVE|Firm determination
-RESTFUL|Peaceful
-RESTORE|Bring back to good order
+REPORTS|Cards sent home
+REPTILE|Lizard or snake
+RESIDUE|What is left behind
+RESOLVE|Sort it out
+RESTFUL|Nice and peaceful
+RESTORE|Bring it back
 RETREAT|Fall back
-REUNION|Class get together
-REVENGE|Payback
-REVENUE|Money coming in
-REVERSE|Backward
-REVISED|Edited
-REVIVAL|Comeback
-REVOLVE|Turn around a center
-REWRITE|Redo the text
-RHUBARB|Tart pie stalk
-RICHEST|Wealthiest
-RIGGING|Ship ropes
-RIGHTLY|Correctly
-RINGING|Sounding a bell
-RIPPLES|Small waves
-RIVALRY|Fierce competition
-ROAMING|Wandering
-ROBOTIC|Like a machine
-ROLLING|Turning over and over
-ROOFING|Shingle work
+REUNION|Class get-together
+REVENGE|Getting your own back
+REVENUE|What comes in
+REVERSE|Back up
+REVISED|Went over the draft
+REVIVAL|Bringing it back
+REVOLVE|Turn on the spot
+REWRITE|Do it again
+RHUBARB|Crumble stalk
+RICHEST|Best off of all
+RIGGING|Ship's ropes
+RIGHTLY|Justly so
+RINGING|Bell's sound
+RIPPLES|Little water rings
+RIVALRY|The needle between them
+ROAMING|Wandering about
+ROBOTIC|Stiff and mechanical
+ROLLING|Going along
+ROOFING|Tiles and felt
 ROUGHLY|About
 ROUNDED|Made curved
-ROWBOAT|Oar powered craft
+ROWBOAT|Oar-driven craft
 ROYALTY|Kings and queens
-RUBBING|Chafing
-RUBBISH|Trash
-RUNNERS|Joggers
-RUPTURE|Burst open
-RUSHING|Hurrying
+RUBBING|Working it with a cloth
+RUBBISH|Nonsense
+RUNNERS|Marathon entrants
+RUPTURE|Burst
+RUSHING|In a hurry
 SADDLES|Horse seats
 SAFFRON|Costly yellow spice
 SAILORS|Deck hands
-SAMPLES|Small tastes
+SAMPLES|Free tastes
 SANDBOX|Play area with grit
 SAPLING|Young tree
 SARDINE|Tinned little fish
-SATCHEL|Shoulder bag
+SATCHEL|School bag
 SAVANNA|Grassy African plain
-SAWDUST|Woodshop residue
+SAWDUST|Workshop floor covering
 SCALLOP|Fan shaped shellfish
-SCANDAL|Shocking affair
-SCANNER|Code reader
+SCANDAL|Front page shame
+SCANNER|Barcode reader
 SCARLET|Bright red
-SCATTER|Strew about
-SCENERY|Landscape views
-SCENTED|Given a fragrance
-SCHOLAR|Learned person
-SCOOTER|Kick ride
+SCATTER|Throw about
+SCENERY|The view
+SCENTED|Perfumed
+SCHOLAR|Learned one
+SCOOTER|Push-along ride
 SCORING|Racking up points
 SCRAWNY|Very thin
-SCREENS|Displays
-SEAGULL|Shore bird
+SCREENS|What you watch on
+SEAGULL|Beach scavenger
 SEALANT|Gap filler
-SEATING|Places to sit
-SECRECY|Keeping things quiet
-SECURED|Made safe
-SEGMENT|Section
+SEATING|Where everyone sits
+SECRECY|Keeping it quiet
+SECURED|Made fast
+SEGMENT|Orange's part
 SELFISH|Thinking only of yourself
-SELLERS|Vendors
-SEMINAR|Small class
+SELLERS|Ones with the goods
+SEMINAR|Small teaching group
 SENATOR|Upper house member
-SENDING|Dispatching
+SENDING|Posting it off
 SEQUINS|Sparkly dress discs
-SERPENT|Big snake
-SERVANT|Household helper
-SERVING|Portion dished out
-SESSION|Meeting period
-SETTLED|Came to rest
+SERPENT|Garden of Eden tempter
+SERVANT|Downstairs staff
+SERVING|Portion
+SESSION|Sitting
+SETTLED|Came to terms
 SEVENTH|After sixth
-SHACKLE|Iron restraint
-SHADING|Pencil darkening
+SHACKLE|Prisoner's iron
+SHADING|Pencil's darkening
 SHADOWY|Full of dim shapes
 SHAKING|Trembling
 SHARPEN|Put an edge on
-SHARPER|More keen
-SHATTER|Break into bits
-SHAVING|Using a razor
-SHIELDS|Protective plates
-SHIFTED|Moved over
-SHIMMER|Gleam faintly
-SHINGLE|Roof tile
-SHOCKED|Stunned
-SHORTEN|Cut down in length
-SHOUTED|Yelled
-SHOVELS|Digging tools
-SHOWING|Displaying
+SHARPER|Keener
+SHATTER|Break to pieces
+SHAVING|At the razor
+SHIELDS|Knights' guards
+SHIFTED|Moved along
+SHIMMER|Waver with light
+SHINGLE|Roof tile, or beach stones
+SHOCKED|Taken aback
+SHORTEN|Cut it down
+SHOUTED|Raised the voice
+SHOVELS|Snow clearers
+SHOWING|On display
 SHRIVEL|Dry up and wrinkle
 SHUFFLE|Mix the cards
-SHUTTER|Camera part
-SHUTTLE|Back and forth bus
+SHUTTER|Camera's blink
+SHUTTLE|Airport bus
 SIBLING|Brother or sister
 SIGNALS|Traffic lights
-SIGNING|Putting a name to
+SIGNING|Putting your name to it
 SILICON|Chip material
-SIMILAR|Much alike
-SINCERE|Heartfelt
-SINGING|Vocalizing
-SINKING|Going under
-SKILLED|Practiced and able
-SKIPPER|Boat captain
-SLACKEN|Loosen
+SIMILAR|Much the same
+SINCERE|Really meaning it
+SINGING|Carrying the tune
+SINKING|Going down
+SKILLED|Really good at it
+SKIPPER|Ship's captain
+SLACKEN|Loosen off
 SLANTED|At an angle
-SLEEPER|Overnight train car
-SLENDER|Slim
-SLICING|Cutting into pieces
-SLIDING|Gliding along
+SLEEPER|Overnight train
+SLENDER|Nice and slim
+SLICING|Cutting up
+SLIDING|Going down the chute
 SLIMMER|Thinner
-SLIPPED|Lost footing
-SLOGANS|Catchphrases
+SLIPPED|Lost the footing
+SLOGANS|Advertising lines
 SLOPING|On an angle
-SLOWEST|Least quick
-SLUMBER|Deep sleep
+SLOWEST|Least quick of all
+SLUMBER|Sleep
 SMASHED|Broken to bits
 SMILING|Grinning
-SMOKING|Giving off fumes
-SNAPPED|Broke in two
-SNOWMAN|Winter yard figure
-SOAKING|Drenching
+SMOKING|On fire, or on a cigarette
+SNAPPED|Broke with a crack
+SNOWMAN|Carrot-nosed figure
+SOAKING|Wet through
 SOLIDLY|Firmly
-SOLVENT|Dissolving liquid
+SOLVENT|Able to pay the bills
 SOMEHOW|In one way or another
 SORCERY|Witchcraft
 SORTING|Putting in order
-SOURCES|Origins
-SPACING|Gaps between things
-SPANIEL|Floppy eared dog
+SOURCES|Where it came from
+SPACING|Gap between them
+SPANIEL|Floppy-eared dog
 SPATULA|Flipping tool
-SPECIES|Kind of organism
-SPECIFY|Name exactly
-SPELLED|Named the letters of
-SPILLED|Slopped over
-SPIRALS|Coils
-SPIRITS|Souls
-SPOILED|Gone off
-SPOTTED|Noticed
-SPRAYED|Misted
+SPECIES|Kind of animal
+SPECIFY|Say exactly which
+SPELLED|Set out the letters
+SPILLED|Knocked it over
+SPIRALS|Staircase shapes
+SPIRITS|Whisky and gin, or morale
+SPOILED|Ruined, or indulged
+SPOTTED|Saw it
+SPRAYED|Misted it on
 SPREADS|Butters
-SPROUTS|Small shoots
+SPROUTS|Little cabbages
 SQUEAKY|Needing oil
-STABLES|Horse barns
+STABLES|Where the horses live
 STACKED|Piled up
-STAINED|Marked with color
-STALLED|Came to a halt
+STAINED|Marked
+STALLED|Engine died
 STAMINA|Staying power
-STAPLES|Paper fasteners
-STARING|Gazing fixedly
-STARTLE|Give a fright to
-STARVED|Went hungry
-STATING|Saying plainly
-STATUTE|Written law
+STAPLES|The basics
+STARING|Looking far too long
+STARTLE|Give a jump
+STARVED|Went without food
+STATING|Saying it outright
+STATUTE|Law on the books
 STEALTH|Moving unseen
-STELLAR|Of the stars
-STENCIL|Cutout template
+STELLAR|Absolutely first rate
+STENCIL|Cut-out pattern
 STERILE|Free of germs
 STICKER|Adhesive label
 STIFFEN|Make rigid
-STIRRUP|Saddle foot rest
-STOPPED|Halted
+STIRRUP|Rider's footrest
+STOPPED|Came to a halt
 STORING|Putting away
-STRANDS|Single hairs
-STREAKS|Long stripes
-STREAMS|Small creeks
-STRIKER|Soccer forward
-STRINGS|Twines
-STRIPED|Banded in color
-STUBBLE|Short beard growth
+STRANDS|Hairs
+STREAKS|Winning runs
+STREAMS|Little creeks
+STRIKER|Goal scorer
+STRINGS|The violin section
+STRIPED|In bands of color
+STUBBLE|Day-old beard
 STUFFED|Packed full
 STUMBLE|Trip up
 STUNNED|Left speechless
 SUBLIME|Utterly wonderful
 SUBSIDE|Die down
-SUBURBS|Towns outside a city
-SUCCEED|Come out on top
+SUBURBS|The outskirts
+SUCCEED|Pull it off
 SUCTION|Vacuum pull
 SUFFICE|Be enough
-SUMMONS|Court order to appear
-SUNBEAM|Ray of light
-SUNBURN|Too much time in the rays
+SUMMONS|Court's order to appear
+SUNBEAM|Ray through the cloud
+SUNBURN|Beach's red reminder
 SUNDIAL|Shadow clock
-SURGERY|Operation
+SURGERY|The operation
 SURNAME|Family name
-SURPASS|Do better than
-SURPLUS|Extra left over
-SUSPECT|Think guilty
-SUSPEND|Hang up
-SWEETEN|Add sugar to
+SURPASS|Do even better
+SURPLUS|What's left over
+SUSPECT|The one they think did it
+SUSPEND|Hang, or put on hold
+SWEETEN|Add sugar
 SWOLLEN|Puffed up
-SYMBOLS|Signs standing for things
-SYRINGE|Shot giver
+SYMBOLS|What they stand for
+SYRINGE|Needle's barrel
 TABLETS|Pills
 TACKLED|Brought down
-TACTICS|Moves in a plan
-TANGLED|Snarled up
-TANTRUM|Toddler's outburst
-TARGETS|Bullseye holders
-TARNISH|Dull the shine of
+TACTICS|How you play it
+TANGLED|Knotted up
+TANTRUM|Toddler's fit
+TARGETS|What you aim at
+TARNISH|Silver's dulling
 TASTING|Sampling
-TEARFUL|Weepy
-TEASING|Poking fun
-TEDIOUS|Dull and long
+TEARFUL|In tears
+TEASING|Ribbing gently
+TEDIOUS|Dull as ditchwater
 TELLERS|Bank window staff
-TEMPEST|Violent storm
-TEMPLES|Houses of worship
-TERMITE|Wood eating insect
+TEMPEST|A right storm
+TEMPLES|Places of worship
+TERMITE|Wood-eating insect
 TERRIER|Small feisty dog
-TERRIFY|Frighten badly
-TESTING|Trying out
-TEXTILE|Woven material
-THANKED|Expressed gratitude to
-THICKEN|Make less runny
-THICKET|Dense bushes
-THIEVES|Robbers
-THIMBLE|Sewing finger cap
+TERRIFY|Scare stiff
+TESTING|Trying it out
+TEXTILE|Woven cloth
+THANKED|Said ta
+THICKEN|Make it denser
+THICKET|Dense little wood
+THIEVES|Takers
+THIMBLE|Sewer's finger cap
 THINKER|One who ponders
-THINNER|Less thick
-THISTLE|Prickly purple plant
-TIGHTER|More snug
+THINNER|Slimmer
+THISTLE|Prickly Scottish emblem
+TIGHTER|Snugger
 TIMIDLY|Shyly
-TOASTED|Browned in the oven
-TOENAIL|Foot growth
-TOOLBOX|Wrench holder
-TOPICAL|On the subject of the day
-TORMENT|Torture
+TOASTED|Browned under the grill
+TOENAIL|Foot's clipping job
+TOOLBOX|Where the spanners are
+TOPICAL|Very much of the moment
+TORMENT|Real agony
 TOSSING|Throwing lightly
-TOUCHED|Made contact with
-TOUGHER|More rugged
-TOURING|Traveling around
+TOUCHED|Laid a hand on
+TOUGHER|Harder going
+TOURING|Going round the country
 TOURISM|Travel trade
-TRACING|Copying an outline
-TRACKED|Followed
-TRADING|Swapping
-TRAINED|Coached
-TRAITOR|Betrayer
-TRAMPLE|Stamp down on
-TRANSIT|Buses and trains, collectively
+TRACING|Following the line
+TRACKED|Followed the trail
+TRADING|Buying and selling
+TRAINED|Got in shape
+TRAITOR|One who sold out
+TRAMPLE|Underfoot
+TRANSIT|In
 TRAPPED|Caught with no way out
 TRAWLER|Fishing boat
-TRIBUTE|Show of respect
+TRIBUTE|Words said in honor
 TRICKED|Fooled
-TRICKLE|Flow in drops
-TRIGGER|Gun lever
-TRIMMED|Neatened up
-TRINKET|Small ornament
-TRIPLET|One of three born together
-TROLLEY|Streetcar
-TROOPER|Highway officer
-TROPICS|Region near the equator
+TRICKLE|Slow drip
+TRIGGER|What you pull
+TRIMMED|Cut back
+TRINKET|Little ornament
+TRIPLET|One of three born
+TROLLEY|Shopping cart
+TROOPER|State highway officer
+TROPICS|The hot latitudes
 TRUFFLE|Prized fungus
-TRUSTED|Relied on
-TURBINE|Spinning power unit
-TURMOIL|Great confusion
-TURNING|Rotating
-TURTLES|Shelled reptiles
-TWISTER|Whirling wind
-UNAWARE|Not knowing
+TRUSTED|Believed in
+TURBINE|Wind farm spinner
+TURMOIL|Utter confusion
+TURNING|Where you go off the road
+TURTLES|Shelled swimmers
+TWISTER|Tornado
+UNAWARE|Hasn't a clue
 UNCANNY|Eerily accurate
-UNCLEAR|Fuzzy
-UNCOVER|Reveal
+UNCLEAR|Hard to make out
+UNCOVER|Take the lid off
 UNDERGO|Go through
-UNEARTH|Dig up
+UNEARTH|Dig it up
 UNEQUAL|Not the same
-UNHAPPY|Sad
-UNLEASH|Let loose
-UNLUCKY|Jinxed
+UNHAPPY|Not pleased
+UNLEASH|Let it loose
+UNLUCKY|Thirteen, they say
 UNPAVED|Not surfaced
-UPRIGHT|Standing straight
+UPRIGHT|Straight up and down
 UPWARDS|Toward the sky
-URGENCY|Need for haste
-USELESS|Of no help
-UTILITY|Water or power service
+URGENCY|The rush of it
+USELESS|No good at all
+UTILITY|Gas or water company
 UTTERLY|Completely
 VAGUELY|Not clearly
-VALIANT|Brave
-VALLEYS|Lands between hills
-VARIANT|Slightly different form
-VARIOUS|Of several kinds
-VARNISH|Wood finish
-VAULTED|Leapt over
-VENTURE|Risky undertaking
-VERANDA|Covered porch
-VERDICT|Jury's decision
-VERTIGO|Dizzy feeling
+VALIANT|Bravely determined
+VALLEYS|Between the hills
+VARIANT|Slightly different version
+VARIOUS|Several different
+VARNISH|Wood's shine
+VAULTED|Leapt over, or arched
+VENTURE|Chance it
+VERANDA|Porch
+VERDICT|The jury's word
+VERTIGO|Fear of heights
 VESSELS|Ships
 VIBRANT|Full of life
-VIBRATE|Shake rapidly
-VICIOUS|Savage
-VICTORY|Win
-VIEWERS|Watchers
-VILLAIN|Story's bad guy
-VIOLATE|Break a rule
-VIRTUAL|Existing only online
-VISITED|Called on
+VIBRATE|Buzz
+VICIOUS|Really nasty
+VICTORY|The win
+VIEWERS|Ones watching
+VILLAIN|The bad one
+VIOLATE|Break the rule
+VIRTUAL|Almost, or on screen
+VISITED|Dropped in on
 VOLTAGE|Electrical force
-VOUCHER|Redeemable slip
-WAFFLES|Griddle breakfasts
-WAITERS|Restaurant servers
-WALNUTS|Brain shaped nuts
-WANDERS|Roams
-WANTING|Desiring
-WARFARE|Armed conflict
-WARMEST|Coziest
-WARRANT|Search authorization
-WATCHED|Observed
-WATERED|Gave a drink to plants
+VOUCHER|Money-off slip
+WAFFLES|Breakfast grids
+WAITERS|Order takers
+WALNUTS|Brain-shaped nuts
+WANDERS|Roams about
+WANTING|Falling short
+WARFARE|Waging war
+WARMEST|Cosiest of all
+WARRANT|Judge's paper
+WATCHED|Kept an eye on
+WATERED|Gave the plants a drink
 WATTAGE|Power rating
 WEAKEST|Least strong
 WEARING|Having on
-WEAVING|Working a loom
-WEBSITE|Online page
-WEEPING|Crying
-WEIGHED|Put on the scale
+WEAVING|At the loom
+WEBSITE|What the URL opens
+WEEPING|In tears
+WEIGHED|Put on the scales
 WEIGHTY|Heavy
-WELFARE|Well being of people
+WELFARE|The state's help
 WETLAND|Marshy ground
-WHIMPER|Faint cry
-WHIPPED|Beaten, as cream
-WHOEVER|Anyone at all
+WHIMPER|Little whine
+WHIPPED|Cream's treatment
+WHOEVER|No matter who
 WIDENED|Made broader
 WILDEST|Most untamed
 WINDING|Twisting along
-WINNING|Coming in first
-WISHFUL|Full of hope
+WINNING|Out in front
+WISHFUL|Thinking
 WITHOUT|Lacking
 WORKOUT|Gym session
 WORRIES|Frets
-WORSHIP|Adore
-WOUNDED|Hurt in battle
-WRAPPER|Candy covering
+WORSHIP|Sunday devotion
+WOUNDED|Injured
+WRAPPER|Sweet's cover
 WRECKED|Ruined
-WRESTLE|Grapple on a mat
-WRINKLE|Crease in the skin
-WRITTEN|Put down on paper
+WRESTLE|Grapple with
+WRINKLE|Crease in the shirt
+WRITTEN|Set down on paper
 WRONGLY|In error
-YAWNING|Showing sleepiness
+YAWNING|Wide open, or sleepy
 YIELDED|Gave way
-YOUNGER|Less old
+YOUNGER|Fewer years on them
 ZEALOUS|Very keen
-ZIPPERS|Jacket fasteners
+ZIPPERS|Jacket closers
 ZOOLOGY|Study of animals
 ABBEY|Monks' home
 ABIDE|Put up with
-ACORN|Oak seed
-ACUTE|Sharp, as an angle
+ACORN|Oak's seed
+ACUTE|Sharp, of an angle
 ADAPT|Adjust to fit
-ADEPT|Highly skilled
-ADORE|Love deeply
+ADEPT|Really good at it
+ADORE|Love dearly
 AFTER|Following
 AGAIN|One more time
-AGILE|Nimble
+AGILE|Quick on the feet
 AGONY|Great pain
-AISLE|Walkway between seats
+AISLE|Between the pews
 ALIEN|From another world
-ALIGN|Line up
-ALLOY|Metal blend
-AMAZE|Astound
-AMEND|Change a document
+ALIGN|Line it up
+ALLOY|Metal mixture
+AMAZE|Astonish
+AMEND|Change the wording
 AMPLE|More than enough
 AMUSE|Entertain
-ANNOY|Bug
+ANNOY|Get on the nerves of
 ANVIL|Blacksmith's block
 APART|Separated
-APPLY|Put in for a job
+APPLY|Put in for the job
 ARMOR|Knight's suit
-ARRAY|Ordered display
-ASSET|Valuable holding
-AUDIT|Check the books
+ARRAY|Whole display of them
+ASSET|Something worth having
+AUDIT|Books check
 AVAIL|Be of use
 AWAKE|Not sleeping
-AWFUL|Dreadful
-BADLY|Poorly
-BALMY|Mild and warm
-BANJO|Bluegrass strummer
+AWFUL|Terrible
+BADLY|Not well
+BALMY|Pleasantly warm
+BANJO|Bluegrass string
 BARGE|Canal boat
-BARON|Titled nobleman
-BASIN|Wash bowl
+BARON|Titled man
+BASIN|Bathroom bowl
 BASIS|Foundation
-BATCH|Group made at once
+BATCH|Cookies made at once
 BATON|Relay stick
 BEADS|Necklace bits
 BEAST|Wild animal
 BEGUN|Started
-BEING|Living creature
+BEING|Existing
 BELLY|Tummy
-BERTH|Sleeping bunk on a ship
+BERTH|Ship's bed
 BIRDS|Feathered fliers
 BLAZE|Roaring fire
 BLEAK|Grim and bare
-BLESS|Consecrate
+BLESS|Say it after a sneeze
 BLIMP|Airship
-BLISS|Perfect joy
-BLOOD|Vital red fluid
-BLOWN|Carried by the wind
-BLUFF|Try to fool
+BLISS|Perfect happiness
+BLOOD|What runs in the veins
+BLOWN|Puffed away
+BLUFF|Poker pretense
 BLUNT|Not sharp
 BLURB|Short jacket note
-BLUSH|Turn red in the face
+BLUSH|Go red
 BOAST|Brag
 BOGUS|Phony
-BOOTS|Ankle high footwear
+BOOTS|Wellies
 BORED|Uninterested
 BOUGH|Tree limb
-BOXER|Ring fighter
-BRACE|Support strut
-BRAID|Plait of hair
-BRAWL|Rowdy fight
-BREED|Type of dog
-BRIBE|Illegal payoff
+BOXER|Ring fighter, or a dog
+BRACE|Support, or a pair
+BRAID|Plait
+BRAWL|Pub fight
+BREED|Kind of dog
+BRIBE|Money under the table
 BRINE|Salt water
-BRINK|Very edge
-BROIL|Cook under high heat
-BROTH|Clear soup
+BRINK|The very edge
+BROIL|Cook under the flame
+BROTH|Thin soup
 BUDDY|Pal
 BUGGY|Baby carriage
 BUGLE|Army horn
 BULGE|Swelling
-BULKY|Big and awkward
+BULKY|Awkwardly big
 BUNNY|Cottontail
-BUYER|Purchaser
+BUYER|The one purchasing
 CACHE|Hidden store
-CADET|Military trainee
-CAMEL|Desert beast
-CAMEO|Brief film role
-CANAL|Waterway dug by hand
-CAPER|Playful escapade
-CAROL|Holiday song
-CARVE|Cut a turkey
-CATER|Provide the food for
+CADET|Trainee officer
+CAMEL|Desert humps
+CAMEO|Small role
+CANAL|Man-made waterway
+CAPER|Prank, or a pickled bud
+CAROL|Christmas song
+CARVE|Cut the turkey
+CATER|Supply the food
 CEDAR|Fragrant wood
 CHAOS|Total disorder
-CHEEK|Face side
-CHEWY|Needing lots of biting
-CHIEF|Top boss
-CHIME|Bell sound
+CHEEK|Face's side
+CHEWY|Like toffee
+CHIEF|The boss
+CHIME|Bell's ring
 CHIPS|Crunchy snacks
-CHOKE|Gag on food
-CHORD|Notes played together
+CHOKE|Can't breathe
+CHORD|Three notes at once
 CHORE|Household task
-CHUNK|Thick piece
+CHUNK|Big piece
 CHURN|Butter maker
-CIGAR|Rolled smoke
-CINCH|Very easy thing
-CIVIL|Polite
-CLAMP|Holding vise
-CLANG|Metal on metal sound
+CIGAR|Havana's export
+CINCH|Dead easy
+CIVIL|Polite, or non-military
+CLAMP|Workbench gripper
+CLANG|Metal's sound
 CLASH|Come into conflict
-CLASP|Fastener on a necklace
-CLERK|Shop worker
+CLASP|Necklace fastener
+CLERK|Office worker
 CLICK|Mouse sound
 CLING|Hold on tight
-CLOAK|Long cape
+CLOAK|Cape
 CLONE|Exact copy
 CLOVE|Baking spice bud
-CLOWN|Circus jokester
-CLUMP|Small cluster
+CLOWN|Circus face
+CLUMP|Small tight group
 COBRA|Hooded snake
 COCOA|Hot chocolate
-COMET|Icy body with a tail
-COMIC|Funny person
+COMET|Tailed sky visitor
+COMIC|Funny one
 CORAL|Reef builder
-COVET|Long to own
-CRANK|Turning handle
-CRATE|Wooden shipping box
-CRAVE|Yearn for
-CRAZE|Passing fad
-CREED|Statement of belief
+COVET|Want what they have
+CRANK|Handle to turn
+CRATE|Wooden box
+CRAVE|Really want
+CRAZE|The latest thing
+CREED|What you believe
 CREEK|Small stream
 CREEP|Move slowly and quietly
-CREPT|Moved stealthily
-CREST|Top of a hill
+CREPT|Moved quietly
+CREST|Wave's top
 CRIED|Wept
-CRIME|Illegal act
+CRIME|Police matter
 CROAK|Frog sound
-CROOK|Bent staff
-CRUEL|Heartless
+CROOK|Bent staff, or a thief
+CRUEL|Unkind
 CRUMB|Bread bit
-CRUSH|Squash flat
+CRUSH|Squash
 CUBIC|Of three dimensions
-CURLY|Wavy, as hair
-CURRY|Spicy Indian dish
-CURSE|Evil spell
+CURLY|Not straight, of hair
+CURRY|Spicy dish
+CURSE|Bad word, or a hex
 CYNIC|Doubter of motives
-DAISY|White petaled bloom
-DANDY|Very fine
+DAISY|White petals, yellow center
+DANDY|Just fine
 DEBUT|First appearance
 DECAL|Stick on design
 DECAY|Rot
-DECOR|Room styling
-DECOY|Duck hunter's lure
+DECOR|Room's look
+DECOY|Fake to draw them off
 DEFER|Put off
 DELVE|Dig into a subject
 DEMON|Evil spirit
 DENIM|Jeans fabric
-DENSE|Packed tight
+DENSE|Thick
 DEPOT|Bus station
-DERBY|Horse race
-DETER|Discourage
-DEVIL|Fiend
-DIGIT|Single numeral
+DERBY|Local rivalry match
+DETER|Put them off
+DEVIL|The other fellow
+DIGIT|Number, or a finger
 DIMLY|Faintly
 DINER|Roadside eatery
-DINGY|Drab and grubby
-DIRTY|Grimy
-DISCO|Dance club of the seventies
-DRAPE|Hang loosely
-DRAWL|Slow way of talking
+DINGY|Drab and dark
+DIRTY|Needing a wash
+DISCO|Seventies dance floor
+DRAPE|Hang it over
+DRAWL|Slow speech
 DRAWN|Sketched
-DREAD|Deep fear
-DRIED|Free of moisture
+DREAD|Fear the worst
+DRIED|No longer wet
 DROOL|Slobber
 DROOP|Sag
-DRUNK|Intoxicated
+DRUNK|Had too many
 DRYER|Laundry machine
 DUCKS|Pond birds
 DUMMY|Store mannequin
 DUNES|Sand hills
-DUSTY|Needing a wipe
-DWARF|Very small being
-DWELL|Live
-EAGER|Keen
+DUSTY|Needing a clean
+DWARF|Small one of seven
+DWELL|Live at
+EAGER|Really keen
 EASEL|Painter's stand
 EATEN|Consumed
-EBONY|Very dark wood
-EDGES|Borders
-EDICT|Official order
+EBONY|Black wood
+EDGES|Rims
+EDICT|Ruler's order
 EERIE|Spooky
 EJECT|Throw out
 ELDER|Older one
 ELECT|Vote in
-ELITE|The best of the best
+ELITE|The top few
 ELOPE|Run off to marry
 EMAIL|Digital message
 EMBER|Glowing coal
-ENACT|Make into law
-ENEMY|Foe
-ENSUE|Follow as a result
+ENACT|Put into law
+ENEMY|The other side
+ENSUE|Follow on
 ENTRY|Way in
 EPOCH|Long era
-EQUIP|Fit out with gear
-ERECT|Standing upright
+EQUIP|Kit out
+ERECT|Upright
 ERROR|Mistake
-ESSAY|Written composition
-ETHIC|Moral principle
-EVADE|Dodge
+ESSAY|School composition
+ETHIC|Work
+EVADE|Slip away from
 EVICT|Force out of a home
 EVOKE|Call to mind
-EXALT|Praise highly
-EXCEL|Do very well
-EXERT|Put forth, as effort
-EXILE|Banishment
-EXPEL|Kick out
-FABLE|Tale with a moral
-FACET|Side of a gem
-FAINT|Weak and unclear
-FAIRY|Tiny winged sprite
-FARCE|Ridiculous sham
+EXALT|Raise up high
+EXCEL|Do it better than anyone
+EXERT|Put in the effort
+EXILE|Sent away for good
+EXPEL|Throw out
+FABLE|Aesop's tale
+FACET|One side of the gem
+FAINT|Pass out
+FAIRY|Tooth collector
+FARCE|Absolute joke
 FATAL|Deadly
 FATTY|Greasy
 FAUNA|Animals of a region
 FELON|Serious offender
 FERAL|Gone wild
-FETCH|Go get
-FIBER|Strand
+FETCH|Go and get
+FIBER|Roughage
 FIERY|Blazing
 FIFTY|Half a hundred
-FILTH|Grime
-FINCH|Small songbird
+FILTH|Real muck
+FINCH|Small seed-eating bird
 FISHY|Suspicious
 FIXED|Repaired
 FLAIR|Natural knack
 FLAKE|Snow bit
-FLANK|Side of the body
-FLARE|Signal light
-FLASK|Small bottle
-FLESH|Meat on the bones
-FLICK|Quick snap
-FLING|Toss
-FLINT|Spark making rock
+FLANK|Side
+FLARE|Distress signal
+FLASK|Hip container
+FLESH|Skin and muscle
+FLICK|Quick snap of the finger
+FLING|Toss, or a brief romance
+FLINT|Spark stone
 FLIRT|Make eyes at
 FLOSS|Dental thread
 FLUFF|Soft down
 FLUID|Liquid
 FLUNG|Hurled
-FLUSH|Turn pink
-FOAMY|Full of bubbles
+FLUSH|Poker hand, or go red
+FOAMY|Frothy
 FOCAL|Central
-FOGGY|Misty
-FOLLY|Foolish act
-FORGE|Blacksmith's hearth
-FORUM|Discussion board
+FOGGY|Hard to see through
+FOLLY|Foolishness
+FORGE|Blacksmith's fire
+FORUM|Place to debate
 FOYER|Entrance hall
 FRAIL|Weak and delicate
-FRANK|Blunt and honest
-FRAUD|Swindle
+FRANK|Straight-talking
+FRAUD|Con
 FREED|Let go
 FRIED|Cooked in oil
-FROTH|Foam on a drink
-FROWN|Look displeased
-FUDGE|Rich chocolate square
+FROTH|Cappuccino's top
+FROWN|Smile's opposite
+FUDGE|Chocolate square
 FUNGI|Mushrooms and molds
 FUSSY|Hard to please
-GAUGE|Measuring dial
-GAUNT|Thin and hollow cheeked
-GAVEL|Judge's mallet
+GAUGE|Measure it
+GAUNT|Thin and hollow-cheeked
+GAVEL|Judge's hammer
 GECKO|Wall climbing lizard
 GENIE|Lamp dweller
-GENRE|Category of art
-GIDDY|Lightheaded with joy
-GLADE|Clearing in the woods
-GLAND|Hormone producer
-GLARE|Angry stare
-GLAZE|Doughnut coating
-GLEAM|Faint shine
+GENRE|Type of book
+GIDDY|Light-headed
+GLADE|Woodland clearing
+GLAND|Body's secretor
+GLARE|Harsh light, or a hard look
+GLAZE|Doughnut's shine
+GLEAM|Shine faintly
 GLEAN|Gather bit by bit
 GLIDE|Move smoothly
-GLINT|Tiny flash of light
+GLINT|Brief flash
 GLOAT|Crow over a win
-GLOOM|Darkness and despair
-GLOSS|Shiny finish
-GLOVE|Hand covering
-GNOME|Garden statue figure
+GLOOM|Darkness and low spirits
+GLOSS|Shine
+GLOVE|Hand wear
+GNOME|Garden figure
 GOALS|Aims
-GOING|Departing
-GORGE|Deep rocky ravine
-GOURD|Hollow dried squash
-GRAPH|Data plot
+GOING|On the way
+GORGE|Steep valley
+GOURD|Pumpkin's kin
+GRAPH|Chart with axes
 GRATE|Fireplace bars
-GRAVE|Burial plot
-GRAZE|Nibble grass
-GREED|Excess want
+GRAVE|Serious, or a burial plot
+GRAZE|Cattle's meal
+GREED|Wanting too much
 GRIEF|Deep sorrow
 GRIME|Ingrained dirt
 GRIMY|Filthy
-GRIND|Crush to powder
-GRIPE|Complain
-GROAN|Low moan
-GROOM|Wedding party member
-GROVE|Small stand of trees
+GRIND|Wear down
+GRIPE|Complaint
+GROAN|Sound of pain
+GROOM|Wedding's other star
+GROVE|Small wood
 GROWL|Dog's warning
-GROWN|Fully developed
-GRUFF|Rough voiced
+GROWN|Fully grown
+GRUFF|Rough of voice
 GRUNT|Pig's sound
-GUILT|Feeling of blame
+GUILT|What the verdict found
 GULCH|Narrow rocky valley
-GULLY|Water carved channel
+GULLY|Water-cut channel
 GUMBO|Creole stew
-GUSTO|Great relish
+GUSTO|Real enthusiasm
 GUSTY|Blustery
 HAIRY|Shaggy
 HALVE|Cut in two
 HANDY|Useful
 HARDY|Able to withstand cold
-HAUNT|Visit as a ghost
-HAVEN|Place of safety
-HAVOC|Widespread damage
+HAUNT|Regular spot, or spook
+HAVEN|Safe place
+HAVOC|Cry
 HEARD|Listened to
-HEAVE|Hoist with effort
-HEFTY|Weighty
+HEAVE|Big lift
+HEFTY|Substantial
 HEIST|Big robbery
 HELIX|Spiral shape
 HERBS|Basil and thyme
-HERON|Wading bird
+HERON|Long-legged wader
 HILLY|Full of slopes
 HINGE|Door swiveler
 HIPPO|River horse
-HITCH|Snag
-HOARD|Secret stash
+HITCH|Snag, or a knot
+HOARD|Squirrel it away
 HOBBY|Spare time pursuit
-HOIST|Lift up
-HOLLY|Prickly festive plant
-HONEY|Bee product
-HONOR|Great respect
-HORDE|Swarming crowd
+HOIST|Haul up
+HOLLY|Christmas green
+HONEY|Bee's product
+HONOR|Do the right thing by
+HORDE|Great mass of them
 HOUND|Tracking dog
-HOVER|Float in one spot
+HOVER|Hang in the air
 HUNCH|Gut feeling
-HUSKY|Sled dog
+HUSKY|Sled dog, or hoarse
 HYENA|Laughing scavenger
-ICING|Cake topping
+ICING|Cake's top
 IDIOM|Turn of phrase
-IGLOO|Snow shelter
-IMPLY|Suggest without saying
-INBOX|Mail folder
+IGLOO|Snow house
+IMPLY|Hint at
+INBOX|Where the mail lands
 INCUR|Bring upon yourself
-INEPT|Bumbling
+INEPT|Hopeless at it
 INERT|Not reacting
-INFER|Conclude from clues
+INFER|Read between the lines
 INLET|Small bay
-IRATE|Furious
-IRONY|Saying the opposite
+IRATE|Absolutely furious
+IRONY|The opposite of what's said
 ISLET|Tiny bit of land in water
 ITEMS|Things on a list
 JOKER|Wild card
 JOUST|Knights' contest
 JUICY|Full of liquid
 JUMBO|Extra large
-JUMPY|Nervous
+JUMPY|On edge
 JUROR|Panel member at a trial
 KARMA|What goes around
-KAYAK|Paddled boat
+KAYAK|Paddled one-seater
 KHAKI|Tan cloth
 KIOSK|Small booth
-KNACK|Special talent
+KNACK|Special skill
 KNEAD|Work the dough
-KNEEL|Go down on one leg
-KNELT|Went down to pray
+KNEEL|Go down on one knee
+KNELT|Went down on one knee
 KOALA|Eucalyptus muncher
-LAPSE|Slip in memory
+LAPSE|Slip
 LARVA|Grub stage
 LASSO|Cowboy's rope
 LATCH|Gate fastener
 LATHE|Wood turning machine
-LEAFY|Full of foliage
+LEAFY|Full of green
 LEAKY|Dripping
 LEAPT|Jumped
 LEDGE|Narrow shelf
-LEECH|Blood sucking worm
+LEECH|Blood-sucking worm
 LEGAL|Within the law
 LEVER|Pry bar
 LIBEL|Printed defamation
 LILAC|Fragrant purple bloom
-LIMBO|State of waiting
-LINER|Big passenger ship
-LINGO|Special vocabulary
-LIVID|Furious
+LIMBO|Under the bar
+LINER|Ocean ship
+LINGO|Special jargon
+LIVID|Absolutely furious
 LLAMA|Andean pack animal
 LOFTY|Very high up
-LOTUS|Water lily
+LOTUS|Water flower
 LOUSY|Terrible
 LOVER|Sweetheart
-LUCID|Clear headed
+LUCID|Perfectly clear
 LUMPY|Full of bumps
 LUNAR|Of the moon
 LUNGE|Sudden thrust forward
@@ -5625,325 +5625,325 @@ MACAW|Bright parrot
 MADAM|Polite address to a lady
 MAIZE|Corn
 MANIA|Craze
-MANOR|Country estate house
+MANOR|Country house
 MARRY|Tie the knot
 MASON|Bricklayer
-MERGE|Join together
-MERRY|Jolly
+MERGE|Come together
+MERRY|Cheerful
 MESSY|Untidy
-MIMIC|Copy the way someone acts
-MINCE|Chop finely
-MIRTH|Merriment
-MISER|Hoarder of money
+MIMIC|Copy them exactly
+MINCE|Chop very fine
+MIRTH|Laughter
+MISER|Tight-fisted one
 MISTY|Hazy
 MOCHA|Coffee with chocolate
 MOLAR|Back tooth
 MOLDY|Covered in fuzz
-MOODY|Given to sulks
+MOODY|Up and down
 MOOSE|Antlered giant
-MORAL|Lesson of a story
+MORAL|Story's lesson
 MORPH|Change shape
 MOSSY|Green and velvety
-MOTEL|Roadside inn
-MOTIF|Recurring design
-MOTTO|Guiding saying
-MOUND|Heap
+MOTEL|Roadside stop
+MOTIF|Repeated design
+MOTTO|Guiding phrase
+MOUND|Small hill
 MOURN|Grieve
-MOWER|Lawn machine
-MUDDY|Covered in mire
+MOWER|Lawn cutter
+MUDDY|Boots after the field
 MULCH|Garden bed covering
-MUMMY|Wrapped ancient body
+MUMMY|Wrapped pharaoh
 MUNCH|Chew noisily
 MURAL|Wall painting
-MURKY|Cloudy and dark
+MURKY|Hard to see through
 MUSHY|Soft and pulpy
-MUSTY|Smelling of damp
+MUSTY|Smelling of the attic
 NACHO|Cheesy chip
 NAIVE|Innocent
-NANNY|Child's caregiver
-NASAL|Of the nose
-NASTY|Mean
+NANNY|Child's minder
+NASAL|Through the nose
+NASTY|Really unpleasant
 NAVAL|Of the fleet
-NEEDY|Poor
+NEEDY|Wanting attention
 NEIGH|Horse's cry
-NERVE|Boldness
+NERVE|Cheek, or a body fiber
 NEWLY|Just recently
-NICHE|Snug recess
+NICHE|Little alcove
 NIECE|Brother's daughter
 NINTH|After eighth
 NOISY|Loud
 NOMAD|Wanderer
 NOOSE|Slip knot loop
-NOTCH|Small V shaped cut
+NOTCH|Small cut
 NUDGE|Gentle poke
 NUTTY|A little odd
 NYLON|Stocking material
-OASIS|Green spot in the sand
+OASIS|Desert water
 OBESE|Very overweight
-OCCUR|Take place
+OCCUR|Happen
 ODDLY|Strangely
 OLIVE|Martini garnish
-OMEGA|Last Greek letter
-ONSET|Beginning
+OMEGA|Greek's last
+ONSET|The very start
 OPERA|Sung drama
 OPTIC|Of vision
-OUNCE|Small weight unit
+OUNCE|Sixteenth of a pound
 OVERT|Done in the open
 OXIDE|Rust compound
-OZONE|Upper air layer
-PAGAN|Follower of old gods
+OZONE|Upper atmosphere layer
+PAGAN|Pre-Christian believer
 PANDA|Bamboo eater
-PANSY|Colorful garden bloom
+PANSY|Garden face flower
 PANTS|Trousers
-PARKA|Hooded winter coat
+PARKA|Hooded coat
 PASTE|Glue
-PATIO|Backyard terrace
+PATIO|Back terrace
 PATTY|Burger disc
 PECAN|Pie nut
 PEONY|Big fluffy bloom
-PERIL|Grave danger
+PERIL|Great danger
 PERKY|Chipper
 PESKY|Bothersome
 PESTO|Basil sauce
-PETAL|Flower part
-PETTY|Trivial
-PHASE|Stage
+PETAL|Flower's leaf
+PETTY|Small-minded
+PHASE|Stage of it
 PHONY|Fake
-PINCH|Nip between fingers
+PINCH|Salt's measure
 PIOUS|Devoutly religious
-PIVOT|Turn on a point
+PIVOT|Turn on the spot
 PIXEL|Screen dot
-PLAID|Tartan pattern
-PLANK|Long board
+PLAID|Tartan
+PLANK|Board
 PLEAD|Beg
-PLEAT|Fold in a skirt
-PLUCK|Pull out
-PLUME|Showy feather
-PLUMP|Rounded
-PLUSH|Luxuriously soft
-POACH|Cook gently in liquid
+PLEAT|Skirt's fold
+PLUCK|Pick, or nerve
+PLUME|Feather
+PLUMP|Nicely round
+PLUSH|Luxurious
+POACH|Cook in liquid, or take illegally
 POKER|Card game with bluffing
-POLKA|Lively dance
+POLKA|Bouncy dance
 POPPY|Red field flower
-POSSE|Sheriff's band
-POUCH|Small bag
+POSSE|Sheriff's group
+POUCH|Kangaroo's pocket
 PRANK|Practical joke
 PRAWN|Big shrimp
 PREEN|Groom the feathers
-PRIME|Best quality
+PRIME|First rate
 PRISM|Light splitter
 PROBE|Investigate
-PRONE|Lying face down
-PRONG|Fork tine
-PROSE|Ordinary writing
+PRONE|Face down, or liable to
+PRONG|Fork's point
+PROSE|Not verse
 PROXY|Stand in
-PRUNE|Trim a bush
+PRUNE|Cut back, or a dried plum
 PSALM|Sacred song
-PUFFY|Swollen
+PUFFY|Swollen up
 PUPPY|Young dog
-PUREE|Smooth blended food
-PURGE|Get rid of entirely
+PUREE|Blended smooth
+PURGE|Clear it out
 PUTTY|Window sealing paste
-QUACK|Duck's call
-QUAIL|Small game bird
-QUAKE|Tremble
+QUACK|Duck's word
+QUAIL|Game bird
+QUAKE|Earth's shudder
 QUART|Two pints
-QUEUE|Waiting line
-QUIRK|Odd habit
-QUOTA|Set share
-QUOTE|Cite word for word
+QUEUE|Line up
+QUIRK|Odd little habit
+QUOTA|Allotted share
+QUOTE|Cite the words
 RACER|Speedy competitor
-RAINY|Wet, as weather
-RALLY|Big gathering
+RAINY|Wet, of a day
+RALLY|Come back, or a gathering
 RAMEN|Noodle soup
 RAVEN|Glossy black bird
-RAZOR|Shaving blade
+RAZOR|Shaver
 REACT|Respond
-RECAP|Sum up
+RECAP|Sum it up again
 REGAL|Fit for a king
 REHAB|Recovery program
-REIGN|Rule of a monarch
-RELAY|Pass along
+REIGN|Rule
+RELAY|Baton race
 RENEW|Extend, as a lease
 REPEL|Drive back
 RESET|Start over
-RESIN|Sticky tree sap
+RESIN|Tree's sticky sap
 RETRO|Old fashioned on purpose
-REVEL|Celebrate wildly
+REVEL|Make merry
 RIFLE|Long gun
-RIGID|Stiff
-RINSE|Wash off with water
-RIPEN|Grow ready to pick
+RIGID|Won't bend
+RINSE|Wash off
+RIPEN|Come good on the vine
 RISKY|Chancy
 RIVET|Metal fastening pin
 ROACH|Kitchen pest
 ROGUE|Scoundrel
-ROOMY|Spacious
-ROOST|Perch for the night
-ROTOR|Spinning blade set
-ROUSE|Wake up
+ROOMY|Plenty of space
+ROOST|Where the hens sleep
+ROTOR|Helicopter's blades
+ROUSE|Wake them up
 ROWDY|Boisterous
 RUDDY|Reddish in the face
-RUGBY|Scrum sport
+RUGBY|Oval-ball sport
 RUINS|Ancient remains
-RULER|Straight edge
-RUMOR|Unverified story
+RULER|Measuring stick
+RUMOR|Word going round
 RUNNY|Watery
-RUSTY|Corroded
-SADLY|Regrettably
-SAINT|Holy person
-SALSA|Chip dip
-SALTY|Briny
+RUSTY|Out of practice
+SADLY|Unhappily
+SAINT|Halo wearer
+SALSA|Chip's dip
+SALTY|Like the sea
 SASSY|Cheeky
-SATIN|Smooth glossy cloth
-SAUNA|Steam room
-SAVOR|Enjoy slowly
+SATIN|Glossy fabric
+SAUNA|Hot wooden room
+SAVOR|Take your time over
 SAVVY|Street smart
-SCALP|Top of the head
-SCANT|Barely enough
-SCARE|Give a fright to
+SCALP|Head's top
+SCANT|Barely any
+SCARE|Fright
 SCARY|Frightening
-SCOFF|Mock
+SCOFF|Sneer at
 SCOLD|Tell off
-SCOOP|Ice cream server
+SCOOP|Ice cream server, or a story
 SCOOT|Move along quickly
-SCOPE|Range of action
+SCOPE|Room to work
 SCORN|Contempt
 SCOUR|Scrub hard
-SCOWL|Angry frown
+SCOWL|Angry face
 SCREW|Threaded fastener
-SCRUB|Clean by rubbing
-SCUBA|Diving gear
-SEDAN|Four door car
+SCRUB|Wash hard
+SCUBA|Diver's gear
+SEDAN|Four-door car
 SEEDY|Run down
 SEPIA|Brownish photo tone
 SERUM|Blood liquid
-SETUP|Arrangement
+SETUP|The arrangement
 SEWER|Underground drain
 SHACK|Rough hut
-SHADY|Out of the sun
-SHAFT|Long narrow pole
-SHALL|Will, formally
-SHAME|Disgrace
+SHADY|Not quite honest
+SHAFT|Mine's tunnel
+SHALL|Will
+SHAME|Sense of disgrace
 SHAWL|Shoulder wrap
-SHEAR|Clip the wool from
-SHEEN|Soft luster
-SHEER|Very thin, as fabric
-SHINY|Gleaming
-SHOOK|Trembled
-SHOVE|Push roughly
+SHEAR|Clip the sheep
+SHEEN|Soft gloss
+SHEER|Absolutely total
+SHINY|Polished
+SHOOK|Wobbled
+SHOVE|Push hard
 SHOWN|Displayed
-SHOWY|Flamboyant
+SHOWY|Very flashy
 SHRED|Tear to bits
-SHRUB|Small bush
-SHRUG|Raise the shoulders
+SHRUB|Garden bush
+SHRUG|Shoulders' gesture
 SHYLY|Bashfully
-SIEGE|Long military blockade
+SIEGE|Castle's long wait
 SIEVE|Straining bowl
 SILKY|Smooth to the touch
 SIREN|Wailing alarm
 SIXTH|After fifth
 SKILL|Ability
 SKUNK|Striped stinker
-SLACK|Loose
+SLACK|Not taut
 SLAIN|Killed
 SLANG|Street talk
-SLANT|Tilt
-SLASH|Cut with a sweep
-SLATE|Roofing rock
+SLANT|Lean
+SLASH|Big cut
+SLATE|Roof tile
 SLEEK|Smooth and glossy
-SLEET|Icy rain
-SLEPT|Was in bed
-SLICK|Slippery
-SLIMY|Coated in ooze
+SLEET|Half rain, half snow
+SLEPT|Had a kip
+SLICK|Smooth, or an oil spill
+SLIMY|Slippery and nasty
 SLING|Arm support
-SLOPE|Incline
-SLOTH|Slow tree hanger
-SLUMP|Bad run of form
+SLOPE|Hillside
+SLOTH|Slow hanger
+SLUMP|Downturn
 SLUSH|Melting snow
-SMACK|Slap
-SMASH|Break to pieces
-SMEAR|Streak of dirt
-SMIRK|Smug grin
-SMOCK|Artist's loose top
-SNAIL|Shelled crawler
-SNARE|Trap
-SNARL|Growl angrily
-SNEAK|Move without being seen
-SNEER|Scornful look
-SNIFF|Take a quick smell
-SNORE|Sleeping sound
+SMACK|Sharp slap
+SMASH|Break to bits
+SMEAR|Smudge
+SMIRK|Smug little smile
+SMOCK|Loose overshirt
+SNAIL|Slow shell carrier
+SNARE|Trap, or a drum
+SNARL|Dog's growl, or a tangle
+SNEAK|Move unseen
+SNEER|Look down on
+SNIFF|Take a smell
+SNORE|Sleeper's sound
 SNORT|Sharp nasal noise
 SNOUT|Pig's nose
-SNOWY|White with flakes
+SNOWY|Covered in white
 SNUCK|Crept quietly
 SOAPY|Full of suds
-SOBER|Not drinking
-SOGGY|Waterlogged
+SOBER|Not drunk
+SOGGY|Wet through
 SOLAR|Of the sun
 SONIC|Of sound
 SORRY|Apologetic
 SPADE|Digging tool
-SPASM|Muscle twitch
-SPAWN|Give rise to
-SPEAR|Throwing weapon
+SPASM|Sudden twitch
+SPAWN|Fish's eggs
+SPEAR|Thrown weapon
 SPECK|Tiny spot
 SPENT|Used up
 SPIKE|Sharp point
-SPILL|Knock over a drink
-SPIRE|Church steeple top
-SPITE|Petty ill will
+SPILL|Knock the drink over
+SPIRE|Church's point
+SPITE|Ill will
 SPLIT|Divide
-SPOIL|Go bad
+SPOIL|Ruin
 SPOOF|Send up
 SPOOK|Ghost
 SPOOL|Thread holder
-SPOUT|Teapot pourer
+SPOUT|Teapot's pourer
 SPRIG|Small twig
-SPURT|Sudden gush
-SQUAT|Crouch low
+SPURT|Sudden burst
+SQUAT|Crouch down
 SQUID|Ten armed sea creature
-STAIN|Discoloring mark
-STALE|No longer fresh
-STASH|Hide away
+STAIN|Spill's mark
+STALE|Not fresh
+STASH|Hide it away
 STEER|Guide the wheel
-STERN|Strict
+STERN|Strict, or a ship's back
 STIFF|Not bending
 STINT|Spell of work
-STOMP|Stamp heavily
+STOMP|Heavy step
 STOOD|Was on the feet
 STOOP|Bend forward
-STORK|Long legged bird
-STOUT|Sturdy and thick
-STRAY|Wander off
+STORK|Baby deliverer, in stories
+STOUT|Dark beer, or sturdy
+STRAY|Wandering animal
 STRUM|Play a guitar
 STRUT|Swagger
-STUCK|Unable to move
+STUCK|Not budging
 STUFF|Things
-STUMP|Tree remnant
-STUNG|Hit by a bee
-STUNT|Daring feat
+STUMP|Tree's remains
+STUNG|Got the bee
+STUNT|Daredevil act
 SUAVE|Smooth and polished
-SUEDE|Napped leather
+SUEDE|Soft leather
 SULKY|Silently cross
 SURGE|Sudden rush
 SURLY|Bad tempered
-SWAMP|Boggy ground
-SWARM|Mass of bees
-SWEAR|Take an oath
+SWAMP|Bog
+SWARM|Bees on the move
+SWEAR|Take the oath
 SWELL|Rise up
-SWIRL|Twist around
+SWIRL|Whirl about
 SWORD|Knight's blade
-SWORE|Took an oath
-SWORN|Bound by an oath
-SYRUP|Pancake pour
-TACKY|In poor taste
+SWORE|Took the oath
+SWORN|Under oath
+SYRUP|Pancake topper
+TACKY|A bit cheap-looking
 TAFFY|Pulled candy
 TALLY|Running count
 TALON|Eagle's claw
-TANGO|Ballroom dance for two
+TANGO|Two to
 TANGY|Sharply flavored
-TAPER|Narrow gradually
+TAPER|Narrow to a point
 TARDY|Late
 TASTY|Delicious
 TAUNT|Jeer at
@@ -5951,102 +5951,102 @@ TAWNY|Golden brown
 TEDDY|Stuffed bear
 TEMPT|Lure
 TENOR|High male singer
-TENSE|On edge
+TENSE|Wound up
 TENTH|After ninth
 TEPID|Lukewarm
-TERSE|Curt
+TERSE|Short and to the point
 THEFT|Stealing
-THORN|Rose prickle
-THOSE|Not these
-THREW|Tossed
-TIARA|Small crown
-TIDAL|Of the ocean's rise and fall
+THORN|Rose's prick
+THOSE|The far ones
+THREW|Pitched
+TIARA|Princess's headwear
+TIDAL|Of the sea's rise
 TIMID|Shy
 TINGE|Slight trace of color
-TIPSY|Slightly drunk
-TIRED|Worn out
+TIPSY|A bit merry
+TIRED|Ready for bed
 TOKEN|Arcade coin
-TONIC|Gin's mixer
+TONIC|Gin's partner
 TOPAZ|Yellow gem
 TORSO|Trunk of the body
 TOTEM|Carved pole
 TOXIC|Poisonous
 TOXIN|Harmful substance
-TRACE|Faint sign
+TRACE|Faint mark
 TRACT|Stretch of land
 TRAIT|Characteristic
-TRAMP|Trudge along
-TRASH|Garbage
-TRAWL|Drag a fishing net
-TREAD|Tire grip pattern
-TRIED|Attempted
+TRAMP|Wanderer
+TRASH|Rubbish
+TRAWL|Drag the net
+TREAD|Step on
+TRIED|Gave it a go
 TRITE|Overused
-TROLL|Bridge dwelling ogre
-TROOP|Band of soldiers
+TROLL|Bridge dweller
+TROOP|Soldiers' unit
 TROUT|Stream fish
-TRUCE|Halt in fighting
-TRULY|Genuinely
+TRUCE|Ceasefire
+TRULY|Yours
 TUMMY|Belly
-TUNIC|Loose long shirt
+TUNIC|Long loose top
 TURBO|Engine booster
 TUTOR|Private teacher
-TWANG|Nasal accent
+TWANG|Guitar string's sound
 TWEAK|Small adjustment
-TWEED|Rough wool cloth
+TWEED|Country jacket cloth
 TWEET|Bird's chirp
 TWINE|String
 TWINS|Two born at once
 TWIRL|Spin around
-ULCER|Painful sore
+ULCER|Stomach sore
 UNDUE|More than warranted
-UNFIT|Not suitable
+UNFIT|Not up to it
 UNITY|Oneness
-UNTIE|Undo a knot
+UNTIE|Undo the knot
 UNZIP|Open the fastener
-UPSET|Knock over
-USAGE|How a word is used
-USHER|One who seats you
-UTTER|Complete
-VAGUE|Unclear
+UPSET|Put out
+USAGE|How it is used
+USHER|Show to the seat
+UTTER|Complete, or say
+VAGUE|Not clear
 VALET|Parking attendant
-VALID|Legitimate
+VALID|It holds up
 VALVE|Flow controller
-VAULT|Bank strongroom
+VAULT|Bank's strongroom
 VEGAN|Eater of no animal food
 VENOM|Snake's poison
-VENUE|Event site
-VERGE|Brink
-VERSE|Stanza
-VIGIL|Watchful wait
-VIGOR|Robust energy
-VILLA|Country house
+VENUE|Where it's held
+VERGE|Roadside edge
+VERSE|Poem's stanza
+VIGIL|Night's watch
+VIGOR|Real energy
+VILLA|Holiday house
 VINYL|Record material
-VIOLA|Larger than a fiddle
+VIOLA|Viola's bigger cousin
 VIPER|Poisonous snake
-VISOR|Cap brim
+VISOR|Cap's brim
 VISTA|Sweeping view
 VIVID|Bright and clear
 VOWEL|A, E, I, O or U
 WACKY|Zany
-WAFER|Thin crisp biscuit
-WALTZ|Three beat dance
-WEAVE|Work on a loom
-WEDGE|Tapered block
-WEIGH|Put on the scale
+WAFER|Thin biscuit
+WALTZ|Three-time dance
+WEAVE|Work the loom
+WEDGE|Doorstop shape
+WEIGH|Put on the scales
 WEIRD|Strange
 WHACK|Hard blow
-WHARF|Dock for ships
+WHARF|Dock
 WHIFF|Faint smell
-WHINE|Complaining sound
-WHIRL|Spin fast
+WHINE|Complain thinly
+WHIRL|Spin
 WHISK|Egg beater
-WHOSE|Belonging to which one
-WIDEN|Broaden
-WIDOW|Woman who lost a spouse
-WIELD|Handle a tool
-WINDY|Blustery outside
+WHOSE|Belonging to whom
+WIDEN|Make broader
+WIDOW|She who lost a husband
+WIELD|Swing it
+WINDY|Blustery
 WITCH|Broom rider
-WITTY|Clever and funny
+WITTY|Quick with a line
 WOODS|Forest
 WORDS|Vocabulary items
 WOVEN|Made on a loom

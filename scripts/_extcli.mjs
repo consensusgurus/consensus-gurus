@@ -19,7 +19,6 @@ const days = Math.round((new Date(until + 'T12:00:00Z') - from) / 864e5) + 1;
 if (days <= 0) { console.log(`${game}: already runs to ${last}`); process.exit(0); }
 
 // reseed so the new segment cannot repeat the frozen one
-const seedBump = Number(fromISO.replace(/-/g, ''));
 let src = fs.readFileSync(`scripts/${gen}`, 'utf8');
 src = src.replace(/\b(mulberry32|makeRng|xmur3|sfc32)\((\d{4,})\)/g, (m, fn, n) => `${fn}(${Number(n) + maxNum * 7919})`);
 src = src.replace(/makeRng\(([^)]*)\)/g, (m, inner) => /\bi\b/.test(inner) ? `makeRng(${inner.replace(/\bi\b/g, `(i + ${maxNum})`)})` : m);
@@ -36,7 +35,7 @@ finally { fs.unlinkSync(tmp); }
 const marker = 'export const PUZZLES = [';
 let rows = out.slice(out.indexOf(marker) + marker.length).replace(/\s*\];\s*$/, '').replace(/^\n/, '');
 const seen = new Set(dates);
-rows = rows.split('\n').filter(l => { const m = l.match(/live: '(\d{4}-\d{2}-\d{2})'/); return !m || !seen.has(m[1]); }).join('\n');
+rows = rows.split('\n').filter(l => { const m = l.match(/["']?live["']?\s*:\s*["'](\d{4}-\d{2}-\d{2})["']/); return !m || !seen.has(m[1]); }).join('\n');
 rows = rows.replace(/\bnum:\s*(\d+)/g, (_, n) => `num: ${Number(n) + maxNum}`);
 const got = (rows.match(/\bnum:\s*\d+/g) || []).length;
 if (got !== days) { console.error(`${game}: generated ${got}, expected ${days}`); process.exit(1); }

@@ -22,6 +22,7 @@
 //   6. no film returns inside 60 days and no thread ever returns.
 import { PUZZLES } from '../app/thread/puzzles.js';
 import { norm, tileFor, anyKey, keyHit } from '../app/thread/match.js';
+import { scanUS } from './us-spellings.mjs';
 
 let fails = 0;
 const bad = (m) => { fails++; console.log('✗ ' + m); };
@@ -80,6 +81,28 @@ for (const p of PUZZLES) {
   }
 }
 ok('no logline names its title, a key, or the thread');
+
+// 3b. US spellings in reader-facing copy (authoring standard rule 8).
+// The 2026-09-14 extension shipped 38 British forms (neighbour, practise,
+// jewellery, aeroplane, moustache, colour) before anyone screened for them.
+// The past is frozen, so this starts at that extension's first board. A real
+// film title keeps its own spelling and is allowed through by name.
+const THREAD_COPY_FROM = '2026-09-14';
+const TITLE_ALLOW = ['The Favourite'];
+for (const p of PUZZLES) {
+  if (p.live < THREAD_COPY_FROM) continue;
+  const copy = [
+    ...p.threads.map((t) => ['thread', t.t]),
+    ...p.decoys.map((d) => ['decoy', d.n]),
+    ...p.tiles.flatMap((t) => [['title', t.t], ['logline', t.s]]),
+  ];
+  for (const [label, text] of copy) {
+    for (const hit of scanUS(text, TITLE_ALLOW)) {
+      bad(`#${p.num} ${label} "${text}": British form "${hit.found}" (US: ${hit.us})`);
+    }
+  }
+}
+ok('US spellings in every board from ' + THREAD_COPY_FROM);
 
 // 4. decoys are partial
 for (const p of PUZZLES) {
