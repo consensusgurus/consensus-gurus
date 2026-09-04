@@ -42,7 +42,7 @@ const LIVE_KEYS = new Set(liveDailyKeys());
 const DAILY_GAMES = ALL_DAILY_GAMES.filter((g) => LIVE_KEYS.has(g.key));
 import { DISPLAY_CIRCUITS, RUN_GAMES, circuitKeysFor, circuitEntryHref } from '@/lib/circuits';
 import GameGlyph from '../GameGlyph';
-import { RAMP_ORDER, categoryColor, categoryColorLight, categoryOnrampLight, RAMP_INK } from '@/lib/category-ramp';
+import { RAMP_ORDER, categoryColor, categoryColorLight, categoryAccentInkLight, categoryOnrampLight, RAMP_INK } from '@/lib/category-ramp';
 // ONE READING OF A RESULT ROW, the same one the ending curtain and the tile
 // panel use. It prints the run in the GAME'S own units — 7/16 · 3 busts · 2:11
 // — which is the whole reason Your standing can be one column instead of six.
@@ -1499,6 +1499,7 @@ export default function StageToday() {
                     <a key={c.id} className="sty-next" href={withTq(circuitEntryHref(c.id))}
                       style={{
                         '--cc': c.hue,
+                        '--ccl': categoryAccentInkLight(c.cat),
                         '--stg-onramp': light ? categoryOnrampLight(c.cat) : RAMP_INK,
                       }}>
                       <div className="sty-newl">
@@ -1516,6 +1517,7 @@ export default function StageToday() {
                   <a key={cat} className="sty-g" href={`${routeOf(game)}${tq ? '?' + tq.slice(1) : ''}`}
                     style={{
                       '--cc': hueFor(cat),
+                      '--ccl': categoryAccentInkLight(cat),
                       '--stg-onramp': light ? categoryOnrampLight(cat) : RAMP_INK,
                     }}>
                     <span className="sty-pcat">{cat}</span>
@@ -1969,8 +1971,18 @@ const CSS = `
 .sty-id{display:flex;align-items:baseline;gap:11px;min-width:0;}
 /* The mark and the words are ONE object, so they centre on each other; the date
    still hangs off the NAME's baseline, which is what .sty-id keeps its baseline
-   alignment for. */
-.sty-brand{display:flex;align-items:center;gap:8px;min-width:0;}
+   alignment for.
+
+   A FLEX BOX ONLY HAS A BASELINE IF ONE OF ITS ITEMS IS ALIGNED TO ONE (owner,
+   2026-09-04). This box centred BOTH of its items, so it exposed none, and a
+   flex item without a baseline is given one synthesised from its bottom margin
+   edge: .sty-id was aligning the date to the bottom of the 20px MARK rather
+   than to the baseline of the words, and the date sat a few pixels low and off
+   the line. So the box is baseline-aligned and the mark alone opts out, which
+   keeps the mark centred on the words exactly as before and hands .sty-id the
+   name's real baseline to hang the date on. */
+.sty-brand{display:flex;align-items:baseline;gap:8px;min-width:0;}
+.sty-brand>svg{align-self:center;}
 .sty-id b{font-size:16px;font-weight:800;letter-spacing:-0.01em;white-space:nowrap;}
 .sty-id b em{font-style:normal;color:var(--stg-brand,#7dd3fc);}
 .sty-date{font-family:${MONO};font-size:10.5px;letter-spacing:.11em;
@@ -2437,6 +2449,55 @@ ${PATCH_CSS}
    drawn on top of. */
 .sty-new .sty-pop .sty-g:focus-visible,.sty-new .sty-two .sty-next:focus-visible{
   outline:2px solid currentColor;outline-offset:2px;}
+
+/* -- and the SAME row, outlined, on the light register (owner, 2026-09-04) --
+   TEN FILLED CARDS ARE A DIFFERENT OBJECT ON A PALE GROUND. On the dark
+   register a filled step is the brightest thing in view and the row reads as
+   ten colours; on the pale one the page is already bright, so the same ten
+   fills stop being an accent and become the surface, and the row shouts over
+   everything under it. The colour still has to say which category each card
+   speaks for, so it moves from the fill to a 2px ring, and the card goes back
+   to the ground and the ink every other card on this page uses. The dark rules
+   above are untouched: only the register changes.
+
+   THE LINE IS --ccl, NOT --cc. A step drawn to be FILLED is not a colour you
+   can draw a hairline in: End Game, Trivia and Arcade keep their light value
+   on this register and flip their ink instead of darkening, so as an edge on
+   paper they measure 1.5 to 2:1 and those three cards would read as having no
+   border at all beside the other seven. --ccl is the ramp value that already
+   solves this -- CATEGORY_RAMP_INK_LIGHT, the step deepened until it is
+   legible as TEXT, held to 4.5:1 on a white card by the ramp verifier -- so
+   all ten edges come out at one strength, and the category name and the glyph
+   can carry the colour too instead of going grey. */
+[data-stage-theme=light] .sty-new .sty-pop .sty-g{
+  background:var(--stg-surf);color:var(--stg-ink);
+  border-color:var(--ccl);box-shadow:inset 0 0 0 1px var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-pop .sty-gi,
+[data-stage-theme=light] .sty-new .sty-pop .sty-pcat{color:var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-pop .sty-gt{color:var(--stg-mute);}
+/* The hover ring thickens the edge the tile already has rather than being a
+   second, different mark. */
+[data-stage-theme=light] .sty-new .sty-pop .sty-g:hover{
+  border-color:var(--ccl);box-shadow:inset 0 0 0 2px var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-pop .sty-g:focus-visible,
+[data-stage-theme=light] .sty-new .sty-two .sty-next:focus-visible{
+  outline:2px solid var(--ccl);}
+/* The two circuit cards are the same object one size up, so they take the same
+   treatment: nothing on this row should be filled while its neighbour is not. */
+[data-stage-theme=light] .sty-new .sty-two .sty-next{
+  background:var(--stg-surf);color:var(--stg-ink);
+  box-shadow:inset 0 0 0 2px var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-two .sty-next .sty-eb{color:var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-two .sty-next .sty-tag{color:var(--stg-mute);}
+[data-stage-theme=light] .sty-new .sty-two .sty-next .sty-gi{color:var(--ccl);opacity:1;}
+/* THE ONE FILLED MOMENT LEFT is the chip under the pointer. It fills with the
+   same deepened value the rest of the card is drawn in, so the card ground is
+   the ink: white on all ten by the same 4.5:1 the ramp verifier holds them to,
+   which is the one inversion that needs no per-step ink at all. */
+[data-stage-theme=light] .sty-new .sty-two .sty-next .sty-go{
+  border-color:var(--ccl);color:var(--ccl);}
+[data-stage-theme=light] .sty-new .sty-two .sty-next:hover .sty-go{
+  background:var(--ccl);color:var(--stg-surf);border-color:var(--ccl);}
 /* MY GAMES, TO A READER WHO HAS NONE. The same offer the cap makes, at the size
    of the cards above it, and on the same tokens the cap button already proved in
    both registers: the accent as the fill and the ink published for it. */

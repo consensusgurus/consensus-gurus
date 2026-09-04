@@ -569,6 +569,25 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // hook does not clear `data` when it goes inactive.
   const boardNow = boardQ.data || boardGate.data || null;
   const boardRows = boardNow && Array.isArray(boardNow.overall) ? boardNow.overall : [];
+
+  // ONE FIGURE FOR TODAY'S FIELD (owner, 2026-09-04). Two of them were on the
+  // same screen and they disagreed: the gate headline printed field.started,
+  // which is the biggest single BANK's play count, while the strip and the
+  // rankings panel printed overallField, the distinct players on the circuit's
+  // board. Both are true and they answer different questions, which is exactly
+  // why having both visible reads as one of them being broken (live 2026-09-04:
+  // 52 players in the panel, 47 played today on the gate).
+  //
+  // THE WIDER ONE IS THE CIRCUIT'S FIELD, and it is also the honest one: a
+  // player who has run any bank is on this circuit today, and a per-bank count
+  // can only ever be a floor for that. Every surface on the run now reads this
+  // and nothing can drift again. boardRows.length is the floor for a payload
+  // that has rows but no overallField.
+  const fieldToday = Math.max(
+    (boardNow && boardNow.overallField) || 0,
+    boardRows.length,
+    (field && field.started) || 0,
+  );
   // A row's `total` is questions right on this circuit and ladder points on
   // any other, which is exactly what the payload's scoreMode says. Nothing
   // below assumes a unit.
@@ -772,8 +791,8 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
           <b className="rn-sn">{leaderRow.username || 'Guest'}</b>
           <span className="rn-sf">{leaderScore} {scoreWord}</span>
           <span className="rn-sd">
-            &middot; {boardNow.overallField || boardRows.length}{' '}
-            {(boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
+            &middot; {fieldToday}{' '}
+            {fieldToday === 1 ? 'player' : 'players'}
           </span>
           <span className="rn-sy">
             {myRow && myRow.rank ? `You ${ord(myRow.rank)}` : 'Not run yet'}
@@ -834,8 +853,8 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 <div className="rn-rhd">
                   <span>Today &middot; <b>{dateLabel}</b></span>
                   <s>
-                    {boardNow ? `${boardNow.overallField || boardRows.length} ` : ''}
-                    {boardNow && (boardNow.overallField || boardRows.length) === 1 ? 'player' : 'players'}
+                    {boardNow ? `${fieldToday} ` : ''}
+                    {boardNow && fieldToday === 1 ? 'player' : 'players'}
                   </s>
                 </div>
 
@@ -1030,7 +1049,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                     the reader is about to be measured against. */}
                 {fieldOn && field.started >= FIELD_FLOOR ? (
                   <h1 className="rn-h1">
-                    <var>{field.started}</var> played today.<br />
+                    <var>{fieldToday}</var> played today.<br />
                     {leaderScore != null
                       ? <>The leader nailed <var>{leaderScore}</var>.</>
                       : <><u>One life each.</u></>}

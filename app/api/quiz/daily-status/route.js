@@ -257,8 +257,31 @@ export async function GET(request) {
         // player who has not played yet is simply not on it: report nulls rather
         // than a phantom last place.
         if (mineToday > 0 && st.posDay) {
-          dayRank = st.posDay.get(xpKey) || null;
+          // The field is the whole pool, guests included, which is the same
+          // denominator every per-game "#N of M" on the site already prints.
           dayField = st.dayField || null;
+          // A REGISTERED PLAYER READS THE REGISTERED BOARD'S OWN NUMBER, so the
+          // cap agrees with the tiles, the end cards and the board panels
+          // instead of quoting a gappy full-field position none of them show.
+          if (st.posDayReg && st.posDayReg.has(xpKey)) {
+            dayRank = st.posDayReg.get(xpKey);
+          } else {
+            // A GUEST HAS NO PLACE ON THAT BOARD, so they are slotted into it
+            // by what they earned today -- and NEVER AHEAD OF A REGISTERED
+            // PLAYER (owner ruling, 2026-09-04). Hence >=, not >: a guest level
+            // with a named player lands behind them rather than sharing or
+            // taking the slot. Compared on the rounded figure the cap actually
+            // prints, so two days that display the same IQ rank the same.
+            //
+            // regDayGained is descending, so the first row that is not ahead
+            // ends the walk.
+            const mine = Math.round(mineToday);
+            let ahead = 0;
+            for (const g of (st.regDayGained || [])) {
+              if (Math.round(g) >= mine) ahead += 1; else break;
+            }
+            dayRank = ahead + 1;
+          }
         }
 
         // A player whose first ever game is today had no standing to move from.
