@@ -7098,7 +7098,7 @@ mockups is https://claude.ai/code/artifact/8d963ed1-c694-46e9-ad92-a70cd4e773f9.
   as the reads take (the hold), the words land at `RAMP_WORDS` (1600ms), then the queue
   and the collapse onto the cap exactly as before. A reader with a name gets the welcome
   and the gap-branched figures; a reader with none gets the mark, the wordmark and the
-  three lines (Gain IQ points / Elevate your thinking / Keep a sharp mind). **It is once
+  three lines (Gain IQ Points / Sharpen Your Mind / Elevate Your Thinking). **It is once
   per ET day (`sot_welcome_day`, unchanged) and it now ALWAYS plays on that visit**: the
   warm-cache floor is gone, because the opening is the brand moment. `?welcome=1`
   previews, `?welcome=0` kills. **THE CURTAIN IS DARK IN BOTH REGISTERS** and every
