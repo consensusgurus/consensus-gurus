@@ -259,6 +259,34 @@ html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
 .gr td.tm{padding:7px 14px 7px 8px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;width:224px;}
 .gr-tmw{display:flex;align-items:center;gap:9px;}
 .gr-lg{width:26px;height:26px;flex:none;object-fit:contain;}
+/* A TEAM CREST IS ARTWORK DRAWN FOR A WHITE PAGE, and on the dark register the
+   navy and black ones are not dim, they are GONE: measured against this board's
+   own --stg-raise (#0d1220) across all 200 crests in the registry, 97 put less
+   than half their ink above 3:1 and a dozen of those put NONE of it there.
+   Penn State, Oklahoma, Kansas State, TCU, SMU, San Diego State and Utah State
+   each rendered as an empty 26px square where the mark should be, on a column
+   whose whole job is to let a reader find their team by its shape.
+   The crest cannot be recoloured: it is a third-party PNG and the colour IS the
+   brand. So it gets an EDGE instead, the same answer the board palette gave for
+   the hue. Two 1px white drop-shadows stacked trace the alpha edge of whatever
+   the file happens to contain, which is why this needs no per-team data and
+   covers a sport that has not been added yet: a dark mark gains an outline and
+   reads, a mark that is already light gains a white edge on a white shape and
+   is unchanged. One shadow was measured too and is too thin on the darkest
+   navies, a single soft 3px reads as a glow and blurs the mark.
+   ESPN's own 500-dark variant was the other candidate and was measured against
+   the same ground: it exists for every one of the 200, but it is BYTE-IDENTICAL
+   to the light file for 79 of them and repairs only 45 of the 97, so it is not
+   sufficient on its own. It also costs a second URL per team, in a second
+   next/image entry, fetched on a register the reader may never open, and it
+   throws the team's colour away where it does differ (a white OU, a white A).
+   THE LIGHT REGISTER TURNS IT OFF THROUGH THE BOOT STAMP, the same guard the
+   pillar-hue block above uses, and for the same reason: this wrapper's data-stage-theme is server
+   rendered as the default and corrected in an effect, so for one frame it
+   claims light on a reader who chose dark, and <html> is what holds the answer
+   by then. Dark needs no mirror of this: dark is the unguarded rule. */
+.gr-lg{filter:drop-shadow(0 0 1px rgba(255,255,255,.9)) drop-shadow(0 0 1px rgba(255,255,255,.9));}
+html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr-lg{filter:none;}
 .gr-mono{width:26px;height:26px;flex:none;border-radius:6px;background:var(--stg-b2);
   color:var(--stg-ink2);font-family:'DM Mono',ui-monospace,monospace;font-size:9.5px;font-weight:500;
   display:flex;align-items:center;justify-content:center;letter-spacing:.02em;}
