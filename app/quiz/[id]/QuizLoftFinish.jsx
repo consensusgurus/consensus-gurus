@@ -186,11 +186,14 @@ export default function QuizLoftFinish({
           sub: 'The ranking behind this quiz',
           href: `/list/${quiz.listId}`,
         },
-        /* BACK TO WHERE THE QUIZZES ARE (owner, 2026-09-04). This pointed at
-           /quizzes, which is the quiz hub; the reader came from the daily
-           puzzles page, and that page carries a Quizzes section listing every
-           topic. The hash lands them on it rather than on a different index. */
-        { tone: 'main', label: 'Back to all quizzes', sub: 'The quizzes section on the daily page', href: '/#sty-quizzes' },
+        /* BACK TO WHERE THE QUIZZES ARE (owner, 2026-09-04). It pointed at
+           /quizzes, which was a 308 to the daily home, so it was changed to
+           the hash of that home QUIZZES drawer. /quizzes is now the quiz home
+           itself -- the same cap, the same shelves, the same ramp, with the
+           featured row and the whole catalogue by topic -- so the ending sends
+           the reader THERE rather than to the foot of a page about the
+           dailies. The daily home keeps its drawer either way. */
+        { tone: 'main', label: 'Back to all quizzes', sub: 'Every topic, and the day picks', href: '/quizzes' },
       ]}
     />
   );

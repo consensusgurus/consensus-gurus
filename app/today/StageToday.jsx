@@ -1309,7 +1309,7 @@ export default function StageToday() {
               put in this bar, so it offers them the one thing that would fill
               it rather than sitting empty (owner, 2026-08-31). */}
           {!who ? (
-            <a className="sty-signup" href="/quizzes?signup=1">
+            <a className="sty-signup" href="/?signup=1">
               {/* Copy is the owner's, title case (2026-09-02). */}
               <b>Choose a Name</b><i>Keep Your Stats</i>
             </a>
@@ -1549,7 +1549,7 @@ export default function StageToday() {
               {mineTot ? cav(MINE_ID) : null}
             </div>
             {!mineTot ? (
-              <a className="sty-join" href="/quizzes?signup=1">
+              <a className="sty-join" href="/?signup=1">
                 <div className="sty-newl">
                   <div className="sty-eb">Nothing pinned yet</div>
                   <div className="sty-jn">Choose a Name</div>

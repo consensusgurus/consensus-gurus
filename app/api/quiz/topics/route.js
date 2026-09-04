@@ -2,7 +2,15 @@ import { NextResponse } from 'next/server';
 import { catalogQuizzes } from '@/lib/quiz-catalog';
 import { quizDept, DEPT_LABEL, DEPT_NAV } from '@/lib/quiz-departments';
 
-// GET /api/quiz/topics -> { topics: [{ id, label, count, quizzes: [{ id, title }] }] }
+// GET /api/quiz/topics -> { topics: [{ id, label, count,
+//   quizzes: [{ id, title, n, t, mcq }] }] }
+//
+// `n` is how many things the quiz asks for and `t` its clock in seconds, both
+// omitted when they are zero so the payload only grows by what is real. They
+// exist for /quizzes, which prints a tagline under every tile in the SITE OWN
+// words -- the quiz cap says "24 answers" and an mcq client says "questions",
+// and `mcq` is which of those two this quiz will say. Without them a tile can
+// only repeat the title in smaller type.
 //
 // The quiz catalogue grouped by department, for the home's expandable Quizzes
 // section (app/today/StageToday.jsx).
@@ -74,7 +82,18 @@ export function GET() {
         id,
         label: DEPT_LABEL[id] || id,
         count: sorted.length,
-        quizzes: sorted.map((q) => ({ id: q.id, title: q.title })),
+        quizzes: sorted.map((q) => {
+          const mcq = Array.isArray(q.questions) && q.questions.length > 0;
+          const n = mcq
+            ? q.questions.length
+            : (Array.isArray(q.answers) ? q.answers.length : 0);
+          const t = Number(q.timeLimit) || 0;
+          const row = { id: q.id, title: q.title };
+          if (n) row.n = n;
+          if (t) row.t = t;
+          if (mcq) row.mcq = true;
+          return row;
+        }),
       };
     });
     return NextResponse.json({ topics }, { headers: CACHE_HEADERS });
