@@ -126,6 +126,15 @@ const FLOOD_BOARDS = 700;
 // Five, which is what the owner asked for. `overall` carries ten.
 const BOARD_ROWS = 5;
 const FLOOD_SETTLE = 1200;  // a beat on the finished set, to read it whole
+// THE BOARDS ARE READ, NOT GLANCED AT (owner, 2026-09-04: "needs more time to
+// read the leaderboards once pushed. maybe another 3 seconds"). FLOOD_SETTLE
+// was set for figures, which are one number and a label each; ten leaderboard
+// rows across two columns is a list, and the reader is looking for a name in
+// it rather than taking in a headline. So the settle runs this much longer
+// WHEN THE BOARDS ARE ACTUALLY ON SCREEN, and by exactly what was asked for.
+// Not added to the FLOOD_HARD exit: that backstop fires when everything is
+// already late, and holding a late screen longer is what it exists to prevent.
+const BOARD_READ = 3000;
 const FLOOD_SHRINK = 640;   // it collapses onto the cap's rectangle
 const FLOOD_FADE = 200;     // colour onto colour, so the cap's words appear
 // THE BACKSTOP IS 4s, NOT THE ENDING'S 12s. A finished game can hold a reader
@@ -676,7 +685,11 @@ export default function StageWelcome({ capRef }) {
     if (!ran && !hard && (!expired || walking)) return;
     if ((!settled || !recapDone || !todayDone) && !expired && !hard) return;
     goneRef.current = true;
-    at(FLOOD_SETTLE, () => {
+    // ONLY IF THE BOARDS ACTUALLY LANDED. The queue can be cut short by
+    // FLOOD_MAX or FLOOD_HARD with the block still unshown, and a screen that
+    // never printed a board has nothing extra to read.
+    const boardsUp = view.figs.slice(0, shown).some((f) => f.boards);
+    at(FLOOD_SETTLE + (boardsUp && !hard ? BOARD_READ : 0), () => {
       const el = capRef && capRef.current;
       // ON A PHONE THE SCREEN FADES WHOLE (owner, 2026-09-02: "a black box
       // lingers for .25 seconds at the header area"). The collapse onto the
@@ -709,11 +722,15 @@ export default function StageWelcome({ capRef }) {
   if (!on) return null;
 
   return (
-    // aria-hidden because every word on it is read again, in place, on the cap
-    // underneath, and there is nothing focusable inside it to strand.
+    // THE ROOT IS NOT aria-hidden, THE WORDS ARE. It used to be, because every
+    // word on the curtain is read again in place on the cap underneath and
+    // there was nothing focusable inside it to strand. The skip control is
+    // focusable, and a focusable control inside an aria-hidden subtree is
+    // reachable by tab and invisible to the screen reader that just landed on
+    // it. So the hiding moved down onto .stw-in and the button is the one
+    // thing on this screen worth announcing.
     <div
       className={'stw' + (phase ? ' ' + phase : '')}
-      aria-hidden="true"
       onClick={finish}
       style={clip ? { clipPath: clip, WebkitClipPath: clip } : undefined}
     >
@@ -745,7 +762,7 @@ export default function StageWelcome({ capRef }) {
       <div className="stw-lad" aria-hidden="true">
         {CATEGORY_RAMP.map((c, i) => <i key={c} style={{ background: c, animationDelay: `${i * 0.1}s` }} />)}
       </div>
-      <div className="stw-in">
+      <div className="stw-in" aria-hidden="true">
         {cold ? (
           <>
             <div className="stw-mark"><MindLoftMark size={72} ink="#e9edf4" accent="#7dd3fc" /></div>
@@ -801,6 +818,20 @@ export default function StageWelcome({ capRef }) {
           ) : null))}
         </div>
       </div>
+      {/* THE WAY OUT, SAID OUT LOUD. Clicking anywhere has always dismissed
+          this screen and so has any key, but nothing on it said so, so the
+          readers who knew were the ones who clicked at random. It appears with
+          the words rather than with the ramp (`held`, at FLOOD_MIN): before the
+          wipe there is nothing on screen to skip past, and a way out offered
+          before there is anything to leave reads as an apology for the screen.
+          It calls finish() directly AND lets the click reach the root's own
+          handler; finish() is idempotent behind doneRef, so the double call is
+          a no-op rather than something to stop propagating for. */}
+      {held ? (
+        <button type="button" className="stw-skip" onClick={finish}>
+          Continue<b> to the site</b><span aria-hidden="true">{'\u203A'}</span>
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -943,6 +974,24 @@ const CSS = `
 /* The reader's own row, in the same sky the mark wears. */
 .stw-bdr.me b,.stw-bdr.me em{color:#7dd3fc;opacity:1;}
 
+/* THE WAY OUT sits in the bottom corner, clear of the ladder, in the ground's
+   own ink at low weight. It is an escape rather than a call to action, so it
+   never competes with the figures for the eye: no fill worth the name, and the
+   one thing it borrows from the rest of the screen is the mono face the labels
+   already wear. z-index 3 puts it over the words, which are 2. */
+.stw-skip{position:absolute;right:clamp(14px,3vw,28px);bottom:clamp(16px,3.4vh,30px);
+  z-index:3;-webkit-appearance:none;appearance:none;
+  display:inline-flex;align-items:center;gap:7px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:9px 15px;cursor:pointer;color:#e9edf4;
+  font-family:${MONO};font-size:clamp(9.5px,1.05vw,11px);font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;
+  animation:stw-fade .32s both;}
+.stw-skip span{font-family:inherit;font-size:1.15em;line-height:1;opacity:.7;
+  letter-spacing:0;}
+.stw-skip:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.42);}
+.stw-skip:focus-visible{outline:2px solid #7dd3fc;outline-offset:3px;}
+
 @media (max-width:640px){
   .stw{padding:clamp(56px,13vh,120px) 16px 20px;}
   /* Two boards will not sit side by side on a 390px screen, so they stack and
@@ -952,10 +1001,14 @@ const CSS = `
      label is the only thing telling them apart. */
   .stw-b i{font-size:12px;font-weight:900;letter-spacing:.1em;bottom:12px;}
   .stw-figs{margin-top:20px;gap:12px 26px;}
+  /* The full label is 20 characters of tracked mono, which is most of a 390px
+     screen. On a phone the arrow carries the meaning and the word is enough. */
+  .stw-skip{padding:8px 13px;letter-spacing:.12em;}
+  .stw-skip b{display:none;}
   .stw-fig i.cl{margin-top:7px;}
 }
 @media (prefers-reduced-motion: reduce){
-  .stw,.stw-in,.stw-fig,.stw-bds,.stw-b,.stw-b i,.stw-wipe,.stw-lad i,.stw-mark{transition:none !important;animation:none !important;}
+  .stw,.stw-in,.stw-fig,.stw-bds,.stw-b,.stw-b i,.stw-wipe,.stw-lad i,.stw-mark,.stw-skip{transition:none !important;animation:none !important;}
   .stw-b{transform:none;} .stw-wipe{transform:none;} .stw-b i{opacity:1;}
 }
 `;
