@@ -49,7 +49,7 @@ const FAMILIES = [
   { key: 'trivia', label: 'Trivia', keys: ['deep', 'streak', 'atlas', 'sport', 'biz', 'script', 'quotes', 'focus', 'thread', 'bracket', 'listed', 'niche', 'redact', 'dating', 'extra'] },
   { key: 'logic', label: 'Logic', keys: ['alibi', 'jester', 'sworn', 'axiom', 'hearsay', 'venn', 'stands', 'etch', 'hedge', 'park', 'fib', 'suffice', 'paths', 'chomp', 'docket', 'plot'] },
   { key: 'endgame', label: 'End Game', keys: ['mate', 'defend', 'queen', 'four', 'check', 'chain', 'turn'] },
-  { key: 'cards', label: 'Cards', keys: ['taire', 'hands', 'shoe'] },
+  { key: 'cards', label: 'Cards', keys: ['taire', 'hands', 'shoe', 'finesse'] },
   { key: 'arcade', label: 'Arcade', keys: ['blocks', 'sweep'] },
   // Retired games keep their full archives playable here, at the bottom of the
   // page, but no longer run new daily puzzles (owner ruling 2026-07-20).
@@ -73,7 +73,7 @@ const CATEGORIES = (() => {
 // (mirrors ACCENTS_NAVY in DailyCombinedLeaderboard).
 const NAVY_ACCENT = {
   barter: '#fb7fa2', plot: '#e0a86a', sixes: '#7da2f5', niche: '#3ecfbd', shoe: '#7cc4ec', queen: '#f2c14e', race: '#93c5fd', towers: '#58b7f2', mercury: '#f18c8c', polka: '#67dd9a', knight: '#9d99f0', calc: '#fb7185', encore: '#86a9ff', biz: '#4fbf8b', flank: '#b1d977', script: '#c9a4ea', quotes: '#a8b8e8', focus: '#fdba74', thread: '#e9a3d0',
-  defend: '#8fbdbd', blitz: '#c3d94a', blitzed: '#a8e063', sums: '#f472b6', hinge: '#a5b4fc', docket: '#c9a3ae', chomp: '#f0a071', blocks: '#93b4f0', sweep: '#5eead4', babel: '#6ee7b7', glyph: '#94a3b8', hands: '#fca5a5', chain: '#f0abfc', turn: '#8cda81', suffice: '#a5b4fc', strata: '#f4a06a', redact: '#b9bdc7', paths: '#34d399', deep: '#7dd3fc', anon: '#e8969f',
+  defend: '#8fbdbd', blitz: '#c3d94a', blitzed: '#a8e063', sums: '#f472b6', hinge: '#a5b4fc', docket: '#c9a3ae', chomp: '#f0a071', blocks: '#93b4f0', sweep: '#5eead4', babel: '#6ee7b7', glyph: '#94a3b8', hands: '#fca5a5', finesse: '#c4b5fd', chain: '#f0abfc', turn: '#8cda81', suffice: '#a5b4fc', strata: '#f4a06a', redact: '#b9bdc7', paths: '#34d399', deep: '#7dd3fc', anon: '#e8969f',
   atlas: '#4ade9c', sport: '#f2a56b', crux: '#5b9bff', emcee: '#e879f9', garble: '#f0c95a', links: '#4ca878', span: '#e06aa0', dating: '#a483f0',
   sando: '#5ec8d0', cages: '#cba6f7', quilt: '#eda5e6', tally: '#4cb377', suds: '#f0894c', circa: '#38b6cf', extra: '#e06a6a', carve: '#a483f0', stet: '#41b1e8',
   outwit: '#c3cfe3', tuck: '#e0a568', alibi: '#ef8896', cipher: '#3fc9b8', ping: '#4cb3f0', warmer: '#f3705c',

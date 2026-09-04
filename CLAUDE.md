@@ -6910,6 +6910,71 @@ surfaces draw the glyph.
 **Not in a circuit** (Gauntlet is at its cap and Thread is not a question bank), not in
 the Daily Five bank. Share text carries one logline and never a title or the thread.
 
+## Finesse (`/finesse`) — the daily double dummy (launched 2026-09-03)
+
+Key/route/folder `finesse`, category **Cards** (the fourth, after Taire, Hands and Shoe), registry
+`keepsAnswer: true` and `miss: 'Tries'` (Check and Turn manners: a deal cannot be failed, only paid
+for), legacy accent `#4c1d95` violet / navy `#c4b5fd`. **That pair is NOT the page colour.**
+`cat: 'Cards'` resolves through `lib/category-ramp.js` to magenta, `#e879f9` dark and `#a21caf`
+light, and that is what paints the stage, the CTA and the table edge; the `color` pair is only the
+legacy slate-row hue every registry row still carries, chosen to sit apart from Hands `#7f1d1d` and
+Shoe `#0c4a6e` in that one table. Day 1 is **2026-09-03**, bank runs to **2026-11-19** (78 days,
+seed 20260903). Wired by `scripts/wire-finesse.mjs` (33 anchored edits, idempotent). Premiere window
+9/3 to 9/7. No PNG tile; `lib/game-glyphs.js` has `finesse` — four hands round an empty middle,
+which is the one card board Hands, Taire and Shoe do not already draw. Share card is a static
+`public/og/finesse.png`.
+
+**The game.** All four hands face up, one suit trumps, and a contract naming how many of the tricks
+South must take. The player holds South AND the dummy at North; East and West are played by an exact
+double-dummy solver. Three rules and no bidding: follow suit if you can, the highest card of the
+suit led wins, a trump beats anything that is not one. Coming up short rewinds the board to trick
+one and costs a try; the clock keeps running and is the tiebreak. Points 10 / 8 / 6 / 4 by try.
+Finesse stays OUT of `DEFEAT_GAMES`, like Hands.
+
+**THE DECK IS THE WEEK, and it is the idea worth keeping.** A reduced, exactly-dealt deck: ace down
+to the day's lowest rank, four suits, R cards a hand and 4R in the deck, so every card a player can
+see is every card there is. Mon 4 ranks (J Q K A) and no trumps, an entry problem; Tue 5 no trumps,
+order and unblocking; Wed 5 with trumps, the first ruff; Thu and Fri 6, with a REAL finesse required
+(the generator checks the geometry: South leads a card West can beat and North holds one card above
+West's honour and one below); Sat 7; **Sunday Edition the full 8** (`sunday: true`, listed in
+`lib/sunday-editions.js`). The ramp adds cards, never rules.
+
+**One engine, three consumers.** `lib/finesse-core.js` holds the solver and is imported by the
+generator, the verifier AND the browser. That is deliberate: the defence a player meets and the
+defence a contract was proved against must be the same program, or "proved" means nothing. It is
+also why **the winning line is never banked** — the client re-derives it with the same solver when
+the archive asks for it, so there is no second copy of the answer to drift.
+
+**⚠️ EVERY JS BITWISE OPERATOR IS 32-BIT SIGNED, and a Sunday deck is exactly 32 cards.** A full
+32-card mask fills bit 31 and comes out as `-1`. The solver is fine with that (it only ever tests
+and clears bits, and `bits()` shifts with `>>>`), but any check comparing a mask to a positive
+literal silently fails on Sundays and passes the rest of the week. The verifier's completeness
+check therefore works on card NAMES, never on masks.
+
+**Banking is a search and the cost is all Sundays.** Keep a deal only if, with South on lead, best
+play against best defence takes exactly `target`; South has at least four distinct choices at trick
+one and EXACTLY ONE of them still makes it; and at least two decision points have a single answer.
+The order of those tests is the whole runtime: the trick-one test runs off the SAME solver instance
+the target came from, so its table is warm and each card is a lookup, and the full line analysis
+only ever runs on a deal that already passed. A 6-card deal solves in ~15ms and an 8-card one in
+~220ms, so a weekday banks in seconds and a Sunday takes minutes.
+
+**`sep` is the difficulty dial and it is MEASURED**: the trick at which the only winning play first
+separates from the alternatives. 1 is the hardest a deal can be.
+
+**Exactly one opening CHOICE, not one opening card.** Leading the eight or the nine from a bare 8-9
+is one decision, and the fast solver collapses touching cards into one move. `scripts/verify-
+finesse.mjs` rebuilds those equivalence classes from scratch and asserts every card in a class
+scores the same, which is what proves the reduction is sound on each deal. It re-solves all 78
+boards with a solver that has NEITHER the equivalence reduction NOR the move ordering, and on the
+4- and 5-card decks a third time with no pruning at all. 1,740 checks, ~35 minutes, run it alone:
+it and `next build` together will OOM an 8GB box.
+
+**The client warms the table while the player reads.** One `makeSolver` per deal, and a `boundary()`
+call on mount. The expensive search is the FIRST one; a double dummy is stared at for several
+seconds before the first tap, so by the time a card is played the defence answers instantly for the
+rest of the hand. Without it a Sunday pauses about a second in the middle of trick one.
+
 ## Sums (`/sums`) — the daily kakuro (launched 2026-09-03)
 
 Key/route/folder `sums`, category **Numbers**, registry `miss: null` (nothing counts against you,
