@@ -1876,14 +1876,25 @@ export default function StageToday() {
             it is the only one of the page's sections that had none. */}
         <section id="sty-quizzes" className="sty-cat sty-qsec" style={{ '--cc': 'var(--stg-ink2)' }} ref={footRef}>
           <div className="sty-cathead">
-            <h2>Quizzes</h2>
+            {/* THE HEADING IS THE DOOR (owner, 2026-09-04). This section is a
+                set of drawers standing in for a surface that now exists, so the
+                word Quizzes goes to it. Every other category head on this page
+                is a label for what is under it and stays one; this one is the
+                only head with somewhere else to be. */}
+            <h2><a href={withTq('/quizzes')}>Quizzes</a></h2>
             {/* DRAWN ONLY WHEN REAL: no figure until the catalogue has landed,
                 rather than a zero that is not true yet. */}
             {quizTotal ? (
               <b>{quizTotal.toLocaleString()}<i>/{topicList.length} topics</i></b>
             ) : null}
-            <a className="sty-all sty-qall" href="/quizzes/all">
-              <span>Full index</span>
+            {/* NOT THE A-Z INDEX ANY MORE. This pointed at /quizzes/all and
+                said Full index, because the index WAS the only other quiz
+                surface. /quizzes is the quiz home now, and it is what a reader
+                who has opened three drawers wants; the A-Z is still one click
+                on from it, and every topic row below still links into it
+                directly. */}
+            <a className="sty-all sty-qall" href={withTq('/quizzes')}>
+              <span>All quizzes</span>
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
                 strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h13M13 6l6 6-6 6" />
@@ -2531,6 +2542,12 @@ ${PATCH_CSS}
    which drawer to open. Rows also mean the count sits in a column and reads
    down the list, which is the figure a reader is scanning for. */
 .sty-qall{margin-left:auto;}
+/* THE ONLY HEADING ON THIS PAGE THAT IS A LINK, so it takes the heads own ink
+   and says so only under the pointer: a permanently underlined head would read
+   as a different kind of object from the nine above it. */
+.sty-qsec h2 a{color:inherit;text-decoration:none;}
+.sty-qsec h2 a:hover{text-decoration:underline;text-underline-offset:3px;}
+.sty-qsec h2 a:focus-visible{outline:2px solid var(--stg-acc);outline-offset:3px;border-radius:4px;}
 .sty-topics{display:flex;flex-direction:column;gap:5px;}
 .sty-topic{background:var(--stg-surf);border:1px solid var(--stg-line);border-radius:9px;
   overflow:hidden;}
