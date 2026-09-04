@@ -60,7 +60,7 @@ edit('lib/daily-games.js',
   `  { key: 'park', keepsAnswer: true, attempts: 'graded', miss: 'Tries', name: 'Parker', href: '/parker', cat: 'Logic', tag: 'Get the red one out', how: 'Everybody has blocked you in, every block is stuck on one axis, and there is one gap in the wall.', color: '#7c5c2e', colorNavy: '#f0cf9a' },\n  // Impound is Parker on a 7x7 lot, and it is a SEPARATE GAME rather than a\n  // bigger Parker because every banked Parker board, every stored perfect and\n  // every leaderboard row behind them assumes six. Same attempts shape as\n  // Parker: it never hands over its answer, a replay of the same board is the\n  // design, and every finish is a win of some size, so it ranks on score then\n  // on how many runs it took.\n  { key: 'impound', keepsAnswer: true, attempts: 'graded', miss: 'Tries', name: 'Impound', cat: 'Logic', tag: '${TAG}', how: '${HOW}', color: '${COLOR}', colorNavy: '${NAVY}' },`);
 edit('lib/daily-games.js',
   `  { key: 'whittle', from: '2026-09-04', until: '2026-09-08' },\n];`,
-  `  { key: 'whittle', from: '2026-09-04', until: '2026-09-08' },\n  { key: 'impound', from: '2026-09-05', until: '2026-09-09' },\n];`);
+  `  { key: 'whittle', from: '2026-09-04', until: '2026-09-08' },\n  { key: 'impound', from: '2026-09-04', until: '2026-09-08' },\n];`);
 
 // ─── 2. app/DailyEndCard.jsx — the lucide import, LAUNCH_PIN, GAME_META, tile copy
 // The import goes FIRST and is its own edit: wire-encore silently dropped one of

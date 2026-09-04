@@ -6,7 +6,7 @@ import { PUZZLES } from './puzzles';
 import { T } from '@/lib/theme';
 import { SITE_URL } from '@/lib/site';
 
-// Impound launched 2026-09-05 as the larger Parker: the same sliding-block jam
+// Impound launched 2026-09-04 as the larger Parker: the same sliding-block jam
 // on a seven by seven lot. It is a separate game rather than a bigger Parker
 // because every banked Parker board, every stored perfect and every leaderboard
 // row behind them assumes six, and Parker's 6x6 is close to used up anyway (its

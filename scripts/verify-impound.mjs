@@ -65,7 +65,7 @@ const note = (id, msg) => console.log(`… ${id}  ${msg}`);
 // Impound launched with this bank, so there is no frozen history to grandfather
 // yet. The constant exists so the first retrofit has somewhere to go, per the
 // standing rule that a rule change scopes to future boards with a dated floor.
-const IMPOUND_FLOOR_FROM = '2026-09-05';
+const IMPOUND_FLOOR_FROM = '2026-09-04';
 const POOL_CEILING = 1; // a non-red board signature may repeat at most this many times (i.e. never)
 
 const BRITISH_RE = /\b(colour|flavour|favourite|centre|theatre|organis(e|ing|ation)|recognis(e|ed|ing)|realis(e|ed|ing)|travell(ed|ing|er)|programme|metre|litre|kerb|tyre|analys(e|ed|ing)|catalogue|dialogue|jewellery|labour|neighbour|honour|armour|cheque|defence|licence|practise|whilst|amongst|learnt|aluminium|aeroplane)\b/i;
