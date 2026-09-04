@@ -36,6 +36,17 @@ function fmtDate(s) {
   return m ? `${MON[+m[2] - 1]} ${+m[3]}` : (s || 'undated');
 }
 const signed = (v, d = 1) => (v > 0 ? '+' : '') + v.toFixed(d);
+// Teams the composite cannot separate share a rank and are marked, rather than
+// being handed an alphabetical order the data never supported. Same idiom the
+// source cells already use for a futures board where fifteen teams share a
+// price. See the tie block in lib/gridiron.js.
+const rankText = (r) => (r.tied ? `T${r.rank}` : r.rank);
+// 1st / 2nd / 3rd / 11th / 21st. Used in prose, where "#1" reads as a label.
+const ord = (n) => {
+  const t = n % 100;
+  const s = t >= 11 && t <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th';
+  return `${n}${s}`;
+};
 const pct = (v) => (Math.abs(v * 100 - Math.round(v * 100)) < 0.05 ? (v * 100).toFixed(0) : (v * 100).toFixed(1));
 
 export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTitle }) {
@@ -60,9 +71,46 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
   const startsGroup = (i) => groups.some((g) => g.at === i && g.at !== 0);
 
   // Deviation shading scales with depth: 3 spots means much less on a 50-deep
-  // board than on a 32-deep one.
-  const hi = depth > 32 ? 5 : 3;
-  const lo = depth > 32 ? 9 : 5;
+  // board than on a 32-deep one, and much less again on a 138-deep one. Written
+  // as a ratio rather than a ladder of magic numbers so the full FBS board did
+  // not need a third branch; it reproduces the old 3/5 at 32 and 5/9 at 50.
+  const hi = Math.max(3, Math.round(depth / 10));
+  const lo = Math.max(5, Math.round(hi * 1.8));
+
+  // How far the analytics models actually reach this week, computed from the
+  // board rather than written down, per the rule that a callout must not be
+  // able to go stale against its own data.
+  const offBoard = ranked.filter((r) => r.shown.model === 'off board').length;
+  const modelDepth = ranked.reduce((m, r) => (r.ranks.model != null ? Math.max(m, r.ranks.model) : m), 0);
+
+  // ---- how much of the score has seen the most recent games ----
+  // Every scoring input carries its own as-of date, and between weekly rebuilds
+  // the games run ahead of all of them: a result lands on Thursday against a
+  // market priced on Monday. That gap is real and worth stating, but it is also
+  // temporary, so it is MEASURED off the board rather than written into the copy
+  // and it disappears on its own the week the sources republish. Same rule as
+  // the callouts under the table.
+  const isoDate = (s) => (/^\d{4}-\d{2}-\d{2}$/.test(s || '') ? s : null);
+  // An undated source ("2026 preseason") cannot raise the priced-through date;
+  // claiming it could is how a preseason column would hide a stale week.
+  const pricedThrough = cols
+    .filter((c) => c.ok && c.weight > 0 && c.kind !== 'record')
+    .map((c) => isoDate(c.asOf))
+    .filter(Boolean)
+    .sort()
+    .slice(-1)[0] || null;
+  const sinceGames = pricedThrough
+    ? (data.games || []).filter((g) => isoDate(g.d) && g.d > pricedThrough)
+    : [];
+  // The rows the gap is doing the most to. Deliberately ONE IN EACH DIRECTION
+  // rather than the two largest: the two largest are often the same story told
+  // twice, and a reader needs to see that the lag cuts both ways, holding a team
+  // up as readily as it holds one down.
+  const withRes = ranked
+    .filter((r) => r.ranks.results != null)
+    .map((r) => ({ team: r.team, res: r.ranks.results, at: r.rank, gap: Math.abs(r.ranks.results - r.rank) }));
+  const worst = (dir) => withRes.filter(dir).sort((a, b) => b.gap - a.gap)[0] || null;
+  const splits = [worst((s) => s.res < s.at), worst((s) => s.res > s.at)].filter(Boolean);
   const weightText = (c) => {
     if (c.kind === 'record') return 'shown';
     if (!c.ok) return c.kind === 'source' ? 'excluded' : 'not yet';
@@ -88,6 +136,12 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
 .gr-stamp b{color:var(--ink);}
 .gr-warn{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#fdf3f2;
   border:1px solid #f2d5d1;color:#8d2f24;font-size:12px;line-height:1.55;}
+/* Informational, not a fault: the board is between weekly rebuilds. Blue rather
+   than the warn red, because nothing here is broken or excluded. */
+.gr-note{margin:10px 18px 0;padding:10px 12px;border-radius:9px;background:#f1f5fd;
+  border:1px solid #d3e0f7;border-left:3px solid var(--blue);color:#274a86;
+  font-size:12px;line-height:1.55;}
+.gr-note b{color:#16305e;}
 .gr-scroll{overflow-x:auto;}
 .gr table{border-collapse:separate;border-spacing:0;width:100%;min-width:1260px;font-size:13px;}
 /* Column widths are FIXED so the three sticky columns (rank 46 + team 224 +
@@ -182,6 +236,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
   .gr-chead h2{font-size:15px;}
   .gr-stamp{font-size:10.5px;line-height:1.45;text-align:left;}
   .gr-warn{margin:8px 13px 0;padding:8px 10px;font-size:11px;line-height:1.45;}
+  .gr-note{margin:8px 13px 0;padding:8px 10px;font-size:11px;line-height:1.45;}
   .gr-tierkey{padding:8px 13px;gap:7px 12px;}
   .gr-card{padding:11px 14px 12px;border-bottom:1px solid var(--border);}
   .gr-card:last-child{border-bottom:0;}
@@ -232,6 +287,34 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
           </div>
         )}
 
+        {sinceGames.length > 0 && (
+          <div className="gr-note">
+            <b>
+              {sinceGames.length} game{sinceGames.length > 1 ? 's have' : ' has'} been played since
+              this board was priced.
+            </b>{' '}
+            Every column that scores is dated {fmtDate(pricedThrough)} or earlier, so none of them
+            has seen {sinceGames.length > 1 ? 'those results' : 'that result'} yet. The rankings
+            rebuild once a week, when the polls, the models and the betting market all republish
+            together; between rebuilds the board is the last full set of data, not a live one.
+            {(tierShare.results || 0) === 0
+              ? ' Results carry no weight until a week of games is complete, so a win or a loss this week shows in the Résumé column without moving the rating.'
+              : ` Results carry ${pct(tierShare.results)}% right now and reach ${pct(PILLARS.results)}% after week ${fullIn}.`}
+            {splits.length > 0 && splits[0].gap >= Math.max(10, Math.round(depth / 6)) && (
+              <>
+                {' '}Which is why{' '}
+                {splits.map((s, i) => (
+                  <span key={s.team}>
+                    {i > 0 ? ', and ' : ''}
+                    <b>{s.team}</b> is {ord(s.res)} on results and {ord(s.at)} here
+                  </span>
+                ))}
+                . Expect that to close at the next rebuild, not before.
+              </>
+            )}
+          </div>
+        )}
+
         <div className="gr-scroll">
           <table>
             <thead>
@@ -271,7 +354,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
                     <td className="cRank rk">
                       {r.rank <= 3
                         ? <span className="gr-medal" style={{ background: MEDAL[r.rank - 1] }}>{r.rank}</span>
-                        : r.rank}
+                        : rankText(r)}
                     </td>
                     <td className="cTeam tm">
                       <div className="gr-tmw">
@@ -331,7 +414,7 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
                 <span className="gr-crank">
                   {r.rank <= 3
                     ? <span className="gr-medal" style={{ background: MEDAL[r.rank - 1] }}>{r.rank}</span>
-                    : r.rank}
+                    : rankText(r)}
                 </span>
                 {r.logo
                   ? <Image className="gr-lg" src={r.logo} alt="" width={28} height={28} />
@@ -403,7 +486,18 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
           <b>Résumé vs market</b> is the results rank minus the market rank: a large positive number
           is a team whose record the market does not yet believe, a large negative one is a favourite
           that keeps losing. A source whose data is more than {MAX_AGE_DAYS} days old is excluded
-          from scoring and shown struck through.
+          from scoring and shown struck through.{' '}
+          {offBoard > 0 && (
+            <>
+              <b>How deep the models go.</b> No live analytics model publishes past{' '}
+              {modelDepth} teams this week, so {offBoard} of the {ranked.length} rows read{' '}
+              <i>off board</i> in the models column. Those teams still carry a models value, the one
+              every model implies for a team below its board, but it is the same value for all of
+              them, so it separates none of them: below rank {modelDepth + 1} the order is the
+              market&rsquo;s and the results&rsquo;, not the models&rsquo;. The column is left empty
+              rather than filled with a position no model published.
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -53,10 +53,11 @@ function Row({ r, height, fontScale }) {
           borderRadius: 6,
           background: medal || 'transparent',
           color: medal ? PAL.white : PAL.slate,
-          fontSize: 19 * fontScale, fontWeight: 800,
+          fontSize: (r.tied ? 16 : 19) * fontScale, fontWeight: 800,
         }}
       >
-        {r.rank}
+        {/* Tied teams print T<rank>, as on the page and in the PDF. */}
+        {r.tied ? `T${r.rank}` : r.rank}
       </div>
       <div
         style={{
@@ -92,14 +93,21 @@ export async function renderGridironPoster({ block, sport, fetchedAt, title, eye
   if (w700) fonts.push({ name: 'Manrope', data: w700, weight: 700, style: 'normal' });
   if (w600) fonts.push({ name: 'Manrope', data: w600, weight: 600, style: 'normal' });
 
-  const W = 1200;
-  const perCol = Math.ceil(ranked.length / 2);
+  // The sheet grows SIDEWAYS, not downwards (2026-09-04). Two columns held 50
+  // rows at a sane shape; the full FBS board in two columns is 69 rows a side,
+  // a 1200x3758 ribbon that no feed will render and nobody can read. The column
+  // stays a fixed 600px so a row renders exactly as it always did, and the
+  // sheet takes as many columns as the board needs: 2 up to 100 teams, 3 for
+  // the FBS, capped at 4 so a column never gets too narrow for a team name.
+  const COL_W = 600;
+  const cols = Math.min(4, Math.max(2, Math.ceil(ranked.length / 50)));
+  const W = COL_W * cols;
+  const perCol = Math.ceil(ranked.length / cols);
   const rowH = depth > 32 ? 50 : 52;
   const fontScale = depth > 32 ? 0.94 : 1;
   const H = 232 + perCol * rowH + 76;
 
-  const left = ranked.slice(0, perCol);
-  const right = ranked.slice(perCol);
+  const columns = Array.from({ length: cols }, (_, i) => ranked.slice(i * perCol, (i + 1) * perCol));
 
   const weightLine = TIER_ORDER
     .filter((t) => tierShare[t])
@@ -141,14 +149,20 @@ export async function renderGridironPoster({ block, sport, fetchedAt, title, eye
           background: `linear-gradient(90deg, ${PAL.accent}, ${PAL.blue} 55%, ${PAL.blue400})`,
         }} />
 
-        {/* two columns */}
+        {/* the board, in as many columns as it takes. Satori is flex-only, so
+            these are explicit flex children with flexBasis 0 rather than a grid. */}
         <div style={{ display: 'flex', flexGrow: 1, padding: '14px 52px 0' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, flexBasis: 0, marginRight: 34 }}>
-            {left.map((r) => <Row key={r.team} r={r} height={rowH} fontScale={fontScale} />)}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, flexBasis: 0 }}>
-            {right.map((r) => <Row key={r.team} r={r} height={rowH} fontScale={fontScale} />)}
-          </div>
+          {columns.map((colRows, i) => (
+            <div
+              key={i}
+              style={{
+                display: 'flex', flexDirection: 'column', flexGrow: 1, flexBasis: 0,
+                marginRight: i === columns.length - 1 ? 0 : 34,
+              }}
+            >
+              {colRows.map((r) => <Row key={r.team} r={r} height={rowH} fontScale={fontScale} />)}
+            </div>
+          ))}
         </div>
 
         {/* footer */}
