@@ -37,7 +37,7 @@ function loadFont(rel) {
   }
 }
 
-function Row({ r, height, fontScale }) {
+function Row({ r, height, fontScale, dp = 1 }) {
   const medal = r.rank <= 3 ? MEDAL[r.rank - 1] : null;
   return (
     <div
@@ -74,7 +74,7 @@ function Row({ r, height, fontScale }) {
           fontSize: 19 * fontScale, fontWeight: 800, color: PAL.accent,
         }}
       >
-        {(r.score > 0 ? '+' : '') + r.score.toFixed(1)}
+        {(r.score > 0 ? '+' : '') + r.score.toFixed(dp)}
       </div>
     </div>
   );
@@ -103,6 +103,10 @@ export async function renderGridironPoster({ block, sport, fetchedAt, title, eye
   const cols = Math.min(4, Math.max(2, Math.ceil(ranked.length / 50)));
   const W = COL_W * cols;
   const perCol = Math.ceil(ranked.length / cols);
+  // See the note on `scoreDp` in app/GridironTable.jsx: a run-scale board needs
+  // a second decimal or a third of its rows print "-0.0".
+  const sv = ranked.map((r) => r.score);
+  const dp = Math.max(...sv) - Math.min(...sv) < 5 ? 2 : 1;
   const rowH = depth > 32 ? 50 : 52;
   const fontScale = depth > 32 ? 0.94 : 1;
   const H = 232 + perCol * rowH + 76;
@@ -160,7 +164,7 @@ export async function renderGridironPoster({ block, sport, fetchedAt, title, eye
                 marginRight: i === columns.length - 1 ? 0 : 34,
               }}
             >
-              {colRows.map((r) => <Row key={r.team} r={r} height={rowH} fontScale={fontScale} />)}
+              {colRows.map((r) => <Row key={r.team} r={r} height={rowH} fontScale={fontScale} dp={dp} />)}
             </div>
           ))}
         </div>

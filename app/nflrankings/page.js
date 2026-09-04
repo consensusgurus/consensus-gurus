@@ -85,8 +85,9 @@ export default function NflRankingsPage() {
           <p className="rk-stamp">
             <i>Updated</i>
             <span>
-              <b>This board is current for the 2026 season</b>, and the college football consensus
-              now rates every FBS team rather than a top 50. MLB rankings are on the way.
+              <b>This board is current for the 2026 season</b>, the college football consensus now
+              rates every FBS team rather than a top 50, and the{' '}
+              <a href="/mlbrankings">MLB consensus</a> has joined them.
             </span>
           </p>
         </div>

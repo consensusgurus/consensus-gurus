@@ -14,7 +14,7 @@
 // analytics models) with each pillar's sources beside it. There are no media
 // or poll columns because nothing of that kind is scored.
 import Image from 'next/image';
-import { computeComposite, MAX_AGE_DAYS, PILLAR_LABEL, PILLAR_ORDER, RAMP_WEEKS, PILLARS } from '@/lib/gridiron';
+import { computeComposite, MAX_AGE_DAYS, PILLAR_LABEL, PILLAR_ORDER, RAMP_WEEKS, pillarsFor } from '@/lib/gridiron';
 
 // Pillar colours, used only on mobile, where the desktop column grouping is gone
 // and a chip has to say which pillar it came from on its own. Descending the
@@ -36,6 +36,15 @@ function fmtDate(s) {
   return m ? `${MON[+m[2] - 1]} ${+m[3]}` : (s || 'undated');
 }
 const signed = (v, d = 1) => (v > 0 ? '+' : '') + v.toFixed(d);
+
+// Decimals for the composite. A rating in RUNS spans about a fifth of what one
+// in POINTS does, so a single decimal prints "-0.0" for a third of a baseball
+// board and reads as a bug. Chosen from the board's own RANGE rather than from
+// the sport, so it stays right for whatever a future league is measured in.
+const scoreDp = (rows) => {
+  const v = rows.map((r) => r.score);
+  return Math.max(...v) - Math.min(...v) < 5 ? 2 : 1;
+};
 // Teams the composite cannot separate share a rank and are marked, rather than
 // being handed an alphabetical order the data never supported. Same idiom the
 // source cells already use for a futures board where fifteen teams share a
@@ -53,14 +62,26 @@ export default function GridironTable({ data, fetchedAt, sport, eyebrow, boardTi
   const out = computeComposite(data, sport);
   const { ranked, columns, tierShare, depth, excluded, week, weeksPlayed } = out;
   const cols = [...columns].sort((a, b) => PILLAR_ORDER.indexOf(a.tier) - PILLAR_ORDER.indexOf(b.tier));
-  const live = cols.filter((c) => c.kind === 'source' && c.ok);
+  // "Scoring" means CARRYING WEIGHT, not merely being fresh (§6). A source can
+  // pass the age gate and still score nothing, which is exactly what the MLB
+  // futures board does: it is shown because a source considered and rejected
+  // teaches a reader something, and counting it here would say four sources
+  // move a board that three of them move.
+  const live = cols.filter((c) => c.kind === 'source' && c.ok && c.weight > 0);
   const nSrc = cols.filter((c) => c.kind === 'source').length;
   const gone = excluded;
   const maxGap = Math.max(...ranked.map((r) => Math.abs(r.gap || 0)), 1);
   const fullIn = RAMP_WEEKS[sport];
+  const PILLARS = pillarsFor(sport);
   const rampNote = weeksPlayed < fullIn
     ? `Results carry ${pct(tierShare.results || 0)}% this week and reach ${pct(PILLARS.results)}% after week ${fullIn}.`
     : `Results carry their full ${pct(PILLARS.results)}%.`;
+  // The unit the rating is in, and the league it is measured against.
+  const MLB = sport === 'mlb';
+  const unit = MLB ? 'runs' : 'points';
+  const dp = scoreDp(ranked);
+  const unitShort = MLB ? 'runs' : 'pts';
+  const league = MLB ? 'MLB' : sport === 'nfl' ? 'NFL' : 'FBS';
 
   // Pillar header groups: one cell spanning each pillar's run of columns.
   const groups = [];
@@ -431,7 +452,7 @@ html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
                       </div>
                     </td>
                     <td className="cScore">
-                      <span className="gr-score"><b>{signed(r.score)}</b><i>pts</i></span>
+                      <span className="gr-score"><b>{signed(r.score, dp)}</b><i>{unitShort}</i></span>
                     </td>
                     {cols.map((c, i) => {
                       const tg = startsGroup(i) ? ' tg' : '';
@@ -483,7 +504,7 @@ html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
                   ? <Image className="gr-lg" src={r.logo} alt="" width={28} height={28} />
                   : <span className="gr-mono">{r.mono}</span>}
                 <span className="gr-cname">{r.team}{r.record ? ` · ${r.record.text}` : ''}</span>
-                <span className="gr-cscore"><b>{signed(r.score)}</b><i>pts</i></span>
+                <span className="gr-cscore"><b>{signed(r.score, dp)}</b><i>{unitShort}</i></span>
               </div>
               <div className="gr-chips">
                 {cols.map((c) => {
@@ -522,20 +543,39 @@ html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
         </div>
 
         <div className="gr-notes">
-          <b>How the rating is built.</b> Every team gets a rating in points better than an average{' '}
-          {sport === 'nfl' ? 'NFL' : 'FBS'} team on a neutral field, from each of three pillars, and
+          <b>How the rating is built.</b> Every team gets a rating in {unit} better than an average{' '}
+          {league} team on a neutral field, from each of three pillars, and
           the composite is their weighted sum.{' '}
-          <b>Results</b> is what actually happened, in three parts. A luck-adjusted margin: half the
-          scoreboard, half what the yardage says the margin should have been, so a team that doubled
-          its opponent&rsquo;s yards and lost on fumbles is docked about half of what the score says,
-          while a team that was out-gained and still lost takes the full hit. Margins are capped at{' '}
-          {sport === 'nfl' ? 21 : 28} points and solved across the whole schedule so that beating good
-          teams counts for more than beating bad ones. A win rating, so a win counts beyond its margin.
-          And performance against the spread: how far above or below the closing line&rsquo;s
-          expectation each game landed, which already prices the opponent and the site. Blended
-          45 / 30 / 25.{' '}
-          <b>Betting markets</b> is what money says: a rating fit to the last three weeks of point
-          spreads, blended with the futures boards.{' '}
+          {MLB ? (
+            <>
+              <b>Results</b> is what actually happened, in two parts: a run-differential rating
+              solved across the whole schedule, so beating good teams counts for more than beating
+              bad ones and margins are capped at 5 runs, blended 65 / 35 with a win rating so a win
+              counts beyond its margin.{' '}
+              <b>Betting markets</b> is what money says. Baseball has no spread worth reading, since
+              the runline is fixed at a run and a half with the price doing the work, so the rating
+              is fit to ten weeks of closing <i>moneylines</i>, the most recent weighted heaviest,
+              and converted to runs at the rate the season itself sets. The futures board is shown
+              at 0% and scores nothing: by September it had separated all thirty teams into fifteen
+              distinct prices, and what it is really pricing is the playoff path rather than the
+              team. Every club has a moneyline in all six of its games a week, so the lines already
+              carry what the futures would, and carry it better.{' '}
+            </>
+          ) : (
+            <>
+              <b>Results</b> is what actually happened, in three parts. A luck-adjusted margin: half
+              the scoreboard, half what the yardage says the margin should have been, so a team that
+              doubled its opponent&rsquo;s yards and lost on fumbles is docked about half of what the
+              score says, while a team that was out-gained and still lost takes the full hit. Margins
+              are capped at {sport === 'nfl' ? 21 : 28} points and solved across the whole schedule so
+              that beating good teams counts for more than beating bad ones. A win rating, so a win
+              counts beyond its margin. And performance against the spread: how far above or below the
+              closing line&rsquo;s expectation each game landed, which already prices the opponent and
+              the site. Blended 45 / 30 / 25.{' '}
+              <b>Betting markets</b> is what money says: a rating fit to the last three weeks of point
+              spreads, blended with the futures boards.{' '}
+            </>
+          )}
           <b>Analytics models</b> is what the models say: every live model, placed on the same points
           scale by its position against the market.{' '}
           Full-season weights are results {pct(PILLARS.results)}%, markets {pct(PILLARS.market)}%,
@@ -546,6 +586,16 @@ html:not([data-stage-boot='dark']) [data-stage-theme='light'] .gr{
           team started the season, reward reputation, and see a fraction of the games they rank; the
           three pillars here are each accountable to something real, a score, a price, or a
           measurement.{' '}
+          {MLB && (
+            <>
+              <b>Two columns are shown and not scored.</b> <i>vs MKT</i> is wins above what the
+              closing moneyline expected, and <i>Luck</i> is runs scored above or below the BaseRuns
+              estimate from the team&rsquo;s own hits, walks and extra bases: the part of the record
+              that was sequencing rather than production. Both were tested and neither made the
+              ranking better, which in a 162-game season is the point, so they are reported rather
+              than scored.{' '}
+            </>
+          )}
           <b>Résumé vs market</b> is the results rank minus the market rank: a large positive number
           is a team whose record the market does not yet believe, a large negative one is a favourite
           that keeps losing. A source whose data is more than {MAX_AGE_DAYS} days old is excluded

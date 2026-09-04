@@ -41,6 +41,9 @@ export default function SotHeader({ active }) {
           <Link href="/nflrankings" className={'stg-cx' + (active === 'nfl' ? ' on' : '')}>
             NFL
           </Link>
+          <Link href="/mlbrankings" className={'stg-cx' + (active === 'mlb' ? ' on' : '')}>
+            MLB
+          </Link>
         </nav>
         <button
           type="button"

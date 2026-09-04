@@ -23,8 +23,8 @@
 import { register } from 'node:module';
 register('./alias-loader.mjs', import.meta.url);
 
-const { computeComposite, PILLARS, RAMP_WEEKS, DEPTH } = await import('../lib/gridiron.js');
-const { ridgeLS, bradleyTerry, mean } = await import('../lib/gridiron-math.js');
+const { computeComposite, PILLARS, pillarsFor, RAMP_WEEKS, DEPTH, PARAMS } = await import('../lib/gridiron.js');
+const { ridgeLS, bradleyTerry, bradleyTerryFit, devigTwoWay, mean } = await import('../lib/gridiron-math.js');
 const { GRIDIRON } = await import('../lib/gridiron-data.js');
 const { teamById } = await import('../lib/gridiron-teams.js');
 
@@ -46,10 +46,30 @@ const near = (a, b, eps = 1e-6) => Math.abs(a - b) <= eps;
   else ok('bradleyTerry: the team that wins rates highest');
 }
 
-for (const sport of ['cfb', 'nfl']) {
+// The baseball market pillar fits a PROBABILITY, so its sign convention needs
+// its own check: a team the market prices as a heavy favourite in every game
+// must rate above the team it is favoured over.
+{
+  const rows = [
+    { h: 0, a: 1, site: 1, y: 0.80 }, { h: 1, a: 0, site: 1, y: 0.25 },
+    { h: 1, a: 2, site: 1, y: 0.60 }, { h: 2, a: 0, site: 1, y: 0.20 },
+  ];
+  const m = bradleyTerryFit(rows, 3, { lam: 0, h: 0.108 });
+  if (!(m[0] > m[1] && m[1] > m[2])) fail(`bradleyTerryFit sign: expected 0 > 1 > 2, got ${m.map((v) => v.toFixed(2))}`);
+  else ok('bradleyTerryFit: the priced favourite rates highest');
+  // devig must strip the overround and keep the favourite the favourite
+  const p = devigTwoWay(-150, 130);
+  if (!(p > 0.5 && p < 0.65)) fail(`devigTwoWay(-150, 130) = ${p}, expected a shade over 0.6`);
+  else if (Math.abs(devigTwoWay(-110, -110) - 0.5) > 1e-9) fail('devigTwoWay(-110,-110) should be exactly 0.5');
+  else ok('devigTwoWay strips the overround');
+}
+
+for (const sport of ['cfb', 'nfl', 'mlb']) {
   console.log(`== ${sport}`);
   const block = GRIDIRON[sport];
+  if (!block) { fail(`${sport}: no block in the snapshot`); continue; }
   const depth = DEPTH[sport];
+  const MLB = sport === 'mlb';
 
   // 8. no polls, no media
   for (const [id, s] of Object.entries(block.sources)) {
@@ -63,19 +83,35 @@ for (const sport of ['cfb', 'nfl']) {
     if (seen.has(g.id)) fail(`${sport}: game ${g.id} listed twice`);
     seen.add(g.id);
     for (const id of [g.hid, g.aid]) {
-      if (!teamById(sport, id) && sport === 'nfl') fail(`${sport}: game ${g.id} has unknown team id ${id}`);
+      if (!teamById(sport, id) && (sport === 'nfl' || MLB)) fail(`${sport}: game ${g.id} has unknown team id ${id}`);
     }
     if (!(Number.isFinite(g.hs) && Number.isFinite(g.as))) fail(`${sport}: game ${g.id} has no score`);
     const hasBox = g.hy != null || g.ay != null;
     if (hasBox && !(Number.isFinite(g.hy) && Number.isFinite(g.ay) && g.hy >= 0 && g.ay >= 0)) fail(`${sport}: game ${g.id} has a half box score`);
+    // MLB carries BaseRuns instead of yards. Half a pair is worse than none:
+    // the Luck column would then compare a real figure to a missing one.
+    const hasBR = g.hbr != null || g.abr != null;
+    if (hasBR && !(Number.isFinite(g.hbr) && Number.isFinite(g.abr) && g.hbr >= 0 && g.abr >= 0)) fail(`${sport}: game ${g.id} has a half BaseRuns pair`);
+    if (MLB && !hasBR) fail(`mlb: game ${g.id} has no BaseRuns figures`);
+    if (MLB && (g.hs < 0 || g.as < 0 || g.hs > 40 || g.as > 40)) fail(`mlb: game ${g.id} has an implausible score ${g.hs}-${g.as}`);
     if (g.n !== 0 && g.n !== 1) fail(`${sport}: game ${g.id} neutral flag must be 0 or 1`);
   }
   const lseen = new Set();
   for (const l of block.lines || []) {
     if (lseen.has(l.id)) fail(`${sport}: line ${l.id} listed twice`);
     lseen.add(l.id);
-    if (!Number.isFinite(l.sp)) fail(`${sport}: line ${l.id} has no spread`);
-    if (sport === 'nfl' && (!teamById(sport, l.hid) || !teamById(sport, l.aid))) fail(`${sport}: line ${l.id} has an unknown team`);
+    if (MLB) {
+      // Baseball stores the two moneylines, not a spread. American odds are
+      // never between -100 and +100 exclusive, and a pair that both sit on the
+      // same side of even is a sign the two teams were swapped somewhere.
+      for (const v of [l.hml, l.aml]) {
+        if (!Number.isFinite(v) || (v > -100 && v < 100)) fail(`mlb: line ${l.id} has an impossible moneyline ${v}`);
+      }
+      if (l.sp != null) fail(`mlb: line ${l.id} carries a spread; baseball's runline is not a spread and must not be stored`);
+      const p = devigTwoWay(l.hml, l.aml);
+      if (!(p > 0.02 && p < 0.98)) fail(`mlb: line ${l.id} devigs to ${p}, outside anything a baseball game is priced at`);
+    } else if (!Number.isFinite(l.sp)) fail(`${sport}: line ${l.id} has no spread`);
+    if ((sport === 'nfl' || MLB) && (!teamById(sport, l.hid) || !teamById(sport, l.aid))) fail(`${sport}: line ${l.id} has an unknown team`);
   }
   // CFB: a game or line where NEITHER side is registered is a bug (two FCS teams
   // cannot appear in an FBS scoreboard pull).
@@ -91,6 +127,12 @@ for (const sport of ['cfb', 'nfl']) {
   const r = computeComposite(block, sport);
   if (r.problems.length) r.problems.forEach((p) => fail(`${sport}: ${p}`));
   if (r.ranked.length !== depth) fail(`${sport}: board has ${r.ranked.length} rows, expected ${depth}`);
+  // Ranks are 1..depth EXCEPT where the composite ties, and a tie shares the
+  // rank of the first row in its group (lib/gridiron.js collapses them and
+  // marks them `tied`). This check read `rank === i + 1` until 2026-09-04,
+  // which went red the moment the CFB board went full-FBS and produced real
+  // ties among the teams that have not played yet. Allow the shared rank, and
+  // still require it to be the group's own first index.
   const ranks = r.ranked.map((x) => x.rank);
   // 1..N stopped being the rule on 2026-09-04, when teams the composite cannot
   // separate started SHARING a rank and being marked T7 rather than being handed
@@ -114,17 +156,18 @@ for (const sport of ['cfb', 'nfl']) {
   if (liar !== -1) {
     fail(`${sport}: row ${liar + 1} (${r.ranked[liar].team}) is marked tied=${!!r.ranked[liar].tied} and shares its rank with ${sharesRank(liar) ? 'somebody' : 'nobody'}`);
   }
+  const tiedRows = r.ranked.filter((x) => x.tied).length;
   if (new Set(r.ranked.map((x) => x.team)).size !== r.ranked.length) fail(`${sport}: duplicate team on the board`);
   for (let i = 1; i < r.ranked.length; i++) {
     if (r.ranked[i].score > r.ranked[i - 1].score + 1e-9) fail(`${sport}: board not sorted at ${i}`);
   }
-  ok(`board is ${depth} deep, sorted, unique`);
+  ok(`board is ${depth} deep, sorted, unique${tiedRows ? `, ${tiedRows} rows in ties` : ''}`);
 
   // 4. shares and ramp
   const shares = Object.values(r.tierShare);
   if (!near(shares.reduce((a, b) => a + b, 0), 1)) fail(`${sport}: pillar shares sum to ${shares.reduce((a, b) => a + b, 0)}`);
   const weeksPlayed = Math.max(0, (block.week || 1) - 1);
-  const expectR = (block.games || []).length ? PILLARS.results * Math.min(1, weeksPlayed / RAMP_WEEKS[sport]) : 0;
+  const expectR = (block.games || []).length ? pillarsFor(sport).results * Math.min(1, weeksPlayed / RAMP_WEEKS[sport]) : 0;
   if (!near(r.tierShare.results || 0, expectR)) fail(`${sport}: results share ${r.tierShare.results} != ramp ${expectR}`);
   if ((r.tierShare.market || 0) < (r.tierShare.model || 0) - 1e-9) fail(`${sport}: models outweigh markets`);
   ok(`shares ${JSON.stringify(Object.fromEntries(Object.entries(r.tierShare).map(([k, v]) => [k, +v.toFixed(3)])))}`);

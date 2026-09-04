@@ -95,8 +95,9 @@ export default function CollegeFootballRankingsPage() {
           <p className="rk-stamp">
             <i>Updated</i>
             <span>
-              <b>This board now rates every FBS team</b>, where it used to stop at 50, and the NFL
-              consensus is current for the season too. MLB rankings are on the way.
+              <b>This board now rates every FBS team</b>, where it used to stop at 50, the NFL
+              consensus is current for the season too, and the{' '}
+              <a href="/mlbrankings">MLB consensus</a> has joined them.
             </span>
           </p>
         </div>
