@@ -128,14 +128,21 @@ export default function QuizLoftFinish({
       iq={iq}
       day={day}
       board={lbBoard}
-      boardLabel={'This quiz’s board'}
+      /* A QUIZ'S BOARD IS ITS ALL-TIME BOARD (owner, 2026-09-04). There is one
+         board per quiz, it never rolls at Eastern midnight, and every ending
+         the shared card writes was worded for a daily: a player who came third
+         was being told they came "#3 of 41 today" on a table that has been
+         accumulating since the quiz was published. `boardWhen` is the short
+         form the stage ending prints on the figure itself. */
+      boardLabel={'All-time board'}
+      boardWhen={'all time'}
       replaySub="Practice run. Only your first attempt counts on the leaderboard."
       dayTiles={[
         {
           value: myRank != null ? `#${Number(myRank).toLocaleString()}` : '—',
           label: myRank != null && lbBoard.field
-            ? `of ${Number(lbBoard.field).toLocaleString()} on this board`
-            : 'on this board',
+            ? `of ${Number(lbBoard.field).toLocaleString()} all time`
+            : 'all time',
         },
         {
           value: board.plays ? Number(board.plays).toLocaleString() : '—',
@@ -179,7 +186,11 @@ export default function QuizLoftFinish({
           sub: 'The ranking behind this quiz',
           href: `/list/${quiz.listId}`,
         },
-        { tone: 'main', label: 'Back to all quizzes', sub: 'Every puzzle and quiz', href: '/quizzes' },
+        /* BACK TO WHERE THE QUIZZES ARE (owner, 2026-09-04). This pointed at
+           /quizzes, which is the quiz hub; the reader came from the daily
+           puzzles page, and that page carries a Quizzes section listing every
+           topic. The hash lands them on it rather than on a different index. */
+        { tone: 'main', label: 'Back to all quizzes', sub: 'The quizzes section on the daily page', href: '/#sty-quizzes' },
       ]}
     />
   );

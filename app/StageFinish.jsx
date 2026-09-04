@@ -184,7 +184,12 @@ function FloodCount({ to, ms }) {
 // collapses onto the band on its own. Same curtain, same collapse, no queue.
 const FLOOD_QUICK_SETTLE = 700;
 
-function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null, bandRef, onDone, quick = false }) {
+// `boardWhen` names what the board's position figure is a position IN ('today'
+// on a daily, 'all time' on a quiz). It belongs here as well as on StageFinish
+// because the FLOOD prints that figure first, full screen, before the card
+// under it is ever seen: a quiz that only corrected the card would still open
+// its ending by announcing "#3 of 41 today".
+function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null, bandRef, onDone, quick = false, boardWhen = null }) {
   const [phase, setPhase] = useState('');     // '' -> up -> shrink -> out
   const [clip, setClip] = useState(null);
   const [held, setHeld] = useState(false);    // the floor has passed
@@ -224,7 +229,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
       k: 'pos',
       has: !!(board && board.myRank != null),
       value: board && board.myRank != null ? `#${board.myRank}` : null,
-      label: board && board.field ? `of ${board.field} today` : 'today',
+      label: board && board.field ? `of ${board.field} ${boardWhen || 'today'}` : (boardWhen || 'today'),
     },
     {
       k: 'all',
@@ -238,7 +243,7 @@ function CurtainFlood({ title, detail, iq, board, gameRank, streak, ready = null
       value: streak,
       label: 'day streak',
     },
-  ]), [iq, board, gameRank, streak, quick]);
+  ]), [iq, board, gameRank, streak, quick, boardWhen]);
 
   // Fade in, and the two edges of the hold. Both timers are anchored to the
   // MOUNT rather than to `ready`, for the reason LoftFinish's own ceiling is:
@@ -405,6 +410,27 @@ export default function StageFinish({
   ready = null,
   missLabel = null, gameRank = null, outcome = null, options = [], name = null,
   archive = null,
+  // ⚠️ WHAT THE BOARD IS, said rather than assumed (owner, 2026-09-04).
+  //
+  // Every figure and every heading below was written for a DAILY, where the
+  // board is today's and saying so is the most useful thing on the card. The
+  // QUIZ half of the site went sitewide on the stage on 2026-09-04 and a quiz's
+  // board is its ALL-TIME board: there is one board per quiz, it never rolls at
+  // midnight, and a player finishing one was being told they came #3 "of 41
+  // today" on a table that has been accumulating since the quiz was published.
+  //
+  // LoftFinish already had `boardLabel` for exactly this and had had it since
+  // the quiz Loft rollout. The prop stopped at LoftFinish: the stage ending is
+  // a different component, it never took it, and the moment the stage became
+  // the ending for every quiz the override silently stopped applying. That is
+  // the fifth-mirror trap this codebase keeps recording, one hop further along
+  // than the last time.
+  //
+  // Both default to null, so all eighty dailies render byte for byte what they
+  // rendered before. `boardWhen` is the SHORT form for a figure's label ('all
+  // time'), `boardLabel` the heading over the table ('All-time board').
+  boardLabel = null,
+  boardWhen = null,
   retry = null,
   // CLAIM YOUR RANK (owner, 2026-09-01). `guest` is LoftFinish's own
   // claimBandShown: a finish with no display name saved, on the full card.
@@ -679,7 +705,7 @@ export default function StageFinish({
           <div className="stf-opts">
             <button type="button" className="stf-o" onClick={retry.onCard}>
               <b>Show end game card</b>
-              <i>Your IQ, today&rsquo;s board, the archive and what to play next</i>
+              <i>Your IQ, {boardLabel ? <>the {String(boardLabel).toLowerCase()}</> : <>today&rsquo;s board</>}{archiveRows.length ? ', the archive' : ''} and what to play next</i>
             </button>
           </div>
         </div>
@@ -694,6 +720,7 @@ export default function StageFinish({
       {flood ? (
         <CurtainFlood title={title} detail={detail} iq={iq} board={board}
           gameRank={gameRank} streak={streak} ready={ready} bandRef={bandRef}
+          boardWhen={boardWhen}
           onDone={() => setFlood(false)} />
       ) : null}
 
@@ -748,7 +775,7 @@ export default function StageFinish({
             the figure that announced it has moved onto the band. */}
         {rows.length ? (
           <section>
-            <div className="stf-eb">Today&rsquo;s board{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}{standings.length ? <em className="stf-dx"> &middot; {standings.join(' \u00b7 ')}</em> : null}</div>
+            <div className="stf-eb">{boardLabel || <>Today&rsquo;s board</>}{myRank != null ? <em> &middot; you are #{myRank}{field ? ` of ${field}` : ''}</em> : null}{standings.length ? <em className="stf-dx"> &middot; {standings.join(' \u00b7 ')}</em> : null}</div>
             <table className="stf-tbl">
               <tbody>
                 {rows.map((r, i) => (
@@ -796,7 +823,7 @@ export default function StageFinish({
               <div>
                 <div className="stf-fwdn">
                   {board && board.guest ? (
-                    <>You would be <em>#{board.guest.placement}</em>{board.guest.field ? ` of ${board.guest.field}` : ''} on today&rsquo;s board</>
+                    <>You would be <em>#{board.guest.placement}</em>{board.guest.field ? ` of ${board.guest.field}` : ''} on {boardLabel ? <>the {String(boardLabel).toLowerCase()}</> : <>today&rsquo;s board</>}</>
                   ) : 'Your finish is not on the board yet'}
                 </div>
                 <div className="stf-fwdt">Ranks and points count for registered names only. A display name is enough, no password, and the games you already finished come with you.</div>

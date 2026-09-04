@@ -565,6 +565,41 @@ export default function StageToday() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  // ── ARRIVING ON A SECTION BY HASH ───────────────────────────────────────
+  //
+  // A quiz end card sends the reader to /#sty-quizzes. The browser's own hash
+  // scroll happens at load, and this whole page is a client component whose
+  // sections do not exist until React has rendered, so the jump lands at the
+  // top of the page every time and looks like a broken link rather than a slow
+  // one. The section is then LAZY on top of that: its content waits on an
+  // IntersectionObserver, so scrolling to it is also what fills it in.
+  //
+  // So: on mount, look for the element the hash names, and keep looking for a
+  // short while rather than once. Capped at ~4s of animation frames, because a
+  // page that scrolls itself a minute after it opened is worse than one that
+  // never did. Runs only when a hash is actually present, so a plain visit is
+  // untouched, and the id pattern is checked so nothing else can steer it.
+  useEffect(() => {
+    let hash = '';
+    try { hash = String(window.location.hash || '').slice(1); } catch (e) { return undefined; }
+    if (!hash || !/^sty-[a-z-]+$/.test(hash)) return undefined;
+    let raf = 0;
+    const started = Date.now();
+    const tick = () => {
+      const el = document.getElementById(hash);
+      if (el) {
+        // The cap is a plain block rather than a sticky bar, so the section's
+        // own top is the right resting place and nothing has to be subtracted.
+        try { el.scrollIntoView({ block: 'start' }); } catch (e) { el.scrollIntoView(); }
+        return;
+      }
+      if (Date.now() - started > 4000) return;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   useEffect(() => {
     if (!nearFoot) return undefined;
     let alive = true;
@@ -1807,7 +1842,10 @@ export default function StageToday() {
             on a page whose whole rule is one family. So the section's rule is
             neutral, exactly as My games' and Circuits' are, and the topics are
             told apart by their names and their counts. */}
-        <section className="sty-cat sty-qsec" style={{ '--cc': 'var(--stg-ink2)' }} ref={footRef}>
+        {/* THE ANCHOR. A quiz end card sends the reader back here rather than
+            to the separate quiz hub, so this section needs a name to land on;
+            it is the only one of the page's sections that had none. */}
+        <section id="sty-quizzes" className="sty-cat sty-qsec" style={{ '--cc': 'var(--stg-ink2)' }} ref={footRef}>
           <div className="sty-cathead">
             <h2>Quizzes</h2>
             {/* DRAWN ONLY WHEN REAL: no figure until the catalogue has landed,

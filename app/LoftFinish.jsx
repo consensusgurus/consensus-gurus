@@ -103,6 +103,10 @@ export default function LoftFinish({
   // optional override that DEFAULTS TO NULL, so every daily renders byte for
   // byte what it rendered before. See app/quiz/[id]/QuizLoftFinish.jsx.
   boardLabel = null,   // heading over the leaderboard
+  // The SHORT form of the same fact, for a figure's label rather than a
+  // heading ('all time'). Only the stage ending reads it; the Loft card's own
+  // figures were replaced wholesale by `dayTiles` long before this existed.
+  boardWhen = null,
   replaySub = null,    // overrides the registry's attempt-rule sentence
   dayTiles = null,     // [{ value, label }] replacing the four day tiles
   // ON THE STAGE, SAID RATHER THAN GUESSED (2026-08-31, for the quiz stage).
@@ -939,7 +943,7 @@ export default function LoftFinish({
 
           <button type="button" className="lfr-card" onClick={() => setShowCard(true)}>
             Show End Game Card
-            <i>Your IQ, today&rsquo;s board, the archive and what to play next</i>
+            <i>Your IQ, {boardLabel ? <>the {String(boardLabel).toLowerCase()}</> : <>today&rsquo;s board</>}, the archive and what to play next</i>
           </button>
         </div>
       </div>
@@ -954,6 +958,12 @@ export default function LoftFinish({
         title={retryVerdict || title} detail={detail} iq={iq} board={board} day={day} streak={streak}
         missLabel={missLabel} gameRank={gameRank} outcome={outcome} options={options} name={name}
         archive={archive}
+        /* WHAT THE BOARD IS. These two were the quiz overrides that stopped
+           here: the Loft card honoured `boardLabel` and the stage ending, which
+           became the ending for every quiz on 2026-09-04, had never been told
+           about it. Null on all eighty dailies, so nothing there moves. */
+        boardLabel={boardLabel}
+        boardWhen={boardWhen}
         /* THE CLAIM TILE (owner, 2026-09-01). The Loft card's claim band below
            never rendered once the stage went sitewide, so a guest finished
            with no offer at all. StageFinish renders its own tile, above Up
