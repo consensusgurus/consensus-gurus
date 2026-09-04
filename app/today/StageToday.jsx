@@ -952,10 +952,27 @@ export default function StageToday() {
   // the Five's hue follows its rotating lead game rather than being guessed. It
   // needs the day, so both cards arrive with the rest of the day's data; the ten
   // tiles under them do not wait on it.
-  const newcomerCircs = useMemo(() => NEWCOMER_CIRCS
-    .map((id) => circuits.find((c) => c.id === id))
-    .filter((c) => c && c.games.length)
-    .map((c) => ({ ...c, cat: c.games[0].cat })), [circuits]);
+  //
+  // TWO CARDS ON ONE LINE MUST NOT WEAR THE SAME STEP. A circuit takes its LEAD
+  // GAME's category, and the marquee crosses every category by construction, so
+  // on any day its lead happens to be a Trivia game both cards come out the same
+  // orange and read as one block rather than two (live, 2026-09-04). The ramp
+  // already carries this rule for the shelves, which owe their neighbours 30
+  // degrees; a card owes the card beside it at least a different step. So the
+  // second circuit walks its OWN games for the first category not already on the
+  // row, which keeps the hue category-derived rather than invented, and changes
+  // nothing on a day the two leads already differ.
+  const newcomerCircs = useMemo(() => {
+    const out = []; const used = new Set();
+    for (const id of NEWCOMER_CIRCS) {
+      const c = circuits.find((x) => x.id === id);
+      if (!c || !c.games.length) continue;
+      const pick = c.games.find((g) => !used.has(g.cat)) || c.games[0];
+      used.add(pick.cat);
+      out.push({ ...c, cat: pick.cat, hue: hueFor(pick.cat) });
+    }
+    return out;
+  }, [circuits, light]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   // A CIRCUIT'S STANDING, and only a FINISHED circuit has one (owner,
   // 2026-09-01). The combined board refuses to rank a player who has not played
