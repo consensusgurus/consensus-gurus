@@ -52,6 +52,7 @@ export const DAILY_GAMES = [
   { key: 'mate', href: '/mate', name: 'Mate', tag: 'white to play and mate', store: 'sot_mate_day', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)' },
   { key: 'four', href: '/four', name: 'Four', tag: 'one column wins', store: 'sot_four_day', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(35,58,99,0.35)' },
   { key: 'park', href: '/parker', name: 'Parker', tag: 'get the red one out', store: 'sot_park_day', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)' },
+  { key: 'impound', href: '/impound', name: 'Impound', tag: 'parker on a bigger lot', store: 'sot_impound_day', accent: '#6b4a1f', bg: '#f3ece0', border: 'rgba(107,74,31,0.35)' },
   { key: 'check', href: '/check', name: 'Check', tag: 'red to play and sweep', store: 'sot_check_day', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)' },
   { key: 'hinge', href: '/hinge', name: 'Hinge', tag: 'chain the compounds', store: 'sot_hinge_day', accent: '#4f46e5', bg: '#e0e7ff', border: 'rgba(79,70,229,0.4)' },
   { key: 'rung', href: '/rung', name: 'Rung', tag: 'one letter at a time', store: 'sot_rung_day', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)' },

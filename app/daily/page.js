@@ -58,6 +58,7 @@ import { PUZZLES as LISTED_FULL } from '../listed/puzzles';
 import { PUZZLES as MATE_FULL } from '../mate/puzzles';
 import { PUZZLES as FOUR_FULL } from '../four/puzzles';
 import { PUZZLES as PARK_FULL } from '../parker/puzzles';
+import { PUZZLES as IMPOUND_FULL } from '../impound/puzzles';
 import { PUZZLES as CHECK_FULL } from '../check/puzzles';
 import { PUZZLES as RUNG_FULL } from '../rung/puzzles';
 import { PUZZLES as CRUNCH_FULL } from '../crunch/puzzles';
@@ -129,6 +130,7 @@ const LISTED = LISTED_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ 
 const MATE = MATE_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const FOUR = FOUR_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const PARK = PARK_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
+const IMPOUND = IMPOUND_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CHECK = CHECK_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const RUNG = RUNG_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
 const CRUNCH = CRUNCH_FULL.map(({ num, quizId, live, dateLabel, sunday }) => ({ num, quizId, live, dateLabel, sunday }));
@@ -263,6 +265,7 @@ const GAMES = [
   { key: 'mate', name: 'Mate', path: '/mate', tag: 'White to play and mate', accent: '#6b4423', bg: '#f6efe6', border: 'rgba(107,68,35,0.35)', src: MATE },
   { key: 'four', name: 'Four', path: '/four', tag: 'One column wins', accent: T.blueDark, bg: '#e8eefc', border: 'rgba(35,58,99,0.35)', src: FOUR },
   { key: 'park', name: 'Parker', path: '/parker', tag: 'Get the red one out', accent: '#7c5c2e', bg: '#f6efe2', border: 'rgba(124,92,46,0.35)', src: PARK },
+  { key: 'impound', name: 'Impound', path: '/impound', tag: 'Parker on a bigger lot', accent: '#6b4a1f', bg: '#f3ece0', border: 'rgba(107,74,31,0.35)', src: IMPOUND },
   { key: 'check', name: 'Check', path: '/check', tag: 'Red to play and sweep', accent: '#166e5a', bg: '#e6f3ef', border: 'rgba(22,110,90,0.35)', src: CHECK },
   { key: 'rung', name: 'Rung', path: '/rung', tag: 'One letter at a time', accent: '#155e75', bg: '#e4f2f6', border: 'rgba(21,94,117,0.35)', src: RUNG },
   { key: 'hinge', name: 'Hinge', path: '/hinge', tag: 'Chain the compounds', accent: '#4f46e5', bg: '#e0e7ff', border: 'rgba(79,70,229,0.4)', src: HINGE },

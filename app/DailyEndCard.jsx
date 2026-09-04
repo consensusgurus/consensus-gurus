@@ -88,7 +88,7 @@ import {
   Club, ChevronLeft, ChevronRight, ChevronDown, CheckCircle2, UserPlus, Gavel, Shield,
   Flame, Frame, Contrast, Layers, FileText, Waypoints, Anchor, PenLine, Gamepad2, Zap, Sigma, Sandwich,
   ArrowLeftRight, Gem, Map as MapIcon, Divide, TableProperties, TrendingUp, Milestone, CornerUpRight,
-  Clapperboard, Quote, ZoomIn, Axe,
+  Clapperboard, Quote, ZoomIn, Axe, Truck,
 } from 'lucide-react';
 import ReportIssue from './ReportIssue';
 import MindLoftMark from './MindLoftMark';
@@ -115,7 +115,7 @@ const DEFEAT_GAMES = new Set(['four', 'mate', 'check', 'taire', 'chain', 'turn',
 // "still to play" list for their first FOUR days so players actually meet
 // them; after `until` (ET, inclusive) the canonical order resumes. Keep in
 // sync with the same pin in app/api/quiz/daily-order/route.js.
-const LAUNCH_PIN = { keys: ['whittle', 'finesse', 'sums', 'hinge', 'blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
+const LAUNCH_PIN = { keys: ['impound', 'whittle', 'finesse', 'sums', 'hinge', 'blitzed', 'thread', 'focus', 'script', 'quotes', 'knight', 'flank', 'biz', 'encore', 'calc', 'sport', 'atlas', 'towers', 'mercury', 'polka', 'queen', 'shoe', 'niche', 'sixes', 'plot', 'barter', 'sando', 'cages', 'quilt', 'defend', 'blitz', 'docket', 'sweep', 'chomp', 'blocks', 'anon', 'deep', 'paths', 'redact', 'strata', 'suffice', 'turn', 'chain', 'hands', 'glyph', 'babel'], until: '2026-10-15' };
 function etTodayEC() {
   try { return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }); }
   catch (e) { return new Date().toISOString().slice(0, 10); }
@@ -173,6 +173,7 @@ export const GAME_META = {
   mate: { accent: '#6b4423', badgeBg: '#6b4423', badgeInk: T.white, Fin: Crown },
   four: { accent: T.blueDark, badgeBg: T.blueDark, badgeInk: T.white, Fin: Disc },
   park: { accent: '#7c5c2e', badgeBg: '#7c5c2e', badgeInk: T.white, Fin: Car },
+  impound: { accent: '#6b4a1f', badgeBg: '#6b4a1f', badgeInk: T.white, Fin: Truck },
   check: { accent: '#166e5a', badgeBg: '#166e5a', badgeInk: T.white, Fin: Swords },
   rung: { accent: '#155e75', badgeBg: '#155e75', badgeInk: T.white, Fin: MoveUp },
   crunch: { accent: '#b45309', badgeBg: '#b45309', badgeInk: T.white, Fin: Calculator },
@@ -296,6 +297,7 @@ const ALL_DAILY_GAMES = [
   { key: 'mate',   cat: 'endgame',     name: 'Mate',   tag: 'White to play and mate',      blurb: 'A real chess position with a forced mate hiding in it. Find the move that ends it.', href: '/mate' },
   { key: 'four',   cat: 'endgame',     name: 'Four',   tag: 'One column wins',             blurb: 'A Connect Four board where exactly one drop wins. Pick the column and play it out.', href: '/four' },
   { key: 'park',   cat: 'logic',     name: 'Parker', tag: 'Get the red one out',         blurb: 'A jammed parking lot. Slide the other cars aside and drive the red one free in as few moves as you can.', href: '/parker' },
+  { key: 'impound',   cat: 'logic',     name: 'Impound', tag: 'Parker on a bigger lot',         blurb: 'Parker on a seven by seven lot, with around twenty blocks in your way. Same one gap in the wall, a good deal more between you and it.', href: '/impound' },
   { key: 'check',  cat: 'endgame',     name: 'Check',  tag: 'Red to play and sweep',       blurb: 'A checkers position where one move sets off a chain that clears the whole board.', href: '/check' },
   { key: 'chain',  cat: 'endgame',     name: 'Chain',  tag: 'Take them, or leave them',    blurb: 'A dots and boxes endgame you are already winning. One edge keeps it, and the free box is usually bait.', href: '/chain' },
   { key: 'suffice', cat: 'logic',      name: 'Suffice', tag: 'Decide what is enough',      blurb: 'Eight questions you never answer. For each one, decide whether the two statements are enough to settle it.', href: '/suffice' },
