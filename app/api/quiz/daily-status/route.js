@@ -258,8 +258,12 @@ export async function GET(request) {
         // than a phantom last place.
         if (mineToday > 0 && st.posDay) {
           // The field is the whole pool, guests included, which is the same
-          // denominator every per-game "#N of M" on the site already prints.
-          dayField = st.dayField || null;
+          // denominator every per-game "#N of M" on the site already prints --
+          // and it is the count of everyone who PLAYED today, the same figure
+          // the home board prints as "of N players", not the smaller count of
+          // players who banked IQ. Falls back to the banked count only if the
+          // wide one is somehow unavailable.
+          dayField = st.dayFieldAll || st.dayField || null;
           // A REGISTERED PLAYER READS THE REGISTERED BOARD'S OWN NUMBER, so the
           // cap agrees with the tiles, the end cards and the board panels
           // instead of quoting a gappy full-field position none of them show.
