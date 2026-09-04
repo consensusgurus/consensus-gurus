@@ -553,10 +553,13 @@ export default function SlotClient({ puzzles = [], dayByNum = {}, forceNum = nul
           .sl-btn:disabled{opacity:.45;cursor:default;}
           .sl-hand{position:sticky;top:0;z-index:6;background:${STAGE ? 'var(--stg-ground)' : T.surface};padding:6px 0 10px;}
           .sl-card{border:2px solid var(--stg-acc, ${COLORS.accent});border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;background:var(--stg-cell, ${T.white});color:${INK};}
-          .sl-card.pop{animation:slpop .3s cubic-bezier(.2,.9,.3,1.2);}
-          @keyframes slpop{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+          .sl-card.pop{animation:slpop .22s ease-out;}
+          @keyframes slpop{from{opacity:0}to{opacity:1}}
           .sl-card .lab{grid-column:1/-1;font-family:${MONO};font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--stg-acc-ink, ${COLORS.accent});}
-          .sl-card .nm{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.05;text-wrap:balance;}
+          /* Two lines of room whatever the name, so the card, and everything
+             under it, holds one height from deal to deal. */
+          .sl-card .nm{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.05;text-wrap:balance;min-height:2.1em;display:flex;align-items:center;}
+          .sl-note{font-family:${MONO};font-size:11px;line-height:17px;min-height:17px;margin-top:6px;color:var(--stg-acc-ink, ${COLORS.accent});}
           .sl-card .cnt{font-family:${MONO};font-size:12px;color:${FADED};text-align:right;white-space:nowrap;}
           .sl-axis{font-size:15px;font-weight:800;letter-spacing:-.01em;color:${INK};margin:0 0 2px;}
           .sl-sub{font-size:12.5px;font-weight:600;color:${FADED};margin:0 0 10px;}
@@ -642,7 +645,9 @@ export default function SlotClient({ puzzles = [], dayByNum = {}, forceNum = nul
                   <div className="cnt">{openCount === 1 ? 'the last one, one slot left' : `${openCount - 1} still to come`}</div>
                 </div>
               ) : null}
-              {notice && <div style={{ fontFamily: MONO, fontSize: 11, color: `var(--stg-acc-ink, ${COLORS.accent})`, marginTop: 6 }}>{notice.msg}</div>}
+              {/* The line is always in the flow: a notice that came and went
+                  used to push the slot list down and back up on every tap. */}
+              <div className="sl-note" aria-live="polite">{notice ? notice.msg : ' '}</div>
             </div>
           )}
 
