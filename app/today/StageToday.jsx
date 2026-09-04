@@ -583,21 +583,48 @@ export default function StageToday() {
     let hash = '';
     try { hash = String(window.location.hash || '').slice(1); } catch (e) { return undefined; }
     if (!hash || !/^sty-[a-z-]+$/.test(hash)) return undefined;
-    let raf = 0;
+    let timer = 0;
+    let done = false;
     const started = Date.now();
     const tick = () => {
+      if (done) return;
       const el = document.getElementById(hash);
-      if (el) {
-        // The cap is a plain block rather than a sticky bar, so the section's
-        // own top is the right resting place and nothing has to be subtracted.
+      // ⚠️ THE ARRIVAL CURTAIN LOCKS THE BODY WHILE IT PLAYS, so a scroll
+      // issued under it does not merely land late, it does nothing at all and
+      // the attempt is spent. A reader arriving here on a day they have not
+      // seen the welcome would land at the top of the page, which is the exact
+      // failure this effect exists to prevent. So wait for the lock to lift.
+      let locked = false;
+      try { locked = getComputedStyle(document.body).overflow === 'hidden'; } catch (e) {}
+      if (el && !locked) {
+        const before = window.scrollY;
         try { el.scrollIntoView({ block: 'start' }); } catch (e) { el.scrollIntoView(); }
-        return;
+        // Landing is CONFIRMED rather than assumed: the page either moved or
+        // the section is already at the top. Anything else is a scroll that
+        // did not take, and the loop is what gets another go at it.
+        if (window.scrollY !== before || Math.abs(el.getBoundingClientRect().top) < 4) { done = true; return; }
       }
-      if (Date.now() - started > 4000) return;
-      raf = requestAnimationFrame(tick);
+      if (Date.now() - started > 12000) return;
+      timer = setTimeout(tick, 120);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    // ⚠️ setTimeout, NOT requestAnimationFrame. A HIDDEN TAB RUNS NO rAF, so an
+    // rAF loop never ticks once for a link opened in a background tab, which is
+    // also why every automated check of this page reported it as not scrolling.
+    // A timer runs either way, and this loop is cheap enough not to care.
+    timer = setTimeout(tick, 0);
+    // A reader who starts scrolling has taken over. Yanking them back to a
+    // section they just left is worse than never having jumped.
+    const stop = () => { done = true; };
+    window.addEventListener('wheel', stop, { passive: true, once: true });
+    window.addEventListener('touchstart', stop, { passive: true, once: true });
+    window.addEventListener('keydown', stop, { once: true });
+    return () => {
+      done = true;
+      clearTimeout(timer);
+      window.removeEventListener('wheel', stop);
+      window.removeEventListener('touchstart', stop);
+      window.removeEventListener('keydown', stop);
+    };
   }, []);
 
   useEffect(() => {
