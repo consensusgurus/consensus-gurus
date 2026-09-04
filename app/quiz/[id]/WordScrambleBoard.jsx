@@ -53,7 +53,7 @@ function Tiles({ text }) {
       {words.map((w, wi) => (
         <span key={wi} style={{ display: 'inline-flex', gap: 4 }}>
           {w.split('').map((ch, ci) => (
-            <span key={ci} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'clamp(22px,4.6vw,34px)', height: 'clamp(28px,5.6vw,42px)', borderRadius: 7, background: T.white, color: COLORS.ink, fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(15px,3vw,22px)', boxShadow: '0 1px 0 rgba(20,22,28,0.18)', textTransform: 'uppercase' }}>{ch}</span>
+            <span key={ci} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 'clamp(22px,4.6vw,34px)', height: 'clamp(28px,5.6vw,42px)', borderRadius: 7, background: `var(--stg-surf,${T.white})`, color: `var(--stg-ink,${COLORS.ink})`, fontFamily: SANS, fontWeight: 800, fontSize: 'clamp(15px,3vw,22px)', boxShadow: '0 1px 0 rgba(20,22,28,0.18)', textTransform: 'uppercase' }}>{ch}</span>
           ))}
         </span>
       ))}
@@ -86,8 +86,8 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
   }, [mobile, started, ended]);
   const dock = mobile && live;
   const barStyle = dock
-    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: `var(--stg-surf,${COLORS.cream})`, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid var(--stg-line,${COLORS.faded}22)`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: `var(--stg-surf,${COLORS.cream})`, paddingTop: 4, paddingBottom: 8 };
   const noun = answerNoun || 'country';
   const curLabel = cur != null && list[cur] ? (list[cur].label || list[cur].t) : '';
   useEffect(() => { setDisp(curLabel); }, [curLabel]);
@@ -145,20 +145,20 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
               ref={inputRef} value={val} disabled={!live} onChange={onChange} onKeyDown={onKey}
               placeholder={live ? `Type the ${noun}…` : ''}
               autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: T.white, color: COLORS.ink, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: `var(--stg-surf,${T.white})`, color: `var(--stg-ink,${COLORS.ink})`, transition: 'border-color .15s' }}
             />
             {cur != null && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={reshuffle} title="Re-shuffle the visible letters." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>↻ Shuffle</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={reshuffle} title="Re-shuffle the visible letters." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>↻ Shuffle</button>
             )}
             {cur != null && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Previous clue." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Previous clue." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>&larr; Back</button>
             )}
             {cur != null && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess." style={{ flex: 'none', fontFamily: SANS, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>Next &rarr;</button>
             )}
           </div>
         )}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 16px', minHeight: 30 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 14, background: live ? COLORS.ink : `var(--stg-surf2,${COLORS.paper})`, color: live ? COLORS.cream : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '16px 16px', minHeight: 30 }}>
           <span style={{ fontFamily: SANS, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Scramble'}</span>
           {!started ? <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 20 }}>Press Play to start</span>
             : ended ? <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 20 }}>Game over</span>
@@ -170,9 +170,9 @@ export default function WordScrambleBoard({ items, started, ended, revealed, onM
           {list.map((it, i) => {
             const got = matched.has(i);
             return (
-              <div key={i} style={{ border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: SANS, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
-                <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
+              <div key={i} style={{ border: `1px solid ${got ? `var(--stg-good,${COLORS.forest})` : `var(--stg-line,${COLORS.faded + '55'})`}`, background: got ? `var(--stg-surf2,#e8efdd)` : `var(--stg-surf,#fbf7ef)`, padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: SANS, fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: `var(--stg-mute,${COLORS.faded})`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
+                <span style={{ fontFamily: SANS, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : `var(--stg-mute,${COLORS.faded})`) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
               </div>
             );
           })}

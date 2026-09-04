@@ -15,9 +15,9 @@ const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 export default function RegisterRankLine({ rank, onRegister, margin = '0 0 16px' }) {
   if (rank == null || !onRegister) return null;
   return (
-    <div style={{ margin, background: C.accSoft, border: `1px solid ${C.accBorder}`, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontSize: 13.5, lineHeight: 1.4, color: C.ink, textAlign: 'center' }}>
-      You would be <b style={{ color: C.ember, fontWeight: 800 }}>#{rank}</b> on the leaderboard if you{' '}
-      <button onClick={onRegister} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: C.ember, fontWeight: 800, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>register</button>.
+    <div style={{ margin, background: C.accSoft, border: `1px solid ${C.accBorder}`, borderRadius: 10, padding: '11px 14px', fontFamily: FONT, fontSize: 13.5, lineHeight: 1.4, color: `var(--stg-ink,${C.ink})`, textAlign: 'center' }}>
+      You would be <b style={{ color: `var(--stg-acc-ink,${C.ember})`, fontWeight: 800 }}>#{rank}</b> on the leaderboard if you{' '}
+      <button onClick={onRegister} style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: `var(--stg-acc-ink,${C.ember})`, fontWeight: 800, textDecoration: 'underline', textUnderlineOffset: 3, cursor: 'pointer' }}>register</button>.
     </div>
   );
 }

@@ -27,7 +27,7 @@ const C = { cream: T.surface, paper: T.paper, ink: T.ink, ember: T.accent, fores
 const FONT = "'Manrope', system-ui, -apple-system, sans-serif";
 
 function btn(bg, fg, outline) {
-  return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid ${C.ink}` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
+  return { fontFamily: FONT, fontSize: 11, letterSpacing: '0.02em', textTransform: 'uppercase', fontWeight: 700, padding: '0 6px', lineHeight: '42px', border: outline ? `1.5px solid var(--stg-line2,${C.ink})` : 'none', borderRadius: 10, background: bg, color: fg, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, whiteSpace: 'nowrap', overflow: 'hidden' };
 }
 
 export default function QuizDoneRecap({ score, total, hideScore = false, rows = null, answersTitle = 'The answers', quiz = null, mobile = false, onPlayAgain, onPlaySimilar }) {
@@ -42,11 +42,11 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
 
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ background: C.paper, borderRadius: 12, border: `1px solid ${C.faded}33`, padding: hideScore ? '12px 14px' : '13px 14px' }}>
+      <div style={{ background: `var(--stg-surf2,${C.paper})`, borderRadius: 12, border: `1px solid var(--stg-line,${C.faded}33)`, padding: hideScore ? '12px 14px' : '13px 14px' }}>
         {hideScore ? null : (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 12 }}>
-            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, lineHeight: 1 }}>{score}<span style={{ fontSize: 17, color: C.faded }}>/{total}</span></div>
-            <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>Final score</div>
+            <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, lineHeight: 1 }}>{score}<span style={{ fontSize: 17, color: `var(--stg-mute,${C.faded})` }}>/{total}</span></div>
+            <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: `var(--stg-mute,${C.faded})` }}>Final score</div>
           </div>
         )}
         <div style={{ display: 'grid', gap: 8, gridTemplateColumns: mobile ? '1fr' : 'repeat(3, minmax(0, 1fr))', alignItems: 'stretch' }}>
@@ -72,20 +72,20 @@ export default function QuizDoneRecap({ score, total, hideScore = false, rows = 
           ) : null}
         </div>
         <div style={{ textAlign: 'center', marginTop: 10 }}>
-          <a href="/quizzes/hub?tab=duels" style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
+          <a href="/quizzes/hub?tab=duels" style={{ fontFamily: FONT, fontSize: 12, fontWeight: 600, color: `var(--stg-mute,${C.faded})`, textDecoration: 'underline', textUnderlineOffset: 3 }}>Duel Leaderboard</a>
         </div>
       </div>
 
       {rows && rows.length > 0 ? (
         <div style={{ marginTop: 14 }}>
-          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, fontWeight: 700, marginBottom: 10 }}>{answersTitle}</div>
+          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-acc-ink,${C.ember})`, fontWeight: 700, marginBottom: 10 }}>{answersTitle}</div>
           <ol style={{ margin: 0, padding: 0, listStyle: 'none' }}>
             {rows.map((r, i) => (
-              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${r.good ? C.forest : C.faded + '33'}`, marginBottom: 8, background: r.good ? T.white : C.paper }}>
-                <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, color: C.faded, minWidth: 20 }}>{i + 1}</span>
+              <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, border: `1px solid ${r.good ? `var(--stg-good,${C.forest})` : `var(--stg-line,${C.faded + '33'})`}`, marginBottom: 8, background: r.good ? `var(--stg-surf,${T.white})` : `var(--stg-surf2,${C.paper})` }}>
+                <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, color: `var(--stg-mute,${C.faded})`, minWidth: 20 }}>{i + 1}</span>
                 <span style={{ flex: 1, fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>{r.label}</span>
-                {r.detail != null ? <span style={{ fontFamily: FONT, fontSize: 12, color: C.faded }}>{r.detail}</span> : null}
-                {r.sub != null ? <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: r.good ? C.forest : C.faded, minWidth: 44, textAlign: 'right' }}>{r.sub}</span> : null}
+                {r.detail != null ? <span style={{ fontFamily: FONT, fontSize: 12, color: `var(--stg-mute,${C.faded})` }}>{r.detail}</span> : null}
+                {r.sub != null ? <span style={{ fontFamily: FONT, fontSize: 14, fontWeight: 700, color: r.good ? C.forest : `var(--stg-mute,${C.faded})`, minWidth: 44, textAlign: 'right' }}>{r.sub}</span> : null}
               </li>
             ))}
           </ol>

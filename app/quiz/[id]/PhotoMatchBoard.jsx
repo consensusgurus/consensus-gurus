@@ -51,8 +51,8 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
   const live = started && !ended;
   const dock = mobile && live;
   const barStyle = dock
-    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: COLORS.cream, padding: '10px 14px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', alignItems: 'center', gap: 10 }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 10 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, background: `var(--stg-surf,${COLORS.cream})`, padding: '10px 14px', paddingBottom: 'calc(10px + env(safe-area-inset-bottom))', borderTop: `1px solid var(--stg-line,${COLORS.faded}22)`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', alignItems: 'center', gap: 10 }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: `var(--stg-surf,${COLORS.cream})`, paddingTop: 4, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 10 };
 
   // Preconnect + warm the whole deck so cycling pictures never blanks.
   useEffect(() => {
@@ -123,13 +123,13 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
           const got = matched.has(i);
           const show = got || revealed;
           return (
-            <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded + '55')}`, background: got ? T.white : (revealed ? '#f6ead9' : '#fbf7ef'), borderRadius: 2, overflow: 'hidden' }}>
+            <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? `var(--stg-good,${COLORS.forest})` : (revealed ? `var(--stg-warn,${COLORS.rust})` : `var(--stg-line,${COLORS.faded + '55'})`)}`, background: got ? `var(--stg-surf2,${T.white})` : `var(--stg-surf,${revealed ? '#f6ead9' : '#fbf7ef'})`, borderRadius: 2, overflow: 'hidden' }}>
               <div style={{ position: 'relative', width: '100%', aspectRatio: '1 / 1', background: COLORS.ink, overflow: 'hidden' }}>
                 <img src={it.img} alt={show ? it.t : `Picture ${i + 1}`} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', opacity: show ? 1 : 0.5, filter: show ? 'none' : 'grayscale(0.5)' }} />
               </div>
               <div style={{ padding: '7px 9px 9px' }}>
-                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 14, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</div>
-                {show && it.landmark && <div style={{ fontFamily: MONO, fontSize: 10, color: COLORS.faded, marginTop: 2, lineHeight: 1.2 }}>{it.landmark}</div>}
+                <div style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 14, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : `var(--stg-mute,${COLORS.faded})`) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</div>
+                {show && it.landmark && <div style={{ fontFamily: MONO, fontSize: 10, color: `var(--stg-mute,${COLORS.faded})`, marginTop: 2, lineHeight: 1.2 }}>{it.landmark}</div>}
               </div>
             </div>
           );
@@ -142,14 +142,14 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
     <div>
       {/* Slideshow prompt: one picture at a time. */}
       <div style={barStyle}>
-        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: live ? COLORS.ink : COLORS.faded }}>
+        <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: live ? `var(--stg-ink,${COLORS.ink})` : `var(--stg-mute,${COLORS.faded})` }}>
           {live ? `Tap the title of this ${noun}.` : 'Press Play to start'}
         </span>
         {live && cur != null && (
-          <button onClick={back} title="Go back to the previous painting." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+          <button onClick={back} title="Go back to the previous painting." style={{ marginLeft: 'auto', flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>&larr; Back</button>
         )}
         {live && cur != null && (
-          <button onClick={skip} title="Skip to the next painting; this one comes back around." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+          <button onClick={skip} title="Skip to the next painting; this one comes back around." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '8px 12px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>Next &rarr;</button>
         )}
       </div>
 
@@ -157,12 +157,12 @@ export default function PhotoMatchBoard({ items, started, ended, revealed, onMat
         {live && curItem ? (
           <img src={curItem.img} alt={`Match this ${noun} to its title`} style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         ) : (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: COLORS.faded, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{started ? 'All done' : 'Press Play to start'}</div>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: `var(--stg-mute,${COLORS.faded})`, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{started ? 'All done' : 'Press Play to start'}</div>
         )}
       </div>
 
       {/* Full answer bank, alphabetised by title. */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: `var(--stg-surf2,${COLORS.paper})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '16px 14px' }}>
         {bankOrder.map((k) => {
           const isMatched = matched.has(k);
           const isFlash = flash && flash.key === k;

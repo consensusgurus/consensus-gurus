@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { T } from '@/lib/theme';
+import { useStageTheme } from '@/lib/stage-theme';
 
 // Fullscreen live-play popup for mobile quiz play.
 //
@@ -20,8 +21,32 @@ import { T } from '@/lib/theme';
 // the overlay to the visual viewport removes that, and keeps a bottom-docked input
 // (position:fixed, bottom:kbInset) aligned to the top of the keyboard.
 
-export default function QuizPlayOverlay({ open, background = T.surface, children }) {
+// ⚠️ THE STAGE DOES NOT REACH THROUGH A PORTAL, AND THIS IS WHERE THAT BITES.
+//
+// Every --stg-* token is defined ON .stage-page. This overlay is portaled to
+// document.body, so it is a SIBLING of the page rather than a descendant, and
+// inside it not one of those custom properties resolves. That does not fail
+// loudly -- var(--stg-x, <original>) simply falls back, so the board paints in
+// its old cream palette while the ink the client computed for it resolves to
+// var(--stg-ink,#e9edf4), a near-WHITE fallback, on a near-white sheet.
+//
+// This is the whole mobile play surface for nine of the twelve quiz clients,
+// and it is the ONE state a desktop review never sees: it exists only on a
+// phone, only after Play is pressed. Looking at the page at rest cannot find
+// it, a residue count cannot find it, and it is invisible in the diff.
+//
+// The fix is to carry the token bag across the portal, and .stage-page is
+// exactly that and nothing else -- app/globals.css declares custom properties
+// on it and not one ordinary property, so putting the class on a fixed overlay
+// changes no layout and inherits the register wholesale. The register itself
+// still has to be stamped here: data-stage-theme is what selects the light set,
+// and an ancestor's attribute cannot be seen from outside its subtree either.
+export default function QuizPlayOverlay({ open, background = T.surface, stage = false, children }) {
   const [vp, setVp] = useState(null); // { top, left, width, height } from visualViewport
+  // Called unconditionally, above every early return: this component returns
+  // its children untouched when it is closed, and a hook behind that branch
+  // would change the hook order between a closed and an open overlay.
+  const [stageTheme] = useStageTheme();
 
   useEffect(() => {
     if (!open) return undefined;
@@ -62,12 +87,16 @@ export default function QuizPlayOverlay({ open, background = T.surface, children
 
   const overlay = (
     <div
+      className={stage ? 'stage-page' : undefined}
+      data-stage-theme={stage ? stageTheme : undefined}
       style={{
         position: 'fixed',
         ...pos,
         zIndex: 60,
-        background,
-        color: T.ink,
+        // The caller's own background still wins where it passes one; nobody
+        // does today, so the default is what every mobile player actually sees.
+        background: stage ? 'var(--stg-ground)' : background,
+        color: stage ? 'var(--stg-ink)' : T.ink,
         overflowY: 'auto',
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',

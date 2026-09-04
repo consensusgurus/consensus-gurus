@@ -1428,7 +1428,7 @@ export default function QuizClient({ quizId }) {
 
               {lb.length === 0 ? (
                 <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 16, color: FADED }}>
-                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: COLORS.ember, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
+                  {lbEmptyNote(lbFilter) || <>No one has posted a score yet. <button onClick={() => setTab('join')} style={{ background: 'none', border: 'none', padding: 0, color: `var(--stg-acc-ink,${COLORS.ember})`, font: 'inherit', fontStyle: 'italic', textDecoration: 'underline', cursor: 'pointer' }}>Join the leaderboard</button> and be first.</>}
                 </p>
               ) : (
                 <div>
@@ -1458,7 +1458,7 @@ export default function QuizClient({ quizId }) {
   const similarList = ended ? moreLikeThis.filter((rq) => !seriesIds.has(rq.id)) : moreLikeThis;
   const similarQuizzes = similarList.length > 0 ? (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid var(--stg-line,${COLORS.line})` }}>
-      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Similar quizzes</div>
+      <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-acc-ink,${COLORS.ember})`, marginBottom: 16 }}>Similar quizzes</div>
       <SimilarQuizTiles items={similarList} />
     </div>
   ) : null;
@@ -1690,7 +1690,7 @@ export default function QuizClient({ quizId }) {
           )}
           {runActive && (
             <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', padding: '8px 14px', borderRadius: 10, border: `1.5px solid ${COLORS.accBorder}`, background: `var(--stg-acc-tint,${COLORS.accSoft})` }}>
-              <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: COLORS.ember }}>Daily Challenge · {chAccent}</span>
+              <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, color: `var(--stg-acc-ink,${COLORS.ember})` }}>Daily Challenge · {chAccent}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   {chStepIds.map((_, k) => (
@@ -1766,16 +1766,16 @@ export default function QuizClient({ quizId }) {
               </div>
               <div style={{ marginTop: 9 }}>
                 {quiz.listId && (
-                  <a href={`/list/${quiz.listId}`} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}>See the full list detail</a>
+                  <a href={`/list/${quiz.listId}`} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: `var(--stg-acc-ink,${COLORS.ember})`, border: `1.5px solid var(--stg-acc,${COLORS.ember})` }}>See the full list detail</a>
                 )}
                 {canReveal && identity && !revealed && (
-                  <button onClick={() => { setRevealed(true); setTab('play'); jumpToBoard(); }} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}><Eye size={15} strokeWidth={2.5} /> Reveal answers below</button>
+                  <button onClick={() => { setRevealed(true); setTab('play'); jumpToBoard(); }} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: `var(--stg-acc-ink,${COLORS.ember})`, border: `1.5px solid var(--stg-acc,${COLORS.ember})` }}><Eye size={15} strokeWidth={2.5} /> Reveal answers below</button>
                 )}
                 {canReveal && revealed && (
                   <button onClick={jumpToBoard} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: COLORS.forest, border: `1.5px solid ${COLORS.forest}` }}><Eye size={15} strokeWidth={2.5} /> Jump to answers</button>
                 )}
                 {!identity && !claimOpen && (
-                  <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: COLORS.ember, border: `1.5px solid ${COLORS.ember}` }}>{canReveal ? (<><Eye size={15} strokeWidth={2.5} /> Reveal answers below</>) : (<><Trophy size={15} strokeWidth={2.5} /> Post this to the leaderboard</>)}</button>
+                  <button onClick={() => { setClaimMsg(''); setClaimErr(false); setClaimOpen(true); }} style={{ ...stackBtn, background: `var(--stg-surf,${T.white})`, color: `var(--stg-acc-ink,${COLORS.ember})`, border: `1.5px solid var(--stg-acc,${COLORS.ember})` }}>{canReveal ? (<><Eye size={15} strokeWidth={2.5} /> Reveal answers below</>) : (<><Trophy size={15} strokeWidth={2.5} /> Post this to the leaderboard</>)}</button>
                 )}
                 {!identity && claimOpen && (
                   <div style={{ maxWidth: 420, margin: '0 auto' }}>
@@ -1813,7 +1813,7 @@ export default function QuizClient({ quizId }) {
         <div className={LOFT ? 'loft-flip-in' : undefined}>
         <div className={LOFT ? 'loft-face' : undefined}>
         <div className={LOFT ? 'loft-sheet' : undefined}>
-          <QuizPlayOverlay open={mPlayOverlay}>
+          <QuizPlayOverlay open={mPlayOverlay} stage={QSTAGE}>
             {/* Compact title row, shown only inside the mobile fullscreen popup
                 (the page title/header is covered by the overlay). */}
             {mPlayOverlay && (
@@ -2051,9 +2051,9 @@ export default function QuizClient({ quizId }) {
                 return (
                   <li key={i} ref={setFlipRef(i)} style={{ display: 'flex', alignItems: 'center', gap: rz.gap, padding: rz.pad, borderRadius: 10, border: `1px solid ${f ? `var(--stg-acc,${COLORS.accBorder})` : isActive ? COLORS.ember : reveal ? COLORS.rust : `var(--stg-line,${COLORS.line})`}`, marginBottom: rz.mb, background: reveal ? '#fdecec' : f ? `var(--stg-acc-tint,${COLORS.accSoft})` : `var(--stg-surf,${T.white})`, boxShadow: isActive ? `inset 4px 0 0 ${COLORS.ember}` : reveal ? `inset 4px 0 0 ${COLORS.rust}` : 'none', transition: 'background .2s, border-color .2s, box-shadow .2s, color .2s' }}>
                     {a.label != null ? (
-                      <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: COLORS.ember, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
+                      <span style={{ fontFamily: MONO, fontWeight: 500, fontSize: 12, minWidth: 44, maxWidth: '50%', overflowWrap: 'normal', wordBreak: 'normal', whiteSpace: 'normal', lineHeight: 1.2, color: `var(--stg-acc-ink,${COLORS.ember})`, flex: 'none', textAlign: 'left', letterSpacing: '0.04em' }}>{a.label}</span>
                     ) : (
-                      quiz.hideNumbers ? null : <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: COLORS.ember, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
+                      quiz.hideNumbers ? null : <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: rz.rank, width: rz.rankW, color: `var(--stg-acc-ink,${COLORS.ember})`, flex: 'none', textAlign: 'center' }}>{i + 1}</span>
                     )}
                     {f ? (
                       <span style={{ fontFamily: SERIF, fontSize: a.label != null ? 11 : rz.name, fontWeight: a.label != null ? 400 : 500, flex: 1, minWidth: 0, lineHeight: 1.2, ...nameWrap }}>{a.t}</span>
@@ -2074,7 +2074,7 @@ export default function QuizClient({ quizId }) {
                         style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontSize: 16, padding: '9px 12px', borderRadius: 10, border: `1.5px solid var(--stg-line,${COLORS.ink})`, borderRadius: 8, background: !started || ended ? `var(--stg-surf,${COLORS.paper})` : `var(--stg-surf,${T.paper})`, color: INK, opacity: !started || ended ? 0.5 : 1 }}
                       />
                     ) : isActive ? (
-                      <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: COLORS.ember, flex: 1 }}>Type it in the box above</span>
+                      <span style={{ fontFamily: SANS, fontSize: 14, fontStyle: 'italic', color: `var(--stg-acc-ink,${COLORS.ember})`, flex: 1 }}>Type it in the box above</span>
                     ) : (
                       <span style={{ fontFamily: MONO, fontSize: rz.dash, letterSpacing: '0.06em', color: FADED, opacity: 0.55, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}>— — —</span>
                     )}
@@ -2212,7 +2212,7 @@ export default function QuizClient({ quizId }) {
         {/* ── STATS & LEADERBOARD (quiz stats + leaderboard) ── */}
         {tab === 'stats' && (
           <div>
-            <button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button>
+            <button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: `var(--stg-acc-ink,${COLORS.ember})`, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button>
             {fullLeaderboard}
           </div>
         )}
@@ -2220,7 +2220,7 @@ export default function QuizClient({ quizId }) {
         {/* ── SHARE ── */}
         {tab === 'share' && (
           <div style={{ textAlign: 'center', padding: '12px 0 8px' }}>
-            <div style={{ textAlign: 'left' }}><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button></div>
+            <div style={{ textAlign: 'left' }}><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: `var(--stg-acc-ink,${COLORS.ember})`, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button></div>
             <p style={{ fontFamily: SERIF, fontStyle: 'italic', fontSize: 19, color: INK, maxWidth: 480, margin: '0 auto 18px' }}>{ended ? `You scored ${dispScore} of ${total}. Challenge someone to beat it.` : 'Send this quiz to someone who thinks they know better.'}</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 14 }}>
               {[['x', 'X'], ['reddit', 'Reddit'], ['facebook', 'Facebook'], ['whatsapp', 'WhatsApp']].map(([k, label]) => (
@@ -2241,7 +2241,7 @@ export default function QuizClient({ quizId }) {
 
         {/* ── JOIN THE LEADERBOARD (sign-up) ── */}
         {tab === 'join' && (
-          <div><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: COLORS.ember, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button><JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} /></div>
+          <div><button onClick={() => setTab('play')} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', fontFamily: SANS, fontSize: 12.5, fontWeight: 600, color: `var(--stg-acc-ink,${COLORS.ember})`, padding: 0, marginBottom: 16 }}><ArrowLeft size={13} strokeWidth={2.5} /> Back to quiz</button><JoinLeaderboardForm identity={identity} onJoined={(id) => { setIdentity(id); refreshBoard(); setTab('stats'); }} onViewLeaderboard={() => setTab('stats')} /></div>
         )}
 
         {(asOfLabel || quiz.source) && (
@@ -2251,7 +2251,7 @@ export default function QuizClient({ quizId }) {
             {quiz.source && (
               <>Source:{' '}
                 {quiz.source.url ? (
-                  <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: COLORS.ember }}>{quiz.source.label}</a>
+                  <a href={quiz.source.url} target="_blank" rel="noopener noreferrer" style={{ color: `var(--stg-acc-ink,${COLORS.ember})` }}>{quiz.source.label}</a>
                 ) : (
                   quiz.source.label
                 )}
@@ -2262,7 +2262,7 @@ export default function QuizClient({ quizId }) {
 
         {ended && seriesParts.length > 0 && (
           <div style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)` }}>
-            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: COLORS.ember, marginBottom: 16 }}>Rest of the series</div>
+            <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-acc-ink,${COLORS.ember})`, marginBottom: 16 }}>Rest of the series</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
               {seriesParts.map((sp) => {
                 const m = sp.id.match(/-(\d+)$/);
@@ -2347,7 +2347,7 @@ export default function QuizClient({ quizId }) {
                   <button
                     onClick={submitQuestion}
                     disabled={qBusy}
-                    style={{ cursor: 'pointer', background: `var(--stg-acc,${COLORS.ember})`, color: `var(--stg-onramp,${T.white})`, borderRadius: 10, border: `1.5px solid ${COLORS.ember}`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}
+                    style={{ cursor: 'pointer', background: `var(--stg-acc,${COLORS.ember})`, color: `var(--stg-onramp,${T.white})`, borderRadius: 10, border: `1.5px solid var(--stg-acc,${COLORS.ember})`, padding: '10px 18px', fontFamily: MONO, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, opacity: qBusy ? 0.6 : 1 }}
                   >
                     {qBusy ? 'Sending...' : 'Send to editors'}
                   </button>

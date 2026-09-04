@@ -35,16 +35,16 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (onOpen) onOpen(); } }}
       title="See the full leaderboard"
       className="qz-lbstrip"
-      style={{ display: 'flex', alignItems: 'center', width: '100%', boxSizing: 'border-box', margin: '11px 0 0', padding: '8px 12px', background: T.white, border: `1px solid ${C.line}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: FONT }}
+      style={{ display: 'flex', alignItems: 'center', width: '100%', boxSizing: 'border-box', margin: '11px 0 0', padding: '8px 12px', background: `var(--stg-surf,${T.white})`, border: `1px solid ${C.line}`, borderRadius: 12, cursor: 'pointer', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: FONT }}
     >
       <style>{CSS}</style>
       <Trophy size={13} strokeWidth={2.5} color={C.acc} style={{ flex: 'none', marginRight: 8 }} />
-      <span style={{ flex: 'none', fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: C.soft, marginRight: 12 }}>Leaderboard</span>
+      <span style={{ flex: 'none', fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: `var(--stg-mute,${C.soft})`, marginRight: 12 }}>Leaderboard</span>
       {kids}
     </div>
   );
   if (!rows.length) {
-    return wrap(<span style={{ flex: 'none', fontSize: 12.5, color: C.muted }}>Be the first to post a score <span style={{ color: C.acc, fontWeight: 700 }}>&rarr;</span></span>);
+    return wrap(<span style={{ flex: 'none', fontSize: 12.5, color: `var(--stg-mute,${C.muted})` }}>Be the first to post a score <span style={{ color: C.acc, fontWeight: 700 }}>&rarr;</span></span>);
   }
   const top = rows.slice(0, 3);
   const mine = (r) => !!(identity && r.username === identity.username);
@@ -54,11 +54,11 @@ export default function LeaderboardStrip({ board, identity, onOpen }) {
       {top.map((r, i) => (
         <span key={`${r.username || 'p'}-${i}`} className={`qz-lbe qz-lbe-${i + 1}`} style={{ flex: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginRight: 13 }}>
           <span style={{ width: 17, height: 17, borderRadius: '50%', background: MEDAL[i], color: T.white, fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>{i + 1}</span>
-          <span className="qz-lbnm" style={{ fontSize: 12.5, fontWeight: mine(r) ? 800 : 600, color: mine(r) ? C.acc : C.ink }}>{(r.username || 'Player') + (mine(r) ? ' (you)' : '')}</span>
-          <span style={{ fontSize: 12.5, color: C.soft }}>{r.score}</span>
+          <span className="qz-lbnm" style={{ fontSize: 12.5, fontWeight: mine(r) ? 800 : 600, color: mine(r) ? C.acc : `var(--stg-ink,${C.ink})` }}>{(r.username || 'Player') + (mine(r) ? ' (you)' : '')}</span>
+          <span style={{ fontSize: 12.5, color: `var(--stg-mute,${C.soft})` }}>{r.score}</span>
         </span>
       ))}
-      {plays ? <span className="qz-lbpl" style={{ flex: 'none', fontSize: 11.5, color: C.soft }}>&middot; {plays.toLocaleString()} {plays === 1 ? 'play' : 'plays'}</span> : null}
+      {plays ? <span className="qz-lbpl" style={{ flex: 'none', fontSize: 11.5, color: `var(--stg-mute,${C.soft})` }}>&middot; {plays.toLocaleString()} {plays === 1 ? 'play' : 'plays'}</span> : null}
       </span>
       <span style={{ flex: 'none', marginLeft: 12, paddingLeft: 12, borderLeft: `1px solid ${C.line}`, fontSize: 11, fontWeight: 700, color: C.acc }}>View all &rarr;</span>
     </>

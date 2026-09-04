@@ -75,8 +75,8 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
   const live = started && !ended;
   const dock = mobile && live;
   const barStyle = dock
-    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderTop: `1px solid ${COLORS.faded}33`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', marginBottom: 10, minHeight: 30 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 40, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : `var(--stg-surf2,${COLORS.paper})`, color: live ? COLORS.cream : `var(--stg-mute,${COLORS.faded})`, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '12px 16px', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))', minHeight: 30, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)' }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : `var(--stg-surf2,${COLORS.paper})`, color: live ? COLORS.cream : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '14px 16px', marginBottom: 10, minHeight: 30 };
   const guessesLeft = total - matched.size - errors;
   const remaining = total - matched.size;
 
@@ -203,12 +203,12 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
       </div>
 
       {!ended && (
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: `var(--stg-surf2,${COLORS.paper})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '16px 14px' }}>
         {bankOrder.map((k) => {
           const isMatched = matched.has(k);
           const isFlash = flash && flash.key === k;
-          let bg = '#fffdf8';
-          let fg = COLORS.ink;
+          let bg = `var(--stg-surf,#fffdf8)`;
+          let fg = `var(--stg-ink,${COLORS.ink})`;
           if (isMatched) { bg = COLORS.forest; fg = COLORS.cream; }
           else if (isFlash) { bg = flash.ok ? COLORS.forest : COLORS.ember; fg = COLORS.cream; }
           return (
@@ -230,9 +230,9 @@ export default function BankQuizBoard({ pairs, started, ended, revealed, onMatch
           {pairs.map((p, i) => {
             const got = donePrompts.has(p[1]);
             return (
-              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p[1]}</span>
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '\u2713 ' + p[0] : (revealed ? p[0] : '\u2022 \u2022 \u2022')}</span>
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? `var(--stg-good,${COLORS.forest})` : `var(--stg-line,${COLORS.faded + '55'})`}`, background: got ? `var(--stg-surf2,#e8efdd)` : `var(--stg-surf,#fbf7ef)`, padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: `var(--stg-mute,${COLORS.faded})`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p[1]}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: got ? COLORS.forest : (revealed ? COLORS.rust : `var(--stg-mute,${COLORS.faded})`) }}>{got ? '\u2713 ' + p[0] : (revealed ? p[0] : '\u2022 \u2022 \u2022')}</span>
               </div>
             );
           })}

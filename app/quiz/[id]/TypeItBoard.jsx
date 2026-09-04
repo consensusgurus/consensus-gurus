@@ -69,8 +69,8 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
   }, [mobile, started, ended]);
   const dock = mobile && live;
   const barStyle = dock
-    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: COLORS.cream, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid ${COLORS.faded}22`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
-    : { position: 'sticky', top: stickyTop, zIndex: 4, background: COLORS.cream, paddingTop: 4, paddingBottom: 8 };
+    ? { position: 'fixed', left: 0, right: 0, bottom: kbInset, zIndex: 40, background: `var(--stg-surf,${COLORS.cream})`, padding: '8px 14px', paddingBottom: kbInset > 0 ? 8 : 'calc(8px + env(safe-area-inset-bottom))', borderTop: `1px solid var(--stg-line,${COLORS.faded}22)`, boxShadow: '0 -6px 18px rgba(20,22,28,0.10)', display: 'flex', flexDirection: 'column-reverse', gap: 8 }
+    : { position: 'sticky', top: stickyTop, zIndex: 4, background: `var(--stg-surf,${COLORS.cream})`, paddingTop: 4, paddingBottom: 8 };
   const guessesLeft = Math.max(0, total - matched.size - errors);
   const remaining = total - matched.size;
   const noun = answerNoun || 'answer';
@@ -164,35 +164,35 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: T.white, color: COLORS.ink, transition: 'border-color .15s' }}
+              style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', fontFamily: SANS, fontSize: 18, padding: '14px 16px', borderRadius: 10, border: `2px solid ${borderColor}`, background: `var(--stg-surf,${T.white})`, color: `var(--stg-ink,${COLORS.ink})`, transition: 'border-color .15s' }}
             />
             {cur != null && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous clue." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>&larr; Back</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={back} title="Go back to the previous clue." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>&larr; Back</button>
             )}
             {cur != null && (
-              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: COLORS.ink, borderRadius: 10, border: `1.5px solid ${COLORS.ink}`, cursor: 'pointer' }}>Next &rarr;</button>
+              <button onMouseDown={(e) => e.preventDefault()} onClick={skip} title="Skip to the next clue without spending a guess, you can come back." style={{ flex: 'none', fontFamily: MONO, fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase', fontWeight: 700, padding: '0 13px', background: 'transparent', color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 10, border: `1.5px solid var(--stg-line2,${COLORS.ink})`, cursor: 'pointer' }}>Next &rarr;</button>
             )}
           </div>
         )}
         {clueVariant === 'careers' ? (
-        <div style={{ background: T.white, color: COLORS.ink, borderRadius: 12, border: `1px solid ${COLORS.faded}44`, padding: '14px 16px' }}>
-          <div style={{ textAlign: 'center', fontFamily: SERIF, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', color: COLORS.ink, paddingBottom: 8, marginBottom: 8, borderBottom: `1px solid ${COLORS.faded}33` }}>Career history</div>
+        <div style={{ background: `var(--stg-surf,${T.white})`, color: `var(--stg-ink,${COLORS.ink})`, borderRadius: 12, border: `1px solid var(--stg-line,${COLORS.faded}44)`, padding: '14px 16px' }}>
+          <div style={{ textAlign: 'center', fontFamily: SERIF, fontWeight: 800, fontSize: 15, letterSpacing: '0.01em', color: `var(--stg-ink,${COLORS.ink})`, paddingBottom: 8, marginBottom: 8, borderBottom: `1px solid var(--stg-line,${COLORS.faded}33)` }}>Career history</div>
           {(live && cur != null) ? (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {(list[cur].stints || []).map((s, si) => (
                 <li key={si} style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 6, padding: '3px 0', lineHeight: 1.4 }}>
-                  <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(15px, 2.6vw, 19px)', color: COLORS.ember }}>{s.team}</span>
-                  <span style={{ fontFamily: SANS, fontSize: 'clamp(14px, 2.4vw, 17px)', color: COLORS.faded }}>({s.years}){s.note ? '*' : ''}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 700, fontSize: 'clamp(15px, 2.6vw, 19px)', color: `var(--stg-acc-ink,${COLORS.ember})` }}>{s.team}</span>
+                  <span style={{ fontFamily: SANS, fontSize: 'clamp(14px, 2.4vw, 17px)', color: `var(--stg-mute,${COLORS.faded})` }}>({s.years}){s.note ? '*' : ''}</span>
                 </li>
               ))}
-              {list[cur].note ? (<li style={{ marginTop: 8, paddingTop: 6, borderTop: `1px solid ${COLORS.faded}33`, fontFamily: SANS, fontStyle: 'italic', fontSize: 12, color: COLORS.faded }}>* Offseason and/or practice squad member only</li>) : null}
+              {list[cur].note ? (<li style={{ marginTop: 8, paddingTop: 6, borderTop: `1px solid var(--stg-line,${COLORS.faded}33)`, fontFamily: SANS, fontStyle: 'italic', fontSize: 12, color: `var(--stg-mute,${COLORS.faded})` }}>* Offseason and/or practice squad member only</li>) : null}
             </ul>
           ) : (
-            <div style={{ textAlign: 'center', fontFamily: SERIF, fontSize: 18, color: COLORS.faded, padding: '12px 0' }}>{!started ? 'Press Play to start' : ended ? 'Game over' : 'All done'}</div>
+            <div style={{ textAlign: 'center', fontFamily: SERIF, fontSize: 18, color: `var(--stg-mute,${COLORS.faded})`, padding: '12px 0' }}>{!started ? 'Press Play to start' : ended ? 'Game over' : 'All done'}</div>
           )}
         </div>
         ) : (
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : COLORS.paper, color: live ? COLORS.cream : COLORS.faded, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '14px 16px', minHeight: 30 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, background: live ? COLORS.ink : `var(--stg-surf2,${COLORS.paper})`, color: live ? COLORS.cream : `var(--stg-mute,${COLORS.faded})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '14px 16px', minHeight: 30 }}>
           <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', opacity: 0.7, flex: 'none' }}>{promptLabel || 'Clue'}</span>
           <ClueBox current={promptText} clues={list.map((x) => x.label)} align="left" style={{ flex: '1 1 320px', minWidth: 'min(100%, 220px)' }} textStyle={{ fontFamily: SERIF, fontWeight: 800, fontSize: 'clamp(20px, 3.4vw, 28px)', lineHeight: 1.15, overflowWrap: 'break-word', wordBreak: 'normal', hyphens: 'none' }} />
         </div>
@@ -203,9 +203,9 @@ export default function TypeItBoard({ items, started, ended, revealed, onMatch, 
           {list.map((it, i) => {
             const got = matched.has(i);
             return (
-              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? COLORS.forest : COLORS.faded + '55'}`, background: got ? '#e8efdd' : '#fbf7ef', padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: COLORS.faded, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
-                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : COLORS.faded) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
+              <div key={i} style={{ borderRadius: 10, border: `1px solid ${got ? `var(--stg-good,${COLORS.forest})` : `var(--stg-line,${COLORS.faded + '55'})`}`, background: got ? `var(--stg-surf2,#e8efdd)` : `var(--stg-surf,#fbf7ef)`, padding: '8px 11px', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: `var(--stg-mute,${COLORS.faded})`, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.label}</span>
+                <span style={{ fontFamily: SERIF, fontWeight: 800, fontSize: 17, lineHeight: 1.1, color: got ? COLORS.forest : (revealed ? COLORS.rust : `var(--stg-mute,${COLORS.faded})`) }}>{got ? '✓ ' + it.t : (revealed ? it.t : '• • •')}</span>
               </div>
             );
           })}

@@ -281,7 +281,7 @@ export default function QuizStandings({
   return (
     <div className="qiq" style={outer}>
       <style>{`
-        .qiq{font-family:${FONT};color:${C.ink};text-align:left;}
+        .qiq{font-family:${FONT};color:var(--stg-ink,${C.ink});text-align:left;}
         .qiq-hero{position:relative;overflow:hidden;display:block;width:100%;text-align:center;font-family:inherit;cursor:pointer;border:1px solid #cfe0f7;background:linear-gradient(180deg,#f4f8ff 0%,#eaf2fe 100%);border-radius:16px;padding:15px 16px 13px;margin-bottom:10px;transition:border-color .12s ease,box-shadow .12s ease,background .3s ease;}
         .qiq-hero.full{border-color:#cdeeda;background:linear-gradient(180deg,#f2fcf6 0%,#e6f7ee 100%);}
         .qiq-hero:hover{border-color:#9dbdea;}
@@ -307,7 +307,7 @@ export default function QuizStandings({
         .qiq-hero.full .qiq-sub{border-top-color:rgba(15,110,86,.16);color:#3d6b58;}
         .qiq-sub b{font-weight:800;color:var(--blue-deep);}
         .qiq-hero.full .qiq-sub b{color:#0f6e56;}
-        .qiq-sub .prov,.qiq-rk .prov{font-weight:700;color:${C.faded};}
+        .qiq-sub .prov,.qiq-rk .prov{font-weight:700;color:var(--stg-mute,${C.faded});}
         .qiq-sub .lvl{font-weight:800;color:${C.forest};}
         .qiq-sub:empty{display:none;}
         .qiq-mx{position:absolute;top:10px;right:9px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:#3d63a8;pointer-events:none;}
@@ -320,10 +320,10 @@ export default function QuizStandings({
         .qiq-tile:hover{background:var(--white);border-color:#cfd6e2;}
         .qiq-tile.open{border-color:${C.blue};box-shadow:0 0 0 1px ${C.blue};background:var(--white);}
         .qiq-tile-lbl{font-size:12.5px;font-weight:700;color:${C.slate};padding:0 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .qiq-rk{font-size:34px;font-weight:800;letter-spacing:-.02em;color:${C.ink};line-height:1.1;margin-top:4px;display:block;}
+        .qiq-rk{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--stg-ink,${C.ink});line-height:1.1;margin-top:4px;display:block;}
         .qiq-rk .dash{color:#c2c8d2;}
         .qiq-rk .prov{font-size:11px;}
-        .qiq-of{font-size:12px;color:${C.faded};display:block;margin-top:3px;}
+        .qiq-of{font-size:12px;color:var(--stg-mute,${C.faded});display:block;margin-top:3px;}
         .qiq-tile-mx{position:absolute;top:9px;right:8px;color:${C.slate};display:flex;}
         .qiq-expand{border:1px solid ${C.bord};border-radius:12px;padding:11px 13px 9px;margin:-2px 0 12px;background:var(--white);}
         .qiq-expand-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px;}
@@ -331,11 +331,11 @@ export default function QuizStandings({
         .qiq-expand-full{font-size:11.5px;font-weight:800;color:${C.blue};background:none;border:none;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:3px;text-decoration:none;white-space:nowrap;}
         .qiq-row{display:flex;align-items:center;gap:9px;font-size:13px;padding:4px 7px;border-radius:7px;}
         .qiq-row.me{background:#eff4fd;}
-        .qiq-row .rk{font-family:${MONO};font-size:11px;color:${C.faded};width:26px;flex-shrink:0;}
-        .qiq-row .nm{font-weight:700;color:${C.ink};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+        .qiq-row .rk{font-family:${MONO};font-size:11px;color:var(--stg-mute,${C.faded});width:26px;flex-shrink:0;}
+        .qiq-row .nm{font-weight:700;color:var(--stg-ink,${C.ink});min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
         .qiq-row.me .nm{font-weight:800;}
         .qiq-row .vl{font-family:${MONO};font-size:11.5px;color:${C.slate};flex-shrink:0;}
-        .qiq-empty{font-size:12.5px;color:${C.faded};padding:6px 2px;}
+        .qiq-empty{font-size:12.5px;color:var(--stg-mute,${C.faded});padding:6px 2px;}
         @keyframes qiq-pop{0%{transform:scale(1);}38%{transform:scale(1.028);}100%{transform:scale(1);}}
         @keyframes qiq-rays{0%{opacity:0;transform:scale(.6);}30%{opacity:1;}100%{opacity:0;transform:scale(1.25);}}
         @keyframes qiq-shim{100%{transform:translateX(100%);}}

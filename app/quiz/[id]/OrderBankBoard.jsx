@@ -97,10 +97,10 @@ export default function OrderBankBoard({
     flexWrap: 'wrap',
     alignItems: 'center',
     gap: 12,
-    background: live ? COLORS.ink : COLORS.paper,
-    color: live ? COLORS.cream : COLORS.faded,
+    background: live ? `var(--stg-raise,${COLORS.ink})` : `var(--stg-surf2,${COLORS.paper})`,
+    color: live ? `var(--stg-ink,${COLORS.cream})` : `var(--stg-mute,${COLORS.faded})`,
     borderRadius: 10,
-    border: `1px solid ${COLORS.faded}33`,
+    border: `1px solid var(--stg-line,${COLORS.faded}33)`,
     padding: '14px 16px',
     marginBottom: 10,
     minHeight: 30,
@@ -138,7 +138,7 @@ export default function OrderBankBoard({
             return (
               <li key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, border: `1px solid ${bd}`, background: bg, borderRadius: 2, padding: '7px 11px' }}>
                 <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: numColor, minWidth: 24, textAlign: 'right' }}>{i + 1}</span>
-                <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: reached ? 700 : 600, color: COLORS.ink, lineHeight: 1.2 }}>
+                <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: reached ? 700 : 600, color: `var(--stg-ink,${COLORS.ink})`, lineHeight: 1.2 }}>
                   {reached ? `✓ ${it.t}` : revealed ? `${missedSlot ? '✗ ' : ''}${it.t}` : '• • •'}
                 </span>
               </li>
@@ -169,23 +169,23 @@ export default function OrderBankBoard({
       {placed > 0 && (
         <ol style={{ listStyle: 'none', margin: '0 0 14px', padding: 0, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {items.slice(0, placed).map((it, i) => (
-            <li key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#e7f5ef', border: `1px solid ${COLORS.forest}`, borderRadius: 2, padding: '5px 9px' }}>
+            <li key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `var(--stg-surf2,#e7f5ef)`, border: `1px solid var(--stg-good,${COLORS.forest})`, borderRadius: 2, padding: '5px 9px' }}>
               <span style={{ fontFamily: MONO, fontSize: 11, fontWeight: 700, color: COLORS.forest }}>{i + 1}</span>
-              <span style={{ fontFamily: SANS, fontSize: 13, color: COLORS.ink }}>{it.t}</span>
+              <span style={{ fontFamily: SANS, fontSize: 13, color: `var(--stg-ink,${COLORS.ink})` }}>{it.t}</span>
             </li>
           ))}
         </ol>
       )}
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: COLORS.paper, borderRadius: 10, border: `1px solid ${COLORS.faded}33`, padding: '16px 14px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', background: `var(--stg-surf2,${COLORS.paper})`, borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}33)`, padding: '16px 14px' }}>
         {!started && (
-          <span style={{ fontFamily: MONO, fontSize: 12, color: COLORS.faded }}>Press Play to reveal the bank.</span>
+          <span style={{ fontFamily: MONO, fontSize: 12, color: `var(--stg-mute,${COLORS.faded})` }}>Press Play to reveal the bank.</span>
         )}
         {started && bankOrder.map((k) => {
           if (k < placed) return null; // already placed -> removed from the bank
           const isFlash = flash && flash.key === k;
-          let bg = '#fffdf8';
-          let fg = COLORS.ink;
+          let bg = `var(--stg-surf,#fffdf8)`;
+          let fg = `var(--stg-ink,${COLORS.ink})`;
           if (isFlash) { bg = flash.ok ? COLORS.forest : COLORS.ember; fg = COLORS.cream; }
           return (
             <button
@@ -193,7 +193,7 @@ export default function OrderBankBoard({
               type="button"
               disabled={!live}
               onClick={() => clickTile(k)}
-              style={{ fontFamily: SANS, fontSize: 13.5, padding: '9px 13px', background: bg, color: fg, border: `1px solid ${COLORS.faded}66`, borderRadius: 0, cursor: live ? 'pointer' : 'default', transition: 'all .12s', fontWeight: 500 }}
+              style={{ fontFamily: SANS, fontSize: 13.5, padding: '9px 13px', background: bg, color: fg, border: `1px solid var(--stg-line,${COLORS.faded}66)`, borderRadius: 0, cursor: live ? 'pointer' : 'default', transition: 'all .12s', fontWeight: 500 }}
             >
               {items[k].t}
             </button>

@@ -70,9 +70,9 @@ export default function QuizResultModal({
           rank tile on the IQ card directly below, so showing it twice was noise.
           `placement` is still computed and passed down to feed that tile. */}
       <div style={{ textAlign: 'center', marginBottom: 18 }}>
-        {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 6 }}>{eyebrow}</div> : null}
-        <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{score}<span style={{ fontSize: 22, color: C.faded }}> / {total}</span></div>
-        {(headline || subline) ? <p style={{ fontFamily: FONT, fontSize: 13, color: '#4a4339', margin: '6px 0 0' }}>{headline}{headline && subline ? ' · ' : ''}{subline}</p> : null}
+        {eyebrow ? <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 800, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-acc-ink,${C.ember})`, marginBottom: 6 }}>{eyebrow}</div> : null}
+        <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 38, lineHeight: 1 }}>{score}<span style={{ fontSize: 22, color: `var(--stg-mute,${C.faded})` }}> / {total}</span></div>
+        {(headline || subline) ? <p style={{ fontFamily: FONT, fontSize: 13, color: 'var(--stg-ink2,#4a4339)', margin: '6px 0 0' }}>{headline}{headline && subline ? ' · ' : ''}{subline}</p> : null}
       </div>
 
       <RegisterRankLine rank={regRank} onRegister={onRegister} />
@@ -93,12 +93,12 @@ export default function QuizResultModal({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
         {onPlayAgain ? <button onClick={onPlayAgain} style={{ ...stackBtn, background: T.cta, color: T.ctaInk }}><RotateCcw size={15} strokeWidth={2.5} /> Play again</button> : null}
         <UpNextCard quiz={quiz} />
-        {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: C.ink, color: T.white }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
+        {duelHref ? <a href={duelHref} style={{ ...stackBtn, background: `var(--stg-raise,${C.ink})`, color: `var(--stg-ink,${T.white})` }}><Swords size={15} strokeWidth={2.5} /> Challenge a friend</a> : null}
       </div>
 
       {similar.length > 0 ? (
         <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${C.line}` }}>
-          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.ember, marginBottom: 16 }}>Similar quizzes</div>
+          <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-acc-ink,${C.ember})`, marginBottom: 16 }}>Similar quizzes</div>
           <SimilarQuizTiles items={similar} />
         </div>
       ) : null}
@@ -106,7 +106,7 @@ export default function QuizResultModal({
       {leaderboard ? <div style={{ marginTop: 24, paddingTop: 20, borderTop: `1px solid ${C.line}` }}>{leaderboard}</div> : null}
 
       <div style={{ textAlign: 'center', marginTop: 14 }}>
-        {onReport ? <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: C.faded, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button> : null}
+        {onReport ? <button onClick={onReport} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', fontFamily: FONT, fontSize: 12, fontWeight: 600, color: `var(--stg-mute,${C.faded})`, textDecoration: 'underline', textUnderlineOffset: 3 }}>Report an error</button> : null}
       </div>
     </div>
   );

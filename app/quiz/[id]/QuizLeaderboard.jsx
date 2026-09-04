@@ -54,15 +54,15 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
   const lbRanks = [], lbTied = [];
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); lbRanks[i] = p ? lbRanks[i - 1] : i + 1; }
   for (let i = 0; i < lb.length; i++) { const p = i > 0 && samePerf(lb[i], lb[i - 1]); const n = i < lb.length - 1 && samePerf(lb[i], lb[i + 1]); lbTied[i] = p || n; }
-  const chip = (on) => ({ padding: '6px 14px', background: on ? T.white : 'transparent', color: on ? C.ink : C.soft, border: 'none', borderRadius: 7, fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' });
+  const chip = (on) => ({ padding: '6px 14px', background: on ? `var(--stg-surf2,${T.white})` : 'transparent', color: on ? `var(--stg-ink,${C.ink})` : `var(--stg-mute,${C.soft})`, border: 'none', borderRadius: 7, fontFamily: FONT, fontSize: 11, letterSpacing: '0.04em', fontWeight: 700, cursor: 'pointer', boxShadow: on ? '0 1px 2px rgba(20,22,28,0.06)' : 'none' });
   return (
     <div>
       <style>{`.qlb-grid{grid-template-columns:40px 1fr 76px 70px 64px;}
 .qlb-grid6{grid-template-columns:40px 1fr 68px 58px 58px 58px;}
 @media(max-width:560px){.qlb-grid{grid-template-columns:34px 1fr 64px 56px;}.qlb-grid6{grid-template-columns:34px 1fr 56px 48px 50px;}.qlb-time{display:none;}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: C.faded }}>Leaderboard</div>
-        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', color: C.faded }}>{board.plays} {board.plays === 1 ? 'play' : 'plays'}</div>
+        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: `var(--stg-mute,${C.faded})` }}>Leaderboard</div>
+        <div style={{ fontFamily: FONT, fontSize: 11, letterSpacing: '0.08em', color: `var(--stg-mute,${C.faded})` }}>{board.plays} {board.plays === 1 ? 'play' : 'plays'}</div>
       </div>
       {!daily && board.plays > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14, width: 'fit-content' }}>
@@ -75,24 +75,24 @@ export default function QuizLeaderboard({ board, identity, total, wordsCol = nul
         </div>
       )}
       {lb.length === 0 ? (
-        <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: C.faded }}>{(daily ? null : lbEmptyNote(lbFilter)) || 'No one has posted a score yet. Be the first.'}</p>
+        <p style={{ fontFamily: FONT, fontStyle: 'italic', fontSize: 16, color: `var(--stg-mute,${C.faded})` }}>{(daily ? null : lbEmptyNote(lbFilter)) || 'No one has posted a score yet. Be the first.'}</p>
       ) : (
         <div>
-          <div className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.faded }}>
+          <div className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, padding: '0 14px 8px', fontFamily: FONT, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: `var(--stg-mute,${C.faded})` }}>
             <span>#</span><span>Display Name</span><span style={{ textAlign: 'right' }}>{wordsCol ? 'Score' : 'Correct'}</span>{hasGuesses ? <span style={{ textAlign: 'right' }}>{endgame ? 'Tries' : guessLabel}</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Words</span> : null}{wordsCol ? <span style={{ textAlign: 'right' }}>Misses</span> : null}<span className={gridClass ? 'qlb-time' : undefined} style={{ textAlign: 'right' }}>Time</span>
           </div>
           {lb.map((row, i) => { const mine = identity && row.username === identity.username; return (
-            <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? C.accSoft : T.white, borderRadius: 10, border: `1px solid ${mine ? C.accBorder : C.line}` }}>
-              <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? C.ember : C.faded }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
+            <div key={i} className={gridClass} style={{ display: 'grid', gridTemplateColumns: gridClass ? undefined : gridCols, gap: 8, alignItems: 'center', padding: '11px 14px', marginBottom: 6, background: mine ? `var(--stg-acc-tint,${C.accSoft})` : `var(--stg-surf,${T.white})`, borderRadius: 10, border: `1px solid ${mine ? `var(--stg-acc,${C.accBorder})` : `var(--stg-line,${C.line})`}` }}>
+              <span style={{ fontFamily: FONT, fontWeight: 800, fontSize: 18, color: lbRanks[i] <= 3 ? `var(--stg-acc-ink,${C.ember})` : `var(--stg-mute,${C.faded})` }}>{lbTied[i] ? `T${lbRanks[i]}` : lbRanks[i]}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted ${C.faded}88` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{!daily && row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: C.faded, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
-                {row.playedAt ? <span style={{ fontFamily: FONT, fontSize: 10.5, color: C.faded }}>{fmtWhen(row.playedAt)}</span> : null}
+                <span style={{ fontFamily: FONT, fontSize: 17, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.userKey ? <a href={`/quizzes/hub?player=${encodeURIComponent(row.userKey)}`} style={{ color: 'inherit', textDecoration: 'none', borderBottom: `1px dotted var(--stg-line,${C.faded}88)` }}>{row.username}</a> : row.username}{mine ? ' (you)' : ''}{!daily && row.tryNum ? <span style={{ fontFamily: FONT, fontSize: 11, fontWeight: 400, color: `var(--stg-mute,${C.faded})`, marginLeft: 6 }}>{row.tryNum > 1 ? '(retried)' : '(1st Try)'}</span> : ''}</span>
+                {row.playedAt ? <span style={{ fontFamily: FONT, fontSize: 10.5, color: `var(--stg-mute,${C.faded})` }}>{fmtWhen(row.playedAt)}</span> : null}
               </span>
               <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right' }}>{row.score}/{total}</span>
-              {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{missOf(row)}</span> : null}
-              {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{wordsOf(row)}/{wordsCol.total}</span> : null}
-              {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
-              <span className={gridClass ? 'qlb-time' : undefined} style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: C.faded }}>{fmtTime(row.timeElapsed)}</span>
+              {hasGuesses ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: `var(--stg-mute,${C.faded})` }}>{missOf(row)}</span> : null}
+              {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: `var(--stg-mute,${C.faded})` }}>{wordsOf(row)}/{wordsCol.total}</span> : null}
+              {wordsCol ? <span style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: `var(--stg-mute,${C.faded})` }}>{row.guessesUsed != null ? row.guessesUsed : '\u2014'}</span> : null}
+              <span className={gridClass ? 'qlb-time' : undefined} style={{ fontFamily: FONT, fontSize: 14, textAlign: 'right', color: `var(--stg-mute,${C.faded})` }}>{fmtTime(row.timeElapsed)}</span>
             </div>
           ); })}
         </div>

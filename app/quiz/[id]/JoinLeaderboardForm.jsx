@@ -151,7 +151,7 @@ export default function JoinLeaderboardForm({ identity, onJoined, onViewLeaderbo
   return (
     <div id="daily-join" style={{ maxWidth: 440, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        {!hideIcon && <Trophy size={22} strokeWidth={2.2} style={{ color: C.ember }} />}
+        {!hideIcon && <Trophy size={22} strokeWidth={2.2} style={{ color: `var(--stg-acc-ink,${C.ember})` }} />}
         <h2 style={{ fontFamily: FONT, fontWeight: 800, fontSize: 26, margin: 0, color: INK.head }}>{heading}</h2>
       </div>
       <p style={{ fontFamily: FONT, fontSize: 15, color: INK.body, margin: '0 0 6px' }}>

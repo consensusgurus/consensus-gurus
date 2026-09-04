@@ -218,7 +218,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
     <div>
       {!isMobile && (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6, marginBottom: 8 }}>
-        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: T.muted, marginRight: 2 }}>Map size</span>
+        <span style={{ fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: `var(--stg-mute,${T.muted})`, marginRight: 2 }}>Map size</span>
         {SIZE_ORDER.map((s) => {
           const on = s === size;
           return (
@@ -228,9 +228,9 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
               style={{
                 fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
                 padding: '4px 11px', cursor: 'pointer', borderRadius: 6,
-                border: `1px solid ${on ? CTRL_INK : 'rgba(20,22,28,0.18)'}`,
-                background: on ? CTRL_INK : T.white,
-                color: on ? T.white : T.muted,
+                border: `1px solid ${on ? `var(--stg-acc,${CTRL_INK})` : `var(--stg-line,rgba(20,22,28,0.18))`}`,
+                background: on ? `var(--stg-acc,${CTRL_INK})` : `var(--stg-surf2,${T.white})`,
+                color: on ? `var(--stg-onramp,${T.white})` : `var(--stg-mute,${T.muted})`,
               }}
             >
               {SIZES[s].label}
@@ -248,7 +248,7 @@ export default function MapQuizBoard({ region, started, ended, revealed, foundNa
       {isMobile && zoomed && (
         <button
           onClick={resetZoom}
-          style={{ position: 'absolute', top: 8, right: 8, zIndex: 6, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 12px', cursor: 'pointer', borderRadius: 6, border: `1px solid ${CTRL_ACCENT}`, background: T.white, color: CTRL_ACCENT }}
+          style={{ position: 'absolute', top: 8, right: 8, zIndex: 6, fontFamily: "'Manrope', system-ui, sans-serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.04em', padding: '6px 12px', cursor: 'pointer', borderRadius: 6, border: `1px solid ${CTRL_ACCENT}`, background: `var(--stg-surf,${T.white})`, color: CTRL_ACCENT }}
         >
           Reset
         </button>

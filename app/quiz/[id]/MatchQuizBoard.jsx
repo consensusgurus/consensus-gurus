@@ -119,9 +119,9 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
     // ever splitting across the gap.
     breakInside: 'avoid',
     WebkitColumnBreakInside: 'avoid',
-    background: '#fffdf8',
-    borderRadius: 10, border: `1px solid ${COLORS.faded}55`,
-    color: COLORS.ink,
+    background: `var(--stg-surf,#fffdf8)`,
+    borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}55)`,
+    color: `var(--stg-ink,${COLORS.ink})`,
     borderRadius: 0,
     transition: 'all .12s',
     cursor: live ? 'pointer' : 'default',
@@ -135,7 +135,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
     marginBottom: 8,
   };
   const panel = {
-    borderRadius: 10, border: `1px solid ${COLORS.faded}44`,
+    borderRadius: 10, border: `1px solid var(--stg-line,${COLORS.faded}44)`,
     padding: '10px 10px 12px',
   };
 
@@ -146,7 +146,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
         @media (max-width: 600px) { .mqb-cols { column-count: 1; } }
       `}</style>
       {tray.length > 0 && (
-        <div style={{ marginBottom: 16, background: '#fffdf8', borderRadius: 10, border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
+        <div style={{ marginBottom: 16, background: `var(--stg-surf,#fffdf8)`, borderRadius: 10, border: `1px solid ${COLORS.forest}66`, padding: '12px 14px' }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: COLORS.forest, marginBottom: 8 }}>
             Matched · {tray.length}
           </div>
@@ -154,8 +154,8 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
             {tray.map((m, k) => (
               <div key={k} style={{ fontFamily: SANS, fontSize: 12.5, display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
                 <span style={{ color: COLORS.forest, fontWeight: 700 }}>&#10003;</span>
-                <span style={{ fontStyle: 'italic', color: '#4a4339' }}>&ldquo;{m.clue}&rdquo;</span>
-                <span style={{ color: COLORS.faded }}>&rarr;</span>
+                <span style={{ fontStyle: 'italic', color: 'var(--stg-ink2,#4a4339)' }}>&ldquo;{m.clue}&rdquo;</span>
+                <span style={{ color: `var(--stg-mute,${COLORS.faded})` }}>&rarr;</span>
                 <span style={{ fontWeight: 700 }}>{m.answer}</span>
               </div>
             ))}
@@ -165,7 +165,7 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
 
       <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : '1fr 1fr', gap: 14, alignItems: 'start' }}>
         <div style={{ ...panel, background: LEFT_PANEL, borderTop: `3px solid ${COLORS.ember}` }}>
-          <div style={{ ...colHead, color: COLORS.ember }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
+          <div style={{ ...colHead, color: `var(--stg-acc-ink,${COLORS.ember})` }}>{lLabel}{sortLeft ? ' (A–Z)' : ''}</div>
           <div className="mqb-cols">
             {leftOrder.map((i) => {
               if (matched.has(i)) return null;
@@ -206,9 +206,9 @@ export default function MatchQuizBoard({ pairs, started, ended, revealed, onMatc
                     ...cellBase,
                     fontWeight: 500,
                     textDecoration: isDead ? 'line-through' : 'none',
-                    color: isDead ? COLORS.faded : COLORS.ink,
+                    color: isDead ? `var(--stg-mute,${COLORS.faded})` : `var(--stg-ink,${COLORS.ink})`,
                     opacity: isDead ? 0.5 : 1,
-                    background: isDead ? COLORS.paper : T.paper,
+                    background: isDead ? `var(--stg-surf2,${COLORS.paper})` : `var(--stg-surf,${T.paper})`,
                     cursor: isDead || !live ? 'default' : 'pointer',
                   }}
                 >

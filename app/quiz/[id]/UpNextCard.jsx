@@ -63,11 +63,11 @@ export default function UpNextCard({ quiz, seconds = 25 }) {
       <div style={{ minWidth: 0, flex: '1 1 200px' }}>
         <div style={{ fontFamily: FONT, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: BLUE, marginBottom: 2 }}>Up next · closest related{meta.badge ? ` · part ${meta.badge.part} of ${meta.badge.total}` : ''}</div>
         <div style={{ fontFamily: FONT, fontSize: 17, fontWeight: 800, letterSpacing: '-0.01em', lineHeight: 1.15, color: T.ink }}>{meta.title}</div>
-        <div style={{ fontFamily: FONT, fontSize: 12, color: '#4a4339', marginTop: 2 }}>{tag}</div>
+        <div style={{ fontFamily: FONT, fontSize: 12, color: 'var(--stg-ink2,#4a4339)', marginTop: 2 }}>{tag}</div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 7, flexShrink: 0 }}>
         <a href={`/quiz/${meta.id}`} style={{ ...mini, background: BLUE, color: T.white }}>Go to quiz</a>
-        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: T.white, color: T.muted, border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
+        {autoRun ? <button onClick={() => setCancelled(true)} style={{ ...mini, background: `var(--stg-surf,${T.white})`, color: `var(--stg-mute,${T.muted})`, border: '1px solid rgba(20,22,28,0.14)' }}>Not now</button> : null}
       </div>
     </div>
   );
