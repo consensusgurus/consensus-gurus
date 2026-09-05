@@ -2,6 +2,7 @@
 //
 // The rules, the bitboard search and the exact minimum all live in
 // lib/jam-core.js, because Impound (app/impound) is the same puzzle on a 7x7
+// board and Junkyard (app/junkyard) the same puzzle again on an 8x8
 // board and a second copy of these rules would be a second answer to "what is
 // perfect here". This file is the six-by-six binding and nothing else: it exists
 // so that ParkerClient.jsx and scripts/verify-parker.mjs keep the exact

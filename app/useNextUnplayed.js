@@ -13,6 +13,15 @@
 // Fetched fresh: the cached daily-me answer can predate the finish that just
 // happened on this page, which is the case dailyMeClient's own comment warns of.
 //
+// A FAMILY OUTRANKS A CATEGORY (owner, 2026-09-04). Parker, Impound and Junkyard
+// are one puzzle at three fixed sizes, so finishing any of them should hand the
+// player the next SIZE they have not played, not merely another Logic game. The
+// ladder lives in GAME_FAMILIES in lib/daily-games.js and is read here through
+// familyAfter(), which returns the rest of the family cyclically from the rung
+// after the one just finished, so the offer always moves forward and wraps.
+// Every other daily is in no family, familyAfter returns [], and the category
+// rule below is untouched.
+//
 // Use DAILY_GAMES, the EXPORTED registry, which also drops retired games. The
 // first cut imported ALL_DAILY_GAMES, which is module-private, so the import was
 // undefined, .find threw inside the .then, and the catch swallowed it: the row
@@ -20,6 +29,7 @@
 import { useEffect, useState } from 'react';
 import { DAILY_GAMES } from './DailyEndCard';
 import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
+import { familyAfter } from '@/lib/daily-games';
 
 export default function useNextUnplayed({ self = null, active = false }) {
   const [next, setNext] = useState(null);
@@ -34,7 +44,12 @@ export default function useNextUnplayed({ self = null, active = false }) {
         const mine = DAILY_GAMES.find((g) => g.key === self) || null;
         const open = DAILY_GAMES.filter((g) => g.key !== self && !played(g.key));
         const sameCat = mine ? open.filter((g) => g.cat === mine.cat) : [];
-        setNext(sameCat[0] || open[0] || null);
+        // A retired family member is absent from DAILY_GAMES, so resolve through
+        // it rather than trusting the key list, and drop what does not resolve.
+        const fam = familyAfter(self)
+          .map((k) => open.find((g) => g.key === k))
+          .filter(Boolean);
+        setNext(fam[0] || sameCat[0] || open[0] || null);
       })
       .catch((e) => { if (typeof console !== 'undefined') console.warn('useNextUnplayed', e); });
     return () => { alive = false; };
@@ -59,9 +74,13 @@ export function useUnplayedSimilar({ self = null, active = false, count = 4 }) {
         const played = (k) => !!(per[k] && !per[k].abandoned);
         const mine = DAILY_GAMES.find((g) => g.key === self) || null;
         const open = DAILY_GAMES.filter((g) => g.key !== self && !played(g.key));
-        const sameCat = mine ? open.filter((g) => g.cat === mine.cat) : [];
-        const rest = open.filter((g) => !sameCat.includes(g));
-        setList([...sameCat, ...rest].slice(0, count));
+        const fam = familyAfter(self)
+          .map((k) => open.find((g) => g.key === k))
+          .filter(Boolean);
+        const sameCat = (mine ? open.filter((g) => g.cat === mine.cat) : [])
+          .filter((g) => !fam.includes(g));
+        const rest = open.filter((g) => !fam.includes(g) && !sameCat.includes(g));
+        setList([...fam, ...sameCat, ...rest].slice(0, count));
       })
       .catch((e) => { if (typeof console !== 'undefined') console.warn('useUnplayedSimilar', e); });
     return () => { alive = false; };

@@ -7087,6 +7087,63 @@ No Sunday Edition, and no `sunday` field, matching Blitz. The share card is a st
 `public/og/blitzed.png` rendered from `renderBlitzedCard()`; its demo line `5 + 10 x 2` is
 below anything round three ever generates, so it hands nobody a live answer.
 
+## Junkyard (`/junkyard`) — the 8x8 jam, and A FAMILY IS A LADDER (launched 2026-09-04)
+
+Key/route/folder `junkyard`, category **Logic**, `keepsAnswer: true`, `attempts: 'graded'`,
+`miss: 'Tries'` — Parker's and Impound's shape exactly. Legacy accent `#5c3a16` / `#d9b070`, a
+third step down the same brown ramp so the three read as a family on a slate row. Bank **150
+boards, 2026-09-04 to 2027-01-31**, seed 20260904/771103, generated in two halves. Wired by
+`scripts/wire-junkyard.mjs` (51 anchored edits, idempotent). No PNG tile; the glyph is the icon.
+
+**EIGHT BY EIGHT IS THE LAST RUNG THIS FAMILY CAN HAVE.** `lib/jam-core` packs occupancy into two
+32-bit words and a position into three bits, so 64 cells and n <= 8 are both hard ceilings and
+`compile()` throws above them. A fourth size is a different engine, not a bigger argument. Say
+"the biggest lot" in copy rather than "a bigger one", because it is the end of the line.
+
+**⚠️ "8x8 IS OUT OF REACH" WAS MEASURED ON RANDOM BOARDS, AND THAT IS THE WRONG POPULATION.** The
+finding recorded when Impound was built (a 400-board sample that did not finish in ten minutes) is
+true of RANDOM packings and irrelevant to a generator that CLIMBS. Random 8x8 boards sprawl: over
+half exhaust a 40,000-state cap, and half of THOSE are still unresolved at six million states,
+twelve seconds apiece, because an unsolvable board has to exhaust its whole reachable component
+before it can be called unsolvable. The climb never goes there. It walks toward tightly jammed
+boards, which are deep AND narrow, so only **4% of the candidates it actually evaluates hit the
+cap**, and it reaches **par 54 in the wall clock that gets 7x7 to 38**. Before re-deriving a
+"this size is impossible" conclusion, measure the population the generator actually visits.
+
+**THE LADDER'S STEP SHORTENS AT THE THIRD RUNG, on purpose.** Impound's Monday opens exactly where
+Parker's hardest weekday rung begins, and repeating that step would put Junkyard's Monday at 28
+and, compounded through the within-week floor, its Sunday floor near 50 against a measured ceiling
+of about 54 — the coin toss Impound's own Sunday floor had to be measured down twice to avoid. So
+Junkyard opens at 22 to 28: clear of Impound's whole Monday band, deeper than any Parker board
+short of a Sunday, and reachable every week. Rungs: Mon 22-28, Tue 25-32, Wed 28-35, Thu 31-39,
+Fri 34-43, Sat 37-47, **Sunday 44 and up**. `scripts/verify-junkyard.mjs` check 8 asserts the
+claim that is TRUE of the bank rather than the one that would have been tidy, which is the third
+time this family's "bigger game" check has had to be weakened to match reality.
+
+### A FAMILY IS A LADDER, and finishing one rung offers the next (owner, 2026-09-04)
+
+`GAME_FAMILIES` in `lib/daily-games.js` is the ONLY place a family is declared:
+`{ jam: ['park', 'impound', 'junkyard'] }`, in ascending board size. `familyAfter(key)` returns the
+rest of that family CYCLICALLY from the rung after the one just finished, so the offer always moves
+up and wraps at the top; every other daily is in no family and gets `[]`, so a caller uses it
+unconditionally.
+
+**`app/useNextUnplayed.js` prefers a family member over a mere category-mate**, in both hooks
+(`useNextUnplayed` for the one Up next pick, `useUnplayedSimilar` for the tile list). That one file
+covers all 80 clients, because every one of them already routes its finish through those hooks into
+`StageFinish`'s `forward` slot. Do NOT add a per-game next-up prop.
+
+**⚠️ A MISSING FAMILY KEY IS DROPPED SILENTLY.** The pick resolves each key against a roster before
+offering it, so a member absent from that roster does not error, does not warn, and does not render:
+the ladder just loses a rung. And there are TWO rosters — `lib/daily-games.js` and the independent
+copy in `app/DailyEndCard.jsx`, which is the one `useNextUnplayed` actually reads. `verify-junkyard`
+check 10 requires every member in BOTH, requires the ladder to be in ascending board size, requires
+the hook to still import and use `familyAfter`, and exercises the offer across all eight
+played-combinations of the three games. All four mutations were confirmed to fail it.
+
+**A second family needs only a line in `GAME_FAMILIES`** plus its sizes in check 10. Nothing else
+in the pick is jam-specific.
+
 ## The home's arrival: the Ramp once a day, the Patch on every other wait (owner, 2026-09-01)
 
 Three things shipped together (`32a923301`, `19f8cfb7b`); the design study with looping

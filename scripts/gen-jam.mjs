@@ -1,4 +1,15 @@
-// The sliding-block bank generator, for Parker (6x6) and Impound (7x7).
+// The sliding-block bank generator, for Parker (6x6), Impound (7x7) and
+// Junkyard (8x8).
+//
+// AT 8x8 A RANDOM PACKING IS A BAD GUIDE TO WHAT THE CLIMB CAN REACH, and the
+// difference is worth knowing before anyone re-measures this. Sampled at
+// random, 8x8 boards SPRAWL: over half exhaust a 40,000-state cap and half of
+// those are still unresolved at six million, twelve seconds apiece, because an
+// unsolvable board has to exhaust its whole reachable component. That is what
+// "8x8 is out of reach" meant when it was measured on random boards. The climb
+// does not go there: it walks toward tightly jammed boards, which are deep AND
+// narrow, so only 4% of the candidates it actually evaluates hit the cap, and
+// it reaches par 54 in the same wall clock that gets 7x7 to 38.
 //
 // There was no committed generator for this family at all: Parker's 62 boards
 // were authored by hand, which is why Parker sits on the 2026-09-29 cliff with
