@@ -27,7 +27,7 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowRight, Share2, Trophy, Check } from 'lucide-react';
-import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref, runSummaryHref, circuitScoreMode } from '@/lib/circuits';
+import { circuitShareInvite, circuitShareUrl, circuitHref, MARQUEE_ID, CIRCUIT_PARAM, isRunnableCircuit, runHref, runSummaryHref, circuitScoreMode, fmtClock, runEngine } from '@/lib/circuits';
 import { notifyShareCredit } from '../../ShareCreditPop';
 import { dailyMeIdentity } from '../../dailyMeClient';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -90,9 +90,11 @@ export default function CircuitLanding({ circuit, games }) {
   // Read off the circuit, not off the payload, because the copy under the run
   // list has to be right on the first paint, before any fetch lands.
   const byCorrect = circuitScoreMode(id) === 'correct';
+  // Or the CLOCK (the Valet Gauntlet): the figure is lots parked and the time.
+  const byTime = circuitScoreMode(id) === 'time';
   // A questions-right circuit has no ceiling until the day's banks are known,
   // so it shows none rather than a points figure that is not its unit.
-  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : n * 15);
+  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : byTime ? n : n * 15);
   const points = me && Number.isFinite(me.total) ? Math.round(me.total * 10) / 10 : null;
   const rank = me && Number.isFinite(me.rank) && me.rank > 0 ? me.rank : null;
   // The first game they have NOT played, so the button starts where they are
@@ -165,7 +167,7 @@ export default function CircuitLanding({ circuit, games }) {
           ) : null}
           {runnable ? (
             <a className={complete ? 'clp-sh' : 'clp-go'} href={withTq(runHref(id))}>
-              {complete ? 'Run it again' : done ? 'Carry on with the run' : `Play all ${n} as one quiz`}
+              {complete ? 'Run it again' : done ? 'Carry on with the run' : (runEngine(id) === 'jam' ? `Play all ${n} on one clock` : `Play all ${n} as one quiz`)}
               <ArrowRight size={15} strokeWidth={2.6} />
             </a>
           ) : null}
@@ -186,11 +188,16 @@ export default function CircuitLanding({ circuit, games }) {
         {/* FIGURES, NEVER PROSE, and each drawn only when it is real. */}
         <div className="clp-figs">
           <div><b>{n}</b><i>games</i></div>
-          {byCorrect
+          {byTime
+            ? <div><b>1</b><i>clock across all {n}</i></div>
+            : byCorrect
             ? (maxTotal ? <div><b>{maxTotal}</b><i>questions on offer</i></div> : null)
             : <div><b>{n * 15}</b><i>points on offer</i></div>}
           <div><b>{done}<i>/{n}</i></b><i>played today</i></div>
-          {complete && points !== null
+          {complete && points !== null && byTime
+            ? <div><b>{fmtClock(me && me.timeTotal)}</b><i>{points === n ? 'combined clock' : `clock, ${points} of ${n} parked`}</i></div>
+            : null}
+          {complete && points !== null && !byTime
             ? <div><b>{points}</b><i>{byCorrect
                 ? (maxTotal ? `of ${maxTotal} right` : 'questions right')
                 : `of ${maxTotal} points`}</i></div>
@@ -233,10 +240,12 @@ export default function CircuitLanding({ circuit, games }) {
           {ordered
             ? 'The last two are always the last two. The rest are shuffled fresh every day, so the run has a different shape each morning. '
             : 'Shortest first, longest last. '}
-          {byCorrect
+          {byTime
+            ? `The board is your combined clock across all ${n} lots, fastest first. Moves do not count here; each lot still grades its own board on them. `
+            : byCorrect
             ? `The board is the plain count of questions you get right across all ${n}, and the shorter clock takes a tie. `
             : `Each game pays 15 points for a win down to 1 for finishing, and the circuit adds all ${n} up. `}
-          A game played on its own still counts toward it, but you need all {n} in
+          A game played on its own still counts toward it, but you need all {n}{byTime ? ' parked' : ''} in
           the same day to take a rank on the circuit board.
         </p>
       </section>

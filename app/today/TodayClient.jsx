@@ -1665,7 +1665,7 @@ export default function TodayClient({ onSignup = null } = {}) {
                 return (
                   <>
                     <div className="tdy-sub">{(c && c.blurb) || ''}{d && typeof d.maxTotal === 'number'
-                      ? `${c && c.blurb ? ' · ' : ''}${d.scoreMode === 'correct' ? `${d.maxTotal} questions max` : `Best ${d.bestN} · ${d.maxTotal} pts max`}`
+                      ? `${c && c.blurb ? ' · ' : ''}${d.scoreMode === 'correct' ? `${d.maxTotal} questions max` : d.scoreMode === 'time' ? 'Ranked on the clock' : `Best ${d.bestN} · ${d.maxTotal} pts max`}`
                       : ''}</div>
                     {rows === null ? (
                       <div className="tdy-empty">Loading the circuit board&hellip;</div>
@@ -1677,7 +1677,9 @@ export default function TodayClient({ onSignup = null } = {}) {
                             <b>{(r && r.rank) || i + 1}</b>
                             <span className="nm">{i === 0 ? CROWN : null}{(r && r.username) || 'Player'}{meKey && r && r.userKey === meKey ? ' · You' : ''}</span>
                             <span className="cell">{r && typeof r.gamesPlayed === 'number' ? `${r.gamesPlayed}${d && d.gameCount ? '/' + d.gameCount : ''}` : ''}</span>
-                            <span className="cell pts">{fmtPts(r && r.total)}</span>
+                            <span className="cell pts">{d.scoreMode === 'time' && r
+                              ? `${Math.floor((r.timeTotal || 0) / 60)}:${String(Math.round(r.timeTotal || 0) % 60).padStart(2, '0')}`
+                              : fmtPts(r && r.total)}</span>
                           </div>
                         ))}
                         <a className="tdy-more" href={circuitPageHref(pickCirc)}>{c ? `The ${c.name} circuit →` : ''}</a>

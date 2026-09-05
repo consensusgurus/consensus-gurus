@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import RunClient from './RunClient';
-import { circuitById, circuitGamesFor, circuitKeysFor, circuitSlotFor, isMarquee, isRunnableCircuit, RUN_GAMES } from '@/lib/circuits';
+import ValetRunClient from '../../ValetRunClient';
+import { circuitById, circuitGamesFor, circuitKeysFor, circuitSlotFor, isMarquee, isRunnableCircuit, runEngine, RUN_GAMES, JAM_RUN_GAMES } from '@/lib/circuits';
 import { DAILY_GAME_MAP } from '@/lib/daily-games';
 import { SITE_URL } from '@/lib/site';
 import { T } from '@/lib/theme';
@@ -20,6 +21,13 @@ import { PUZZLES as quotesPuzzles } from '../../../quotes/puzzles';
 import { QUESTION_MAP as quotesQuestions } from '../../../quotes/questions';
 import { PUZZLES as streakPuzzles } from '../../../streak/puzzles';
 import { QUESTION_MAP as streakQuestions } from '../../../streak/questions';
+
+import { PUZZLES as parkPuzzles } from '../../../parker/puzzles';
+import { N as PARK_N, EXIT_ROW as PARK_EXIT } from '../../../parker/solver';
+import { PUZZLES as impoundPuzzles } from '../../../impound/puzzles';
+import { N as IMPOUND_N, EXIT_ROW as IMPOUND_EXIT } from '../../../impound/solver';
+import { PUZZLES as junkyardPuzzles } from '../../../junkyard/puzzles';
+import { N as JUNKYARD_N, EXIT_ROW as JUNKYARD_EXIT } from '../../../junkyard/solver';
 
 // THE RUN PAGE — a circuit served as one continuous quiz.
 //
@@ -47,6 +55,18 @@ const BANKS = {
   quotes: { puzzles: quotesPuzzles, questions: quotesQuestions, tiers: ['Household words', 'Well known', 'Worth knowing', 'For the reader', 'Chapter and verse'] },
   biz: { puzzles: bizPuzzles, questions: bizQuestions, tiers: ['Warm-up', 'First half', 'Second half', 'Crunch time', 'Overtime'] },
   streak: { puzzles: streakPuzzles, questions: streakQuestions, tiers: ['Warm-up', 'Easy', 'Medium', 'Hard', 'Brutal'] },
+};
+
+// THE JAM ENGINE'S BANKS (2026-09-05). The Valet Gauntlet deals the three
+// sliding-block lots on one clock, and a lot is a starting layout plus a
+// banked perfect line rather than a question list, so it has its own map. The
+// size and the exit row come off each game's own solver binding, which is the
+// one place those are frozen. JAM_RUN_GAMES in lib/circuits names the same
+// three keys, and the verifier asserts a jam-engine circuit holds nothing else.
+const LOTS = {
+  park: { puzzles: parkPuzzles, n: PARK_N, exitRow: PARK_EXIT },
+  impound: { puzzles: impoundPuzzles, n: IMPOUND_N, exitRow: IMPOUND_EXIT },
+  junkyard: { puzzles: junkyardPuzzles, n: JUNKYARD_N, exitRow: JUNKYARD_EXIT },
 };
 
 export const dynamic = 'force-dynamic';
@@ -111,6 +131,27 @@ function dayFor(bank, today) {
 export async function generateMetadata({ params }) {
   const c = circuitById(decodeURIComponent(params.id));
   if (!c) return {};
+  if (runEngine(c.id) === 'jam') {
+    const url = `${SITE_URL}/circuits/${c.id}/run`;
+    const hook = 'Three jammed lots. One clock.';
+    return {
+      title: `${c.name} — Parker, Impound and Junkyard on One Clock | Mind Loft`,
+      description:
+        'The three daily sliding-block puzzles played back to back as one run: a six by six, a seven by seven and an eight by eight, each with a red car to slide out of the one gap in the wall. One clock across all three, and the fastest valet takes the day. Free, no signup, new lots every day.',
+      alternates: { canonical: `/circuits/${c.id}/run` },
+      robots: { index: false, follow: true },
+      openGraph: {
+        title: hook,
+        description: 'Park the red car out of three lots in a row. The board ranks on your combined time, and moves do not count.',
+        url, type: 'website', siteName: 'Mind Loft',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: hook,
+        description: 'Three sliding-block lots, one clock. How fast can you park all three?',
+      },
+    };
+  }
   const games = circuitGamesFor(c.id, etTodayServer()).filter((g) => RUN_GAMES.includes(g.key));
   const n = games.length || 5;
   const url = `${SITE_URL}/circuits/${c.id}/run`;
@@ -145,6 +186,48 @@ export default function CircuitRunPage({ params }) {
   if (!circuit || isMarquee(id) || !isRunnableCircuit(id)) redirect(`/circuits/${encodeURIComponent(id || '')}`);
 
   const today = etTodayServer();
+  const label = (() => {
+    try {
+      return new Date(today + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    } catch (e) { return today; }
+  })();
+
+  // THE JAM RUN. Each lot ships only its own live board: the layout, the
+  // banked perfect line, the size and the exit row, exactly what the game's
+  // own page sends its client. Tomorrow's boards never reach the browser.
+  if (runEngine(id) === 'jam') {
+    const lots = [];
+    for (const key of circuitKeysFor(id, today)) {
+      if (!JAM_RUN_GAMES.includes(key) || !LOTS[key]) continue;
+      const lot = LOTS[key];
+      const open = lot.puzzles.filter((p) => p.live <= today);
+      const day = open.length ? open[open.length - 1] : null;
+      if (!day) continue;
+      const g = DAILY_GAME_MAP[key] || {};
+      lots.push({
+        key,
+        name: g.name || key,
+        tag: g.tag || '',
+        n: lot.n,
+        exitRow: lot.exitRow,
+        quizId: day.quizId,
+        num: day.num,
+        perfect: day.par,
+        pieces: day.pieces,
+        sunday: !!day.sunday,
+        dateLabel: day.dateLabel,
+        accent: g.color || '#233a63',
+        slot: circuitSlotFor(circuit.id, key),
+      });
+    }
+    if (lots.length < 2) redirect(`/circuits/${encodeURIComponent(id)}`);
+    return (
+      <Suspense fallback={null}>
+        <ValetRunClient circuitId={circuit.id} circuitName={circuit.name} dateLabel={label} sections={lots} />
+      </Suspense>
+    );
+  }
+
   const keys = circuitKeysFor(id, today).filter((k) => RUN_GAMES.includes(k) && BANKS[k]);
 
   const sections = [];
@@ -181,12 +264,6 @@ export default function CircuitRunPage({ params }) {
   }
 
   if (sections.length < 2) redirect(`/circuits/${encodeURIComponent(id)}`);
-
-  const label = (() => {
-    try {
-      return new Date(today + 'T12:00:00Z').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-    } catch (e) { return today; }
-  })();
 
   return (
     <Suspense fallback={null}>

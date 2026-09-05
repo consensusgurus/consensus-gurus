@@ -67,6 +67,9 @@ export default function CircuitScorecard({
   const meIn = !!(me && top.some((x) => x.userKey === me.userKey));
   const keys = (board && board.keys) || rows.map((x) => x.key);
   const maxTotal = (board && board.maxTotal) || 0;
+  // A CLOCK BOARD (the Valet Gauntlet): the figure on a row is the combined
+  // time, not a total, and a row that has not parked every lot says how many.
+  const clock = !!(board && board.clock);
 
   return (
     <div className="csc">
@@ -161,11 +164,11 @@ export default function CircuitScorecard({
             ) : top.length ? (
               <div className="csc-lb">
                 {top.map((row, i) => (
-                  <BoardRow key={row.userKey} row={row} pos={i + 1} keys={keys}
+                  <BoardRow key={row.userKey} row={row} pos={i + 1} keys={keys} clock={clock}
                             me={!!(me && row.userKey === me.userKey)} maxTotal={maxTotal} />
                 ))}
                 {me && !meIn ? (
-                  <BoardRow row={me} pos={me.rank} keys={keys} me maxTotal={maxTotal} />
+                  <BoardRow row={me} pos={me.rank} keys={keys} me maxTotal={maxTotal} clock={clock} />
                 ) : null}
               </div>
             ) : (
@@ -196,7 +199,12 @@ export default function CircuitScorecard({
 // topped that game, blue where they finished it, empty where they have not
 // played it), which is the thing a combined total on its own hides: an
 // all-rounder and a specialist reach the same number by different shapes.
-function BoardRow({ row, pos, keys, me, maxTotal }) {
+function clockOf(secs) {
+  const s = Math.max(0, Math.round(Number(secs) || 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function BoardRow({ row, pos, keys, me, maxTotal, clock }) {
   const pg = row.perGame || {};
   return (
     <div className={`csc-lbr${me ? ' me' : ''}`}>
@@ -212,7 +220,9 @@ function BoardRow({ row, pos, keys, me, maxTotal }) {
           return <span key={k} className={`csc-bp ${cls}`} />;
         })}
       </span>
-      <span className="csc-tot">{r1(row.total)}{maxTotal ? <i>/{maxTotal}</i> : null}</span>
+      {clock
+        ? <span className="csc-tot">{clockOf(row.timeTotal)}{maxTotal && Number(row.total) < maxTotal ? <i>&nbsp;{r1(row.total)}/{maxTotal}</i> : null}</span>
+        : <span className="csc-tot">{r1(row.total)}{maxTotal ? <i>/{maxTotal}</i> : null}</span>}
     </div>
   );
 }

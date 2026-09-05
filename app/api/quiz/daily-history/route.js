@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadQuizResultsCached } from '@/lib/quiz-results-cache';
-import { scoreGame, combineDaily, rankByCorrect, DAILY_KEYS, GAME_MAX, bestNForSuffix, etDayEndMs } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, rankByCorrect, rankByTime, DAILY_KEYS, GAME_MAX, bestNForSuffix, etDayEndMs } from '@/lib/daily-combined';
 import { CIRCUIT_PARAM, circuitById, circuitKeysFor, circuitScoreMode, isMarquee } from '@/lib/circuits';
 
 export const dynamic = 'force-dynamic';
@@ -68,6 +68,9 @@ export async function GET(req) {
   // Questions right rather than ladder points, for the one circuit that ranks
   // that way, so the archive is quoted in the same unit as its live board.
   const rawScore = circuitOn && circuitScoreMode(circuitId) === 'correct';
+  // And the clock, for the one circuit that ranks that way (2026-09-05).
+  const byTime = circuitOn && circuitScoreMode(circuitId) === 'time';
+  const scoreMode = rawScore ? 'correct' : (byTime ? 'time' : 'points');
   // Eastern "today" as an ISO date. Used to drop today (still in progress) AND
   // any future-dated day, so a stray play on a pre-published future daily is
   // never crowned a champion.
@@ -189,17 +192,23 @@ export async function GET(req) {
       // with the clock as the tiebreak, exactly as /api/quiz/daily-combined
       // does for the same circuit.
       if (rawScore) rankByCorrect(eligible, memberKeys);
+      if (byTime) rankByTime(eligible, memberKeys);
+      // A clock day is won by a FULL run only: a row with a lot unsolved is
+      // below every full run already, and if nobody parked all three that day
+      // there is no champion rather than the fastest partial one.
+      const crownable = byTime ? eligible.filter((r) => r.parkedAll) : eligible;
+      if (!crownable.length) continue;
       // Crown only REGISTERED players. A guest (anon userKey 'a:...') has no
       // account, profile, or stable identity, so it can't hold a Hall-of-Fame
       // crown or link to a player page. Guests still count on the live combined
       // board; they just aren't crowned as the day's champion here.
-      const registered = eligible.filter((o) => String(o.userKey || '').startsWith('u:'));
+      const registered = crownable.filter((o) => String(o.userKey || '').startsWith('u:'));
       if (!registered.length) continue; // no registered player that day -> no champion, skip the day
       const gameCount = gameResults.length;
       // On a questions-right circuit the ceiling is that day's own question
       // count, read off the banks the way scoreGame reads a denominator: the
       // largest total any player recorded for each puzzle.
-      const maxTotal = rawScore
+      const maxTotal = byTime ? gameCount : rawScore
         ? gameResults.reduce((sum, g) => {
             let t = 0;
             for (const p of g.players.values()) t = Math.max(t, Number(p.total) || 0);
@@ -218,8 +227,8 @@ export async function GET(req) {
         rosterCount: rosterKeys ? rosterKeys.length : null,
         maxTotal,
         field: eligible.length,
-        winner: { username: w.username, userKey: w.userKey, total: w.total, gamesPlayed: w.gamesPlayed },
-        runnerUp: ru ? { username: ru.username, userKey: ru.userKey, total: ru.total } : null,
+        winner: { username: w.username, userKey: w.userKey, total: w.total, gamesPlayed: w.gamesPlayed, timeTotal: w.timeTotal ?? null },
+        runnerUp: ru ? { username: ru.username, userKey: ru.userKey, total: ru.total, timeTotal: ru.timeTotal ?? null } : null,
       });
     }
     history.sort((a, b) => (a.dateISO < b.dateISO ? 1 : a.dateISO > b.dateISO ? -1 : 0));
@@ -262,7 +271,7 @@ export async function GET(req) {
       circuit: circuitOn ? circuitId : null,
       // What a winner's `total` IS: 'correct' is questions answered right,
       // 'points' is the 0..15 ladder summed over the roster.
-      scoreMode: rawScore ? 'correct' : 'points',
+      scoreMode,
       days: trimmed.length,
       history: trimmed,
       champions,

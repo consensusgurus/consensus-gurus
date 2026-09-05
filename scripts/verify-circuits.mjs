@@ -22,7 +22,7 @@ import {
   circuitById, circuitKeysFor, isMarquee,
   circuitPageHref, circuitShareUrl, circuitShareInvite, circuitShareResult,
   SHARE_HOST_FOR_CIRCUITS, CIRCUIT_BASE,
-  RUN_GAMES, isRunnableCircuit, runHref, circuitScoreMode,
+  RUN_GAMES, JAM_RUN_GAMES, RUN_ENGINES, runGamesFor, runEngine, isRunnableCircuit, runHref, circuitScoreMode,
 } from '../lib/circuits.js';
 import { SHARE_HOST } from '../lib/site.js';
 
@@ -58,6 +58,10 @@ const MED = {
   // shape (a type-ahead trivia grid, somewhere between Sixes and Blocks).
   // Replace with the measured median at the next snapshot re-measure.
   niche: 150,
+  // Impound (2026-09-04) and Junkyard (2026-09-05) launched with no clock data:
+  // estimated off Parker's 61s and their par ramps (7x7 par 16-35 against
+  // Parker's 11-20; 8x8 par 22-46). Replace at the next snapshot re-measure.
+  impound: 150, junkyard: 240,
   // Shoe launched 2026-08-21 with no live clock data yet: estimated from its
   // shape (five click-through blackjack hands, between Taire and Hands).
   // Replace with the measured median at the next snapshot re-measure.
@@ -136,8 +140,14 @@ for (const c of CIRCUITS) {
   // anything else would render a run that silently drops that game.
   if (c.run) {
     if (isMarquee(c.id)) fails.push(`${c.id}: the marquee cannot be runnable, its roster crosses every category`);
-    const off = (c.keys || []).filter((k) => !RUN_GAMES.includes(k));
-    if (off.length) fails.push(`${c.id}: flagged run but holds ${off.join(', ')}, which RUN_GAMES does not cover`);
+    // ONE ENGINE PER CIRCUIT (2026-09-05). A circuit names its engine and every
+    // member has to be a game that engine can deal: RUN_GAMES for the quiz run,
+    // JAM_RUN_GAMES for the Valet run. An engine nobody wrote is a run nobody
+    // can play, so an unknown name fails here rather than 404ing live.
+    const eng = runEngine(c.id);
+    if (!RUN_ENGINES[eng]) fails.push(`${c.id}: flagged run with engine "${eng}", which RUN_ENGINES does not name`);
+    const off = (c.keys || []).filter((k) => !runGamesFor(c.id).includes(k));
+    if (off.length) fails.push(`${c.id}: flagged run (${eng}) but holds ${off.join(', ')}, which that engine cannot deal`);
     if (!isRunnableCircuit(c.id)) fails.push(`${c.id}: flagged run but isRunnableCircuit says otherwise`);
     if (runHref(c.id) !== `${CIRCUIT_BASE}/${c.id}/run`) fails.push(`${c.id}: runHref is ${runHref(c.id)}`);
   } else if (isRunnableCircuit(c.id)) {
@@ -614,14 +624,23 @@ for (const c of ALL_CIRCUITS) {
 {
   for (const c of ALL_CIRCUITS) {
     if (!('score' in c)) continue;
-    if (c.score !== 'correct') {
-      fails.push(`${c.id}: unknown score mode "${c.score}" (only 'correct' is declarable)`);
+    if (c.score !== 'correct' && c.score !== 'time') {
+      fails.push(`${c.id}: unknown score mode "${c.score}" (only 'correct' and 'time' are declarable)`);
       continue;
     }
-    if (circuitScoreMode(c.id) !== 'correct') fails.push(`${c.id}: declares score 'correct' but circuitScoreMode says otherwise`);
+    if (circuitScoreMode(c.id) !== c.score) fails.push(`${c.id}: declares score '${c.score}' but circuitScoreMode says otherwise`);
     const keys = circuitKeysFor(c.id, todayIso);
-    const off = keys.filter((k) => !RUN_GAMES.includes(k));
-    if (off.length) fails.push(`${c.id}: ranks on questions right but holds ${off.join(', ')}, which are not scored in questions`);
+    if (c.score === 'correct') {
+      const off = keys.filter((k) => !RUN_GAMES.includes(k));
+      if (off.length) fails.push(`${c.id}: ranks on questions right but holds ${off.join(', ')}, which are not scored in questions`);
+    } else {
+      // 'time' (2026-09-05): a clock board is honest only over games that are
+      // solve-or-nothing races, where the per-game score is a grade against
+      // par and is NOT what the board adds up. That is exactly the jam family.
+      const off = keys.filter((k) => !JAM_RUN_GAMES.includes(k));
+      if (off.length) fails.push(`${c.id}: ranks on the clock but holds ${off.join(', ')}, which are not timed solve-or-nothing races`);
+      if (!c.run || runEngine(c.id) !== 'jam') fails.push(`${c.id}: ranks on the clock but is not the jam run, so no surface deals it on one clock`);
+    }
   }
   // And the default is the ladder for everything that does not declare it.
   for (const c of ALL_CIRCUITS) {

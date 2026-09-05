@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
 import { loadDailyResultsCached } from '@/lib/daily-results-cache';
 import { findQuizIdentity } from '@/lib/quiz-identity';
-import { scoreGame, combineDaily, guestProvisional, rankByCorrect, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix, usesLadder, dayIsFrozen, etDayEndMs, isoOfSuffix, rowsWithinDay } from '@/lib/daily-combined';
+import { scoreGame, combineDaily, guestProvisional, rankByCorrect, rankByTime, DAILY_KEYS, DAILY_MAX, GAME_MAX, bestNForSuffix, usesLadder, dayIsFrozen, etDayEndMs, isoOfSuffix, rowsWithinDay } from '@/lib/daily-combined';
 import { scoreOutwitGame } from '@/lib/outwit-score';
 import { scoreOutrankGame } from '@/lib/outrank-score';
 import { scoreFeudGame } from '@/lib/feud-score';
@@ -278,6 +278,11 @@ export async function GET(request) {
   // ladder into its own board, its crown and IQ Points. Only the combined rows
   // this payload sorts and prints are converted, by rankByCorrect below.
   const rawScore = circuitOn && circuitScoreMode(circuitId) === 'correct';
+  // ONE CIRCUIT RANKS ON THE CLOCK (owner, 2026-09-05): the Valet Gauntlet's
+  // rows are converted by rankByTime the same way, lots parked then the
+  // combined clock, and the payload says so in scoreMode.
+  const byTime = circuitOn && circuitScoreMode(circuitId) === 'time';
+  const scoreMode = rawScore ? 'correct' : (byTime ? 'time' : 'points');
   const games = gamesForSuffix(fiveOnly ? fiveKeys : DAILY_KEYS, suffix, today);
   const wanted = new Set(games.map((g) => g.quizId));
   // FROZEN: the Eastern day is over, so this board is final. Rows that landed
@@ -304,9 +309,9 @@ export async function GET(request) {
   const effBestN = gameCount ? Math.min(dayBestN, gameCount) : dayBestN;
   // `let`, because a questions-right circuit replaces this with the day's own
   // question count once the banks' totals are in hand (below).
-  let maxTotal = effBestN * GAME_MAX;
+  let maxTotal = byTime ? fiveKeys.length : effBestN * GAME_MAX;
 
-  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: fiveOnly, partial: 0, frozen, maxTotal, scoreMode: rawScore ? 'correct' : 'points', gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
+  const empty = { date: suffix, five: fiveOnly && !circuitOn, circuit: circuitOn ? circuitId : null, rankRequiresAll: fiveOnly, partial: 0, frozen, maxTotal, scoreMode, gameMax: GAME_MAX, ladder, bestN: effBestN, gameCount, uniquePlayers: 0, games: [], overall: [], me: null, meProvisional: null };
   try {
     // Read ONLY this day's quizIds (indexed by quiz_results_quiz, migration 20)
     // rather than the whole table. This route never looks at a row outside
@@ -393,6 +398,11 @@ export async function GET(request) {
     // every per-game figure they already carried (each game's own points, rank
     // and clock are all still on them); their combined `total` becomes the sum
     // of the scores and `timeTotal` the sum of the clocks.
+    if (byTime) {
+      // LOTS PARKED, then the clock. The ceiling is simply the member count.
+      rankByTime(overallFull, games.map((g) => g.key));
+      maxTotal = games.length;
+    }
     if (rawScore) {
       rankByCorrect(overallFull, games.map((g) => g.key));
       // The ceiling is the day's own question count, read off the banks the way
@@ -433,6 +443,19 @@ export async function GET(request) {
       // them registering would earn them a points figure the board never shows.
       // Their per-game ranks above are unchanged; only the combined total and
       // the position it would take are recomputed, against the same rows.
+      if (meProvisional && byTime) {
+        let parked = 0, secs = 0;
+        for (const entry of guestByGame.values()) {
+          const row = entry.row || entry;
+          if (row.abandoned || !(Number(row.score) > 0)) continue;
+          parked += 1;
+          secs += Number(row.time_elapsed) || 0;
+        }
+        meProvisional.total = parked;
+        meProvisional.timeTotal = secs;
+        meProvisional.rank = overallFull.filter((r) => (r.total || 0) > parked
+          || ((r.total || 0) === parked && (r.timeTotal || 0) < secs)).length + 1;
+      }
       if (meProvisional && rawScore) {
         let right = 0, secs = 0;
         for (const entry of guestByGame.values()) {
@@ -524,7 +547,9 @@ export async function GET(request) {
       if (!memberKeys) return true;
       const pg = r && r.perGame;
       if (!pg) return false;
-      return memberKeys.every((k) => pg[k] && !pg[k].abandoned);
+      // On the clock board a lot given up (score 0) is not parked, and a run
+      // takes a rank only once every lot is (owner, 2026-09-05).
+      return memberKeys.every((k) => pg[k] && !pg[k].abandoned && (!byTime || Number(pg[k].score) > 0));
     };
     const overallNamed = overallFull.filter((r) => !!r.username && rankEligible(r));
     const overallRankByKey = new Map();
@@ -532,7 +557,12 @@ export async function GET(request) {
       let dr = 0, prevT = null, seenN = 0;
       for (const r of overallNamed) {
         seenN += 1;
-        const t10 = Math.round((r.total || 0) * 10);
+        // A tie needs BOTH terms on a board the clock separates (correct,
+        // time): every full Valet run has the same `total` (three lots), so a
+        // total-only key would hand the whole board rank 1.
+        const t10 = (rawScore || byTime)
+          ? `${Math.round((r.total || 0) * 10)}|${Math.round(r.timeTotal || 0)}`
+          : Math.round((r.total || 0) * 10);
         if (prevT === null || t10 !== prevT) { dr = seenN; prevT = t10; }
         overallRankByKey.set(r.userKey, dr);
       }
@@ -625,7 +655,7 @@ export async function GET(request) {
       // 0..15 ladder summed over the roster, 'correct' is questions answered
       // right with the clock as the tiebreak. Every client that prints a total
       // reads this rather than assuming a unit.
-      scoreMode: rawScore ? 'correct' : 'points',
+      scoreMode,
       gameMax: GAME_MAX,
       ladder,
       bestN: effBestN,

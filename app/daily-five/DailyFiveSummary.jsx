@@ -33,7 +33,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Share2, Check } from 'lucide-react';
 import { circuitKeysFor, circuitHref, circuitName, readCircuitParam, isMarquee,
-         MARQUEE_ID, circuitShareResult, circuitShareUrl, circuitPageHref } from '@/lib/circuits';
+         MARQUEE_ID, circuitShareResult, circuitShareUrl, circuitPageHref, fmtClock } from '@/lib/circuits';
 import { notifyShareCredit } from '../ShareCreditPop';
 import { withRef } from '@/lib/referrals';
 import { isMobileDevice } from '@/lib/is-mobile';
@@ -98,7 +98,10 @@ export default function DailyFiveSummary() {
   // that decides: 'correct' is questions answered right, anything else is the
   // 0..15 ladder summed over the roster.
   const byCorrect = !!(data && data.scoreMode === 'correct');
-  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : run.length * 15);
+  // The clock board (Valet Gauntlet, 2026-09-05): `total` is lots parked and
+  // the figure a reader wants is the combined time.
+  const byTime = !!(data && data.scoreMode === 'time');
+  const maxTotal = (data && Number.isFinite(data.maxTotal) ? data.maxTotal : 0) || (byCorrect ? 0 : byTime ? run.length : run.length * 15);
 
   // ── SHARING A FINISHED RUN ────────────────────────────────────────────────
   // The result text is built by lib/circuits, so the wording and the pip grid
@@ -115,6 +118,7 @@ export default function DailyFiveSummary() {
     const text = circuitShareResult(runId, {
       points: me ? me.total : 0,
       maxTotal,
+      secs: me && byTime ? me.timeTotal : null,
       rank: me && me.rank ? me.rank : null,
       field: (data && data.overallField) || 0,
       done: played.length,
@@ -168,16 +172,20 @@ export default function DailyFiveSummary() {
       // them: quoting a points figure beside a run whose board counts questions
       // is the exact confusion this rule was written to remove. The game's own
       // score is already on the rail and its rank is already in the sub line.
-      right: done ? (byCorrect ? '' : `${r1(p.points)} pts`) : '',
+      right: done ? ((byCorrect || byTime) ? '' : `${r1(p.points)} pts`) : '',
       state: done ? (p.rank === 1 ? 'won' : 'done') : 'open',
       action: done ? null : { label: 'Play', href: circuitHref(k, runId) },
     };
   });
 
   const figures = [
-    { v: me ? r1(me.total) : 0,
-      k: byCorrect ? (maxTotal ? `of ${maxTotal} right` : 'questions right') : `of ${maxTotal} points`,
-      big: true },
+    byTime
+      ? { v: me && me.timeTotal ? fmtClock(me.timeTotal) : '0:00',
+          k: me && me.total === run.length ? 'combined clock' : `clock, ${me ? r1(me.total) : 0} of ${run.length} parked`,
+          big: true }
+      : { v: me ? r1(me.total) : 0,
+          k: byCorrect ? (maxTotal ? `of ${maxTotal} right` : 'questions right') : `of ${maxTotal} points`,
+          big: true },
     { v: me && me.rank ? `#${me.rank}` : '—', k: `of ${(data && data.overallField) || 0} players` },
     { v: `${played.length}/${run.length}`, k: 'games played' },
   ];
@@ -219,10 +227,13 @@ export default function DailyFiveSummary() {
           field: (data && data.overallField) || 0,
           keys: run,
           maxTotal,
+          clock: byTime,
           limit: 10,
         }}
         boardState={state}
-        boardNote={byCorrect
+        boardNote={byTime
+          ? `This board is your combined clock across all ${run.length} lots, fastest first. Moves do not count here. A lot played on its own still counts, but you need all ${run.length} parked to take a rank on it.`
+          : byCorrect
           ? `This board is the plain count of questions you get right across all ${run.length}, and the shorter clock takes a tie. A game played on its own still counts, but you need all ${run.length} played to take a rank on it.`
           : `Each game pays the same 15/12/10/8/7/6/5/4/3/2/1 by finish, and the run adds the ${run.length} up. A game played on its own still counts, but you need all ${run.length} played to take a rank on this board.`}
         actions={[

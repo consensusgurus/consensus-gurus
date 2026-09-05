@@ -1,5 +1,5 @@
 import { renderGauntletCard, renderQuizCard } from '@/lib/og-stage-cards';
-import { circuitById } from '@/lib/circuits';
+import { circuitById, runEngine } from '@/lib/circuits';
 import { gauntletBanks, gauntletCardProps, etTodayServer } from '../gauntlet-card';
 
 export const runtime = 'nodejs';
@@ -39,9 +39,11 @@ export default async function Image({ params }) {
   if (!banks.length) {
     return renderQuizCard({
       id: 'circuits/' + id,
-      category: 'Trivia',
+      // The Valet Gauntlet is a run with no question banks, so it takes its
+      // own line and category here rather than the trivia one.
+      category: runEngine(id) === 'jam' ? 'Logic' : 'Trivia',
       title: `The ${(c && c.name) || 'Run'} circuit`,
-      blurb: 'Every quiz in the circuit, played back to back as one long run.',
+      blurb: runEngine(id) === 'jam' && c && c.blurb ? c.blurb : 'Every quiz in the circuit, played back to back as one long run.',
     });
   }
 

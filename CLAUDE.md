@@ -7494,3 +7494,47 @@ id, look that id's question text up in `app/<key>/questions.js`, and use that te
 source entry. Anchoring on the generator's own output is the only anchor that cannot drift,
 and normalise both sides: `esc` folds curly quotes and en dashes on the way out, so the source
 and the bank do not always read identically.
+
+## The Valet Gauntlet (`/valet`, `/circuits/valet/run`): the jam ladder on ONE CLOCK (launched 2026-09-05)
+
+Circuit id **`valet`**, name **Valet Gauntlet**, roster `park`, `impound`, `junkyard` in ascending
+board size, `run: true`, **`engine: 'jam'`**, **`score: 'time'`**, trophy `circuit-valet` ("Keys,
+Please", silver, `Car`). It is a circuit in the code and "the Valet Gauntlet" to a reader, exactly
+as the Trivia Gauntlet is; `/valet` forwards to the run like `/trivia` does.
+
+- **A SECOND RUN ENGINE.** `RUN_ENGINES` in `lib/circuits.js` maps `quiz` to `RUN_GAMES` and `jam`
+  to `JAM_RUN_GAMES`; `runEngine(id)` / `runGamesFor(id)` answer which engine deals a circuit and
+  what it can hold. `app/circuits/[id]/run/page.js` branches on the engine: the jam branch resolves
+  the three banks (`LOTS`), ships only today's boards, and renders `app/circuits/ValetRunClient.jsx`.
+  `scripts/verify-circuits.mjs` check 1 fails a runnable circuit holding a game its engine cannot
+  deal, and check 12 requires a `'time'` circuit to be the jam run over `JAM_RUN_GAMES` only.
+- **THE BOARD IS THE CLOCK, NOT THE MOVES.** `rankByTime` in `lib/daily-combined.js`: `total`
+  becomes LOTS PARKED (a row not abandoned and scored above zero; a give-up files 0), `timeTotal`
+  the combined clock, `parkedAll` whether every member parked; sort parked desc, clock asc. Applied
+  by `/api/quiz/daily-combined` and `/api/quiz/daily-history` when `circuitScoreMode(id) === 'time'`,
+  payload `scoreMode: 'time'`, `maxTotal` = member count. The registered board's tie key folds in
+  `timeTotal` on `time` AND `correct` boards (every full Valet run has the same `total`). The
+  all-games rank gate also requires `score > 0` per member on the clock board, and a clock day is
+  crowned by a FULL run only. Each lot still pays its own ladder, best-N, crown and IQ Points: this
+  is a board rule, not a scoring change, same safety as the questions-right rule above it.
+- **THE RUN FILES EXACTLY THE SOLO ROWS**, one per lot: par-graded `score`, `guessesUsed` = moves,
+  `timeElapsed` = that lot's own clock (dealt to parked; the handover is not on the clock), and the
+  four local writes in the solo client's own save shape (`sot_<key>_<num>` with `moves`/`status`/
+  `t0`/`tEnd`, the day breadcrumb, `_rec_`, the stats record), so `/parker` opened afterwards
+  restores the finished board. A lot already finished today is banked off its save (`tEnd - t0`).
+- **`app/circuits/JamBoard.jsx`** is the shared lot drawing (size and exit row as props, selection
+  its own state, moves the caller's via lib/jam-core). The three solo clients keep their own copies
+  deliberately; the run needed one board that takes its size as a prop, not a refactor of three
+  live games. **`app/circuits/ValetScene.jsx`** is the valet-and-car picture (SVG moved by CSS:
+  `arrive` on the gate, `depart` on the handover, `park` at the finish; every mode collapses to the
+  still pose under prefers-reduced-motion). Positioned SVG groups are WRAPPED: a CSS animation
+  replaces an element's `transform` attribute, so a wheel that carries its own `translate` jumps to
+  the origin the moment it spins.
+- **THE POP-UP (`app/circuits/ValetDoorPop.jsx`)** on Parker, Impound and Junkyard fires on the
+  START GATE of today's board, when none of the three lots has been started today on this device
+  (the `sot_<key>_day` breadcrumb), and **TWICE EVER** (`sot_valet_pop` counts showings; taking the
+  run spends both), never while a run is open today. Owner ruling 2026-09-05.
+- Unit-aware surfaces read `scoreMode === 'time'` / `circuitScoreMode(id) === 'time'`: the circuit
+  landing, `/daily-five?circuit=valet` (`CircuitScorecard` takes `board.clock`), the legacy home's
+  circuit board, and `circuitShareResult` (`secs` stat, `fmtClock`). Medians for impound (150) and
+  junkyard (240) in `verify-circuits` are ESTIMATES; re-measure at the next snapshot.
