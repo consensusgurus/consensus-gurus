@@ -72,8 +72,9 @@ body {
    make it do that job by giving it a height floor. A 4px floor here was tried
    and ignored, because a decorative sliver is not what Safari samples. The dome
    is body's background above, backed up by .dch-dome in app/DailyChrome.jsx.
-   theme-color is not the mechanism either: it is set globally to #1e3a8a and
-   every page carries it. */
+   theme-color is not the mechanism either: it is set globally to T.accent and
+   every page carries it. A stage page (the home, /today, the rankings) repaints
+   this band to its own ground; see the .stage-page rules further down. */
 body::before {
   content: '';
   position: fixed;
@@ -364,6 +365,21 @@ button, input, textarea, select { border-radius: 8px; }
    which register is showing. */
 html:has(.stage-page),
 body:has(.stage-page) { background: #0b0f1a !important; }
+/* THE INSTALLED APP'S CAP FOLLOWS THE STAGE, NOT THE BRAND (owner, 2026-09-05:
+   "when i save the homepage to my iOS homescreen as an 'app' ... it has a navy
+   cap. why?"). The band is body::before above: a fixed strip the height of the
+   top safe-area inset, painted var(--accent) because the daily-game chrome it
+   was built for IS navy and the strip has to continue that colour under the
+   status bar. The stage home paints its own near-black ground from the first
+   pixel, and the strip was never told, so the installed app opened on a navy
+   bar over a black page. The status bar itself is black-translucent, which
+   means its clock and battery are always WHITE, so the strip must stay dark
+   on both registers: on dark it disappears into the page, and on light a pale
+   strip would hide the clock outright, so the same near-black stays and reads
+   as the phone's own status bar rather than as site chrome. (Black text on a
+   pale cap would need statusBarStyle 'default' in app/layout.js, which is read
+   once at install time and would change every installed game too.) */
+body:has(.stage-page)::before { background: #0b0f1a; }
 /* --stg-ground is defined ON .stage-page, so html cannot read it: the register
    has to be named here instead. */
 /* A FINISHED BOARD IS A RESULT, NOT A BOARD (owner, 2026-08-31). Once a daily

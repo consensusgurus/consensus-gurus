@@ -71,6 +71,7 @@ import { fetchDailyMe, dailyMeQuery, dailyMeIdentity } from './dailyMeClient';
 import JoinLeaderboardForm from './quiz/[id]/JoinLeaderboardForm';
 import { savedIdentity } from '@/lib/saved-identity';
 import GameGlyph from './GameGlyph';
+import SudokuCircuitPop from './circuits/SudokuCircuitPop';
 
 function fmtTime(s) {
   if (s == null) return null;
@@ -717,6 +718,7 @@ export default function LoftFinish({
   if (runActive) {
     return (
       <div className="loft-back">
+        <SudokuCircuitPop ready self={selfKey} />
         <div className="loft-backin">
           <style>{`
             .d5f-run{display:flex;align-items:center;gap:10px;margin:12px 0 2px;}
@@ -983,6 +985,11 @@ export default function LoftFinish({
 
   return (
     <div className="loft-back">
+      {/* THE SUDOKU CIRCUIT NUDGE (owner, 2026-09-05): two seconds onto this
+          card, on any of today's five Sudoku circuit grids, once a day. It
+          decides everything else for itself; see the file. Mounted on the two
+          branches a finish is actually read on: this one and the run card. */}
+      <SudokuCircuitPop ready self={selfKey} />
       <div className="loft-backin">
       {/* THE VERDICT LIVES HERE NOW, not on the page cap (owner, 2026-08-14).
           Colouring both said it twice, and this is where the result is.
