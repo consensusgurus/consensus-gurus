@@ -21,5 +21,16 @@ const EXTRA = ['directed', 'director', 'directors', 'starred', 'played', 'ceremo
   'japanese', 'italian', 'german', 'soviet', 'fictional', 'followed', 'follows', 'follow', 'opened',
   'opens', 'made', 'makes', 'shot', 'filmed', 'filming', 'scene', 'sequence', 'camera', 'sound', 'color'];
 
-const r = checkBank({ QUESTIONS, QUESTION_MAP, PUZZLES, key: 'script', LANES, extraTemplate: EXTRA });
+// Scoped to the boards authored from 2026-09-29 on, the first day past the
+// launch bank, so the days already live stay frozen. answerCap counts pool
+// variety across the whole future window rather than per day: the launch bank's
+// busiest answer appears 3 times in 750 questions, so 3 is the ceiling for
+// everything authored from here.
+const COPY_FROM = '2026-09-29';
+
+const r = checkBank({
+  QUESTIONS, QUESTION_MAP, PUZZLES, key: 'script', LANES, extraTemplate: EXTRA,
+  copyFrom: COPY_FROM,
+  answerCap: 3,
+});
 report(r, QUESTIONS, PUZZLES);

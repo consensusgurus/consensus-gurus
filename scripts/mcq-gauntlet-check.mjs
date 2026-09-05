@@ -20,6 +20,8 @@
 // widening to three past day 99, the slot always two. Each day's qids must
 // carry that day's own number as their prefix.
 
+import { scanUS } from './us-spellings.mjs';
+
 const norm = (s) => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -29,10 +31,24 @@ const STOP = new Set(['the', 'a', 'an', 'of', 'and', 'in', 'on', 'at', 'to', 'fo
 // a bank adds its own domain filler through the extraTemplate option.
 const TEMPLATE_BASE = ('which what who whom whose where when how many name named known called nickname year years decade century first last later early famous popular common often usually still large largest biggest small these that this from with their they there only into over under after before more most best worst other another said says say line quote spoke spoken wrote written author work title character film movie series show book novel play speech').split(' ');
 
-export function checkBank({ QUESTIONS, QUESTION_MAP, PUZZLES, key, LANES, inherent = [], extraTemplate = [] }) {
+// copyFrom / answerCap / laneStem / bannedPairs arrived with the 2026-09-04
+// bank-extension standard: every rule a bank's own header states and a script
+// can check must be checked BEFORE the bank ships (CLAUDE.md, "Extending a
+// puzzle bank in bulk", rule 1), and pool variety is counted across the WHOLE
+// bank rather than per day (rule 3). They are all scoped to `copyFrom` so the
+// days already live stay frozen (rule 6).
+export function checkBank({ QUESTIONS, QUESTION_MAP, PUZZLES, key, LANES, inherent = [], extraTemplate = [],
+  copyFrom = null, answerCap = 0, laneStem = null, bannedPairs = [] }) {
   const errs = [];
   const warns = [];
   const fail = (m) => errs.push(m);
+  // Real titles and names keep their own spelling.
+  // Real titles and names keep their own spelling: these are works, not prose.
+  // Matching is case sensitive, so allowing the title "Neighbours" does not
+  // excuse a lowercase "neighbours" in a sentence.
+  const ALLOW_PROPER = ['The Colour Purple', 'Labour Party', 'Theatre Royal', 'Pearl Harbor',
+    "Ford's Theatre", 'Neighbours', 'Spectre', 'The Theatre', 'Grey Gardens', 'Grey\'s Anatomy',
+    'Traffic Colour', 'Colour Box'];
   const warn = (m) => warns.push(m);
 
   // Ids where the answer is unavoidably in the wording. Keep this list empty if
@@ -155,6 +171,59 @@ export function checkBank({ QUESTIONS, QUESTION_MAP, PUZZLES, key, LANES, inhere
     const prev = Date.parse(`${dates[i - 1]}T00:00:00Z`);
     const cur = Date.parse(`${dates[i]}T00:00:00Z`);
     if (cur - prev !== 86400000) fail(`day ${PUZZLES[i].num}: ${dates[i]} does not follow ${dates[i - 1]} by one day`);
+  }
+
+  // ---- rules the bank's own header states, now enforced ------------------
+  // Scoped to the days at or after copyFrom, because the past is frozen.
+  if (copyFrom) {
+    const futureQids = new Set();
+    for (const p of PUZZLES) if (p.live >= copyFrom) (p.qids || []).forEach((id) => futureQids.add(id));
+    const future = QUESTIONS.filter((q) => futureQids.has(q.id));
+
+    // US spellings in reader-facing copy (authoring standard rule 8). A
+    // 750-question authoring pass imports British forms and nothing looked.
+    for (const q of future) {
+      for (const [label, txt] of [['question', q.q], ...q.choices.map((c, i) => [`choice ${i + 1}`, c])]) {
+        for (const hit of scanUS(txt, ALLOW_PROPER)) {
+          fail(`${q.id}: British form "${hit.found}" in ${label} (US: ${hit.us})`);
+        }
+      }
+    }
+
+    // POOL VARIETY ACROSS THE BANK, not per day. A per-day duplicate check
+    // passes happily on a bank that answers "Churchill" every other week.
+    if (answerCap) {
+      const use = new Map();
+      for (const q of future) {
+        const a = norm(q.choices[q.correct]);
+        if (!use.has(a)) use.set(a, []);
+        use.get(a).push(q.id);
+      }
+      for (const [a, list] of use) {
+        if (list.length > answerCap) fail(`"${a}" is the answer ${list.length} times, over the ${answerCap}-use cap (${list.slice(0, 4).join(', ')}...)`);
+      }
+    }
+
+    // A lane whose header promises a particular shape of stem.
+    if (laneStem) {
+      for (const q of future) {
+        const rule = laneStem[q.cat];
+        if (rule && !rule.re.test(q.q)) fail(`${q.id} (${q.cat}): ${rule.why}`);
+      }
+    }
+
+    // Lines the bank bans outright because the famous version was never said.
+    // The test is on the ANSWER, not on mere presence: the bank's header
+    // explicitly allows asking about a misattribution directly, naming the real
+    // author as the answer, and that question has the banned figure sitting
+    // legitimately among its distractors.
+    for (const q of future) {
+      const stem = q.q.toLowerCase();
+      const answer = String(q.choices[q.correct] || '').toLowerCase();
+      for (const b of bannedPairs) {
+        if (b.who.test(answer) && b.what.test(stem)) fail(`${q.id}: ${b.why}`);
+      }
+    }
   }
 
   const orphans = QUESTIONS.filter((q) => !usedQids.has(q.id));

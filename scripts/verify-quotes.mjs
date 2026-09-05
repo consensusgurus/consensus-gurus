@@ -24,5 +24,42 @@ const EXTRA = ['president', 'presidents', 'prime', 'minister', 'general', 'admir
   'greek', 'russian', 'italian', 'spanish', 'soviet', 'chinese', 'address', 'speech', 'inaugural',
   'congress', 'commons', 'national'];
 
-const r = checkBank({ QUESTIONS, QUESTION_MAP, PUZZLES, key: 'quotes', LANES, extraTemplate: EXTRA });
+// Rules the bank's own header states that a script can check. All are scoped to
+// the boards authored from 2026-09-29 on, the first day past the launch bank, so
+// the days already live stay frozen (authoring standard rule 10).
+const COPY_FROM = '2026-09-29';
+
+// "A FICTIONAL LINE IS ALWAYS ASKED AS A CHARACTER" (owner rule, in the source
+// header). d03q25 predates the check and asks "which member of Project Mayhem",
+// whose four choices are all characters, so it honours the rule without the
+// word; it is live and frozen rather than an exception worth carving out here.
+const LANE_STEM = {
+  'Screen Lines': {
+    re: /\bcharacters?\b/i,
+    why: 'a fictional line is always asked as a character, so the stem must say so',
+  },
+};
+
+// NOTHING APOCRYPHAL. The seven the source header bans outright. Asking about
+// the misattribution itself is fine, which is why this fires on the ANSWER.
+const BANNED = [
+  { who: /marie antoinette/i, what: /\bcake\b|brioche/i, why: 'Marie Antoinette never said let them eat cake' },
+  { who: /voltaire/i, what: /defend (to the death )?your right|disapprove of what you say/i, why: 'the defend-your-right line is Evelyn Beatrice Hall, not Voltaire' },
+  { who: /machiavelli/i, what: /ends justify the means/i, why: 'Machiavelli never wrote that the ends justify the means' },
+  { who: /einstein/i, what: /definition of insanity|same thing over and over/i, why: 'the definition-of-insanity line is not Einstein' },
+  { who: /edmund burke|\bburke\b/i, what: /good men (to )?do nothing|triumph of evil/i, why: 'the good-men-do-nothing line is not traceable to Burke' },
+  { who: /queen victoria|victoria/i, what: /not amused/i, why: 'we are not amused is not reliably Victoria' },
+  { who: /paul revere|revere/i, what: /british are coming/i, why: 'Revere did not shout the British are coming' },
+];
+
+const r = checkBank({
+  QUESTIONS, QUESTION_MAP, PUZZLES, key: 'quotes', LANES, extraTemplate: EXTRA,
+  copyFrom: COPY_FROM,
+  // Pool variety across the whole future window, not per day. The launch bank
+  // answers Churchill 9 times in 750 questions and nothing counted; four is the
+  // ceiling for everything authored from here.
+  answerCap: 4,
+  laneStem: LANE_STEM,
+  bannedPairs: BANNED,
+});
 report(r, QUESTIONS, PUZZLES);
