@@ -1212,9 +1212,18 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                 <div className={`rn-vbar${hold ? ' held' : ''}`} style={{ '--dwell': `${VERDICT_MS}ms` }}>
                   <span key={resumes} />
                 </div>
-                <div className="rn-vacts">
-                  <button type="button" className="rn-vb pri" onClick={() => { setHold(false); nextSection(); }}>
-                    {upNext ? 'Next now' : 'See the run'}<ArrowRight size={15} strokeWidth={2.8} />
+                {/* CONTINUE IS THE BUTTON ON THIS CARD (owner, 2026-09-05: "a
+                    bigger, full width on mobile, more prominent continue on
+                    button"). It was one of three same-sized chips in a row,
+                    and the thing a player wants nine times out of ten between
+                    quizzes was no easier to find than Hold or Leave. It now
+                    takes the start gate's button form (rn-go's size, the
+                    incoming quiz's own ramp colour so it reads as the door
+                    into it), names the quiz it opens, and on a phone spans the
+                    card with the two lesser actions on their own row below. */}
+                <div className="rn-vacts rn-hacts">
+                  <button type="button" className="rn-vb pri rn-vgo" onClick={() => { setHold(false); nextSection(); }}>
+                    {upNext ? <>Continue<i className="rn-vgn">· {upNext.name}</i></> : 'See the run'}<ArrowRight size={18} strokeWidth={2.8} />
                   </button>
                   <button type="button" className="rn-vb" onClick={() => { if (hold) setResumes((k) => k + 1); setHold(!hold); }}>
                     {hold ? <><Play size={14} strokeWidth={2.8} />Resume</> : <><Pause size={14} strokeWidth={2.8} />Hold</>}
@@ -1728,6 +1737,16 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-vb.on{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
 .rn-vb.pri{background:#7dd3fc;border-color:#7dd3fc;color:#08222e;}
 .rn-vb:hover{filter:brightness(1.1);}
+/* THE CONTINUE BUTTON on the handover. rn-go's size (the gate's Start), set in
+   the incoming quiz's ramp step so it is the same colour as the name it sits
+   under: every step of LADDER_RAMP holds 6:1 or better against #08222e (sky
+   9.85, mint 10.78, lime 12.57, gold 8.62, orange 7.26, rose 6.1, magenta 6.67),
+   so the ink never changes. The quiz name inside it is the lighter half so the
+   verb reads first. Hold and Leave stay the chips they were. */
+.rn-hacts{align-items:center;gap:10px;}
+.rn-vb.rn-vgo{background:var(--to,#7dd3fc);border-color:var(--to,#7dd3fc);color:#08222e;
+  border-radius:11px;padding:15px 22px;font-size:16px;gap:9px;}
+.rn-vgn{font-style:normal;font-weight:700;opacity:.72;}
 .rn-sacts{margin-top:22px;}
 
 /* The scorecard. */
@@ -1812,6 +1831,9 @@ body:has(.rn)::before{background:${T.ground};}
   .rn-chm{padding:18px 15px;}
   .rn-vfig{gap:18px;}
   .rn-hn{font-size:34px;}
+  /* Continue spans the card on a phone, the two chips share the row under it. */
+  .rn-vb.rn-vgo{width:100%;justify-content:center;padding:16px 18px;font-size:17px;}
+  .rn-hacts .rn-vb:not(.rn-vgo){flex:1 1 0;justify-content:center;}
   .rn-sc-figs{margin-left:0;gap:18px;}
   /* The strip keeps the two facts that matter and drops the denominator. */
   .rn-strip{padding:9px 14px;gap:8px;}
