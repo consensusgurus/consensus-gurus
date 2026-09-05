@@ -51,7 +51,7 @@ import TriviaDoorPop from '../../TriviaDoorPop';
 import useGauntletField, { FIELD_FLOOR } from '../../useGauntletField';
 import useCircuitBoard from '../../useCircuitBoard';
 import GauntletFinale from '../../GauntletFinale';
-import MissList, { missOf, MissAnswer, MISS_CSS } from '../../RunMisses';
+import MissList, { missOf, MISS_CSS } from '../../RunMisses';
 import useCircuitHistory from '../../useCircuitHistory';
 import { T } from '@/lib/theme';
 
@@ -67,8 +67,9 @@ const Q_SECONDS = 20;        // the same clock all five games run
 // clock, and nobody who wants to move on is made to wait. Erring short cannot
 // be undone, because the next quiz has already started. The drain bar reads its
 // duration from this same constant (--dwell below) so the bar and the timeout
-// cannot drift apart.
-const VERDICT_MS = 30000;
+// cannot drift apart. 22.5s from 2026-09-05 (owner: "cut 25% off of it"), once
+// the card slimmed to the missed question, the button and two chips.
+const VERDICT_MS = 22500;
 const RIGHT_MS = 420;        // the green flash between questions, as in the solo clients
 
 function etToday() {
@@ -703,8 +704,6 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   }, [boardRows, boardNow, answeredSoFar]);
 
   const lastSec = last ? sections.find((s) => s.key === last.key) : null;
-  const lastAvg = last && field && field.avg[last.key] != null ? field.avg[last.key] : null;
-  const lastBeaten = last && field ? field.beaten(last.key, last.score) : null;
   const lastMiss = missOf(lastSec, last);
 
   return (
@@ -1168,63 +1167,64 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   '--to': upNext ? rampFor(upNext.slot) : T.blue,
                 }}
               >
-                <span className={`rn-eye${last.status === 'won' ? ' ok' : ' out'}`}>
-                  {last.status === 'won' ? 'Cleared · no misses' : 'Out · one wrong'}
-                </span>
-                <h2 className="rn-vh">
-                  {lastSec ? lastSec.name : 'That quiz'}{last.status === 'won' ? ' run clean, ' : ' ends at '}
-                  <u className={last.status === 'won' ? 'ok' : ''}>{last.score} of {last.total}</u>.
-                </h2>
-                <div className="rn-vfig">
-                  {lastAvg != null ? (
-                    <div>
-                      <b className={last.score >= lastAvg ? 'up' : 'dn'}>
-                        {last.score >= lastAvg ? '+' : '−'}{Math.abs(last.score - lastAvg).toFixed(1)}
-                      </b>
-                      <i>vs today&rsquo;s {lastAvg.toFixed(1)} average</i>
+                {/* THREE THINGS ON THE CARD (owner, 2026-09-05): the question
+                    that ended the quiz with the score inline after it, one big
+                    Continue that IS the next quiz's name, and the two lesser
+                    actions under it. The headline, the eyebrow, the figure row
+                    and the separate "next up" block are gone: the last quiz
+                    gets one line of ink, the next one gets the button. */}
+                <div className="rn-vlast">
+                  {lastMiss && !lastMiss.cleared ? (
+                    <>
+                      <div className="rnm-q">
+                        {lastMiss.q}
+                        <b className="rn-vsc">
+                          <i style={{ color: lastSec ? rampFor(lastSec.slot) : T.blue }}>{lastSec ? lastSec.name : 'That quiz'}</i> {last.score} of {last.total}
+                        </b>
+                      </div>
+                      <div className="rnm-ans">
+                        {lastMiss.yours ? <span className="rnm-w">you said {lastMiss.yours}</span> : null}
+                        {lastMiss.timedOut ? <span className="rnm-w">the clock ran out</span> : null}
+                        {lastMiss.unknown ? <span className="rnm-w">answered wrong</span> : null}
+                        <span className="rnm-r">{lastMiss.right}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rnm-q cleared">
+                      {lastSec ? lastSec.name : 'That quiz'} run clean, no misses.
+                      <b className="rn-vsc ok">{last.score} of {last.total}</b>
                     </div>
-                  ) : null}
-                  {lastBeaten != null ? (
-                    <div><b className="up">{Math.round(lastBeaten * 100)}%</b><i>of the field beaten</i></div>
-                  ) : null}
-                  <div><b>{fmtTime(last.secs * 1000)}</b><i>your clock</i></div>
-                  <div><b>{last.total - last.score}</b><i>never reached</i></div>
+                  )}
                 </div>
-                <MissAnswer miss={lastMiss} />
-                {upNext ? (
-                  <div className="rn-hand">
-                    <span className="rn-he">Next up · your life resets</span>
-                    <span className="rn-hn">{upNext.name}</span>
-                    <span className="rn-hs">{lineFor(upNext)} · {upNext.questions.length} questions</span>
-                  </div>
-                ) : (
-                  <div className="rn-hand">
-                    <span className="rn-he">That was the last one</span>
-                    <span className="rn-hn">Results</span>
-                  </div>
-                )}
-                {/* Keyed on the resume count so the bar RESTARTS with the fresh
-                    timeout a resume starts. Without the key the animation picks
-                    up where it paused while the timer runs the full dwell
-                    again, and the bar empties while the card sits there. It
-                    takes its duration from VERDICT_MS rather than a second copy
-                    of the number in the stylesheet. */}
-                <div className={`rn-vbar${hold ? ' held' : ''}`} style={{ '--dwell': `${VERDICT_MS}ms` }}>
-                  <span key={resumes} />
-                </div>
-                {/* CONTINUE IS THE BUTTON ON THIS CARD (owner, 2026-09-05: "a
-                    bigger, full width on mobile, more prominent continue on
-                    button"). It was one of three same-sized chips in a row,
-                    and the thing a player wants nine times out of ten between
-                    quizzes was no easier to find than Hold or Leave. It now
-                    takes the start gate's button form (rn-go's size, the
-                    incoming quiz's own ramp colour so it reads as the door
-                    into it), names the quiz it opens, and on a phone spans the
-                    card with the two lesser actions on their own row below. */}
+                {/* THE BUTTON IS THE NEXT QUIZ. Its ramp step is the fill, its
+                    name is the label, its subject and count are the second
+                    line, and the dwell bar drains along its bottom edge so the
+                    countdown is part of the thing it counts down to. Keyed on
+                    the resume count so the bar RESTARTS with the fresh timeout
+                    a resume starts; the duration comes from VERDICT_MS so the
+                    bar and the timeout cannot drift apart. */}
+                <button
+                  type="button"
+                  className={`rn-vgo${hold ? ' held' : ''}`}
+                  style={{ '--dwell': `${VERDICT_MS}ms` }}
+                  onClick={() => { setHold(false); nextSection(); }}
+                >
+                  {upNext ? (
+                    <>
+                      <span className="rn-vge">Continue to</span>
+                      <span className="rn-vgn">{upNext.name}</span>
+                      <span className="rn-vgs">{lineFor(upNext)} · {upNext.questions.length} questions · your life resets</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="rn-vge">That was the last one</span>
+                      <span className="rn-vgn">See the run</span>
+                    </>
+                  )}
+                  <ArrowRight className="rn-vga" size={26} strokeWidth={2.8} />
+                  <span className="rn-vgbar"><span key={resumes} /></span>
+                </button>
                 <div className="rn-vacts rn-hacts">
-                  <button type="button" className="rn-vb pri rn-vgo" onClick={() => { setHold(false); nextSection(); }}>
-                    {upNext ? <>Continue<i className="rn-vgn">· {upNext.name}</i></> : 'See the run'}<ArrowRight size={18} strokeWidth={2.8} />
-                  </button>
                   <button type="button" className="rn-vb" onClick={() => { if (hold) setResumes((k) => k + 1); setHold(!hold); }}>
                     {hold ? <><Play size={14} strokeWidth={2.8} />Resume</> : <><Pause size={14} strokeWidth={2.8} />Hold</>}
                   </button>
@@ -1705,31 +1705,39 @@ body:has(.rn)::before{background:${T.ground};}
   background:linear-gradient(112deg,color-mix(in srgb,var(--from) 26%,transparent) 0%,
     ${T.ground} 48%,color-mix(in srgb,var(--to) 18%,transparent) 100%);}
 .rn-chm > *{position:relative;}
-.rn-vh{font-size:clamp(23px,3.2vw,34px);font-weight:800;letter-spacing:-.035em;line-height:1.08;
-  color:#fff;margin:0;}
-.rn-vh u{text-decoration:none;font-family:${MONO};font-weight:500;color:#ef8577;
-  font-variant-numeric:tabular-nums;}
-.rn-vh u.ok{color:${T.success};}
-.rn-vfig{display:flex;gap:26px;flex-wrap:wrap;margin:20px 0 0;}
-.rn-vfig div b{display:block;font-family:${MONO};font-size:21px;color:#fff;font-weight:500;
-  line-height:1;font-variant-numeric:tabular-nums;}
-.rn-vfig div b.up{color:${T.success};}
-.rn-vfig div b.dn{color:#ef8577;}
-.rn-vfig div i{display:block;font-style:normal;font-size:9px;font-weight:800;letter-spacing:.12em;
-  text-transform:uppercase;color:#66748f;margin-top:6px;}
-.rn-hand{margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,255,255,.11);}
-.rn-he{display:block;font-family:${MONO};font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
-  color:#66748f;}
-.rn-hn{display:block;font-size:clamp(34px,5.4vw,58px);font-weight:800;letter-spacing:-.05em;
-  line-height:.92;text-transform:uppercase;color:var(--to);margin-top:8px;}
-.rn-hs{display:block;font-size:12.5px;font-weight:600;color:#9aa8c4;margin-top:8px;}
-.rn-vbar{height:3px;border-radius:2px;background:rgba(255,255,255,.1);overflow:hidden;margin:22px 0 15px;}
-.rn-vbar span{display:block;height:100%;background:var(--to);width:100%;transform-origin:left;
-  animation:rnv var(--dwell,8000ms) linear forwards;}
-.rn-vbar.held span{animation-play-state:paused;}
-@keyframes rnv{from{transform:scaleX(1);}to{transform:scaleX(0);}}
-@media (prefers-reduced-motion:reduce){.rn-vbar span{animation:none;transform:scaleX(0);}}
+/* 1. THE LAST QUIZ, ONE LINE OF INK. The question that ended it, its name and
+   score inline after it in the ramp step it wore, and the answer line under. */
+.rn-vlast .rnm-q{font-size:15.5px;margin:0 0 7px;}
+.rn-vlast .rnm-q.cleared{margin:0;color:#eef2fa;font-weight:600;}
+.rn-vsc{display:inline-block;margin-left:10px;font-family:${MONO};font-weight:500;font-size:13.5px;
+  color:#ef8577;white-space:nowrap;vertical-align:baseline;font-variant-numeric:tabular-nums;}
+.rn-vsc.ok{color:${T.success};}
+.rn-vsc i{font-style:normal;font-weight:800;font-family:${SANS};font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;margin-right:7px;}
 
+/* 2. THE BUTTON IS THE NEXT QUIZ. Full width at every size, the incoming ramp
+   step as its fill (every LADDER_RAMP step holds 6:1 or better against
+   #08222e: sky 9.85, mint 10.78, lime 12.57, gold 8.62, orange 7.26, rose 6.1,
+   magenta 6.67), the name set big, and the countdown draining along its
+   bottom edge in the same ink at low alpha. */
+.rn-vgo{position:relative;display:block;width:100%;text-align:left;margin-top:22px;
+  background:var(--to,#7dd3fc);border:0;border-radius:14px;padding:18px 74px 20px 22px;
+  font-family:inherit;color:#08222e;cursor:pointer;overflow:hidden;}
+.rn-vgo:hover{filter:brightness(1.06);}
+.rn-vge{display:block;font-family:${MONO};font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:600;opacity:.7;}
+.rn-vgn{display:block;font-size:clamp(30px,4.6vw,44px);font-weight:800;letter-spacing:-.045em;
+  line-height:.95;text-transform:uppercase;margin-top:5px;}
+.rn-vgs{display:block;font-size:12.5px;font-weight:700;opacity:.72;margin-top:8px;}
+.rn-vga{position:absolute;right:24px;top:50%;transform:translateY(-50%);}
+.rn-vgbar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(8,34,46,.12);}
+.rn-vgbar span{display:block;height:100%;background:rgba(8,34,46,.45);width:100%;transform-origin:left;
+  animation:rnv var(--dwell,8000ms) linear forwards;}
+.rn-vgo.held .rn-vgbar span{animation-play-state:paused;}
+@keyframes rnv{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+@media (prefers-reduced-motion:reduce){.rn-vgbar span{animation:none;transform:scaleX(0);}}
+
+/* 3. The two lesser actions, the chips they were. */
 .rn-vacts{display:flex;gap:8px;flex-wrap:wrap;}
 .rn-vb{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 14px;font-family:inherit;
@@ -1737,16 +1745,7 @@ body:has(.rn)::before{background:${T.ground};}
 .rn-vb.on{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);}
 .rn-vb.pri{background:#7dd3fc;border-color:#7dd3fc;color:#08222e;}
 .rn-vb:hover{filter:brightness(1.1);}
-/* THE CONTINUE BUTTON on the handover. rn-go's size (the gate's Start), set in
-   the incoming quiz's ramp step so it is the same colour as the name it sits
-   under: every step of LADDER_RAMP holds 6:1 or better against #08222e (sky
-   9.85, mint 10.78, lime 12.57, gold 8.62, orange 7.26, rose 6.1, magenta 6.67),
-   so the ink never changes. The quiz name inside it is the lighter half so the
-   verb reads first. Hold and Leave stay the chips they were. */
-.rn-hacts{align-items:center;gap:10px;}
-.rn-vb.rn-vgo{background:var(--to,#7dd3fc);border-color:var(--to,#7dd3fc);color:#08222e;
-  border-radius:11px;padding:15px 22px;font-size:16px;gap:9px;}
-.rn-vgn{font-style:normal;font-weight:700;opacity:.72;}
+.rn-hacts{margin-top:10px;}
 .rn-sacts{margin-top:22px;}
 
 /* The scorecard. */
@@ -1829,11 +1828,13 @@ body:has(.rn)::before{background:${T.ground};}
   .rn-foot{margin-top:16px;padding-top:13px;gap:8px;}
   .rn-tally{margin-left:0;width:100%;}
   .rn-chm{padding:18px 15px;}
-  .rn-vfig{gap:18px;}
-  .rn-hn{font-size:34px;}
-  /* Continue spans the card on a phone, the two chips share the row under it. */
-  .rn-vb.rn-vgo{width:100%;justify-content:center;padding:16px 18px;font-size:17px;}
-  .rn-hacts .rn-vb:not(.rn-vgo){flex:1 1 0;justify-content:center;}
+  .rn-vlast .rnm-q{font-size:14px;}
+  .rn-vsc{display:block;margin:6px 0 0;}
+  .rn-vgo{margin-top:16px;padding:16px 60px 18px 18px;border-radius:12px;}
+  .rn-vgn{font-size:32px;}
+  .rn-vga{right:18px;}
+  /* The two chips share the row under the button. */
+  .rn-hacts .rn-vb{flex:1 1 0;justify-content:center;}
   .rn-sc-figs{margin-left:0;gap:18px;}
   /* The strip keeps the two facts that matter and drops the denominator. */
   .rn-strip{padding:9px 14px;gap:8px;}
