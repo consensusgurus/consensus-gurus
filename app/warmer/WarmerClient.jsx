@@ -13,14 +13,18 @@
 // by fewest guesses. That ordering is encoded in `score` (see scoreFor* below)
 // so the shared daily board (score desc → guesses → time) sorts it correctly.
 //
-// Proximity is precomputed (word2vec, with WordNet-bridged vectors for words the
-// model lacks) per day into `active.order`, so the browser needs no model. The
-// answer is never sent as a string (it's VOCAB[order[0]], live day only).
+// Proximity is precomputed on GloVe-6B-100d native vectors per day, so the
+// browser needs no model. The server sends it PACKED, as `active.o` — three
+// base64 characters per vocab index — and this file decodes it once with the
+// shared codec. The answer is never sent as a string (it's VOCAB[order[0]] of
+// the live day only). Do not import ./puzzles here: that module is the whole
+// 13MB bank, and only the server page may touch it.
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { HelpCircle, Share2, X, Lightbulb, Smartphone, CornerDownLeft, Flag } from 'lucide-react';
 import { VOCAB, VOCAB_INDEX } from './vocab';
+import { decodeOrder } from './order-codec';
 import Grain from '../Grain';
 import Footer from '../Footer';
 import DailyGamesGrid from '../DailyGamesGrid';
@@ -147,7 +151,8 @@ function freshState() { return { v: 1, guesses: [], status: 'playing', hintUsed:
 
 export default function WarmerClient({ active, puzzles = [], forceNum = null }) {
   const PUZZLE = active;
-  const ORDER = active.order;
+  // One decode per day shown; `active.o` is the packed ranking for that day.
+  const ORDER = useMemo(() => decodeOrder(active.o), [active.o]);
   const STORE_KEY = `sot_warmer_${PUZZLE.num}`;
   const rankByVocab = useMemo(() => {
     const arr = new Int32Array(N_WORDS).fill(-1);

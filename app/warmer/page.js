@@ -13,8 +13,15 @@ import { SITE_URL } from '@/lib/site';
 // The Sunday Edition picks a rarer word (deeper in the frequency-ordered vocab).
 //
 // The server picks the ACTIVE puzzle (today, or ?p=N from the archive) and sends
-// only THAT day's similarity `order` to the client, plus a slim answer-free meta
+// only THAT day's similarity ranking to the client, plus a slim answer-free meta
 // list of the rest — so future words never reach the browser.
+//
+// It sends the ranking in its STORED form: `o`, the packed base64 string (see
+// ./order-codec.js), which the client decodes. That is half the bytes of the
+// 32,300-number JSON array the page used to inline, and it keeps the decode in
+// exactly one place. The active day is rebuilt field by field rather than spread
+// from the board, so the only ranking that can ever cross to the browser is the
+// one named here.
 
 export const metadata = {
   title: 'Daily Word Puzzle, Hotter or Colder: Warmer | Mind Loft',
@@ -117,13 +124,18 @@ export default function WarmerPage({ searchParams }) {
   if (!active) active = visible[visible.length - 1];
   // Slim, answer-free meta for the rest (prev-day link, streaks, "is this today").
   const meta = visible.map((p) => ({ num: p.num, quizId: p.quizId, live: p.live, dateLabel: p.dateLabel, sunday: p.sunday }));
+  // The one day whose ranking crosses to the client, listed explicitly.
+  const activeDay = {
+    num: active.num, quizId: active.quizId, live: active.live,
+    dateLabel: active.dateLabel, sunday: active.sunday, o: active.o,
+  };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(gameJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
       <Suspense fallback={null}>
-        <WarmerClient key={forceNum || 'today'} active={active} puzzles={meta} forceNum={forceNum} />
+        <WarmerClient key={forceNum || 'today'} active={activeDay} puzzles={meta} forceNum={forceNum} />
       </Suspense>
       <StageTail self="warmer" stage={isStageServer('warmer', searchParams)} />
     </>

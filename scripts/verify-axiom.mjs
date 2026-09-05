@@ -20,6 +20,13 @@
 //     thinking player is not hunting one needle in 171
 //   - C10 bank-wide: the answer is spread across the candidate slots, and no
 //     rule kind that appears often is a free cross-out
+//   - C12 the bulk-extension variety ceilings, from V3_FROM: no rule spec is
+//     the answer more than 6 times, no candidate SET repeats, no (answer,
+//     decoy) pairing more than 4 times, no tile word on more than 2 of those
+//     boards or 3 of the whole bank, no two boards sharing more than 5 words,
+//     and every kind's answer rate inside [12%, 50%] rather than C10's
+//     [8%, 75%]. C10 is a floor and a bank can clear it while still being the
+//     same puzzle daily; these are what scripts/gen-axiom.mjs promises.
 //   - C11 no near-miss tiles on a set or hidden-word board (see NEAR below),
 //     and no tile that IS the hidden word rather than a word hiding one.
 //     The candidates stopped printing their array on 2026-08-08, so a player now
@@ -311,6 +318,69 @@ PUZZLES.forEach((p) => {
     }
   });
 });
+
+// ─── C12: the bulk-extension variety ceilings ───────────────────────────────
+// C10 stops a rule kind from being a free cross-out. It does not stop the bank
+// from being the same puzzle every day, and a generator optimises for whatever
+// is machine-checkable: the 2026-09 extension that took the bank to 2026-11-30
+// documented ceilings on answer repetition, rule-set repetition and tile reuse
+// in scripts/gen-axiom.mjs, so they are asserted here rather than trusted.
+// Scoped from V3_FROM, because boards before it were authored without them and
+// the past is frozen (CLAUDE.md, "the past is frozen"). Every number below is
+// the ceiling the generator states in its own header; if that changes, change
+// both.
+const V3_FROM = '2026-09-30';
+const v3 = PUZZLES.filter((p) => p.live >= V3_FROM);
+if (v3.length >= 12) {
+  const spec = (r) => r.k + (r.n !== undefined ? r.n : '') + (r.c || '') + (r.set || '');
+  const ansSpec = new Map();
+  const words = {};          // over v3 only
+  const bankWords = {};      // over the whole bank, for the words v3 uses
+  PUZZLES.forEach((p) => p.tiles.forEach((t) => { bankWords[t.w] = (bankWords[t.w] || 0) + 1; }));
+  const pairings = {};
+  const ruleSets = new Map();
+  const answerOf = (p) => {
+    const f = p.rules.map((r) => ruleFn(r));
+    const i = p.rules.map((r, j) => j).filter((j) => p.tiles.every((t) => (f[j](t.w) ? 1 : 0) === t.t));
+    return i.length === 1 ? i[0] : -1;
+  };
+  v3.forEach((p) => {
+    const a = answerOf(p);
+    if (a < 0) return;                       // C1 already failed and said so
+    const ak = spec(p.rules[a]);
+    ansSpec.set(ak, (ansSpec.get(ak) || 0) + 1);
+    p.rules.forEach((r, j) => { if (j !== a) { const K = `${ak} | ${spec(r)}`; pairings[K] = (pairings[K] || 0) + 1; } });
+    const set = p.rules.map(spec).sort().join('+');
+    if (ruleSets.has(set)) fail(`C12 #${p.num} ${p.live}: same candidate set as #${ruleSets.get(set)}`);
+    ruleSets.set(set, p.num);
+    p.tiles.forEach((t) => { words[t.w] = (words[t.w] || 0) + 1; });
+  });
+  ansSpec.forEach((n, k) => { if (n > 6) fail(`C12: "${k}" is the answer on ${n} boards since ${V3_FROM} (cap 6)`); });
+  Object.entries(pairings).forEach(([k, n]) => { if (n > 4) fail(`C12: the pairing ${k} recurs ${n} times since ${V3_FROM} (cap 4)`); });
+  Object.entries(words).forEach(([w, n]) => {
+    if (n > 2) fail(`C12: tile "${w}" is on ${n} boards since ${V3_FROM} (cap 2)`);
+    if (bankWords[w] > 3) fail(`C12: tile "${w}" is on ${bankWords[w]} boards across the bank (cap 3)`);
+  });
+  for (let i = 0; i < v3.length; i++) {
+    const s = new Set(v3[i].tiles.map((t) => t.w));
+    for (let j = i + 1; j < v3.length; j++) {
+      const n = v3[j].tiles.filter((t) => s.has(t.w)).length;
+      if (n > 5) fail(`C12: #${v3[i].num} and #${v3[j].num} share ${n} tile words (cap 5)`);
+    }
+  }
+  // and the tighter answer-rate band the extension claims, over the same v2
+  // population C10 measures. C10's band is [8%, 75%]; this is [12%, 50%].
+  const seen2 = {};
+  bank.filter((b) => b.num > LEGACY_THROUGH).forEach((b) => {
+    b.kinds.forEach((k) => { seen2[k] = seen2[k] || [0, 0]; seen2[k][0]++; });
+    seen2[b.answerKind][1]++;
+  });
+  Object.entries(seen2).forEach(([k, [appears, isAnswer]]) => {
+    if (appears < 4) return;
+    const rate = isAnswer / appears;
+    if (rate < 0.12 || rate > 0.50) fail(`C12: "${k}" is the answer ${isAnswer} of ${appears} (${(100 * rate).toFixed(0)}%), outside the [12%, 50%] band the bank documents`);
+  });
+}
 
 if (fails) { console.error(`\nverify-axiom: ${fails} FAILURE(S)`); process.exit(1); }
 console.log(`verify-axiom: all ${PUZZLES.length} boards pass (unique rule, gift greens neutral, perfect 2, structure OK)`);

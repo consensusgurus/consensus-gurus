@@ -1,10 +1,34 @@
+// STORAGE. A board stores `o`, the ranking packed three base64 characters per
+// vocab index (app/warmer/order-codec.js); `p.order` is a lazy decode of it.
+// This file checks BOTH ends: that `o` is well formed, that it re-encodes from
+// the decoded array byte-for-byte (so the codec is a proven round trip on the
+// shipped data on every run, not just on the day it was written), and then
+// every rule below against the decoded order. If someone ever "simplifies" the
+// bank back to numeric arrays, `next build` gets SIGKILLed again — see the
+// codec's header for the measurements.
+//
 // Verify the Warmer bank: each day's `order` must be a complete permutation of
 // the VOCAB index space (every word ranked exactly once), the answer must be
-// order[0], ids/dates/labels consistent, sunday flags false, and no answer may
-// repeat across the bank. Run after ANY edit (or a vocab/order regeneration):
+// order[0], ids/dates/labels consistent, sunday flags matching the real
+// weekday, and no answer may repeat across the bank. Run after ANY edit (or a
+// vocab/order regeneration):
 //   node scripts/verify-warmer.mjs
+//
+// POOL VARIETY, across the whole bank rather than per board (authoring standard
+// rule 7). Per-board legality passes happily on a bank that says the same thing
+// every day, and for THIS game "the same thing" is a fact about the vectors:
+// the frozen bank ran gold and diamond as each other's #2 neighbour, mountain
+// and canyon at #2, guitar and piano at #3, and its median board sits 58 ranks
+// from its nearest other answer. Every check below is computed from the shipped
+// `order` arrays alone — no model, no vectors — so it is independent of
+// scripts/gen-warmer.mjs, which is what makes it worth running.
+//
+// GRANDFATHERED. These checks would fail most of the bank that shipped before
+// them, and the past is frozen, so they are scoped to boards live on or after
+// VARIETY_FROM and only ever accuse a board on that side of the line.
 import { PUZZLES } from '../app/warmer/puzzles.js';
 import { VOCAB } from '../app/warmer/vocab.js';
+import { encodeOrder } from '../app/warmer/order-codec.js';
 
 const N = VOCAB.length;
 // Warmer's Sunday Edition (a rarer secret word) launched on this date.
@@ -12,6 +36,22 @@ const SUNDAY_FROM = '2026-07-26';
 // A Sunday answer must sit past this vocab rank. Weekday answers have run
 // 453-3534, so this is a genuine step down in frequency, not a rounding.
 const RARE_FLOOR = 5000;
+
+// Pool-variety rules apply from the first board of the 2026-09-30 extension on.
+// Boards before this are live, played and frozen; they are never rewritten and
+// never blamed.
+const VARIETY_FROM = '2026-09-30';
+// An in-scope answer must sit past this rank in another answer's order (and it
+// past this rank in the in-scope one's), in both directions.
+const SEP_NEW = 150;     // against another in-scope answer
+const SEP_FROZEN = 80;   // against a board that predates VARIETY_FROM
+// No single answer LENGTH on more than this many in-scope boards.
+const LEN_CAP = 18;
+// US/British spelling folds, for "the hottest word is just the other spelling".
+const TWIN = [[/our$/, 'or'], [/re$/, 'er'], [/ise$/, 'ize'], [/isation$/, 'ization'],
+  [/yse$/, 'yze'], [/ogue$/, 'og'], [/lling$/, 'ling'], [/lled$/, 'led'], [/ae/, 'e'], [/oe/, 'e']];
+const fold = (w) => { let x = w; for (const [re, to] of TWIN) x = x.replace(re, to); return x; };
+const spellingTwin = (a, b) => a !== b && fold(a) === fold(b);
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -46,7 +86,20 @@ PUZZLES.forEach((p, i) => {
     errs.push(`Sunday answer "${VOCAB[p.order[0]]}" is vocab rank ${p.order[0]}, not rarer than ${RARE_FLOOR}`);
   }
 
-  const order = p.order;
+  // The stored form, before anything trusts the decoded one.
+  if (typeof p.o !== 'string') errs.push('stored order `o` missing');
+  else if (p.o.length !== 3 * N) errs.push(`stored order is ${p.o.length} chars, expected ${3 * N}`);
+  // `order` must still be the codec's view of `o`, not a data property someone
+  // pasted back in: a board carrying its own array is the exact regression that
+  // re-inflates the bank to 32,300 AST nodes and SIGKILLs `next build`.
+  const desc = Object.getOwnPropertyDescriptor(p, 'order');
+  if (!desc || typeof desc.get !== 'function') errs.push('`order` is stored data, not decoded from `o` (see order-codec.js)');
+
+  let order = null;
+  try { order = p.order; } catch (e) { errs.push(`order will not decode: ${e.message}`); }
+  if (order && typeof p.o === 'string' && encodeOrder(order) !== p.o) {
+    errs.push('order does not re-encode to the stored string');
+  }
   if (!Array.isArray(order)) errs.push('order missing');
   else {
     if (order.length !== N) errs.push(`order length ${order.length} != ${N}`);
@@ -77,5 +130,54 @@ PUZZLES.forEach((p, i) => {
   }
 });
 
-if (bad) { console.error(`\n${bad} bad Warmer puzzle(s)`); process.exit(1); }
-console.log(`\nAll ${PUZZLES.length} Warmer puzzles verified (vocab ${N}).`);
+// ---------------------------------------------------------------------------
+// Pool variety across the whole bank, from VARIETY_FROM on.
+// ---------------------------------------------------------------------------
+const rankOf = PUZZLES.map((p) => {
+  const r = new Int32Array(N);
+  for (let i = 0; i < p.order.length; i++) r[p.order[i]] = i;
+  return r;
+});
+const inScope = PUZZLES.map((p) => p.live >= VARIETY_FROM);
+const lenCount = new Map();
+let vbad = 0;
+const vfail = (p, msg) => { vbad++; console.error(`✗ ${p.quizId}: ${msg}`); };
+
+PUZZLES.forEach((p, i) => {
+  if (!inScope[i]) return;
+  const a = p.order[0], w = VOCAB[a];
+
+  lenCount.set(w.length, (lenCount.get(w.length) || 0) + 1);
+
+  // The hottest words must not be the same word spelled the other way.
+  for (const j of p.order.slice(1, 4)) {
+    if (spellingTwin(w, VOCAB[j])) vfail(p, `hot word "${VOCAB[j]}" is "${w}" in another spelling`);
+  }
+
+  PUZZLES.forEach((q, k) => {
+    if (k === i) return;
+    const b = q.order[0], v = VOCAB[b];
+    // Word family: no answer may contain another, or share a 5-letter prefix
+    // with another. Cosine does not catch "joy" next to "enjoy".
+    if (w.includes(v) || v.includes(w)) vfail(p, `same word family as ${q.quizId} "${v}"`);
+    else if (w.length >= 5 && v.length >= 5 && w.slice(0, 5) === v.slice(0, 5)) {
+      vfail(p, `shares a five-letter stem with ${q.quizId} "${v}"`);
+    }
+    // Semantic separation, in both directions, at the floor that applies.
+    const floor = inScope[k] ? SEP_NEW : SEP_FROZEN;
+    const near = Math.min(rankOf[i][b], rankOf[k][a]);
+    if (near <= floor) vfail(p, `only ${near} ranks from ${q.quizId} "${v}" (floor ${floor})`);
+  });
+});
+
+for (const [len, c] of lenCount) {
+  if (c > LEN_CAP) { vbad++; console.error(`✗ ${c} answers of length ${len} since ${VARIETY_FROM} (cap ${LEN_CAP})`); }
+}
+const scoped = inScope.filter(Boolean).length;
+if (scoped) {
+  console.log(`\nvariety since ${VARIETY_FROM}: ${scoped} boards, ` +
+    `lengths ${[...lenCount.entries()].sort((a, b) => a[0] - b[0]).map(([l, c]) => `${l}:${c}`).join(' ')} (cap ${LEN_CAP})`);
+}
+
+if (bad || vbad) { console.error(`\n${bad} bad Warmer puzzle(s), ${vbad} variety failure(s)`); process.exit(1); }
+console.log(`All ${PUZZLES.length} Warmer puzzles verified (vocab ${N}).`);
