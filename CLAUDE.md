@@ -7525,11 +7525,16 @@ as the Trivia Gauntlet is; `/valet` forwards to the run like `/trivia` does.
 - **`app/circuits/JamBoard.jsx`** is the shared lot drawing (size and exit row as props, selection
   its own state, moves the caller's via lib/jam-core). The three solo clients keep their own copies
   deliberately; the run needed one board that takes its size as a prop, not a refactor of three
-  live games. **`app/circuits/ValetScene.jsx`** is the valet-and-car picture (SVG moved by CSS:
-  `arrive` on the gate, `depart` on the handover, `park` at the finish; every mode collapses to the
-  still pose under prefers-reduced-motion). Positioned SVG groups are WRAPPED: a CSS animation
-  replaces an element's `transform` attribute, so a wheel that carries its own `translate` jumps to
-  the origin the moment it spins.
+  live games. **`app/circuits/ValetScene.jsx`** is the picture, and THE PICTURE IS THE BOARD
+  (owner, 2026-09-05, after calling the first valet-and-car cartoon corny): a miniature lot with a
+  few muted blocks, the red bar and the lit exit, stepping up 6 to 7 to 8 between lots, with the
+  valet reduced to a corner mark (circle plus sunglasses bar). `arrive` rises the lot in and pulses
+  the exit, `depart` clears the blocker and slides the red bar out through the exit, `park` lights
+  the three lots in turn; every mode has a resting pose under prefers-reduced-motion. It takes
+  `sizes` and `step` from the run so the ladder is the real one. One SVG on a fixed viewBox scaled by
+  width is what makes it render at every size; travel distances are per-element custom properties
+  read inside the keyframes. CSS animation REPLACES an element's `transform` attribute, so anything
+  positioned by attribute is wrapped in a plain `<g>` before it is animated.
 - **THE POP-UP (`app/circuits/ValetDoorPop.jsx`)** on Parker, Impound and Junkyard fires on the
   START GATE of today's board, when none of the three lots has been started today on this device
   (the `sot_<key>_day` breadcrumb), and **TWICE EVER** (`sot_valet_pop` counts showings; taking the

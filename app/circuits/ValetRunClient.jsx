@@ -136,6 +136,7 @@ const freshRun = () => ({ v: 1, si: 0, phase: 'idle', t0: null, sT0: null, moves
 
 export default function ValetRunClient({ circuitId, circuitName, dateLabel, sections = [] }) {
   const N = sections.length;
+  const sizes = useMemo(() => sections.map((s) => s.n), [sections]);
   const STORE_KEY = `sot_run_${circuitId}_${etToday()}`;
 
   const [r, setR] = useState(() => freshRun());
@@ -478,7 +479,7 @@ export default function ValetRunClient({ circuitId, circuitName, dateLabel, sect
         {/* ── THE GATE ── */}
         {hydrated && r.phase === 'idle' ? (
           <div className="vr-gate">
-            <ValetScene mode="arrive" />
+            <ValetScene mode="arrive" sizes={sizes} step={r.results.length} />
             <div className="vr-gh">
               <h1 className="vr-h1">Three lots. One clock.</h1>
               <p className="vr-lead">
@@ -545,7 +546,7 @@ export default function ValetRunClient({ circuitId, circuitName, dateLabel, sect
         {/* ── THE HANDOVER ── */}
         {r.phase === 'verdict' && last ? (
           <div className="vr-hand">
-            <ValetScene mode="depart" compact />
+            <ValetScene mode="depart" compact sizes={sizes} step={r.results.length - 1} />
             <div className="vr-hv">
               <span className="vr-he">{lastSec ? lastSec.name : 'Lot'} &middot; {fmtTime((last.secs || 0) * 1000)}</span>
               <b className="vr-hl">{verdictLine(last, lastSec)}</b>
@@ -574,7 +575,7 @@ export default function ValetRunClient({ circuitId, circuitName, dateLabel, sect
         {/* ── THE FINISH ── */}
         {done ? (
           <div className={`vr-fin${curtain ? ' in' : ''}`}>
-            <ValetScene mode={curtain ? 'park' : 'still'} />
+            <ValetScene mode={curtain ? 'park' : 'still'} sizes={sizes} />
             <div className="vr-fhero">
               <div className="vr-fbig">
                 {parked === N ? fmtTime(runSecs * 1000) : `${parked}/${N}`}
