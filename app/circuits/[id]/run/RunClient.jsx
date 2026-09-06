@@ -445,8 +445,13 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     if (hold) return;
     const t = setTimeout(() => { if (!holdRef.current) nextSection(); }, VERDICT_MS);
     return () => clearTimeout(t);
+    // `upNext` is READ IN THE CALLBACK, NEVER IN THE DEPS. It is declared
+    // below this effect, so naming it in the array touches it during render,
+    // inside its own temporal dead zone, and every render of the page throws
+    // (shipped 4064ba709, caught same day). `r.si` and `hydrated` are the
+    // only two things it derives from, so they cover it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [r.phase, r.si, hold, hydrated, upNext]);
+  }, [r.phase, r.si, hold, hydrated]);
 
   function answer(k) {
     const cur = rRef.current;
