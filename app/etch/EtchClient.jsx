@@ -891,7 +891,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
       steps={[
         <>The numbers on each <b>row</b> and <b>column</b> are the lengths of its filled runs, in order, with at least one blank between them. A row clued <b>4 2</b> is four filled, a gap, then two.</>,
         <>Choose what a tap places with <b>Fill</b> / <b>Mark</b>. It opens on <b>Mark</b>, pencilling a &times; on a square you have ruled out, and remembers your choice next time.</>,
-        <>On <b>Fill</b>, tap a square or <b>drag</b> along a row or column to fill a run. A <b>right-click</b> fills one directly from either tool, and a clue <b>dims</b> once its line matches.</>,
+        <>On <b>Fill</b>, tap a square or <b>drag</b> along a row or column to fill a run. A <b>right-click</b> fills one directly from either tool, and a clue is <b>crossed off</b> once its line matches.</>,
         <>On a touchscreen nothing is placed until you <b>lift</b> your finger, so a square you slide away from is never filled and never counts. <b>Press and hold</b>, then slide, to move the target square out from under your fingertip.</>,
         <><b>Undo</b> (or Ctrl+Z) takes back your last stroke, and one free <b>hint</b>, on your first ever play, fills a correct square.</>,
       ]}
@@ -952,8 +952,14 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           .et-btn:hover{background:var(--stg-surf2, var(--accent-soft));}
           @media(max-width:560px){.et-ttl{flex-direction:column;align-items:flex-start;gap:1px;}.et-ttl h1{font-size:21px;}.et-ttl-dot{display:none;}}
           .et-cell{box-sizing:border-box;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;position:relative;}
-          .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${INK};min-width:0;min-height:0;line-height:1;}
-          .et-clue.done{color:#c3c8d4;}
+          .et-clue{display:flex;align-items:center;justify-content:center;font-family:${MONO};font-weight:500;color:${INK};min-width:0;min-height:0;line-height:1;transition:opacity 0.18s ease;}
+          /* A satisfied line is CROSSED OFF, not tinted. The old #c3c8d4 was a
+             pale grey: on the dark register it sat 1.43:1 from the live ink
+             beside it, so a finished clue and a live one read as the same
+             thing. Opacity fades against whichever register is showing (the
+             light one measured 1.6:1 on white, worse), and the rule through the
+             digit is the part that carries at a glance on a 20x20 board. */
+          .et-clue.done{opacity:0.45;text-decoration:line-through;text-decoration-thickness:max(1px, 0.14em);text-decoration-skip-ink:none;}
           .et-tool{font-family:${SANS};font-weight:800;font-size:12.5px;border:1.5px solid ${STAGE ? 'var(--stg-line2)' : 'rgba(28,30,36,0.35)'};background:${STAGE ? 'var(--stg-surf2)' : 'var(--white)'};color:${INK};border-radius:8px;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
           .et-tool.on{background:${STAGE ? STAGE_C : COLORS.ink};color:${STAGE ? 'var(--stg-onramp, #08222e)' : 'var(--white)'};border-color:${STAGE ? STAGE_C : COLORS.ink};}
         `}</style>
@@ -1354,7 +1360,7 @@ export default function EtchClient({ puzzles = [], forceNum = null }) {
           Etch is a free daily nonogram from Mind Loft, the picture-logic puzzle also known as a picross or griddler. The numbers along each row and column tell you how many squares are filled in a row, in order, and your job is to work out which ones. Get them all and a picture appears.
         </p>
         <p style={{ margin: '0 0 8px', fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
-          Every board has exactly one solution and is reachable by pure line logic, so there is never a moment where you have to guess. Drag to fill a run, mark the squares you have ruled out with an ×, and watch each clue dim as its line falls into place. Fill a square that isn&rsquo;t part of the picture and it turns red, so you always know where you stand.
+          Every board has exactly one solution and is reachable by pure line logic, so there is never a moment where you have to guess. Drag to fill a run, mark the squares you have ruled out with an ×, and watch each clue cross itself off as its line falls into place. Fill a square that isn&rsquo;t part of the picture and it turns red, so you always know where you stand.
         </p>
         <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: FADED, fontWeight: 600 }}>
           A new picture drops every day at midnight Eastern: 10&times;10 Monday to Friday, 15&times;15 on Saturday, and a 20&times;20 Edition on Sunday. No app, no signup, play free in your browser, keep a streak, and race the daily leaderboard. More dailies: <a href="/hedge" style={{ color: INK, fontWeight: 800 }}>Hedge</a>, our loop puzzle, <a href="/suds" style={{ color: INK, fontWeight: 800 }}>Suds</a>, our daily sudoku, and <a href="/crux" style={{ color: INK, fontWeight: 800 }}>Crux</a>, our clueless crossword.
