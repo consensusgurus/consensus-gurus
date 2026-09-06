@@ -403,13 +403,27 @@ COPY-DESK
 
 CROWD PSYCHOLOGY (a pre-written house crowd seeds the pool until >10 real players; see main CLAUDE.md)
 - outwit - beat the crowd. Five prompts in FIXED order least, herd, match, unique, twothirds (Sunday
-  six, the extra a second Rare Bird). Each choice/unique prompt carries a ~48-index `house` crowd;
-  herd carries `truth`/`truthNote`; the twothirds "Undercut" runs LAST and carries the day's `frac`
-  + `fracLabel` (from 1/3, 2/5, 1/2, 3/5, 2/3, 7/10, 3/4, 4/5, never repeating on back-to-back days).
+  six, the extra a second Rare Bird on its OWN theme). Each choice/unique prompt carries a 48-index
+  `house` crowd; herd carries `truth`/`truthNote`; the twothirds "Undercut" runs LAST and carries the
+  day's `frac` + `fracLabel` (from 1/3, 2/5, 1/2, 3/5, 2/3, 7/10, 3/4, 4/5, never repeating on
+  back-to-back days). `house` is an AUTHORED ESTIMATE of crowd behavior, never observed play, and the
+  puzzle-file header says so. From 2026-09-30 the bank is built by scripts/gen-outwit.mjs (prompt pool
+  in scripts/outwit-prompts.mjs) and every prompt's crowd must show a findable answer: a favorite that
+  leads without running away, a real second and third, and a tail nobody left at zero votes. Boards
+  17-75 ship 24-vote crowds against the documented 48 and are grandfathered.
   verify-daily-banks outwit.
 - outrank - call the crowd's order. Weekday 6 items -> Sunday 7. `house` = 40 favorite votes (item
   indices); every item's vote count must be DISTINCT so the crowd order is unambiguous (§7a); themes
-  never reused. verify-daily-banks outrank.
+  never reused. `house` is an AUTHORED ESTIMATE of crowd behavior, never observed play, and the
+  puzzle-file header says so; it seeds the pool and retires pool-wide at the 11th real player
+  (HOUSE_CUTOFF). From 2026-09-30 the bank is built by scripts/gen-outrank.mjs (slate pool in
+  scripts/outrank-slates.mjs) and every board's crowd must be guessable but not obvious: favorite
+  11-14 of 40 on a weekday and 8-12 on a Sunday, 2-5 clear of the runner-up, a tail of 2 (Sunday 1),
+  and one to three one-vote boundaries (Sunday two to five). The Sunday Edition scales twice - seven
+  items AND a crowd capped two votes closer. `items` is proved to be a real mix rather than the
+  answer, and variety is capped across the run (theme category <= 8 of 62 and never back to back,
+  item string <= 2 bank-wide, count vector <= 4). Boards 1-2 ship tied house counts and are
+  grandfathered. verify-daily-banks outrank.
 
 (circa is RETIRED - the archive stays playable, but no new drops are banked. extra retires
 2026-09-29 on the same terms. See 7g.)

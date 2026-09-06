@@ -45,13 +45,41 @@
 //   circa  — year is a sane integer and matches any year in the blurb copy.
 //   extra  — every hidden spec resolves via the client's own resolveHidden
 //            (WORD#2 = 2nd occurrence); keys lowercase and >2 chars.
-//   outwit — 5 prompts in the fixed type order; ranges/options sane; herd has
-//            a truth; house arrays present.
-//   outrank — 6 items (7 Sunday), all distinct; house = 40 votes, no zero-vote
-//            item, AND all K favorite-vote counts DISTINCT so the crowd order is
-//            unambiguous (no reliance on the no-signal display-index tiebreak).
-//            A tie is a hard fail on any editable (live >= today) board; past
-//            frozen boards with a tie are grandfathered as a note.
+//   outwit — 5 prompts in the fixed type order (6 on a Sunday); the calendar is
+//            contiguous and quizId/dateLabel/sunday are derived from `live`; the
+//            Undercut carries one of the eight fractions, says which in its own
+//            copy, and never repeats it back to back; herd truths sit inside
+//            their own range; no prompt text is used twice in the bank. PLUS the
+//            CROWD-SHAPE floor (from OUTWIT_CROWD_FROM = 2026-09-30): the house
+//            crowd is the answer key while the field is small, so every choice
+//            prompt must show a favorite that leads without running away, a real
+//            second and third, and a reachable tail — an evenly split crowd pays
+//            nothing for insight and a unanimous one is a gimme. Variety is
+//            capped bank-wide too (count vector, Meeting Point favorite, option
+//            reuse), and a Sunday's crowd must sit closer together than a
+//            weekday's. Finally every board is scored END TO END through
+//            lib/outwit-score — the live scorer — as a player who reads the crowd
+//            perfectly, and must pay full marks. Earlier boards are frozen
+//            history: their 24-vote crowds,
+//            canned Sunday prompt and British spellings are reported, not failed.
+//   outrank — 6 items (7 Sunday), all distinct; the calendar re-derived from
+//            `live`; house = 40 votes, no zero-vote item, AND all K favorite-vote
+//            counts DISTINCT so the crowd order is unambiguous (no reliance on
+//            the no-signal display-index tiebreak). A tie is a hard fail on any
+//            editable (live >= today) board; past frozen boards with a tie are
+//            grandfathered as a note. Every board is also scored END TO END
+//            through lib/outrank-score — the live scorer — as a player who reads
+//            the crowd perfectly, and must pay full marks. PLUS the CROWD-SHAPE
+//            floor (from OUTRANK_CROWD_FROM = 2026-09-30): the house crowd is an
+//            authored estimate and the answer key while the field is small, so
+//            the order has to be guessable but not obvious — a favorite that
+//            leads without running away (11-14 of 40 weekday, 8-12 Sunday), a
+//            2-5 margin over the runner-up, a tail nobody left on one vote, and
+//            between one and three one-vote boundaries (two to five on a
+//            Sunday). The Sunday Edition proves both halves of its ramp: seven
+//            items AND a crowd capped two votes closer. `items` is proved to be
+//            a real display mix rather than the answer, and variety is capped
+//            bank-wide (theme category, item string, count vector).
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -843,6 +871,33 @@ if (RUN('extra')) {
     errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${p.hidden.length} hidden + ${p.keys.length} keys OK`);
   }
 }
+// ─── OUTWIT ─────────────────────────────────────────────────────────────────
+// Structural + CROWD-SHAPE. Outwit's boards have no solution to re-solve: the
+// "answer" to every prompt is whatever the field does, and while fewer than
+// eleven real players are in, the field IS the pre-written `house` crowd (see
+// lib/outwit-score.js, HOUSE_CUTOFF). So the house distribution is the closest
+// thing this game has to an answer key, and it is what gets checked here.
+//
+// WHAT A HOUSE ARRAY IS. An authoring estimate of how a crowd would answer,
+// rendered as votes. It is not observed play (app/outwit/puzzles.js says so in
+// its header, and scripts/gen-outwit.mjs says so at length). This checker never
+// treats it as data about real players; it only asks whether the estimate has
+// the shape the game needs.
+//
+// THE SHAPE THE GAME NEEDS. A prompt with no right answer still has to have a
+// findable crowd answer: an evenly split field pays nothing for insight, and a
+// unanimous one is a gimme. So from OUTWIT_CROWD_FROM every choice prompt must
+// land inside a band -- a favorite that leads but does not run away, a real
+// runner-up and third, and a tail that is actually reachable. Boards banked
+// before that date are frozen history and are reported, not failed.
+//
+// ALSO CHECKED, because these are rules the game states about itself and nobody
+// was checking them: the calendar (contiguous nums, no gap days, quizId and
+// dateLabel derived from `live`), the Sunday Edition flag against the real
+// weekday from OUTWIT_SUNDAY_FROM, the daily Undercut fraction against the
+// eight-value set and the no-back-to-back rule (owner rule 2026-07-20), herd
+// truths inside their own range, prompt text never repeating across the bank,
+// and US spellings in reader-facing copy (authoring standard #8).
 if (RUN('outwit')) {
   const { PUZZLES } = await import('../app/outwit/puzzles.js');
   // The Undercut (twothirds) prompt moved from FIRST to LAST on 2026-07-21, so
@@ -854,8 +909,76 @@ if (RUN('outwit')) {
   // Sunday Editions run SIX prompts: a second `unique` before the Undercut,
   // which still runs last.
   const ORDER_SUN = ['least', 'herd', 'match', 'unique', 'unique', 'twothirds'];
+  // Outwit's Sunday Edition started 2026-07-26 (CLAUDE.md, "Which games have
+  // one"). 2026-07-19 is a Sunday that ran a weekday board and is NOT a defect.
+  const OUTWIT_SUNDAY_FROM = '2026-07-26';
+  // The crowd-shape rules land with the 2026-09-30 extension. Everything before
+  // it is grandfathered (authoring standard #10): boards 17-75 ship 24-vote
+  // house crowds against a documented ~48, and boards from 2026-08-16 on repeat
+  // one canned second Rare Bird every Sunday. Both are reported below as notes.
+  const OUTWIT_CROWD_FROM = '2026-09-30';
+  const POOL = 48;                 // documented house size (file header, CLAUDE-QUIZZES 7)
+  const VEC_CEIL = 12;             // max boards one count vector may shape, per slot
+  const MODAL_CEIL = 2;            // max boards one Meeting Point favorite may head
+  const OPT_CEIL = 5;              // max prompts one option string may appear in
+  const FRACS = new Map([[1 / 3, 'a third'], [1 / 3, 'one-third'], [2 / 5, 'two-fifths'], [1 / 2, 'half'],
+    [3 / 5, 'three-fifths'], [2 / 3, 'two-thirds'], [7 / 10, 'seven-tenths'], [3 / 4, 'three-quarters'], [4 / 5, 'four-fifths']]);
+  const FRAC_OK = new Set([1 / 3, 2 / 5, 1 / 2, 3 / 5, 2 / 3, 7 / 10, 3 / 4, 4 / 5]);
+  const LABEL_OK = { 'a third': 1 / 3, 'one-third': 1 / 3, 'two-fifths': 2 / 5, half: 1 / 2, 'three-fifths': 3 / 5, 'two-thirds': 2 / 3, 'seven-tenths': 7 / 10, 'three-quarters': 3 / 4, 'four-fifths': 4 / 5 };
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  // British forms a word list drags in. Reader-facing copy is US-spelled.
+  const BRITISH_RE = /\b(colour|colours|coloured|favourite|flavour|flavours|theatre|programme|centimetres|metres|litres|neighbour|practise|organise|organised|realise|apologise|defence|offence|pyjamas|aeroplane|aluminium|jewellery|moustache|plough|storey|tyre|kerb|grey)\b/i;
+  // Proper nouns keep their own spelling: Earl Grey is a tea, not a color.
+  const PROPER = /Earl Grey|Grey Cup|Grey's/g;
+  const BRITISH = { test: (s) => BRITISH_RE.test(String(s).replace(PROPER, '')) };
+
+  const countsOf = (house, K) => { const c = new Array(K).fill(0); for (const v of house) if (Number.isInteger(v) && v >= 0 && v < K) c[v]++; return c; };
+  // The crowd-shape bands, written here from the rule rather than imported from
+  // the generator, so the generator and the proof are not the same code.
+  const shapeErrors = (type, c) => {
+    const e = [];
+    const asc = [...c].sort((a, b) => a - b), desc = [...c].sort((a, b) => b - a);
+    if (asc[0] < 1) e.push('an option nobody picked: it can never win, so it is a trap');
+    if (type === 'match') {
+      if (desc[0] < 15 || desc[0] > 24) e.push(`favorite ${desc[0]}/${POOL} outside 15-24 (gimme or coin flip)`);
+      if (desc[0] - desc[1] < 4) e.push(`favorite only ${desc[0] - desc[1]} clear of the runner-up`);
+      if (desc[1] < 10) e.push(`runner-up ${desc[1]} < 10: no real second place`);
+      if (desc[2] < 7) e.push(`third place ${desc[2]} < 7`);
+    } else if (type === 'least') {
+      if (asc[0] < 4 || asc[0] > 8) e.push(`rarest ${asc[0]} outside 4-8`);
+      if (asc[1] - asc[0] < 3) e.push(`rarest only ${asc[1] - asc[0]} clear of the next-rarest`);
+      if (desc[0] > 22) e.push(`favorite ${desc[0]} > 22`);
+    } else if (type === 'unique') {
+      if (asc[0] < 2) e.push(`rarest ${asc[0]} < 2`);
+      if (asc[1] > 4) e.push(`second-rarest ${asc[1]} > 4: no findable tail`);
+      if (asc[2] - asc[1] < 2) e.push(`third-rarest only ${asc[2] - asc[1]} clear of the two-point tier`);
+      if (desc[0] > 12) e.push(`favorite ${desc[0]} > 12: that is a Meeting Point, not a Rare Bird`);
+    }
+    return e;
+  };
+
+  const seenQ = new Map();          // prompt text -> [quizId]
+  const modalUse = new Map();
+  const optUse = new Map();
+  const vecUse = new Map();
+  const grandfathered = { thin: 0, canned: 0, british: 0, dupQ: 0 };
+  let prev = null, prevFrac = null;
   for (const p of PUZZLES) {
     const errs = [];
+    const editable = p.live >= OUTWIT_CROWD_FROM;
+    // ── calendar
+    const [Y, M, D] = String(p.live).split('-').map(Number);
+    const wantId = `outwit-${M}-${D}-${String(Y).slice(2)}`;
+    const wantLabel = `${MONTHS[M - 1]} ${D}, ${Y}`;
+    if (p.quizId !== wantId) errs.push(`quizId ${p.quizId} != ${wantId} derived from live`);
+    if (p.dateLabel !== wantLabel) errs.push(`dateLabel ${p.dateLabel} != ${wantLabel}`);
+    const dow = new Date(`${p.live}T12:00:00Z`).getUTCDay();
+    if (p.live >= OUTWIT_SUNDAY_FROM && !!p.sunday !== (dow === 0)) errs.push(`sunday flag ${!!p.sunday} but weekday ${dow}`);
+    if (prev) {
+      if (p.num !== prev.num + 1) errs.push(`num ${p.num} does not follow ${prev.num}`);
+      if (Date.parse(`${p.live}T00:00:00Z`) - Date.parse(`${prev.live}T00:00:00Z`) !== 86400000) errs.push(`gap in the calendar after ${prev.live}`);
+    }
+    // ── prompt shape and order
     const wantPrompts = p.sunday ? 6 : 5;
     if (p.prompts.length !== wantPrompts) errs.push(`${p.prompts.length} prompts (want ${wantPrompts})`);
     p.prompts.forEach((pr, i) => {
@@ -864,59 +987,380 @@ if (RUN('outwit')) {
       if ((pr.type === 'least' || pr.type === 'match') && (!Array.isArray(pr.options) || pr.options.length < 4)) errs.push(`prompt ${i} bad options`);
       if (pr.type === 'herd' && pr.truth === undefined) errs.push('herd missing truth');
       if (!Array.isArray(pr.house) || pr.house.length < 8) errs.push(`prompt ${i} thin house crowd`);
+      if (!pr.house) return;
+      // ── prompt text is never reused (the Undercut is the same prompt daily by
+      //    design, with the day's fraction swapped in, so it is exempt)
+      if (pr.type !== 'twothirds') {
+        const hit = seenQ.get(pr.q);
+        if (hit) { if (editable) errs.push(`prompt repeats ${hit}: "${pr.q.slice(0, 48)}..."`); else grandfathered.dupQ++; }
+        else seenQ.set(pr.q, p.quizId);
+      }
+      if (editable && BRITISH.test(pr.q)) errs.push(`British spelling in prompt ${i}`);
+      if (editable && (pr.options || []).some((o) => BRITISH.test(o))) errs.push(`British spelling in an option of prompt ${i}`);
+      if (editable && pr.house.length !== POOL) errs.push(`house has ${pr.house.length} votes, want ${POOL}`);
+      else if (!editable && pr.house.length !== POOL) grandfathered.thin++;
+      // ── numeric prompts stay inside their own declared range
+      if (!pr.options) {
+        if (pr.house.some((v) => !Number.isInteger(v) || v < pr.min || v > pr.max)) errs.push(`${pr.type} house outside ${pr.min}-${pr.max}`);
+        if (pr.type === 'herd') {
+          if (pr.truth < pr.min || pr.truth > pr.max) errs.push(`herd truth ${pr.truth} outside its own ${pr.min}-${pr.max}`);
+          if (editable && !pr.truthNote) errs.push('herd has no truthNote');
+          if (editable) {
+            const s = [...pr.house].sort((a, b) => a - b);
+            const distinct = new Set(pr.house).size;
+            const top = Math.max(...[...new Set(pr.house)].map((v) => pr.house.filter((x) => x === v).length));
+            const med = s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+            if (!Number.isInteger(med)) errs.push(`herd median ${med} is not a whole guess (the target must be reachable)`);
+            if (top > pr.house.length * 0.45) errs.push(`herd: ${top} of ${pr.house.length} on one guess`);
+            if (distinct < (med < 10 ? 5 : 8)) errs.push(`herd: only ${distinct} distinct guesses`);
+          }
+        }
+        if (pr.type === 'twothirds' && p.live >= UNDERCUT_LAST_FROM) {
+          // owner rule 2026-07-20: the fraction moves daily and never repeats
+          // back to back, and the question copy has to say which one it is.
+          if (!FRAC_OK.has(pr.frac)) errs.push(`Undercut frac ${pr.frac} is not one of the eight`);
+          if (!pr.fracLabel || LABEL_OK[pr.fracLabel] !== pr.frac) errs.push(`fracLabel "${pr.fracLabel}" does not match frac ${pr.frac}`);
+          else if (!pr.q.includes(pr.fracLabel.toUpperCase())) errs.push(`Undercut copy does not name its own fraction (${pr.fracLabel})`);
+          if (prevFrac !== null && pr.fracLabel && LABEL_OK[pr.fracLabel] === prevFrac) errs.push(`Undercut fraction repeats the previous day (${pr.fracLabel})`);
+        }
+        if (pr.type === 'twothirds') prevFrac = pr.frac ?? 2 / 3;
+        return;
+      }
+      // ── choice prompts: the crowd has to have a findable answer
+      const c = countsOf(pr.house, pr.options.length);
+      if (c.reduce((a, b) => a + b, 0) !== pr.house.length) errs.push(`prompt ${i} has a house vote outside its options`);
+      if (new Set(pr.options).size !== pr.options.length) errs.push(`prompt ${i} repeats an option`);
+      if (editable) {
+        for (const m of shapeErrors(pr.type, c)) errs.push(`${pr.tag}: ${m}`);
+        // THE SUNDAY EDITION PROVES ITS OWN SCALING (authoring standard #5). The
+        // structural half is the sixth prompt, checked above. The other half is
+        // that a Sunday crowd is HARDER TO READ: it never runs the steepest vote
+        // ladder, so the favorite is closer to the pack and the call is tighter.
+        const fav = Math.max(...c);
+        const SUN_CAP = { match: 20, least: 19, unique: 11 }[pr.type];
+        if (p.sunday && SUN_CAP && fav > SUN_CAP) errs.push(`${pr.tag}: Sunday favorite ${fav} > ${SUN_CAP}; a Sunday crowd must be closer than a weekday's`);
+        const key = `${pr.type}:${[...c].sort((a, b) => b - a).join('-')}`;
+        vecUse.set(key, (vecUse.get(key) || 0) + 1);
+        for (const o of pr.options) optUse.set(o, (optUse.get(o) || 0) + 1);
+        if (pr.type === 'match') {
+          const fav = pr.options[c.indexOf(Math.max(...c))];
+          modalUse.set(fav, (modalUse.get(fav) || 0) + 1);
+        }
+      } else if (pr.type === 'unique' && pr.q.startsWith('Narrow it down')) grandfathered.canned++;
+      if (!editable && BRITISH.test(pr.q)) grandfathered.british++;
     });
-    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, 'prompt order/shape OK');
+    prev = p;
+    errs.length ? fail(p.quizId, errs.join('; ')) : ok(p.quizId, `${p.prompts.length} prompts, crowd shape OK`);
   }
+  // ── THE END-TO-END PROOF, and the reason the bands above are worth having.
+  // Score each board through lib/outwit-score.js — the SAME code /api/outwit and
+  // the combined leaderboard run — as a player who reads the crowd perfectly:
+  // the most-picked option on a Meeting Point, the least-picked on a Road Less
+  // Traveled and a Rare Bird, the crowd's median on a Herd, and the day's
+  // fraction of the pool mean on the Undercut. If that player cannot take full
+  // marks, the board has no findable answer no matter how the counts look, and
+  // no amount of band arithmetic would have said so. The bands are this
+  // checker's own reasoning; this is the game's own engine disagreeing or not.
+  {
+    const { register } = await import('node:module');
+    register('./alias-loader.mjs', import.meta.url);
+    const { buildContext } = await import('../lib/outwit-score.js');
+    let frozenShort = 0;
+    for (const p of PUZZLES) {
+      let score = 0;
+      for (const pr of p.prompts) {
+        const ctx = buildContext(pr, pr.house);
+        let pick;
+        if (pr.options) {
+          const c = countsOf(pr.house, pr.options.length);
+          pick = pr.type === 'match' ? c.indexOf(Math.max(...c)) : c.indexOf(Math.min(...c));
+        } else if (pr.type === 'herd') {
+          const s = [...pr.house].sort((a, b) => a - b);
+          pick = Math.round((s[(s.length >> 1) - 1] + s[s.length >> 1]) / 2);
+        } else {
+          const mean = pr.house.reduce((a, b) => a + b, 0) / pr.house.length;
+          pick = Math.round((pr.frac ?? 2 / 3) * mean);
+        }
+        score += ctx.ptsFor(pick);
+      }
+      const max = p.prompts.length * 2;
+      if (score === max) continue;
+      if (p.live >= OUTWIT_CROWD_FROM) fail(p.quizId, `a perfect read of the house crowd scores only ${score}/${max} through lib/outwit-score`);
+      else frozenShort++;
+    }
+    if (frozenShort) note('outwit', `${frozenShort} FROZEN boards where even a perfect read of the crowd cannot reach full marks; grandfathered`);
+  }
+
+  // ── whole-bank variety ceilings, over the boards the rules apply to
+  for (const [k, n] of vecUse) if (n > VEC_CEIL) fail('outwit-variety', `house count vector ${k} shapes ${n} boards (ceiling ${VEC_CEIL})`);
+  for (const [k, n] of modalUse) if (n > MODAL_CEIL) fail('outwit-variety', `"${k}" is the Meeting Point favorite on ${n} boards (ceiling ${MODAL_CEIL})`);
+  for (const [k, n] of optUse) if (n > OPT_CEIL) fail('outwit-variety', `option "${k}" appears in ${n} prompts (ceiling ${OPT_CEIL})`);
+  if (grandfathered.thin) note('outwit', `${grandfathered.thin} FROZEN prompts carry a house crowd that is not ${POOL} votes (boards 17-75 ship 24 against a documented ~48); grandfathered`);
+  if (grandfathered.canned) note('outwit', `${grandfathered.canned} FROZEN Sunday boards reuse the canned "Narrow it down" second Rare Bird; grandfathered`);
+  if (grandfathered.british) note('outwit', `${grandfathered.british} FROZEN prompts use British spellings against authoring standard #8; grandfathered`);
+  if (grandfathered.dupQ) note('outwit', `${grandfathered.dupQ} FROZEN prompts repeat text used on an earlier board; grandfathered`);
 }
 
 if (RUN('outrank')) {
-  // Structural + SEMANTIC. The house crowd is Outrank's answer key: its 40
-  // favorite votes define the crowd order the player must call. crowdOrderOf
-  // sorts by vote count desc, breaking ties by DISPLAY INDEX — and the display
-  // order is hand-mixed and 'carries no signal' (see the puzzle-file header),
-  // so any tie in the house counts makes that boundary of the answer key
-  // arbitrary: a pure-luck 2-point swing, the Outrank analog of a Links/Crux
-  // double solution (§7a). RULE: every item's house count must be DISTINCT,
-  // giving one unambiguous crowd order. Enforced as a hard fail on editable
-  // (live >= today) boards; a tie on an already-live frozen board can no longer
-  // be corrected without rewriting a played day, so it is grandfathered (note).
+  // Structural + SEMANTIC + VARIETY. The house crowd is Outrank's answer key: its
+  // 40 favorite votes define the crowd order the player must call, and it is an
+  // AUTHORED ESTIMATE of how a broad audience would vote, never observed play
+  // (see the header of app/outrank/puzzles.js, which says so to the reader, and
+  // scripts/gen-outrank.mjs, which says where the numbers come from).
+  //
+  // WHAT IS PROVED ON EVERY BOARD, FROZEN OR NOT
+  //   * the calendar: quizId, dateLabel and the sunday flag are re-derived from
+  //     `live` rather than trusted, num is contiguous, no day is missing;
+  //   * 6 items on a weekday and 7 on a Sunday, all distinct, theme never reused;
+  //   * house is 40 in-range votes with no zero-vote item;
+  //   * ALL K counts DISTINCT, so the crowd order is unambiguous. crowdOrderOf
+  //     breaks a tie on DISPLAY INDEX and the display order is hand-mixed and
+  //     'carries no signal' (puzzle-file header), so a tie makes that boundary of
+  //     the answer key a pure-luck 2-point swing — the Outrank analog of a
+  //     Links/Crux double solution (CLAUDE-QUIZZES 7a). Hard fail on an editable
+  //     (live >= today) board; a tie on an already-live FROZEN board can no
+  //     longer be corrected without rewriting a played day, so it is
+  //     grandfathered as a note (boards #1 and #2 shipped tied);
+  //   * US spellings over theme, flavor and every item (authoring standard #8).
+  //     The frozen bank is already clean, so this one needs no dated floor;
+  //   * END TO END through lib/outrank-score.js — the SAME code /api/outrank and
+  //     the combined leaderboard run. A player who votes any item and then calls
+  //     the crowd MINUS their own vote (the leave-one-out order the live scorer
+  //     grades against) must take full marks, for every one of the K favorites
+  //     they could have voted. That is the checker's reading of the answer key
+  //     and the shipped scorer's reading being asserted equal, rather than the
+  //     checker grading its own arithmetic. Second, an honest player who reads
+  //     the reveal and calls the WHOLE pool's order may lose at most 2 of 2K to
+  //     the leave-one-out rule: removing one vote can unseat an item by at most
+  //     one rank, and if that ever costs more the mechanic has started punishing
+  //     the player it was built to protect.
+  //
+  // WHAT IS PROVED FROM OUTRANK_CROWD_FROM ONWARD (the 2026-09-30 extension;
+  // everything before it is frozen history and grandfathered, per authoring
+  // standard #10, and several frozen boards would genuinely fail these):
+  //
+  //   THE CROWD SHAPE. The game only pays for insight if the crowd's order is
+  //   GUESSABLE BUT NOT OBVIOUS, and both failure modes are visible in the count
+  //   vector. One item that obviously wins with five interchangeable also-rans
+  //   gives away the top slot and makes a lottery of the rest; six near-equal
+  //   counts are five coin flips in a row. So, on the 40 votes:
+  //     favorite      weekday 11-14 of 40 (27-35%)   Sunday 8-12 (20-30%)
+  //     margin        2-5 clear of the runner-up, both days
+  //     tail          weekday >= 2, Sunday >= 1 (seven distinct counts summing
+  //                   to 40 cannot all clear 2 — that is arithmetic, not taste)
+  //     close calls   adjacent boundaries exactly one vote apart: weekday 1-3 of
+  //                   five, Sunday 2-5 of six. At least one, so every board has a
+  //                   real argument in it; never all of them.
+  //   The frozen bank runs favorites as high as 16 (40%) and leaves nine weekday
+  //   boards with an item on a single vote; both are why the floor is dated.
+  //
+  //   THE SUNDAY RAMP proves itself twice (authoring standard #5): SEVEN items,
+  //   AND a crowd that is harder to read — favorite capped two votes lower than a
+  //   weekday's and at least two one-vote boundaries instead of one.
+  //
+  //   THE DISPLAY MIX. `items` is the only ordering the browser receives, and the
+  //   puzzle header promises it is hand-mixed and never the ranking. So it must
+  //   not be the crowd order, must not be its exact reverse, must not open with
+  //   the crowd's favorite, and must sit at least three items two or more slots
+  //   away from their crowd rank.
+  //
+  //   POOL VARIETY, across the whole segment rather than per board (CLAUDE.md
+  //   "Extending a puzzle bank in bulk" #3). Per-board legality passes happily on
+  //   a bank that says the same thing every day, and the frozen bank is the
+  //   warning: 32 of its 71 boards are food or drink, 45% of the run, several of
+  //   them the same supermarket aisle twice. Ceilings, re-derived here rather
+  //   than imported from the generator:
+  //     category  <= 8 of the 62 new boards per bucket, and never two days
+  //               running. The bucket is read from scripts/outrank-slates.mjs by
+  //               theme, so an editable board whose theme is not in that reviewed
+  //               pool fails rather than escaping the count.
+  //     item      <= 2 boards per item string, BANK-WIDE including frozen boards
+  //               (the frozen bank already sits at exactly 2 for six strings, so
+  //               no grandfathering is needed), and never on BACK-TO-BACK days:
+  //               a callback two months later reads as range, the same word two
+  //               mornings running reads as an oversight. The frozen bank has no
+  //               such pair either, so that half is bank-wide too.
+  //     shape     <= 4 editable boards per house count vector, so the reveal's
+  //               bar chart is not the same picture every week. (Frozen runs
+  //               10-8-7-6-5-4 six times; history, not a failure.)
   const { PUZZLES } = await import('../app/outrank/puzzles.js');
+  const { SLATES } = await import('./outrank-slates.mjs');
+  const { scanUS } = await import('./us-spellings.mjs');
   const TODAY = new Date().toISOString().slice(0, 10);
+  const OUTRANK_CROWD_FROM = '2026-09-30';   // shape / mix / variety floor; earlier days are frozen history
+  const POOL = 40;                           // documented house size (puzzle-file header)
+  const CAT_CEIL = 8;                        // max editable boards one category may fill
+  const ITEM_CEIL = 2;                       // max boards one item string may appear on, bank-wide
+  const VEC_CEIL = 4;                        // max editable boards one house count vector may shape
+  const MIX_MOVED = 3;                       // items that must sit >= 2 slots off their crowd rank
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  // The bands, written here from the rule rather than imported from the
+  // generator, so the generator and the proof are not the same code.
+  const BAND = {
+    6: { favLo: 11, favHi: 14, marLo: 2, marHi: 5, tailLo: 2, closeLo: 1, closeHi: 3 },
+    7: { favLo: 8, favHi: 12, marLo: 2, marHi: 5, tailLo: 1, closeLo: 2, closeHi: 5 },
+  };
+  const shapeErrors = (K, desc) => {
+    const e = [];
+    const b = BAND[K];
+    if (!b) return [`no crowd-shape band for ${K} items`];
+    if (desc[desc.length - 1] < b.tailLo) e.push(`tail ${desc[desc.length - 1]} < ${b.tailLo}: last place is a free point`);
+    if (desc[0] < b.favLo) e.push(`favorite ${desc[0]} < ${b.favLo}: nobody actually leads`);
+    if (desc[0] > b.favHi) e.push(`favorite ${desc[0]} > ${b.favHi}: it has run away with the board`);
+    const mar = desc[0] - desc[1];
+    if (mar < b.marLo) e.push(`favorite only ${mar} clear of the runner-up: the top slot is a coin flip`);
+    if (mar > b.marHi) e.push(`favorite ${mar} clear of the runner-up (max ${b.marHi})`);
+    let close = 0;
+    for (let i = 0; i < desc.length - 1; i++) if (desc[i] - desc[i + 1] === 1) close++;
+    if (close < b.closeLo) e.push(`${close} one-vote boundaries: nothing on this board is a close call`);
+    if (close > b.closeHi) e.push(`${close} one-vote boundaries (max ${b.closeHi}): the order is a chain of coin flips`);
+    return e;
+  };
+
   const crowdCounts = (house, K) => { const c = new Array(K).fill(0); for (const v of house) if (Number.isInteger(v) && v >= 0 && v < K) c[v]++; return c; };
+  const catOf = new Map(SLATES.map((s) => [s.theme, s.cat]));
   const seenThemes = new Set();
   const seenIds = new Set();
+  const itemUse = new Map();
+  const catUse = new Map();
+  const vecUse = new Map();
+  const grandfathered = { tie: 0 };
+  let prev = null, prevCat = null;
   for (const p of PUZZLES) {
     const errs = [];
+    const editable = p.live >= OUTRANK_CROWD_FROM;
     const K = p.items.length;
+    // ── calendar, re-derived from `live` and never trusted
+    const [Y, M, D] = String(p.live).split('-').map(Number);
+    const wantId = `outrank-${M}-${D}-${String(Y).slice(2)}`;
+    const wantLabel = `${MONTHS[M - 1]} ${D}, ${Y}`;
+    const dow = new Date(`${p.live}T12:00:00Z`).getUTCDay();
+    if (p.quizId !== wantId) errs.push(`quizId ${p.quizId} != ${wantId} derived from live`);
+    if (p.dateLabel !== wantLabel) errs.push(`dateLabel ${p.dateLabel} != ${wantLabel}`);
+    if (!!p.sunday !== (dow === 0)) errs.push(`sunday flag ${!!p.sunday} but weekday ${dow}`);
+    if (prev) {
+      if (p.num !== prev.num + 1) errs.push(`num ${p.num} does not follow ${prev.num}`);
+      if (Date.parse(`${p.live}T00:00:00Z`) - Date.parse(`${prev.live}T00:00:00Z`) !== 86400000) errs.push(`gap in the calendar after ${prev.live}`);
+    }
+    // ── slate shape
     const wantK = p.sunday ? 7 : 6;
     if (K !== wantK) errs.push(`${K} items (want ${wantK})`);
-    if (new Set(p.items).size !== K) errs.push('duplicate items');
+    if (new Set(p.items.map((s) => s.toLowerCase())).size !== K) errs.push('duplicate items');
+    if (!p.theme) errs.push('no theme');
+    if (!p.flavor) errs.push('no flavor copy');
     if (seenThemes.has(p.theme)) errs.push(`theme reused: ${p.theme}`);
     seenThemes.add(p.theme);
     if (seenIds.has(p.quizId)) errs.push('duplicate quizId');
     seenIds.add(p.quizId);
+    // ── US spellings, bank-wide (the frozen bank is already clean)
+    for (const s of [p.theme, p.flavor, ...p.items]) {
+      for (const hit of scanUS(s)) errs.push(`British form "${hit.found}" in "${s}" (US: ${hit.us})`);
+    }
+    // ── item reuse, bank-wide, plus the no-back-to-back rule
+    for (const it of p.items) { const k = it.toLowerCase(); itemUse.set(k, (itemUse.get(k) || 0) + 1); }
+    if (prev) for (const it of p.items) if (prev.items.some((x) => x.toLowerCase() === it.toLowerCase())) errs.push(`item "${it}" also ran yesterday (${prev.live})`);
+    // ── the house crowd
     let tiedNote = null;
-    if (!Array.isArray(p.house) || p.house.length !== 40) errs.push(`house has ${(p.house || []).length} votes (want 40)`);
+    let counts = null;
+    if (!Array.isArray(p.house) || p.house.length !== POOL) errs.push(`house has ${(p.house || []).length} votes (want ${POOL})`);
     else {
-      const counts = crowdCounts(p.house, K);
       let range = true;
       for (const v of p.house) if (!Number.isInteger(v) || v < 0 || v >= K) { errs.push(`house vote out of range: ${v}`); range = false; break; }
       if (range) {
+        counts = crowdCounts(p.house, K);
         if (counts.some((c) => c === 0)) errs.push('house leaves an item at zero votes');
-        // SEMANTIC: counts must be all-distinct so the crowd order is unambiguous.
         if (new Set(counts).size !== K) {
           const tied = [];
           for (let i = 0; i < K; i++) for (let j = i + 1; j < K; j++) if (counts[i] === counts[j]) tied.push(`${p.items[i]}=${p.items[j]}@${counts[i]}`);
           const msg = `ambiguous crowd order: tied house counts [${tied.join(', ')}] (display-index tiebreak carries no signal)`;
           if (p.live >= TODAY) errs.push(msg);
-          else tiedNote = `FROZEN past board, tie grandfathered: ${tied.join(', ')}`;
+          else { tiedNote = `FROZEN past board, tie grandfathered: ${tied.join(', ')}`; grandfathered.tie++; }
         }
       }
     }
+    // ── the dated floor: crowd shape, display mix, category bucket
+    if (editable && counts && new Set(counts).size === K) {
+      const desc = [...counts].sort((a, b) => b - a);
+      for (const m of shapeErrors(K, desc)) errs.push(m);
+      const key = `${K}:${desc.join('-')}`;
+      vecUse.set(key, (vecUse.get(key) || 0) + 1);
+      // DISPLAY MIX: rank[j] is the crowd rank of the item shown in display slot j.
+      const order = counts.map((c, i) => ({ c, i })).sort((a, b) => b.c - a.c || a.i - b.i).map((x) => x.i);
+      const rank = new Array(K); order.forEach((it, r) => { rank[it] = r; });
+      if (rank.every((r, j) => r === j)) errs.push('display order IS the crowd order');
+      if (rank.every((r, j) => r === K - 1 - j)) errs.push('display order is the exact reverse of the crowd order');
+      if (rank[0] === 0) errs.push(`display slot 1 is the crowd favorite (${p.items[0]})`);
+      const moved = rank.filter((r, j) => Math.abs(r - j) >= 2).length;
+      if (moved < MIX_MOVED) errs.push(`only ${moved} items sit 2+ slots off their crowd rank (want ${MIX_MOVED}); the display order reads as the answer`);
+      // CATEGORY
+      const cat = catOf.get(p.theme);
+      if (!cat) errs.push(`theme "${p.theme}" is not in scripts/outrank-slates.mjs, so its category cannot be counted`);
+      else {
+        catUse.set(cat, (catUse.get(cat) || 0) + 1);
+        if (cat === prevCat) errs.push(`category ${cat} runs two days in a row`);
+      }
+      prevCat = cat || null;
+    } else if (editable) prevCat = null;
     if (errs.length) fail(p.quizId, errs.join('; '));
     else if (tiedNote) note(p.quizId, tiedNote);
     else ok(p.quizId, `${K} items, distinct house crowd order OK (${p.theme})`);
+    prev = p;
   }
+
+  // ── THE END-TO-END PROOF, run through the game's own scorer.
+  // Every board is graded by lib/outrank-score.js, the code /api/outrank and the
+  // combined leaderboard actually run. Two players are simulated on the house
+  // pool: the perfect reader (any favorite, calling the leave-one-out order) who
+  // must take full marks, and the honest reveal-reader (calling the whole pool's
+  // order) who must never lose more than one boundary to leave-one-out.
+  {
+    const { register } = await import('node:module');
+    register('./alias-loader.mjs', import.meta.url);
+    const { scoreOutrankField, crowdOrderOf, favCounts } = await import('../lib/outrank-score.js');
+    let worstNaive = 0, worstBoard = null, tiedCost = 0;
+    for (const p of PUZZLES) {
+      const K = p.items.length;
+      const field = scoreOutrankField(p, [], {});
+      if (!field.useHouse) { fail(p.quizId, 'the house crowd is not in the pool for an empty field'); continue; }
+      if (field.poolSize !== POOL) { fail(p.quizId, `lib/outrank-score sees a pool of ${field.poolSize}, not ${POOL}`); continue; }
+      const counts = favCounts(p.house, K);
+      const distinct = new Set(counts).size === K;
+      const short = [];
+      for (let fav = 0; fav < K; fav++) {
+        const c2 = counts.slice(); c2[fav] = Math.max(0, c2[fav] - 1);
+        const perfect = [fav, ...crowdOrderOf(c2)];
+        const got = field.detailFor(perfect).total;
+        if (got !== 2 * K) short.push(`fav ${p.items[fav]} scores ${got}/${2 * K}`);
+        const naive = [fav, ...field.crowdOrder];
+        const lost = 2 * K - field.detailFor(naive).total;
+        // The cap holds only where the counts are DISTINCT: pulling one vote out
+        // can then unseat an item by at most one rank. On a board with tied
+        // counts, one withdrawn vote can drop an item past a whole tied block —
+        // frozen board #2 costs an honest reader 4 of 12 that way. That is the
+        // distinct-counts rule earning its keep, and it is why the cap is only
+        // asserted where the rule holds.
+        if (distinct) {
+          if (lost > worstNaive) { worstNaive = lost; worstBoard = p.quizId; }
+          if (lost > 2) short.push(`reading the whole pool costs ${lost} points with fav ${p.items[fav]}`);
+        } else if (lost > 2) tiedCost = Math.max(tiedCost, lost);
+      }
+      if (short.length) fail(p.quizId, `through lib/outrank-score: ${short.join('; ')}`);
+    }
+    note('outrank', `end to end through lib/outrank-score: a perfect read pays full marks on all ${PUZZLES.length} boards; on the ${PUZZLES.length - grandfathered.tie} boards with distinct counts the worst leave-one-out cost to a whole-pool read is ${worstNaive} points${worstBoard ? ` (${worstBoard})` : ''}`);
+    if (tiedCost) note('outrank', `on the FROZEN tied boards a whole-pool read can cost up to ${tiedCost} points, because one withdrawn vote falls past a tied block; grandfathered`);
+  }
+
+  // ── whole-bank variety ceilings
+  for (const [k, n] of itemUse) if (n > ITEM_CEIL) fail('outrank-variety', `item "${k}" appears on ${n} boards bank-wide (ceiling ${ITEM_CEIL})`);
+  for (const [k, n] of vecUse) if (n > VEC_CEIL) fail('outrank-variety', `house count vector ${k} shapes ${n} editable boards (ceiling ${VEC_CEIL})`);
+  for (const [k, n] of catUse) if (n > CAT_CEIL) fail('outrank-variety', `category ${k} fills ${n} editable boards (ceiling ${CAT_CEIL})`);
+  if (catUse.size) note('outrank', `categories from ${OUTRANK_CROWD_FROM}: ${[...catUse].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`).join(', ')} (ceiling ${CAT_CEIL})`);
+  if (vecUse.size) note('outrank', `${vecUse.size} distinct count vectors over ${[...vecUse.values()].reduce((a, b) => a + b, 0)} editable boards, max reuse ${Math.max(...vecUse.values())} (ceiling ${VEC_CEIL})`);
+  {
+    const twice = [...itemUse].filter(([, n]) => n === ITEM_CEIL).length;
+    note('outrank', `${itemUse.size} distinct items bank-wide, ${twice} used twice, none more (ceiling ${ITEM_CEIL})`);
+  }
+  if (grandfathered.tie) note('outrank', `${grandfathered.tie} FROZEN boards ship a tied house count and so an arbitrary answer boundary; grandfathered`);
 }
 
 

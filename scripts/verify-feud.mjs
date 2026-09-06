@@ -13,6 +13,32 @@
 //      synonyms, filler words, compound spacing — must land where a human
 //      would put them, and the known traps must NOT match.
 //
+// Added 2026-09-05, because a matcher audit is not a bank audit: this file
+// proved every alias and enforced NOTHING about the boards, so a bulk extension
+// could ship 62 legal days that all said the same thing (CLAUDE.md, "Daily
+// puzzle authoring standard" #7 — pool variety is checked across the WHOLE bank
+// or it is not checked):
+//
+//   3. STRUCTURE: the calendar (one board a day, contiguous nums in date order,
+//      quizId and dateLabel derived from `live`, `sunday` false — feud runs no
+//      Sunday Edition and is absent from lib/sunday-editions.js), five prompts
+//      a day, six to nine buckets a prompt, every bucket aliased, and a `house`
+//      of exactly 40 votes with every index in range and no zero-vote bucket.
+//   4. VARIETY: no prompt text repeats anywhere in the bank, one answer label
+//      may fill at most LABEL_CEIL prompts of a segment (HOT_CEIL if the
+//      pre-segment bank already runs it HOT_FROZEN times or more), no bucket
+//      count may hold more than 55% of a segment while every count in the band
+//      holds at least 5%, and no single house count-vector may shape more than
+//      VEC_CEIL prompts.
+//
+// GRANDFATHERING (authoring standard #10). Checks 3 and 4 apply only from
+// FEUD_RULES_FROM. The 60 boards live before it are frozen history and two of
+// them would fail: one house array is not monotone, and the frozen bank runs
+// `pizza` 16 times and `coffee` 14 in 300 prompts. Lowering those would mean
+// rewriting a board that has already gone live, which is the one thing this
+// repo never does. Checks 1 and 2 run over everything, because a mis-bucketed
+// alias mis-scores a live board today.
+//
 // Run: node scripts/verify-feud.mjs
 import { PUZZLES } from '../app/feud/puzzles.js';
 import { normAnswer, promptMatcher } from '../lib/feud-match.js';
@@ -81,6 +107,32 @@ const FIXTURES = [
   // traps: an accidental substring must NOT be credited to the short bucket
   ['always losing', 'headphones', null],
   ['always losing', 'my dignity', null],
+  // 2026-09-30 segment. Written by typing each board the way a player would
+  // rather than by reading its alias list back, which is the only way to catch
+  // a bucket that is reachable only by the exact string its author wrote.
+  ['food people grill outdoors', 'cheeseburgers', 'Burgers'],
+  ['food people grill outdoors', 'i always do steaks', 'Steak'],
+  ['drink people have with breakfast', 'a cup of tea', 'Tea'],
+  ['drink people have with breakfast', 'coffe', 'Coffee'],
+  ['furniture that is misery', 'the sofa', 'A couch'],
+  ['furniture that is misery', 'refrigerator', 'A refrigerator'],
+  ['forget to charge', 'my airpods', 'Headphones'],
+  ['always tangled', 'the christmas lights', 'String lights'],
+  ['everything piles up', 'the worktop', 'The kitchen counter'],
+  ['the wind blows over', 'wheelie bins', 'Trash cans'],
+  ['the wind blows over', 'the garbage can', 'Trash cans'],
+  ['less work than a dog', 'a goldfish', 'A fish'],
+  ['only do with headphones in', 'hoovering', 'Vacuuming'],
+  ['run out of before they remember', 'loo roll', 'Toilet paper'],
+  ['never wash often enough', 'my water bottle', 'A reusable bottle'],
+  ['the second the alarm goes off', 'hit the snooze button', 'Hit snooze'],
+  ['food people put in a taco', 'guac', 'Guacamole'],
+  ['drink people make in a blender', 'smoothies', 'A smoothie'],
+  ['animal nobody wants in the garden', 'slugs and snails', 'Slugs'],
+  ['take off first when they get home', 'my shoes', 'Shoes'],
+  // and one that SHOULD miss: an answer nobody banked forms its own bucket
+  // rather than being forced into the nearest label.
+  ['something rain ruins', 'a bbq', null],
 ];
 
 let fx = 0, fxBad = [];
@@ -119,13 +171,127 @@ const chainBad = [];
 }
 fail += chainBad.length;
 
+// ---- 4. structure and pool variety, from FEUD_RULES_FROM ------------------
+const FEUD_RULES_FROM = '2026-09-30';
+const LABEL_CEIL = 4;      // max prompts one answer label may fill in the segment
+const HOT_CEIL = 2;        // ...if the earlier bank already runs it HOT_FROZEN+ times
+const HOT_FROZEN = 10;
+const VEC_CEIL = 14;       // max prompts one house count-vector may shape
+const MODE_CEIL = 0.55;    // max share of the segment on one bucket count
+const MIN_SHARE = 0.05;    // min share every count in the 6-9 band must hold
+const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const structBad = [];
+const varietyBad = [];
+{
+  const sorted = PUZZLES.slice().sort((a, b) => (a.live < b.live ? -1 : a.live > b.live ? 1 : 0));
+  const normQ = (q) => String(q).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+  // 4a. calendar and per-board structure
+  for (let i = 0; i < sorted.length; i++) {
+    const p = sorted[i];
+    const at = `#${p.num} ${p.live}`;
+    if (PUZZLES[i] !== p) structBad.push(`  ${at}: bank is not in date order`);
+    if (p.num !== i + 1) structBad.push(`  ${at}: num should be ${i + 1}`);
+    if (i) {
+      const d = new Date(sorted[i - 1].live + 'T12:00:00Z');
+      d.setUTCDate(d.getUTCDate() + 1);
+      if (d.toISOString().slice(0, 10) !== p.live) structBad.push(`  ${at}: gap after ${sorted[i - 1].live}`);
+    }
+    const [Y, M, D] = p.live.split('-').map(Number);
+    const wantId = `feud-${M}-${D}-${String(Y).slice(2)}`;
+    if (p.quizId !== wantId) structBad.push(`  ${at}: quizId "${p.quizId}" should be "${wantId}"`);
+    const wantLabel = `${MON[M - 1]} ${D}, ${Y}`;
+    if (p.dateLabel !== wantLabel) structBad.push(`  ${at}: dateLabel "${p.dateLabel}" should be "${wantLabel}"`);
+    // feud runs NO Sunday Edition (see app/feud/puzzles.js). Whole bank: this
+    // one has always held, so it is not grandfathered.
+    if (p.sunday) structBad.push(`  ${at}: sunday:true, but feud has no Sunday Edition`);
+    if ((p.prompts || []).length !== 5) structBad.push(`  ${at}: ${(p.prompts || []).length} prompts, want 5`);
+    const future = p.live >= FEUD_RULES_FROM;
+    for (const [pi, pr] of (p.prompts || []).entries()) {
+      const where = `  ${at} p${pi + 1}`;
+      const n = (pr.answers || []).length;
+      if (n < 6 || n > 9) structBad.push(`${where}: ${n} buckets, band is 6-9`);
+      for (const b of pr.answers || []) if (!b.k || !b.k.length) structBad.push(`${where}: bucket "${b.c}" has no aliases`);
+      const h = pr.house || [];
+      if (h.length !== 40) structBad.push(`${where}: house holds ${h.length} votes, want 40`);
+      const counts = new Array(n).fill(0);
+      for (const v of h) {
+        if (!Number.isInteger(v) || v < 0 || v >= n) { structBad.push(`${where}: house index ${v} out of range`); continue; }
+        counts[v]++;
+      }
+      const zero = counts.findIndex((c) => c === 0);
+      if (zero !== -1) structBad.push(`${where}: bucket "${(pr.answers[zero] || {}).c}" has zero house votes (unreachable in lib/feud-score.js)`);
+      // The bucket ORDER is the popularity claim, so the crowd has to agree
+      // with it. Grandfathered: one frozen board does not.
+      if (future) for (let k = 1; k < counts.length; k++) {
+        if (counts[k] > counts[k - 1]) { structBad.push(`${where}: house is not monotone (${counts.join('/')})`); break; }
+      }
+    }
+  }
+
+  // 4b. no prompt text repeats, anywhere in the bank
+  const seenQ = new Map();
+  for (const p of sorted) for (const pr of p.prompts || []) {
+    const k = normQ(pr.q);
+    if (seenQ.has(k)) varietyBad.push(`  prompt repeats ${seenQ.get(k)}: "${pr.q}" (#${p.num} ${p.live})`);
+    else seenQ.set(k, `#${p.num} ${p.live}`);
+  }
+
+  // 4c. pool variety over the boards from FEUD_RULES_FROM, measured against
+  // what the boards before it already spend.
+  const seg = sorted.filter((p) => p.live >= FEUD_RULES_FROM);
+  const pre = sorted.filter((p) => p.live < FEUD_RULES_FROM);
+  if (seg.length) {
+    const preLabel = new Map();
+    for (const p of pre) for (const pr of p.prompts || []) for (const b of pr.answers || []) {
+      const k = String(b.c).toLowerCase();
+      preLabel.set(k, (preLabel.get(k) || 0) + 1);
+    }
+    const segLabel = new Map(), bucketN = new Map(), vec = new Map();
+    let segPrompts = 0;
+    for (const p of seg) for (const pr of p.prompts || []) {
+      segPrompts++;
+      const n = (pr.answers || []).length;
+      bucketN.set(n, (bucketN.get(n) || 0) + 1);
+      const counts = new Array(n).fill(0);
+      for (const v of pr.house || []) if (v >= 0 && v < n) counts[v]++;
+      const sig = counts.join('/');
+      vec.set(sig, (vec.get(sig) || 0) + 1);
+      for (const b of pr.answers || []) {
+        const k = String(b.c).toLowerCase();
+        segLabel.set(k, (segLabel.get(k) || 0) + 1);
+      }
+    }
+    for (const [lab, n] of segLabel) {
+      const before = preLabel.get(lab) || 0;
+      const ceil = before >= HOT_FROZEN ? HOT_CEIL : LABEL_CEIL;
+      if (n > ceil) varietyBad.push(`  answer label "${lab}" fills ${n} prompts of the segment (ceiling ${ceil}; the earlier bank runs it ${before}x)`);
+    }
+    for (const [n, c] of bucketN) {
+      if (c / segPrompts > MODE_CEIL) varietyBad.push(`  ${c}/${segPrompts} segment prompts carry ${n} buckets (${(100 * c / segPrompts).toFixed(0)}%, ceiling ${100 * MODE_CEIL}%)`);
+    }
+    for (const n of [6, 7, 8, 9]) {
+      const c = bucketN.get(n) || 0;
+      if (c / segPrompts < MIN_SHARE) varietyBad.push(`  only ${c}/${segPrompts} segment prompts carry ${n} buckets (${(100 * c / segPrompts).toFixed(1)}%, floor ${100 * MIN_SHARE}%) — the band is not being used`);
+    }
+    for (const [sig, c] of vec) {
+      if (c > VEC_CEIL) varietyBad.push(`  house shape ${sig} shapes ${c} segment prompts (ceiling ${VEC_CEIL})`);
+    }
+  }
+}
+fail += structBad.length + varietyBad.length;
+
 // ---- report --------------------------------------------------------------
 console.log(`Feud acceptance audit`);
 console.log(`  ${PUZZLES.length} days, ${prompts} prompts, ${probes} label/alias probes`);
 console.log(`  ${fx} fixtures`);
+console.log(`  structure + variety checked from ${FEUD_RULES_FROM} (${PUZZLES.filter((p) => p.live >= FEUD_RULES_FROM).length} boards); earlier boards grandfathered`);
 if (bad.length) { console.log(`\nSELF-COLLISIONS (${bad.length}):`); bad.forEach((l) => console.log(l)); }
 if (fxBad.length) { console.log(`\nFIXTURE FAILURES (${fxBad.length}):`); fxBad.forEach((l) => console.log(l)); }
 if (chainBad.length) { console.log(`\nSYNONYM CHAINS (${chainBad.length}):`); chainBad.forEach((l) => console.log(l)); }
-if (!fail) console.log(`\nPASS — every label and alias resolves to its own bucket.`);
+if (structBad.length) { console.log(`\nSTRUCTURE (${structBad.length}):`); structBad.slice(0, 40).forEach((l) => console.log(l)); }
+if (varietyBad.length) { console.log(`\nPOOL VARIETY (${varietyBad.length}):`); varietyBad.slice(0, 40).forEach((l) => console.log(l)); }
+if (!fail) console.log(`\nPASS — every label and alias resolves to its own bucket, the calendar is whole, and the pool ceilings hold.`);
 else console.log(`\nFAIL — ${fail} problem(s).`);
 process.exit(fail ? 1 : 0);

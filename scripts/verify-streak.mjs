@@ -1,82 +1,66 @@
 // Verifier for the Streak bank (app/streak/questions.js + puzzles.js).
 // Run after ANY bank edit: node scripts/verify-streak.mjs
+// Prove the gates actually fire:  node scripts/streak-rules-selftest.mjs
 //
-// Proves, mechanically:
-//   bank    — unique ids, exactly 4 distinct choices, correct in 0..3, tier
-//             1..5, no exact-duplicate question text anywhere in the bank
-//   giveaway— no question's text contains its own correct answer (normalized,
-//             answers of 4+ chars; the clue-must-not-contain-answer rule)
-//   days    — every day has exactly 40 qids, all resolving, no qid reused
-//             across ANY two days, tiers run 8x1..8x5 in order, every tier
-//             block covers 8 distinct categories, quizId matches live date
-//   spread  — per day, each correct position (A-D) appears at least 5 times,
-//             and no run of 4+ consecutive questions shares a position
-// Truth of the facts themselves stays a human (authoring-time) job.
+// The rules themselves live in scripts/streak-rules.mjs, so that the selftest
+// can feed them synthetic banks and watch each one go red on purpose. This file
+// is the wrapper that points them at the real bank and prints the result.
+//
+// Proves, mechanically, over the WHOLE bank:
+//   bank    - unique ids, id shape d<NN>q<NN> (widening past day 99), exactly 4
+//             distinct choices, correct in 0..3, tier 1..5, cat one of the
+//             eight lanes, every stem ending in a question mark, no exact
+//             duplicate question text anywhere, no em dash and no curly quote
+//   giveaway- no question's text contains its own correct answer whole
+//             (normalized, answers of 4+ chars)
+//   days    - num contiguous from 1 in date order, every day exactly 40 qids,
+//             all resolving, all carrying that day's own prefix, no qid reused
+//             across ANY two days, tiers running 8x1..8x5 in order, every tier
+//             block covering the eight lanes in the fixed cycle, quizId and
+//             dateLabel derived from the live date, dates one apart with no
+//             gap, no day flagged sunday
+//   spread  - per day, each correct position (A-D) at least 5 times and no run
+//             of 4+ consecutive questions at one position
+//
+// And, ONLY over days live on or after streak-rules.mjs's COPY_FROM
+// (2026-09-30), because THE PAST IS FROZEN and days 1..61 shipped before the
+// 2026-09-04 bank standard:
+//   US spellings        49 British forms sit in the frozen days; nothing was
+//                       looking. Real titles keep their spelling via
+//                       ALLOW_PROPER, matched case sensitively.
+//   answer cap 4        Pool variety counted across the WHOLE new window, not
+//                       per day. The frozen days answer "four" 16 times and
+//                       "China" 10 times, and every per-day check they had was
+//                       green throughout.
+//   column shape        Exactly 10/10/10/10 a day and no column three times
+//                       running. The whole-bank rule above asks for 5 of 40 and
+//                       no run of 4, and a floor is not a target.
+//   one answer a day    The same answer twice in a day makes the second
+//                       guessable; 10 frozen days do it.
+//   full giveaway       Fails a stem carrying every distinctive word of its
+//                       answer in any order, not just the answer whole.
+//   no expiring facts   No "currently", "as of", "so far", "to date", "the
+//                       reigning", "holds the record". Every fact is pinned to
+//                       a year or an event, so no answer moves when somebody is
+//                       elected, promoted, overtaken or recast.
+//
+// Truth of the facts themselves, and whether a tier-5 question is really hard,
+// stay human (authoring-time) jobs. The near-duplicate WARNINGS below are the
+// machine's best attempt at the first of those: two questions sharing an answer
+// and two distinctive words are the shape of the same fact asked twice. They
+// are warnings, not failures, because one director is the fair answer to many
+// genuinely different questions. Read them.
 import { QUESTIONS, QUESTION_MAP } from '../app/streak/questions.js';
 import { PUZZLES } from '../app/streak/puzzles.js';
+import { checkStreak, LANES, COPY_FROM, ANSWER_CAP } from './streak-rules.mjs';
 
-let fails = 0;
-const fail = (m) => { console.error('FAIL:', m); fails++; };
-const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+const { errs, warns, dates } = checkStreak({ QUESTIONS, QUESTION_MAP, PUZZLES });
 
-// ---- bank ------------------------------------------------------------------
-const ids = new Set();
-const seenQ = new Map();
-for (const q of QUESTIONS) {
-  if (ids.has(q.id)) fail(`dup id ${q.id}`);
-  ids.add(q.id);
-  if (!Array.isArray(q.choices) || q.choices.length !== 4) fail(`${q.id}: needs 4 choices`);
-  if (new Set(q.choices.map(norm)).size !== 4) fail(`${q.id}: duplicate choices`);
-  if (!(q.correct >= 0 && q.correct <= 3)) fail(`${q.id}: correct out of range`);
-  if (!(q.tier >= 1 && q.tier <= 5)) fail(`${q.id}: tier out of range`);
-  if (!q.q || q.q.length < 8) fail(`${q.id}: question text too short`);
-  const nq = norm(q.q);
-  if (seenQ.has(nq)) fail(`${q.id}: duplicate question text of ${seenQ.get(nq)}`);
-  seenQ.set(nq, q.id);
-  // Giveaway: the answer's distinctive text inside the question itself.
-  const ans = norm(q.choices[q.correct]).replace(/^(the|a|an) /, '');
-  if (ans.length >= 4 && nq.includes(ans)) fail(`${q.id}: question text contains its own answer ("${ans}")`);
+for (const w of warns) console.warn(`warn: ${w}`);
+console.log(`streak: ${QUESTIONS.length} questions, ${PUZZLES.length} days checked (${dates[0]} to ${dates[dates.length - 1]}), ${LANES.length} lanes, copy floor ${COPY_FROM}, answer cap ${ANSWER_CAP}`);
+if (errs.length) {
+  for (const e of errs) console.error(`FAIL: ${e}`);
+  console.error(`${errs.length} failure(s)`);
+  process.exit(1);
 }
-
-// ---- days ------------------------------------------------------------------
-const usedAcross = new Map();
-for (const p of PUZZLES) {
-  if (!Array.isArray(p.qids) || p.qids.length !== 40) { fail(`${p.quizId}: needs 40 qids`); continue; }
-  const m = /^streak-(\d{1,2})-(\d{1,2})-(\d{2})$/.exec(p.quizId);
-  if (!m) fail(`${p.quizId}: bad quizId shape`);
-  else {
-    const [, mo, dy, yr] = m.map(Number);
-    const [ly, lm, ld] = p.live.split('-').map(Number);
-    if (lm !== mo || ld !== dy || ly !== 2000 + yr) fail(`${p.quizId}: live ${p.live} does not match quizId date`);
-  }
-  const qs = p.qids.map((id) => QUESTION_MAP[id]);
-  qs.forEach((q, i) => { if (!q) fail(`${p.quizId}: qid ${p.qids[i]} does not resolve`); });
-  if (qs.some((q) => !q)) continue;
-  for (const id of p.qids) {
-    if (usedAcross.has(id)) fail(`${p.quizId}: qid ${id} already used by ${usedAcross.get(id)}`);
-    usedAcross.set(id, p.quizId);
-  }
-  // Tier ramp: 8 per tier, in order.
-  qs.forEach((q, i) => {
-    const want = Math.floor(i / 8) + 1;
-    if (q.tier !== want) fail(`${p.quizId}: slot ${i + 1} is tier ${q.tier}, wanted ${want}`);
-  });
-  // Category coverage per tier block.
-  for (let b = 0; b < 5; b++) {
-    const cats = new Set(qs.slice(b * 8, b * 8 + 8).map((q) => q.cat));
-    if (cats.size !== 8) fail(`${p.quizId}: tier block ${b + 1} covers ${cats.size} categories, wanted 8`);
-  }
-  // Correct-position spread.
-  const posCount = [0, 0, 0, 0];
-  qs.forEach((q) => posCount[q.correct]++);
-  posCount.forEach((c, k) => { if (c < 5) fail(`${p.quizId}: position ${'ABCD'[k]} correct only ${c} times (< 5)`); });
-  let run = 1;
-  for (let i = 1; i < qs.length; i++) {
-    run = qs[i].correct === qs[i - 1].correct ? run + 1 : 1;
-    if (run >= 4) fail(`${p.quizId}: 4+ consecutive answers at position ${'ABCD'[qs[i].correct]} ending slot ${i + 1}`);
-  }
-}
-
-console.log(`streak: ${QUESTIONS.length} questions, ${PUZZLES.length} days checked`);
-if (fails) { console.error(`${fails} failure(s)`); process.exit(1); }
-console.log('ALL OK');
+console.log(`ALL OK (${warns.length} warning${warns.length === 1 ? '' : 's'})`);

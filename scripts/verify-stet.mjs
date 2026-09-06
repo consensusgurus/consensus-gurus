@@ -2,6 +2,8 @@
 // `errors` array of 0–2, clean sentences carry `cleanNote`). Run after ANY edit:
 //   node scripts/verify-stet.mjs
 import { PUZZLES } from '../app/stet/puzzles.js';
+import { BRITISH } from './us-spellings.mjs';
+import { sameWord } from '../lib/dialect-variants.js';
 
 const strip = (w) => w.toLowerCase().replace(/^[^a-z0-9'’-]+|[^a-z0-9'’-]+$/g, '');
 let fail = 0;
@@ -225,6 +227,54 @@ function relation(wrong, fix) {
   if (PAIRS.has([w, f].sort().join('|')) || PAIRS.has([stemOf(w), stemOf(f)].sort().join('|'))) return 'confusable';
   return null;
 }
+// ---------------------------------------------------------------------------
+// THE SHARED US-SPELLING SCREEN, wired in the only direction that is true for
+// this game (CLAUDE.md "Daily puzzle authoring standard" rule 8, "Extending a
+// puzzle bank in bulk" rule 4). Read this before changing it, because the
+// obvious wiring is the wrong one here.
+//
+// The standard's rule 8 exists because generators pulling off-the-shelf word
+// lists import BRITISH forms into copy that is meant to read American. Stet is
+// the one game where that direction is inverted by an owner ruling: two English
+// readers wrote in (2026-08-15 "never heard of a pry bar", 2026-08-28 "here in
+// England a draft is a first copy of something") and the ruling is that the
+// printed copy is British, enforced above by US_ONLY and FALSE_FRIENDS from
+// BRITISH_VOICE_FROM. So scanUS's own direction — fail a British form in the
+// copy — cannot be run over stet's sentences: it would fail `colour`,
+// `practise` and `metre`, which this bank is REQUIRED to print, and the two
+// checks would deadlock.
+//
+// It cannot be run inverted either, i.e. "fail the US form of every pair".
+// Half of us-spellings' US column is ordinary British English in another sense
+// — while, among, learned, spelled, story, practice (the noun), license (the
+// verb), curb (the verb), draft (a first version) — which is the exact
+// false-friend trap that already cost this bank one item. US_ONLY above is
+// hand-curated precisely to avoid it, and widening it mechanically would
+// reintroduce it.
+//
+// What the shared table CAN prove, and what nothing here proved before, is the
+// rule the puzzles.js header states and no code enforced: NO ERROR MAY TURN ON
+// THE DIALECT AXIS, in either direction. That rule has teeth beyond style. The
+// grader folds dialect spellings together through lib/dialect-variants.js, so
+// an item whose `wrong` and `fix` are two spellings of one word is UNPLAYABLE:
+// a player who types the "wrong" word back scores the point, because
+// sameWord() says it is the same answer. That is a dead board, not a taste
+// call, and it is mechanically checkable from the two shared files.
+//
+// Scoped from DIALECT_AXIS_FROM so the past stays frozen (rule 10). The floor
+// is load-bearing rather than ceremonial, and it was tested: with the floor
+// dropped to the start of the bank this check fails board #31 (2026-08-16),
+// which banks kerb -> curb, a pair us-spellings lists as one word in two
+// dialects. That board is played history and stays exactly as it is.
+const DIALECT_AXIS_FROM = '2026-09-30';   // first board of the Sep 30 - Nov 30 extension
+const VARIANT = new Map();
+for (const [brit, us] of BRITISH) { VARIANT.set(brit, us); VARIANT.set(us, brit); }
+function dialectAxis(wrong, fix) {
+  const w = String(wrong).toLowerCase(), f = String(fix).toLowerCase();
+  if (VARIANT.get(w) === f) return `us-spellings.mjs lists "${w}"/"${f}" as one word in two dialects`;
+  if (sameWord(w, f)) return `lib/dialect-variants.js grades "${w}" and "${f}" as the same word, so a player typing the flagged word back would SCORE`;
+  return null;
+}
 let grammarErrors = 0;
 const err = (m) => { console.error('FAIL:', m); fail++; };
 
@@ -300,6 +350,10 @@ for (const p of PUZZLES) {
         // (b) preference language in the note means the flagged word was fine.
         const m = (e.note || '').match(PREFERENCE_NOTE);
         if (m) err(`#${p.num}.${i + 1}.${j + 1}: note argues house preference ("${m[0]}") — an error must be wrong in THIS sentence, not merely less usual`);
+      }
+      if (p.live >= DIALECT_AXIS_FROM) {
+        const why = dialectAxis(w, strip(e.fix));
+        if (why) err(`#${p.num}.${i + 1}.${j + 1}: "${e.wrong}" -> "${e.fix}" turns on the dialect axis - ${why}. No error may sit on that axis in either direction; re-cut the item.`);
       }
       if (p.live >= FORCED_FIX_FROM) {
         // (c) the flagged word must POINT at the fix. Unrelated words mean the

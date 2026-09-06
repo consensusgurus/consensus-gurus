@@ -62,8 +62,14 @@ run('blast radius', process.execPath, [join(here, 'blast-radius.mjs')]);
 //    and it catches the breakers that actually happen (a stray comma from a
 //    splice, a backtick inside a <style> block, a NUL byte).
 {
-  const files = spawnSync('git', ['diff', '--name-only', 'origin/main'], { cwd: root, encoding: 'utf8' })
-    .stdout.split('\n').map((f) => f.trim())
+  //    Untracked files count: a bulk restock adds brand new generators, and
+  //    `git diff` cannot see a file git has never heard of. The 2026-09-06 run
+  //    had 12 new scripts that this step reported as "11 files parse".
+  const listed = (argv) => spawnSync('git', argv, { cwd: root, encoding: 'utf8' }).stdout.split('\n');
+  const files = [...new Set([
+    ...listed(['diff', '--name-only', 'origin/main']),
+    ...listed(['ls-files', '--others', '--exclude-standard']),
+  ].map((f) => f.trim()))]
     .filter((f) => /\.(mjs|jsx?)$/.test(f) && existsSync(join(root, f)));
   const broken = [];
   for (const f of files) {

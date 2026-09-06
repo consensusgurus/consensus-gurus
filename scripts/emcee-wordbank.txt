@@ -6057,3 +6057,136 @@ YEARN|Long for
 YODEL|Alpine warble
 YUMMY|Delicious to a child
 ZESTY|Full of tang
+
+# ── added 2026-09-05 to carry the bank past 2026-11-14 ─────────────────────
+# The 7x7 Sunday spends EIGHTEEN 3-letter answers a week (see the shape note
+# in scripts/gen-emcee.mjs: no 22-word 7x7 exists that spends fewer), and at a
+# 3-use bank-wide cap the 413 three-letter entries this file held ran dry on
+# 2026-11-15. These are everyday words, hand-clued, no glosses. Every one that
+# also lives in scripts/encore-wordbank.txt carries ENCORE's clue VERBATIM,
+# because verify-encore.mjs reads this file first and would otherwise silently
+# reassign the canonical clue on Encore boards that never changed.
+# Four more (ABS, ADS, ARE, AYE) already appear on the grandfathered boards
+# #1-#27, so they carry the clue those boards already print, for one voice.
+ABS|Six-pack muscles, briefly
+ADO|Much about nothing
+ADS|Commercials, for short
+AFT|Toward the stern
+AKA|Alias, in brief
+ALT|Key beside the space bar
+AND|Plus
+ARE|"You ___ here"
+ASP|Snake of the Nile
+AVE|Broadway, for short
+AYE|Sailor's yes
+BAA|Lamb's bleat
+BAH|Scrooge's grumble
+BAM|Sound of a slam
+BIO|Short life story
+BIZ|Show ___
+BOB|Short haircut
+BOT|Automated web program
+BRA|Undergarment
+BRO|Casual brother
+BYE|Parting word
+CAD|Ungentlemanly sort
+CAM|Webcam, for short
+CON|Swindle
+COY|Playfully shy
+DID|Performed
+DIN|Racket
+DOC|Physician, informally
+DUH|"Obviously!"
+EMO|Angsty music genre
+EON|Very long stretch
+ETA|Arrival time, in brief
+FAB|Fantastic, for short
+FAT|Not lean
+FAX|Send down a phone line
+FED|Gave dinner to
+FOB|Key ring attachment
+FRO|To and ___
+GET|Obtain
+GIN|Tonic's partner
+GOD|Deity
+GUN|Firearm
+HEX|Witch's curse
+HMM|Sound of pondering
+HON|Term of endearment
+HUH|"Come again?"
+HUM|Tuneless singing
+ICK|"Gross!"
+ILK|Sort or type
+ION|Charged particle
+IRK|Get on the nerves of
+JAY|Blue bird
+JOT|Scribble down
+JUT|Stick out
+KIN|Relatives
+KOI|Ornamental pond fish
+LAM|On the ___ (fleeing)
+LAX|Not strict
+LEI|Hawaiian garland
+LOP|Cut off
+LOX|Bagel topping
+LYE|Soap-making chemical
+MAX|Upper limit, for short
+MED|___ school
+MEH|"Not impressed"
+MEW|Kitten's cry
+MIC|Singer's pickup
+MID|Halfway through
+MUM|Keeping quiet
+NAH|"No thanks"
+NIB|Pen point
+NIT|Tiny complaint
+NIX|Say no to
+NOG|Egg ___
+NTH|To the ___ degree
+NUB|Small lump
+NUN|Convent dweller
+OFT|Frequently, in poems
+OLE|Bullring cheer
+OOH|Sound of delight
+ORC|Fantasy brute
+OVA|Egg cells
+PEC|Chest muscle, informally
+PHO|Vietnamese noodle soup
+PIC|Snapshot, informally
+REC|___ room
+REF|Whistle blower on the court
+REM|___ sleep
+REP|Gym set unit
+REV|Race the engine
+RID|Get free of
+SAX|Jazz horn
+SEC|Just a moment, informally
+SHH|"Quiet down!"
+SIS|Sibling nickname
+SKA|Reggae's upbeat cousin
+SOS|Distress signal
+TAJ|___ Mahal
+TEE|Golf ball's perch
+TOO|Also
+TSK|Sound of disapproval
+UFO|Saucer in the sky
+UGH|"How awful!"
+UKE|Small Hawaiian guitar
+UMP|Balls-and-strikes caller
+VEG|Relax and do nothing
+VEX|Annoy
+VIM|Energy and pep
+WAN|Pale and tired
+WAS|Used to be
+WIT|Quick humor
+WOW|Amaze
+WRY|Dryly humorous
+YAY|Cheer of delight
+YET|So far
+YIN|___ and yang
+YOU|The reader
+YUM|"Tasty!"
+YUP|"Uh-huh"
+ZAG|Zig's partner
+ZIG|___ and zag
+ZIT|Pimple
