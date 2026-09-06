@@ -357,6 +357,20 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     setNow(t);
   }
 
+  // The next section that has not already been played today, plus the banked
+  // ones stepped over on the way. Shared by the end of a section and the
+  // verdict's own advance, so the two can never disagree about whether the run
+  // has anything left in it.
+  function scanAhead(cur) {
+    let j = cur.si + 1;
+    const banked = [];
+    while (j < N && !cur.practice && alreadyDone(sections[j].key, sections[j].num)) {
+      banked.push({ key: sections[j].key, score: bankedScore(sections[j].key, sections[j].num), total: sections[j].questions.length, status: 'banked', secs: 0 });
+      j += 1;
+    }
+    return { j, banked };
+  }
+
   // Everything a finished section owes: the four local writes the solo client
   // makes, then the ordinary result post. Called exactly once per section.
   function finishSection(status, { pick = null, timedOut = false } = {}) {
@@ -389,10 +403,19 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
     }
 
     vibrate(status === 'won' ? HAPT.win : HAPT.wrong);
-    commit({
-      ...cur, phase: 'verdict', i: score,
-      results: [...cur.results, { key: s.key, score, total, status, secs, pick, timedOut }],
-    });
+    const results = [...cur.results, { key: s.key, score, total, status, secs, pick, timedOut }];
+    // THE LAST QUIZ ENDS THE RUN, IT DOES NOT HAND OVER (owner, 2026-09-06).
+    // The handover card is a bridge to the next quiz, so after the last one it
+    // stood there as a dead end: a "See the run" button over figures the
+    // scorecard says again a moment later, with the player made to press
+    // through it to reach the ending. The run goes straight to the finish now,
+    // which is where the curtain plays and the scorecard reads.
+    const { j, banked } = scanAhead(cur);
+    if (j >= N) {
+      commit({ ...cur, si: N, i: score, phase: 'done', results: banked.length ? [...results, ...banked] : results });
+    } else {
+      commit({ ...cur, phase: 'verdict', i: score, results });
+    }
     setQStart(null);
     setHold(false);
   }
@@ -401,12 +424,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
   // none is over.
   function nextSection() {
     const cur = rRef.current;
-    let j = cur.si + 1;
-    const banked = [];
-    while (j < N && !cur.practice && alreadyDone(sections[j].key, sections[j].num)) {
-      banked.push({ key: sections[j].key, score: bankedScore(sections[j].key, sections[j].num), total: sections[j].questions.length, status: 'banked', secs: 0 });
-      j += 1;
-    }
+    const { j, banked } = scanAhead(cur);
     const results = banked.length ? [...cur.results, ...banked] : cur.results;
     if (j >= N) { commit({ ...cur, si: N, phase: 'done', results }); return; }
     const t = Date.now();
@@ -418,11 +436,17 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
 
   // The verdict advances itself. Hold stops the clock, Next now skips the wait.
   useEffect(() => {
-    if (r.phase !== 'verdict' || hold) return;
+    if (r.phase !== 'verdict') return;
+    // A verdict with nothing after it is a dead end. finishSection no longer
+    // writes one, but a save from before that did can still be restored into
+    // this state, so it goes to the scorecard at once and Hold cannot stall it
+    // there.
+    if (hydrated && !upNext) { nextSection(); return; }
+    if (hold) return;
     const t = setTimeout(() => { if (!holdRef.current) nextSection(); }, VERDICT_MS);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [r.phase, r.si, hold]);
+  }, [r.phase, r.si, hold, hydrated, upNext]);
 
   function answer(k) {
     const cur = rRef.current;
@@ -1147,7 +1171,7 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
               </div>
             ) : null}
 
-            {r.phase === 'verdict' && last ? (
+            {r.phase === 'verdict' && last && upNext ? (
               /* THE HANDOVER. The finished quiz's colour washes out to the
                  left, the next one's arrives on the right, and its name is set
                  large enough to be the thing you read. It is the same screen
@@ -1209,18 +1233,9 @@ export default function RunClient({ circuitId, circuitName, dateLabel, sections 
                   style={{ '--dwell': `${VERDICT_MS}ms` }}
                   onClick={() => { setHold(false); nextSection(); }}
                 >
-                  {upNext ? (
-                    <>
-                      <span className="rn-vge">Continue to</span>
-                      <span className="rn-vgn">{upNext.name}</span>
-                      <span className="rn-vgs">{lineFor(upNext)} · {upNext.questions.length} questions · your life resets</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="rn-vge">That was the last one</span>
-                      <span className="rn-vgn">See the run</span>
-                    </>
-                  )}
+                  <span className="rn-vge">Continue to</span>
+                  <span className="rn-vgn">{upNext.name}</span>
+                  <span className="rn-vgs">{lineFor(upNext)} · {upNext.questions.length} questions · your life resets</span>
                   <ArrowRight className="rn-vga" size={26} strokeWidth={2.8} />
                   <span className="rn-vgbar"><span key={resumes} /></span>
                 </button>
